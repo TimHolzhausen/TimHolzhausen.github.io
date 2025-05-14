@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Magic Square Helper</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+    header {
+      background-color: #222;
+      color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    nav a {
+      color: white;
+      margin-left: 2rem;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    main {
+      padding: 2rem;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    h1, h2 {
+      color: #111;
+    }
+    .section {
+      margin-bottom: 2rem;
+    }
+    .btn {
+      display: inline-block;
+      padding: 1rem 2rem;
+      background-color: #0077cc;
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: bold;
+      margin-top: 1rem;
+    }
+    footer {
+      background-color: #eee;
+      text-align: center;
+      padding: 1rem;
+      margin-top: 2rem;
+      font-size: 0.9rem;
+    }
+    iframe {
+      width: 100%;
+      height: 800px;
+      border: none;
+      margin-top: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div><strong>Magic Square Helper</strong></div>
+    <nav>
+      <a href="#instructions">Instructions</a>
+      <a href="#update">Firmware</a>
+    </nav>
+  </header>
+  <main>
+    <section>
+      <h1>Welcome to the Magic Square Helper</h1>
+      <p>A unique tool for magicians: create stunning magic squares based on numbers or dates with just one click.</p>
+    </section>
+
+    <section id="instructions" class="section">
+      <h2>Quick Start Guide</h2>
+      <ul>
+        <li><strong>Turn on device:</strong> Press the button at the bottom using a pen (you'll hear a soft click).</li>
+        <li><strong>Menu navigation:</strong> Use Button B to navigate, Button A to select.</li>
+        <li><strong>Enter sum/date:</strong> Input your desired values in the START menu.</li>
+        <li><strong>Show magic square:</strong> Double-click Button B to calculate and display the square.</li>
+        <li><strong>Additional info:</strong> Long press Button B to show additions.</li>
+        <li><strong>Deep sleep:</strong> Long press Button B in the main menu to enter sleep mode.</li>
+        <li><strong>Reset:</strong> Long press Button A in the main menu.</li>
+      </ul>
+      <h3>Full Manual</h3>
+      <iframe src="Magic%20Square%20Helper%20-%20Tutorial.pdf"></iframe>
+    </section>
+
+    <section id="update" class="section">
+      <h2>Firmware Update</h2>
+      <p>You can update the firmware online in just a few steps:</p>
+      <ol>
+        <li>Open the marker and remove the ink cartridge</li>
+        <li>Locate the USB-C connector inside</li>
+        <li>Connect it to your computer using a USB-C cable</li>
+        <li>Open the web updater and follow the instructions</li>
+      </ol>
+      <a class="btn" href="https://timholzhausen.github.io/Webflasher/index.html" target="_blank">Update Firmware</a>
+    </section>
+  </main>
+  <footer>
+    &copy; 2025 Channing Moos & Tim Holzhausen. All rights reserved.
+  </footer>
+</body>
+</html>
