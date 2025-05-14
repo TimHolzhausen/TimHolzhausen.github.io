@@ -54,11 +54,15 @@
       margin-top: 2rem;
       font-size: 0.9rem;
     }
-    iframe {
+    .pdf-container {
       width: 100%;
-      height: 800px;
+      aspect-ratio: 8.5 / 11;
+      position: relative;
+    }
+    .pdf-container iframe {
+      width: 100%;
+      height: 100%;
       border: none;
-      margin-top: 2rem;
     }
   </style>
 </head>
@@ -88,7 +92,9 @@
         <li><strong>Reset:</strong> Long press Button A in the main menu.</li>
       </ul>
       <h3>Full Manual</h3>
-      <iframe src="Magic%20Square%20Helper%20-%20Tutorial.pdf"></iframe>
+      <div class="pdf-container">
+        <iframe src="Magic%20Square%20Helper%20-%20Tutorial.pdf"></iframe>
+      </div>
     </section>
 
     <section id="update" class="section">
@@ -104,7 +110,7 @@
     </section>
   </main>
   <footer>
-    &copy; 2025 Channing Moos & Tim Holzhausen. All rights reserved.
+    &copy; 2025 Tim Holzhausen. All rights reserved.
   </footer>
 </body>
 </html>
