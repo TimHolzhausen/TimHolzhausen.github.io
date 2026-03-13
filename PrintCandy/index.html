@@ -166,38 +166,48 @@
         recognition.start();
     }
 
-    // --- DRUCK-GENERIERUNG ---
-    function generateAndPrint(text) {
-        const feedVal = parseInt(feedSlider.value);
-        const selectedFont = document.getElementById('fontSelect').value;
-        
-        canvas.width = 384;
-        canvas.height = 400 + feedVal;
+// --- VERBESSERTE DRUCK-GENERIERUNG ---
+function generateAndPrint(text) {
+    const feedVal = parseInt(feedSlider.value);
+    const selectedFont = document.getElementById('fontSelect').value;
+    
+    // Wir setzen das Canvas exakt auf die PeriPage-Breite
+    canvas.width = 384;
+    canvas.height = 400 + feedVal;
 
-        ctx.fillStyle = "#FFFFFF";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        ctx.fillStyle = "#000000";
-        ctx.font = `bold 140px ${selectedFont}`;
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        
-        ctx.save();
-        ctx.translate(canvas.width / 2, 200);
-        ctx.rotate(Math.PI / 2);
-        ctx.fillText(text, 0, 0);
-        ctx.restore();
+    // 1. Hintergrund absolut weiß
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // 2. Text zeichnen
+    ctx.fillStyle = "#000000";
+    ctx.font = `bold 140px ${selectedFont}`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    
+    ctx.save();
+    ctx.translate(canvas.width / 2, 200);
+    ctx.rotate(Math.PI / 2); // Querformat
+    ctx.fillText(text, 0, 0);
+    ctx.restore();
 
-        const dataUrl = canvas.toDataURL("image/png");
-        const base64Data = dataUrl.split(',')[1];
-        
-        const intentUrl = `intent:base64,${base64Data}#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;S.orientation=portrait;end;`;
-        
-        window.location.href = intentUrl;
-    }
+    // 3. Bild als PNG exportieren
+    const dataUrl = canvas.toDataURL("image/png");
+    
+    // 4. DER FIX: Wir nutzen ein anderes Intent-Format
+    // Wir packen die Daten in eine URI, die RawBT zwingt, den Grafik-Decoder zu nutzen
+    const base64Data = dataUrl.split(',')[1];
+    
+    // Wir fügen S.command=printImage hinzu (Spezial-Parameter für RawBT)
+    const intentUrl = `intent:base64,${base64Data}#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;S.ext=png;S.command=image;end;`;
+    
+    status.innerText = "Sende Bild-Kommando...";
+    window.location.href = intentUrl;
+}
 
     window.onload = loadSettings;
 </script>
 
 </body>
 </html>
+
