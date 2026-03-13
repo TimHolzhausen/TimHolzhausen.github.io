@@ -3,125 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PeriPage via RawBT</title>
+    <title>PeriPage Fix</title>
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Segoe UI', sans-serif; text-align: center; background: #eef2f3; padding: 20px; }
-        .card { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); max-width: 450px; margin: auto; }
-        h1 { color: #333; margin-bottom: 10px; }
-        button { width: 100%; padding: 15px; margin: 10px 0; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .btn-listen { background: #6200ee; color: white; }
-        .btn-test { background: #03dac6; color: black; }
-        .btn-feed { background: #ff0266; color: white; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #ddd; border-radius: 10px; box-sizing: border-box; }
-        #status { margin: 15px 0; font-weight: bold; color: #6200ee; min-height: 1.5em; }
-        canvas { border: 1px solid #ccc; display: none; } /* Versteckt, nur für Bild-Erzeugung */
+        body { font-family: sans-serif; text-align: center; background: #f0f0f0; padding: 20px; }
+        .card { background: white; border-radius: 15px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 400px; margin: auto; }
+        button { width: 100%; padding: 15px; margin: 10px 0; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        .btn-main { background: #6200ee; color: white; }
+        .btn-test { background: #ddd; }
+        #status { margin: 10px; color: #6200ee; font-weight: bold; }
+        
+        /* Die Vorschau wird hier erzwungen */
+        #canvas { 
+            border: 2px solid #000; 
+            background: white; 
+            width: 100%; /* Zeigt es groß auf dem Handy an */
+            height: auto;
+            margin-top: 15px;
+            image-rendering: pixelated;
+        }
+        input { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h1>PeriPage & RawBT</h1>
-    <p>Spracherkennung für Schreibschrift-Druck</p>
+    <h2>PeriPage A6 Preview Fix</h2>
+    <input type="text" id="pattern" value="Zahl (\d{4}) bitte">
     
-    <label>Pattern (RegEx):</label>
-    <input type="text" id="pattern" value="Zahl (\d{4}) bitte" placeholder="Zahl (\d{4}) bitte">
+    <button class="btn-main" onclick="startRecognition()">Spracherkennung</button>
+    <button class="btn-test" onclick="generatePreview('1234')">Vorschau: 1234</button>
+    <button id="btnPrint" class="btn-main" style="background: #10b981; display: none;" onclick="sendToRawBT()">JETZT DRUCKEN</button>
 
-    <button class="btn-listen" onclick="startRecognition()">1. Zuhören starten</button>
-    <button class="btn-test" onclick="printExample()">Test: Beispielzahl (1234)</button>
-    <button class="btn-feed" onclick="sendFeed()">Test: Papier schieben</button>
-
-    <div id="status">Bereit.</div>
-    <canvas id="canvas" width="384" height="250"></canvas>
+    <div id="status">Warte auf Eingabe...</div>
+    
+    <p><small>Vorschau (was an den Drucker geht):</small></p>
+    <canvas id="canvas" width="384" height="600"></canvas>
 </div>
-
-<style>
-    /* ... (vorheriges CSS beibehalten) ... */
-    canvas { 
-        display: block; 
-        margin: 20px auto; 
-        border: 2px solid #333; 
-        background: white;
-        image-rendering: pixelated; /* Verhindert Unschärfe am Handy */
-    }
-</script>
 
 <script>
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     const status = document.getElementById('status');
+    let lastGeneratedBase64 = "";
+
+    // Sicherstellen, dass die Schriftart geladen ist
+    document.fonts.ready.then(() => {
+        status.innerText = "Schreibschrift geladen. Bereit!";
+        drawInitial();
+    });
+
+    function drawInitial() {
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "#ccc";
+        ctx.font = "30px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("Vorschau erscheint hier", canvas.width/2, canvas.height/2);
+    }
 
     function startRecognition() {
         const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
         recognition.lang = 'de-DE';
         recognition.start();
-        status.innerText = "Höre zu...";
+        status.innerText = "Ich höre zu...";
 
         recognition.onresult = (event) => {
-            const transcript = event.results[event.results.length - 1][0].transcript;
+            const transcript = event.results[0][0].transcript;
             const match = transcript.match(new RegExp(document.getElementById('pattern').value, "i"));
 
             if (match && match[1]) {
                 status.innerText = "Erkannt: " + match[1];
-                generateAndPrint(match[1]);
+                generatePreview(match[1]);
             } else {
                 status.innerText = "Nicht erkannt: " + transcript;
             }
         };
     }
 
-    function generateAndPrint(text) {
-        // 384px ist die magische Breite für PeriPage A6
-        canvas.width = 384;
-        canvas.height = 600; // Genug Platz für die gedrehte Zahl
-
-        // 1. Hintergrund absolut weiß (wichtig für Thermo!)
+    function generatePreview(text) {
+        // 1. Canvas säubern
         ctx.fillStyle = "#FFFFFF";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        // 2. Text-Style (Sehr fett für Thermo-Drucker empfohlen)
+
+        // 2. Text zeichnen
         ctx.fillStyle = "#000000";
-        ctx.font = "bold 160px 'Dancing Script'"; 
+        ctx.font = "bold 140px 'Dancing Script'";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        
-        // 3. Transformation
+
         ctx.save();
         ctx.translate(canvas.width / 2, canvas.height / 2);
-        ctx.rotate(Math.PI / 2); // 90 Grad drehen
-        
-        // 4. Text zeichnen
+        ctx.rotate(Math.PI / 2);
         ctx.fillText(text, 0, 0);
         ctx.restore();
 
-        // Canvas jetzt sichtbar machen zur Kontrolle
-        canvas.style.display = "block";
-
-        // 5. Export zu RawBT
-        setTimeout(() => {
-            const dataUrl = canvas.toDataURL("image/png");
-            const base64Data = dataUrl.split(',')[1];
-            // Intent mit Parametern für RawBT, um Skalierung zu minimieren
-            const intentUrl = `intent:base64,${base64Data}#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;S.orientation=portrait;end;`;
-            window.location.href = intentUrl;
-        }, 100); // Kurze Pause damit User das Bild kurz sieht
+        // 3. Base64 speichern und Button zeigen
+        lastGeneratedBase64 = canvas.toDataURL("image/png").split(',')[1];
+        document.getElementById('btnPrint').style.display = "block";
+        status.innerText = "Vorschau bereit. Klicke auf Drucken!";
     }
 
-    function sendFeed() {
-        // Erzeugt ein leeres weißes Bild für Vorschub
-        canvas.width = 384;
-        canvas.height = 200;
-        ctx.fillStyle = "white";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        const dataUrl = canvas.toDataURL("image/png");
-        window.location.href = `intent:base64,${dataUrl.split(',')[1]}#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;`;
-    }
-
-    function printExample() {
-        generateAndPrint("1234");
+    function sendToRawBT() {
+        if (!lastGeneratedBase64) return;
+        
+        // Der Intent für RawBT
+        // Wir nutzen hier eine etwas simplere Variante des Intents
+        const intentUrl = `intent:base64,${lastGeneratedBase64}#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;S.orientation=portrait;end;`;
+        
+        status.innerText = "Sende an RawBT...";
+        window.location.href = intentUrl;
     }
 </script>
 
 </body>
 </html>
-
