@@ -128,56 +128,74 @@
     }
 
     // 4. Peripage Protokoll-Versand
-    async function printCanvas() {
-        if (!printerChar) return;
+async function printCanvas() {
+    if (!printerChar) return;
 
-        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const pixels = imgData.data;
-        const width = canvas.width;
-        const height = canvas.height;
-        const bytesPerLine = width / 8;
+    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const pixels = imgData.data;
+    const width = canvas.width;
+    const height = canvas.height;
+    const bytesPerLine = width / 8; // 384 / 8 = 48 Bytes
 
-        // Header für PeriPage A6 (Bitmap Kommando)
-        // Format: [10 FF 2F 11] (Init) + [1D 76 30 00 bytes_x/8 00 height_l height_h]
-        let printCommands = new Uint8Array([0x10, 0xff, 0x2f, 0x11]);
-        await sendData(printCommands);
+    status.innerText = "Bereite Daten vor...";
 
-        let bitmapHeader = new Uint8Array([
-            0x1d, 0x76, 0x30, 0x00, 
-            (bytesPerLine & 0xff), 0x00, 
-            (height & 0xff), (height >> 8) & 0xff
-        ]);
-        await sendData(bitmapHeader);
+    // 1. Initialisierungs-Sequenz (Reset + Wake up)
+    // ESC @ (Reset) + PeriPage Init
+    await sendData(new Uint8Array([0x1b, 0x40, 0x10, 0xff, 0x2f, 0x11]));
 
-        // Pixel zu Bits konvertieren
-        let bitmap = new Uint8Array(bytesPerLine * height);
-        for (let y = 0; y < height; y++) {
-            for (let x = 0; x < width; x++) {
-                const idx = (y * width + x) * 4;
-                const avg = (pixels[idx] + pixels[idx+1] + pixels[idx+2]) / 3;
-                if (avg < 128) { // Wenn dunkel, Bit setzen
-                    bitmap[y * bytesPerLine + Math.floor(x / 8)] |= (0x80 >> (x % 8));
-                }
+    // 2. Bitmap-Kommando vorbereiten
+    // GS v 0 0 (Standard ESC/POS für Bitmaps)
+    let bitmapHeader = new Uint8Array([
+        0x1d, 0x76, 0x30, 0x00, 
+        (bytesPerLine & 0xff), (bytesPerLine >> 8) & 0xff, 
+        (height & 0xff), (height >> 8) & 0xff
+    ]);
+    await sendData(bitmapHeader);
+
+    // 3. Pixel in Bits umwandeln
+    let bitmap = new Uint8Array(bytesPerLine * height);
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+            const idx = (y * width + x) * 4;
+            // Helligkeit berechnen (Luminanz-Formel)
+            const r = pixels[idx], g = pixels[idx+1], b = pixels[idx+2];
+            const brightness = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+            
+            if (brightness < 128) { // Wenn dunkler als 50% grau -> Punkt setzen
+                const byteIdx = y * bytesPerLine + Math.floor(x / 8);
+                bitmap[byteIdx] |= (0x80 >> (x % 8));
             }
         }
-
-        await sendData(bitmap);
-        
-        // Papiervorschub am Ende
-        await sendData(new Uint8Array([0x1b, 0x4a, 0x40, 0x1b, 0x4a, 0x40]));
-        status.innerText = "Druck fertig!";
     }
 
-    // Hilfsfunktion: Daten in 20-Byte Paketen senden (Bluetooth MTU Limit)
-    async function sendData(data) {
-        const chunkSize = 20;
-        for (let i = 0; i < data.length; i += chunkSize) {
-            const chunk = data.slice(i, i + chunkSize);
-            await printerChar.writeValue(chunk);
+    // 4. Bitmap-Daten senden
+    status.innerText = "Sende Bilddaten...";
+    await sendData(bitmap);
+    
+    // 5. Abschluss: Papiervorschub (wichtig, damit man es abreißen kann)
+    // ESC J (Feed)
+    await sendData(new Uint8Array([0x1b, 0x4a, 0x64, 0x1b, 0x4a, 0x64]));
+    
+    status.innerText = "Druckvorgang abgeschlossen!";
+}
+
+// Verbesserte Sende-Funktion mit künstlicher Verzögerung
+async function sendData(data) {
+    const chunkSize = 20; // BLE Standard MTU
+    for (let i = 0; i < data.length; i += chunkSize) {
+        const chunk = data.slice(i, i + chunkSize);
+        // writeValueWithResponse ist sicherer als ohne
+        await printerChar.writeValueWithResponse(chunk);
+        
+        // Kleine Pause alle 10 Pakete, um den Drucker-Buffer zu schonen
+        if (i % 200 === 0) {
+            await new Promise(r => setTimeout(r, 20));
         }
     }
+}
 </script>
 
 </body>
 
 </html>
+
