@@ -3,31 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PeriPage Voice Print Pro</title>
+    <title>PeriPage A6 Voice Control</title>
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Segoe UI', sans-serif; text-align: center; background: #f0f2f5; padding: 20px; }
-        .card { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); max-width: 450px; margin: auto; }
-        button { background: #6200ee; color: white; border: none; padding: 12px 20px; border-radius: 12px; font-size: 15px; margin: 5px; cursor: pointer; width: 100%; transition: 0.2s; }
-        button:active { transform: scale(0.98); }
-        button:disabled { background: #ccc; }
-        .btn-secondary { background: #03dac6; color: black; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        #status { font-weight: bold; color: #6200ee; margin: 15px 0; min-height: 1.2em; }
-        canvas { border: 1px solid #ddd; margin-top: 10px; background: white; width: 100%; height: auto; display: none; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; background-color: #f8f9fa; color: #333; padding: 20px; }
+        .container { background: white; border-radius: 20px; padding: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); max-width: 400px; margin: auto; }
+        h1 { font-size: 1.5rem; color: #6200ee; }
+        input { width: 100%; padding: 12px; margin: 15px 0; border: 2px solid #eee; border-radius: 10px; font-size: 16px; box-sizing: border-box; }
+        button { width: 100%; padding: 15px; margin: 8px 0; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        #btnConnect { background-color: #6200ee; color: white; }
+        #btnListen { background-color: #03dac6; color: black; }
+        #btnFeed { background-color: #ff0266; color: white; }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+        #status { margin: 20px 0; font-weight: bold; color: #6200ee; min-height: 1.5em; border-top: 1px solid #eee; padding-top: 15px; }
+        canvas { display: none; border: 1px solid #ddd; margin-top: 10px; width: 100%; }
+        .hint { font-size: 12px; color: #666; margin-bottom: 20px; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h2>PeriPage A6 Voice Control</h2>
-    
-    <label>Muster (RegEx):</label>
-    <input type="text" id="pattern" value="Zahl (\d{4}) bitte" placeholder="z.B. Zahl (\d{4}) bitte">
-    
-    <button id="btnConnect">1. Drucker suchen & verbinden</button>
-    <button id="btnListen" disabled>2. Spracherkennung starten</button>
-    <button id="btnFeed" class="btn-secondary" disabled>Test: Papier schieben</button>
+<div class="container">
+    <h1>PeriPage A6 Voice</h1>
+    <p class="hint">Verbindung über HTTPS erforderlich</p>
+
+    <label for="pattern">Sprach-Muster (RegEx):</label>
+    <input type="text" id="pattern" value="Zahl (\d{4}) bitte" placeholder="z.B. Nummer (\d{4}) drucken">
+
+    <button id="btnConnect">1. Drucker verbinden</button>
+    <button id="btnListen" disabled>2. Start Spracherkennung</button>
+    <button id="btnFeed" disabled>Nur Papiervorschub (Test)</button>
 
     <div id="status">Bereit.</div>
     <canvas id="canvas" width="384" height="240"></canvas>
@@ -39,50 +43,56 @@
     const ctx = canvas.getContext('2d');
     const status = document.getElementById('status');
 
-    // Liste der bekannten PeriPage Services
-    const UUID_SERVICES = [
-        '0000af30-0000-1000-8000-00805f9b34fb', // Standard A6
-        '0000ff00-0000-1000-8000-00805f9b34fb', // Variante B
-        '49535343-fe7d-4ae5-8fa9-9fafd205e455'  // Variante C
+    // Bekannte Service-UUIDs für verschiedene PeriPage-Revisionen
+    const SERVICES = [
+        '0000af30-0000-1000-8000-00805f9b34fb', 
+        '0000ff00-0000-1000-8000-00805f9b34fb',
+        'e7860001-b07a-43f5-9391-722510c37c3a'
     ];
 
-    // 1. Verbindung mit Service-Scanning
+    // --- 1. VERBINDUNG ---
     document.getElementById('btnConnect').onclick = async () => {
         try {
-            status.innerText = "Suche PeriPage...";
+            status.innerText = "Suche Bluetooth Gerät...";
             const device = await navigator.bluetooth.requestDevice({
-                filters: [{ namePrefix: 'PeriPage' }],
-                optionalServices: UUID_SERVICES
+                filters: [{ namePrefix: 'PeriPage' }, { namePrefix: 'A6' }],
+                optionalServices: SERVICES
             });
 
             const server = await device.gatt.connect();
-            status.innerText = "Verbunden. Prüfe Services...";
+            status.innerText = "Verbunden. Suche Service...";
 
             let service;
-            for (const uuid of UUID_SERVICES) {
+            for (const uuid of SERVICES) {
                 try {
                     service = await server.getPrimaryService(uuid);
                     if (service) break;
-                } catch (e) { /* Service nicht gefunden, versuche nächsten */ }
+                } catch (e) { console.log("Service " + uuid + " nicht gefunden."); }
             }
 
-            if (!service) throw new Error("Kein passender Service gefunden.");
+            if (!service) throw new Error("Kein kompatibler Service gefunden.");
 
             const characteristics = await service.getCharacteristics();
-            // Suche Charakteristik, die Schreiben erlaubt
+            // Suche Charakteristik für Schreibzugriff
             printerChar = characteristics.find(c => c.properties.write || c.properties.writeWithoutResponse);
 
-            if (!printerChar) throw new Error("Schreib-Modul nicht gefunden.");
+            if (!printerChar) throw new Error("Kein Schreib-Kanal gefunden.");
 
-            status.innerText = "Bereit! (Service: " + service.uuid.substring(4,8) + ")";
+            // Initialisierung / Wake-up
+            status.innerText = "Sende Wake-up Sequenz...";
+            await sendData(new Uint8Array([0x10, 0xff, 0x2f, 0x11]));
+            await new Promise(r => setTimeout(r, 200));
+
+            status.innerText = "Drucker bereit!";
             document.getElementById('btnListen').disabled = false;
             document.getElementById('btnFeed').disabled = false;
         } catch (err) {
             status.innerText = "Fehler: " + err.message;
+            console.error(err);
         }
     };
 
-    // 2. Spracherkennung
+    // --- 2. SPRACHERKENNUNG ---
     const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
     recognition.lang = 'de-DE';
     recognition.continuous = true;
@@ -94,45 +104,48 @@
 
     recognition.onresult = (event) => {
         const text = event.results[event.results.length - 1][0].transcript;
-        const regex = new RegExp(document.getElementById('pattern').value, "i");
+        const patternStr = document.getElementById('pattern').value;
+        const regex = new RegExp(patternStr, "i");
         const match = text.match(regex);
 
         if (match && match[1]) {
-            status.innerText = "Erkannt: " + match[1] + ". Drucke...";
-            renderAndPrint(match[1]);
+            status.innerText = "Erkannt: " + match[1] + ". Starte Druck...";
+            generatePrint(match[1]);
+        } else {
+            status.innerText = "Gehört: " + text;
         }
     };
 
-    // 3. Grafik für Querformat
-    function renderAndPrint(number) {
+    // --- 3. GRAFIK-RENDERING ---
+    function generatePrint(number) {
         ctx.fillStyle = "white";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = "black";
-        ctx.font = "bold 100px 'Dancing Script'";
+        ctx.font = "bold 110px 'Dancing Script'";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
 
         ctx.save();
         ctx.translate(canvas.width / 2, canvas.height / 2);
-        ctx.rotate(Math.PI / 2); // Querformat
+        ctx.rotate(Math.PI / 2); // 90 Grad drehen für Querformat
         ctx.fillText(number, 0, 0);
         ctx.restore();
 
         printCanvas();
     }
 
-    // 4. Druck-Protokoll (Line-by-Line)
+    // --- 4. DRUCK-PROTOKOLL ---
     async function printCanvas() {
         if (!printerChar) return;
 
-        // Wake up / Reset
-        await sendData(new Uint8Array([0x10, 0xff, 0x2f, 0x11])); 
-        
         const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const pixels = imgData.data;
         const width = canvas.width;
         const height = canvas.height;
         const bytesPerLine = width / 8;
+
+        // Reset & Init
+        await sendData(new Uint8Array([0x1b, 0x40, 0x10, 0xff, 0x2f, 0x11]));
 
         for (let y = 0; y < height; y++) {
             let bitmapLine = new Uint8Array(bytesPerLine);
@@ -143,32 +156,44 @@
                     bitmapLine[Math.floor(x / 8)] |= (0x80 >> (x % 8));
                 }
             }
-            
-            // Befehl: Drucke Bitmap Zeile (0x12 0x54)
+            // Kommando: Drucke Grafik-Zeile (0x12 0x54 + Anzahl Bytes)
             await sendData(new Uint8Array([0x12, 0x54, bytesPerLine]));
             await sendData(bitmapLine);
         }
 
-        // Papiervorschub
+        // Papiervorschub am Ende (64 hex = 100 Einheiten)
         await sendData(new Uint8Array([0x1b, 0x4a, 0x64]));
-        status.innerText = "Druck beendet.";
+        status.innerText = "Druck beendet!";
     }
 
-    // Test Button: Nur Papier schieben
-    document.getElementById('btnFeed').onclick = () => {
-        sendData(new Uint8Array([0x1b, 0x4a, 0x64]));
+    // Test-Button Logik
+    document.getElementById('btnFeed').onclick = async () => {
+        status.innerText = "Sende Test-Vorschub...";
+        await sendData(new Uint8Array([0x1b, 0x4a, 0x80]));
+        status.innerText = "Befehl gesendet.";
     };
 
-    // Hilfsfunktion: Senden mit kleiner Verzögerung
+    // Zentrale Sende-Funktion mit MTU-Splitting (20 Bytes)
     async function sendData(data) {
+        if (!printerChar) return;
         const chunkSize = 20;
         for (let i = 0; i < data.length; i += chunkSize) {
             const chunk = data.slice(i, i + chunkSize);
-            // Nutze writeWithoutResponse für bessere Performance bei Grafik
-            await printerChar.writeValueWithoutResponse(chunk);
-            await new Promise(r => setTimeout(r, 5)); // 5ms Pause
+            try {
+                if (printerChar.properties.writeWithoutResponse) {
+                    await printerChar.writeValueWithoutResponse(chunk);
+                } else {
+                    await printerChar.writeValueWithResponse(chunk);
+                }
+                // Kleine Pause zur Puffer-Schonung
+                await new Promise(r => setTimeout(r, 8));
+            } catch (e) {
+                console.error("Sende-Fehler:", e);
+                await new Promise(r => setTimeout(r, 100)); // Längere Pause bei Fehler
+            }
         }
     }
 </script>
+
 </body>
 </html>
