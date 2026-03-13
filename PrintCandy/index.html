@@ -104,17 +104,21 @@
         status.innerText = "Vorschau bereit. Klicke auf Drucken!";
     }
 
-    function sendToRawBT() {
-        if (!lastGeneratedBase64) return;
-        
-        // Der Intent für RawBT
-        // Wir nutzen hier eine etwas simplere Variante des Intents
-        const intentUrl = `intent:base64,${lastGeneratedBase64}#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;S.orientation=portrait;end;`;
-        
-        status.innerText = "Sende an RawBT...";
-        window.location.href = intentUrl;
-    }
+function sendToRawBT() {
+    if (!lastGeneratedBase64) return;
+    
+    // Wir nutzen das "rawbt:" Präfix, das ist oft stabiler als der lange "intent:" Link
+    // Wir sagen RawBT explizit, dass es sich um ein PNG handelt
+    const uri = "data:image/png;base64," + lastGeneratedBase64;
+    
+    // Alternative Intent-Struktur, die RawBT zwingt, das als Bild zu behandeln
+    const intentUrl = `intent:${uri}#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;S.orientation=portrait;end;`;
+    
+    status.innerText = "Sende Bild an RawBT...";
+    window.location.href = intentUrl;
+}
 </script>
 
 </body>
 </html>
+
