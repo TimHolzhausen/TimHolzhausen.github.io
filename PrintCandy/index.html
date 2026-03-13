@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PeriPage Voice Pro</title>
-    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Dancing+Script:wght@700&family=Pacifico&family=Satisfy&family=Indie+Flower&display=swap" rel="stylesheet">
+    <title>PeriPage Bonbon-Counter</title>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Dancing+Script:wght@700&family=Pacifico&family=Indie+Flower&display=swap" rel="stylesheet">
     <style>
         :root { --primary: #6200ee; --bg: #f4f7f6; }
         body { font-family: 'Segoe UI', sans-serif; text-align: center; background: var(--bg); padding: 15px; margin: 0; }
         .card { background: white; border-radius: 20px; padding: 20px; box-shadow: 0 8px 25px rgba(0,0,0,0.1); max-width: 450px; margin: auto; }
-        
-        h1 { color: var(--primary); font-size: 1.3rem; margin-top: 0; }
+        h1 { color: var(--primary); font-size: 1.3rem; margin: 0 0 15px 0; }
         
         .btn { width: 100%; padding: 16px; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; margin-bottom: 10px; }
         .btn-listen { background: var(--primary); color: white; }
@@ -21,61 +20,48 @@
         label { font-weight: bold; font-size: 13px; color: #666; }
         .value-badge { background: var(--primary); color: white; padding: 2px 8px; border-radius: 10px; font-size: 12px; }
 
-        input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; box-sizing: border-box; }
-
-        #fontPreview { 
-            margin: 10px 0; 
-            padding: 10px; 
-            background: white; 
-            border: 1px dashed #ccc; 
-            font-size: 35px; 
-            min-height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        #status { font-weight: bold; color: var(--primary); margin: 10px 0; height: 1.2em; }
-        canvas { display: none; }
-        
+        input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; box-sizing: border-box; }
+        #status { font-weight: bold; color: var(--primary); margin: 10px 0; min-height: 1.2em; font-size: 0.9rem; }
+        #fontPreview { margin: 10px 0; padding: 10px; background: white; border: 1px dashed #ccc; font-size: 40px; min-height: 50px; display: flex; align-items: center; justify-content: center; }
+        canvas { display: none; border: 1px solid #000; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h1>PeriPage A6 Voice Print</h1>
+    <h1>PeriPage Bonbon-Drucker</h1>
     
     <div id="status">Bereit.</div>
 
     <button id="startBtn" class="btn btn-listen" onclick="toggleRecognition()">🎤 Zuhören starten</button>
 
     <div class="setting-group">
-        <label>Muster (RegEx):</label>
-        <input type="text" id="pattern" value="Zahl (\d{4}) bitte" oninput="saveSettings()">
+        <label>Erkennungs-Muster:</label>
+        <input type="text" id="pattern" value="es sind (\d{4}) bonbons" oninput="saveSettings()">
+        <small style="color: #999;">Tipp: (\d{4}) findet die 4 Zahlen.</small>
     </div>
 
     <div class="setting-group">
         <label>Schriftart:</label>
         <select id="fontSelect" onchange="updateFontPreview()">
+            <option value="'Pacifico', cursive">Pacifico (Sehr Dick)</option>
             <option value="'Dancing Script', cursive">Dancing Script</option>
-            <option value="'Pacifico', cursive">Pacifico (Dick & Rund)</option>
-            <option value="'Caveat', cursive">Caveat (Natürlich)</option>
-            <option value="'Satisfy', cursive">Satisfy (Elegant)</option>
-            <option value="'Indie Flower', cursive">Indie Flower (Klar)</option>
+            <option value="'Caveat', cursive">Caveat (Handschrift)</option>
+            <option value="'Indie Flower', cursive">Indie Flower</option>
         </select>
-        <div id="fontPreview">1234</div>
+        <div id="fontPreview">7512</div>
     </div>
 
     <div class="setting-group">
         <div class="label-row">
-            <label>Extra Vorschub:</label>
+            <label>Papier-Vorschub:</label>
             <span id="feedValue" class="value-badge">200 px</span>
         </div>
-        <input type="range" id="feed" min="0" max="1000" step="10" value="200" oninput="updateFeedDisplay()">
+        <input type="range" id="feed" min="0" max="1000" step="20" value="200" oninput="updateFeedDisplay()">
     </div>
 
-    <button class="btn" style="background: #ddd;" onclick="generateAndPrint('1234')">Test-Druck (1234)</button>
+    <button class="btn" style="background: #ddd;" onclick="generateAndPrint('7512')">Test-Druck (7512)</button>
     
     <canvas id="canvas"></canvas>
 </div>
@@ -91,7 +77,7 @@
     let isListening = false;
     let recognition;
 
-    // --- SETTINGS LOGIK ---
+    // --- EINSTELLUNGEN LADEN/SPEICHERN ---
     function updateFeedDisplay() {
         feedDisplay.innerText = feedSlider.value + " px";
         saveSettings();
@@ -103,11 +89,11 @@
             font: document.getElementById('fontSelect').value,
             feed: feedSlider.value
         };
-        localStorage.setItem('peripage_settings', JSON.stringify(settings));
+        localStorage.setItem('peripage_bonbon_settings', JSON.stringify(settings));
     }
 
     function loadSettings() {
-        const saved = localStorage.getItem('peripage_settings');
+        const saved = localStorage.getItem('peripage_bonbon_settings');
         if (saved) {
             const s = JSON.parse(saved);
             document.getElementById('pattern').value = s.pattern;
@@ -120,8 +106,7 @@
 
     function updateFontPreview() {
         const font = document.getElementById('fontSelect').value;
-        const preview = document.getElementById('fontPreview');
-        preview.style.fontFamily = font;
+        document.getElementById('fontPreview').style.fontFamily = font;
         saveSettings();
     }
 
@@ -144,12 +129,14 @@
             const transcript = event.results[event.results.length - 1][0].transcript;
             status.innerText = "Gehört: " + transcript;
             
-            const regex = new RegExp(document.getElementById('pattern').value, "i");
+            const patternStr = document.getElementById('pattern').value;
+            const regex = new RegExp(patternStr, "i"); // "i" macht es egal ob Groß/Kleinschreibung
             const match = transcript.match(regex);
 
             if (match && match[1]) {
-                status.innerText = "Match! Drucke " + match[1];
-                generateAndPrint(match[1]);
+                const nr = match[1];
+                status.innerText = "GEFUNDEN: " + nr + "! Drucke...";
+                generateAndPrint(nr);
             }
         };
 
@@ -162,46 +149,39 @@
         recognition.start();
     }
 
-    // --- DRUCK-FUNKTION (DEINE FUNKTIONIERENDE LOGIK) ---
+    // --- DRUCK-FUNKTION (STABILE VERSION) ---
     function generateAndPrint(text) {
         const feedVal = parseInt(feedSlider.value);
-    const selectedFont = document.getElementById('fontSelect').value;
-    
-    // 1. Die Breite bleibt 384 (Drucker-Limit)
-    canvas.width = 384; 
-    
-    // 2. Die Canvas-Höhe muss bei riesiger Schrift mitwachsen, 
-    // damit die Zahlen nicht oben/unten abgeschnitten werden.
-    // Ein Wert von 800 bis 1000 ist für 4 große Ziffern ideal.
-    canvas.height = 800 + feedVal; 
+        const selectedFont = document.getElementById('fontSelect').value;
+        
+        canvas.width = 384; 
+        canvas.height = 700 + feedVal; // Mehr Höhe für Riesen-Schrift + Vorschub
 
-    ctx.fillStyle = "#FFFFFF";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // 3. SCHRIFTGRÖSSE: 
-    // 320px bis 350px füllen das 384px breite Papier fast komplett aus.
-    ctx.fillStyle = "#000000";
-    ctx.font = `bold 330px ${selectedFont}`; 
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    
-    ctx.save();
-    // 4. POSITIONIERUNG:
-    // Wir schieben das Zentrum des Textes in die Mitte des (langen) Bildes
-    ctx.translate(canvas.width / 2, 400); 
-    ctx.rotate(Math.PI / 2);
-    ctx.fillText(text, 0, 0);
-    ctx.restore();
-        // --- DER VORSCHUB-FIX ---
-    // Wir setzen einen winzigen schwarzen Pixel an das untere Ende
-    // Das zwingt den Drucker, das Papier bis hierhin zu schieben.
-    ctx.fillStyle = "#000000";
-    ctx.fillRect(canvas.width - 1, canvas.height - 1, 1, 1); 
-    // ------------------------
+        // 1. Hintergrund Weiß
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // 2. Riesen-Text (Füllt fast die ganze Breite)
+        ctx.fillStyle = "#000000";
+        ctx.font = `bold 330px ${selectedFont}`; 
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        
+        ctx.save();
+        // Positionierung: Text wird oben im Bild (ca. 300px vom Rand) platziert
+        ctx.translate(canvas.width / 2, 300);
+        ctx.rotate(Math.PI / 2); // Querformat Drehung
+        ctx.fillText(text, 0, 0);
+        ctx.restore();
 
-        // 3. Deine funktionierende Sende-Logik
-        const lastGeneratedBase64 = canvas.toDataURL("image/png").split(',')[1];
-        const uri = "data:image/png;base64," + lastGeneratedBase64;
+        // 3. VORSCHUB-FIX: Schmutzpixel ganz unten rechts setzen
+        // Das zwingt RawBT das Bild nicht zu kürzen (kein Auto-Trim)
+        ctx.fillStyle = "#000000";
+        ctx.fillRect(canvas.width - 1, canvas.height - 1, 1, 1);
+
+        // 4. Senden über die funktionierende URI-Struktur
+        const base64Data = canvas.toDataURL("image/png").split(',')[1];
+        const uri = "data:image/png;base64," + base64Data;
         const intentUrl = `intent:${uri}#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;S.orientation=portrait;end;`;
         
         window.location.href = intentUrl;
@@ -212,5 +192,3 @@
 
 </body>
 </html>
-
-
