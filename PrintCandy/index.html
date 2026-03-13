@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PeriPage Voice Print</title>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; text-align: center; background: #f4f4f9; padding: 20px; }
+        .card { background: white; border-radius: 15px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 400px; margin: auto; }
+        button { background: #6200ee; color: white; border: none; padding: 12px 24px; border-radius: 25px; font-size: 16px; margin: 10px; cursor: pointer; transition: 0.3s; }
+        button:disabled { background: #ccc; }
+        input { width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
+        #status { font-weight: bold; color: #6200ee; margin-top: 20px; }
+        canvas { border: 1px solid #eee; margin-top: 10px; background: white; max-width: 100%; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>PeriPage A6 Voice</h2>
+    
+    <label>Sprach-Muster (RegEx):</label>
+    <input type="text" id="pattern" value="Zahl (\d{4}) drucken" placeholder="z.B. Nummer (\d{4})">
+    <p><small>Verwende (\d{4}) für die 4 Zahlen.</small></p>
+
+    <button id="btnConnect">1. Drucker verbinden</button>
+    <button id="btnListen" disabled>2. Zuhören</button>
+
+    <div id="status">Bereit.</div>
+    <canvas id="canvas" width="384" height="240" style="display:none;"></canvas>
+</div>
+
+<script>
+    let printerChar = null;
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const status = document.getElementById('status');
+
+    // 1. Bluetooth Verbindung
+    document.getElementById('btnConnect').onclick = async () => {
+        try {
+            const device = await navigator.bluetooth.requestDevice({
+                filters: [{ namePrefix: 'PeriPage' }],
+                optionalServices: ['0000af30-0000-1000-8000-00805f9b34fb']
+            });
+            const server = await device.gatt.connect();
+            const service = await server.getPrimaryService('0000af30-0000-1000-8000-00805f9b34fb');
+            printerChar = await service.getCharacteristic('0000af31-0000-1000-8000-00805f9b34fb');
+            
+            status.innerText = "Verbunden mit " + device.name;
+            document.getElementById('btnListen').disabled = false;
+        } catch (err) {
+            status.innerText = "Fehler: " + err.message;
+        }
+    };
+
+    // 2. Spracherkennung
+    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    recognition.lang = 'de-DE';
+    recognition.continuous = true;
+    recognition.interimResults = false;
+
+    document.getElementById('btnListen').onclick = () => {
+        recognition.start();
+        status.innerText = "Ich höre zu... Sag das Muster!";
+    };
+
+    recognition.onresult = (event) => {
+        const text = event.results[event.results.length - 1][0].transcript;
+        const patternStr = document.getElementById('pattern').value;
+        const regex = new RegExp(patternStr, "i");
+        const match = text.match(regex);
+
+        if (match && match[1]) {
+            status.innerText = "Erkannt: " + match[1];
+            generatePrintData(match[1]);
+        } else {
+            status.innerText = "Gehört: '" + text + "' (Kein Match)";
+        }
+    };
+
+    // 3. Bild generieren (Schreibschrift & Quer)
+    function generatePrintData(number) {
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        ctx.fillStyle = "black";
+        ctx.font = "bold 100px 'Dancing Script'";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+
+        // Transformation für Querformat (90 Grad Drehung)
+        ctx.save();
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        ctx.rotate(Math.PI / 2);
+        ctx.fillText(number, 0, 0);
+        ctx.restore();
+
+        printCanvas();
+    }
+
+    // 4. Peripage Protokoll-Versand
+    async function printCanvas() {
+        if (!printerChar) return;
+
+        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const pixels = imgData.data;
+        const width = canvas.width;
+        const height = canvas.height;
+        const bytesPerLine = width / 8;
+
+        // Header für PeriPage A6 (Bitmap Kommando)
+        // Format: [10 FF 2F 11] (Init) + [1D 76 30 00 bytes_x/8 00 height_l height_h]
+        let printCommands = new Uint8Array([0x10, 0xff, 0x2f, 0x11]);
+        await sendData(printCommands);
+
+        let bitmapHeader = new Uint8Array([
+            0x1d, 0x76, 0x30, 0x00, 
+            (bytesPerLine & 0xff), 0x00, 
+            (height & 0xff), (height >> 8) & 0xff
+        ]);
+        await sendData(bitmapHeader);
+
+        // Pixel zu Bits konvertieren
+        let bitmap = new Uint8Array(bytesPerLine * height);
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
+                const idx = (y * width + x) * 4;
+                const avg = (pixels[idx] + pixels[idx+1] + pixels[idx+2]) / 3;
+                if (avg < 128) { // Wenn dunkel, Bit setzen
+                    bitmap[y * bytesPerLine + Math.floor(x / 8)] |= (0x80 >> (x % 8));
+                }
+            }
+        }
+
+        await sendData(bitmap);
+        
+        // Papiervorschub am Ende
+        await sendData(new Uint8Array([0x1b, 0x4a, 0x40, 0x1b, 0x4a, 0x40]));
+        status.innerText = "Druck fertig!";
+    }
+
+    // Hilfsfunktion: Daten in 20-Byte Paketen senden (Bluetooth MTU Limit)
+    async function sendData(data) {
+        const chunkSize = 20;
+        for (let i = 0; i < data.length; i += chunkSize) {
+            const chunk = data.slice(i, i + chunkSize);
+            await printerChar.writeValue(chunk);
+        }
+    }
+</script>
+
+</body>
+</html>
