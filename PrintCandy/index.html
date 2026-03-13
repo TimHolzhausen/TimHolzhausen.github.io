@@ -3,32 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PeriPage Voice Print</title>
+    <title>PeriPage Voice Print Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Segoe UI', sans-serif; text-align: center; background: #f4f4f9; padding: 20px; }
-        .card { background: white; border-radius: 15px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 400px; margin: auto; }
-        button { background: #6200ee; color: white; border: none; padding: 12px 24px; border-radius: 25px; font-size: 16px; margin: 10px; cursor: pointer; transition: 0.3s; }
+        body { font-family: 'Segoe UI', sans-serif; text-align: center; background: #f0f2f5; padding: 20px; }
+        .card { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); max-width: 450px; margin: auto; }
+        button { background: #6200ee; color: white; border: none; padding: 12px 20px; border-radius: 12px; font-size: 15px; margin: 5px; cursor: pointer; width: 100%; transition: 0.2s; }
+        button:active { transform: scale(0.98); }
         button:disabled { background: #ccc; }
-        input { width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
-        #status { font-weight: bold; color: #6200ee; margin-top: 20px; }
-        canvas { border: 1px solid #eee; margin-top: 10px; background: white; max-width: 100%; }
+        .btn-secondary { background: #03dac6; color: black; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        #status { font-weight: bold; color: #6200ee; margin: 15px 0; min-height: 1.2em; }
+        canvas { border: 1px solid #ddd; margin-top: 10px; background: white; width: 100%; height: auto; display: none; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2>PeriPage A6 Voice</h2>
+    <h2>PeriPage A6 Voice Control</h2>
     
-    <label>Sprach-Muster (RegEx):</label>
-    <input type="text" id="pattern" value="Zahl (\d{4}) drucken" placeholder="z.B. Nummer (\d{4})">
-    <p><small>Verwende (\d{4}) für die 4 Zahlen.</small></p>
-
-    <button id="btnConnect">1. Drucker verbinden</button>
-    <button id="btnListen" disabled>2. Zuhören</button>
+    <label>Muster (RegEx):</label>
+    <input type="text" id="pattern" value="Zahl (\d{4}) bitte" placeholder="z.B. Zahl (\d{4}) bitte">
+    
+    <button id="btnConnect">1. Drucker suchen & verbinden</button>
+    <button id="btnListen" disabled>2. Spracherkennung starten</button>
+    <button id="btnFeed" class="btn-secondary" disabled>Test: Papier schieben</button>
 
     <div id="status">Bereit.</div>
-    <canvas id="canvas" width="384" height="240" style="display:none;"></canvas>
+    <canvas id="canvas" width="384" height="240"></canvas>
 </div>
 
 <script>
@@ -37,165 +39,136 @@
     const ctx = canvas.getContext('2d');
     const status = document.getElementById('status');
 
-    // 1. Bluetooth Verbindung
+    // Liste der bekannten PeriPage Services
+    const UUID_SERVICES = [
+        '0000af30-0000-1000-8000-00805f9b34fb', // Standard A6
+        '0000ff00-0000-1000-8000-00805f9b34fb', // Variante B
+        '49535343-fe7d-4ae5-8fa9-9fafd205e455'  // Variante C
+    ];
+
+    // 1. Verbindung mit Service-Scanning
     document.getElementById('btnConnect').onclick = async () => {
-    try {
-        status.innerText = "Suche Gerät...";
-        const device = await navigator.bluetooth.requestDevice({
-            // Wir lassen uns alle Geräte anzeigen, die "PeriPage" im Namen haben
-            filters: [{ namePrefix: 'PeriPage' }],
-            // Wir fragen alle bekannten Services ab
-            optionalServices: [
-                '0000af30-0000-1000-8000-00805f9b34fb', 
-                '0000ff00-0000-1000-8000-00805f9b34fb',
-                '49535343-fe7d-4ae5-8fa9-9fafd205e455'
-            ]
-        });
+        try {
+            status.innerText = "Suche PeriPage...";
+            const device = await navigator.bluetooth.requestDevice({
+                filters: [{ namePrefix: 'PeriPage' }],
+                optionalServices: UUID_SERVICES
+            });
 
-        const server = await device.gatt.connect();
-        status.innerText = "Verbunden. Suche Service...";
+            const server = await device.gatt.connect();
+            status.innerText = "Verbunden. Prüfe Services...";
 
-        // Wir versuchen den primären Service zu finden
-        const services = await server.getPrimaryServices();
-        console.log("Gefundene Services:", services);
-        
-        // Wir nehmen den ersten verfügbaren Service aus unserer Liste
-        let service;
-        for (let s of services) {
-            if (s.uuid.includes('af30') || s.uuid.includes('ff00') || s.uuid.includes('49535343')) {
-                service = s;
-                break;
+            let service;
+            for (const uuid of UUID_SERVICES) {
+                try {
+                    service = await server.getPrimaryService(uuid);
+                    if (service) break;
+                } catch (e) { /* Service nicht gefunden, versuche nächsten */ }
             }
+
+            if (!service) throw new Error("Kein passender Service gefunden.");
+
+            const characteristics = await service.getCharacteristics();
+            // Suche Charakteristik, die Schreiben erlaubt
+            printerChar = characteristics.find(c => c.properties.write || c.properties.writeWithoutResponse);
+
+            if (!printerChar) throw new Error("Schreib-Modul nicht gefunden.");
+
+            status.innerText = "Bereit! (Service: " + service.uuid.substring(4,8) + ")";
+            document.getElementById('btnListen').disabled = false;
+            document.getElementById('btnFeed').disabled = false;
+        } catch (err) {
+            status.innerText = "Fehler: " + err.message;
         }
-
-        if (!service) throw new Error("Kein passender Druck-Service gefunden!");
-
-        const characteristics = await service.getCharacteristics();
-        // Wir nehmen die erste Characteristic, die "Write" erlaubt
-        printerChar = characteristics.find(c => c.properties.write || c.properties.writeWithoutResponse);
-
-        status.innerText = "Drucker bereit! (Service: " + service.uuid.substring(4,8) + ")";
-        document.getElementById('btnListen').disabled = false;
-    } catch (err) {
-        console.error(err);
-        status.innerText = "Fehler: " + err.message;
-    }
-};
+    };
 
     // 2. Spracherkennung
     const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
     recognition.lang = 'de-DE';
     recognition.continuous = true;
-    recognition.interimResults = false;
 
     document.getElementById('btnListen').onclick = () => {
         recognition.start();
-        status.innerText = "Ich höre zu... Sag das Muster!";
+        status.innerText = "Höre zu... Sprich das Muster!";
     };
 
     recognition.onresult = (event) => {
         const text = event.results[event.results.length - 1][0].transcript;
-        const patternStr = document.getElementById('pattern').value;
-        const regex = new RegExp(patternStr, "i");
+        const regex = new RegExp(document.getElementById('pattern').value, "i");
         const match = text.match(regex);
 
         if (match && match[1]) {
-            status.innerText = "Erkannt: " + match[1];
-            generatePrintData(match[1]);
-        } else {
-            status.innerText = "Gehört: '" + text + "' (Kein Match)";
+            status.innerText = "Erkannt: " + match[1] + ". Drucke...";
+            renderAndPrint(match[1]);
         }
     };
 
-    // 3. Bild generieren (Schreibschrift & Quer)
-    function generatePrintData(number) {
+    // 3. Grafik für Querformat
+    function renderAndPrint(number) {
         ctx.fillStyle = "white";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
         ctx.fillStyle = "black";
         ctx.font = "bold 100px 'Dancing Script'";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
 
-        // Transformation für Querformat (90 Grad Drehung)
         ctx.save();
         ctx.translate(canvas.width / 2, canvas.height / 2);
-        ctx.rotate(Math.PI / 2);
+        ctx.rotate(Math.PI / 2); // Querformat
         ctx.fillText(number, 0, 0);
         ctx.restore();
 
         printCanvas();
     }
 
-    // 4. Peripage Protokoll-Versand
-async function printCanvas() {
-    if (!printerChar) return;
+    // 4. Druck-Protokoll (Line-by-Line)
+    async function printCanvas() {
+        if (!printerChar) return;
 
-    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const pixels = imgData.data;
-    const width = canvas.width;
-    const height = canvas.height;
-    const bytesPerLine = width / 8; // 384 / 8 = 48 Bytes
-
-    status.innerText = "Bereite Daten vor...";
-
-    // 1. Initialisierungs-Sequenz (Reset + Wake up)
-    // ESC @ (Reset) + PeriPage Init
-    await sendData(new Uint8Array([0x1b, 0x40, 0x10, 0xff, 0x2f, 0x11]));
-
-    // 2. Bitmap-Kommando vorbereiten
-    // GS v 0 0 (Standard ESC/POS für Bitmaps)
-    let bitmapHeader = new Uint8Array([
-        0x1d, 0x76, 0x30, 0x00, 
-        (bytesPerLine & 0xff), (bytesPerLine >> 8) & 0xff, 
-        (height & 0xff), (height >> 8) & 0xff
-    ]);
-    await sendData(bitmapHeader);
-
-    // 3. Pixel in Bits umwandeln
-    let bitmap = new Uint8Array(bytesPerLine * height);
-    for (let y = 0; y < height; y++) {
-        for (let x = 0; x < width; x++) {
-            const idx = (y * width + x) * 4;
-            // Helligkeit berechnen (Luminanz-Formel)
-            const r = pixels[idx], g = pixels[idx+1], b = pixels[idx+2];
-            const brightness = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-            
-            if (brightness < 128) { // Wenn dunkler als 50% grau -> Punkt setzen
-                const byteIdx = y * bytesPerLine + Math.floor(x / 8);
-                bitmap[byteIdx] |= (0x80 >> (x % 8));
-            }
-        }
-    }
-
-    // 4. Bitmap-Daten senden
-    status.innerText = "Sende Bilddaten...";
-    await sendData(bitmap);
-    
-    // 5. Abschluss: Papiervorschub (wichtig, damit man es abreißen kann)
-    // ESC J (Feed)
-    await sendData(new Uint8Array([0x1b, 0x4a, 0x64, 0x1b, 0x4a, 0x64]));
-    
-    status.innerText = "Druckvorgang abgeschlossen!";
-}
-
-// Verbesserte Sende-Funktion mit künstlicher Verzögerung
-async function sendData(data) {
-    const chunkSize = 20; // BLE Standard MTU
-    for (let i = 0; i < data.length; i += chunkSize) {
-        const chunk = data.slice(i, i + chunkSize);
-        // writeValueWithResponse ist sicherer als ohne
-        await printerChar.writeValueWithResponse(chunk);
+        // Wake up / Reset
+        await sendData(new Uint8Array([0x10, 0xff, 0x2f, 0x11])); 
         
-        // Kleine Pause alle 10 Pakete, um den Drucker-Buffer zu schonen
-        if (i % 200 === 0) {
-            await new Promise(r => setTimeout(r, 20));
+        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const pixels = imgData.data;
+        const width = canvas.width;
+        const height = canvas.height;
+        const bytesPerLine = width / 8;
+
+        for (let y = 0; y < height; y++) {
+            let bitmapLine = new Uint8Array(bytesPerLine);
+            for (let x = 0; x < width; x++) {
+                const idx = (y * width + x) * 4;
+                const brightness = (pixels[idx] + pixels[idx+1] + pixels[idx+2]) / 3;
+                if (brightness < 128) {
+                    bitmapLine[Math.floor(x / 8)] |= (0x80 >> (x % 8));
+                }
+            }
+            
+            // Befehl: Drucke Bitmap Zeile (0x12 0x54)
+            await sendData(new Uint8Array([0x12, 0x54, bytesPerLine]));
+            await sendData(bitmapLine);
+        }
+
+        // Papiervorschub
+        await sendData(new Uint8Array([0x1b, 0x4a, 0x64]));
+        status.innerText = "Druck beendet.";
+    }
+
+    // Test Button: Nur Papier schieben
+    document.getElementById('btnFeed').onclick = () => {
+        sendData(new Uint8Array([0x1b, 0x4a, 0x64]));
+    };
+
+    // Hilfsfunktion: Senden mit kleiner Verzögerung
+    async function sendData(data) {
+        const chunkSize = 20;
+        for (let i = 0; i < data.length; i += chunkSize) {
+            const chunk = data.slice(i, i + chunkSize);
+            // Nutze writeWithoutResponse für bessere Performance bei Grafik
+            await printerChar.writeValueWithoutResponse(chunk);
+            await new Promise(r => setTimeout(r, 5)); // 5ms Pause
         }
     }
-}
 </script>
-
 </body>
-
 </html>
-
