@@ -1,119 +1,86 @@
-<!DOCTYPE html>
-<html lang="de">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PeriPage via RawBT</title>
-    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Segoe UI', sans-serif; text-align: center; background: #eef2f3; padding: 20px; }
-        .card { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); max-width: 450px; margin: auto; }
-        h1 { color: #333; margin-bottom: 10px; }
-        button { width: 100%; padding: 15px; margin: 10px 0; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .btn-listen { background: #6200ee; color: white; }
-        .btn-test { background: #03dac6; color: black; }
-        .btn-feed { background: #ff0266; color: white; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #ddd; border-radius: 10px; box-sizing: border-box; }
-        #status { margin: 15px 0; font-weight: bold; color: #6200ee; min-height: 1.5em; }
-        canvas { border: 1px solid #ccc; display: none; } /* Versteckt, nur für Bild-Erzeugung */
-    </style>
-</head>
-<body>
-
-<div class="card">
-    <h1>PeriPage & RawBT</h1>
-    <p>Spracherkennung für Schreibschrift-Druck</p>
-    
-    <label>Pattern (RegEx):</label>
-    <input type="text" id="pattern" value="Zahl (\d{4}) bitte" placeholder="Zahl (\d{4}) bitte">
-
-    <button class="btn-listen" onclick="startRecognition()">1. Zuhören starten</button>
-    <button class="btn-test" onclick="printExample()">Test: Beispielzahl (1234)</button>
-    <button class="btn-feed" onclick="sendFeed()">Test: Papier schieben</button>
-
-    <div id="status">Bereit.</div>
-    <canvas id="canvas" width="384" height="250"></canvas>
-</div>
+<style>
+    /* ... (vorheriges CSS beibehalten) ... */
+    canvas { 
+        display: block; 
+        margin: 20px auto; 
+        border: 2px solid #333; 
+        background: white;
+        image-rendering: pixelated; /* Verhindert Unschärfe am Handy */
+    }
+</script>
 
 <script>
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     const status = document.getElementById('status');
 
-    // --- 1. SPRACHERKENNUNG ---
     function startRecognition() {
         const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
         recognition.lang = 'de-DE';
         recognition.start();
-        status.innerText = "Ich höre zu...";
+        status.innerText = "Höre zu...";
 
         recognition.onresult = (event) => {
-            const transcript = event.results[0][0].transcript;
-            status.innerText = "Gehört: " + transcript;
-            
-            const patternStr = document.getElementById('pattern').value;
-            const regex = new RegExp(patternStr, "i");
-            const match = transcript.match(regex);
+            const transcript = event.results[event.results.length - 1][0].transcript;
+            const match = transcript.match(new RegExp(document.getElementById('pattern').value, "i"));
 
             if (match && match[1]) {
-                status.innerText = "Erkannt: " + match[1] + ". Drucke...";
+                status.innerText = "Erkannt: " + match[1];
                 generateAndPrint(match[1]);
+            } else {
+                status.innerText = "Nicht erkannt: " + transcript;
             }
-        };
-
-        recognition.onerror = (e) => {
-            status.innerText = "Fehler: " + e.error;
         };
     }
 
-    // --- 2. GRAFIK GENERIEREN (Schreibschrift & Quer) ---
     function generateAndPrint(text) {
-        // Hintergrund weiß
-        ctx.fillStyle = "white";
+        // 384px ist die magische Breite für PeriPage A6
+        canvas.width = 384;
+        canvas.height = 600; // Genug Platz für die gedrehte Zahl
+
+        // 1. Hintergrund absolut weiß (wichtig für Thermo!)
+        ctx.fillStyle = "#FFFFFF";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
-        // Text-Stil
-        ctx.fillStyle = "black";
-        ctx.font = "bold 100px 'Dancing Script'";
+        // 2. Text-Style (Sehr fett für Thermo-Drucker empfohlen)
+        ctx.fillStyle = "#000000";
+        ctx.font = "bold 160px 'Dancing Script'"; 
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         
-        // Querformat-Drehung
+        // 3. Transformation
         ctx.save();
         ctx.translate(canvas.width / 2, canvas.height / 2);
-        ctx.rotate(Math.PI / 2); 
+        ctx.rotate(Math.PI / 2); // 90 Grad drehen
+        
+        // 4. Text zeichnen
         ctx.fillText(text, 0, 0);
         ctx.restore();
 
-        // Bild als Base64 extrahieren
-        const dataUrl = canvas.toDataURL("image/png");
-        const base64Data = dataUrl.split(',')[1];
-        
-        sendToRawBT(base64Data);
-    }
+        // Canvas jetzt sichtbar machen zur Kontrolle
+        canvas.style.display = "block";
 
-    // --- 3. AN RAWBT SENDEN (Intent) ---
-    function sendToRawBT(base64) {
-        // RawBT Intent URL Schema
-        const intentUrl = `intent:base64,${base64}#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;`;
-        window.location.href = intentUrl;
-    }
-
-    // --- 4. TEST-FUNKTIONEN ---
-    function printExample() {
-        generateAndPrint("1234");
+        // 5. Export zu RawBT
+        setTimeout(() => {
+            const dataUrl = canvas.toDataURL("image/png");
+            const base64Data = dataUrl.split(',')[1];
+            // Intent mit Parametern für RawBT, um Skalierung zu minimieren
+            const intentUrl = `intent:base64,${base64Data}#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;S.orientation=portrait;end;`;
+            window.location.href = intentUrl;
+        }, 100); // Kurze Pause damit User das Bild kurz sieht
     }
 
     function sendFeed() {
-        // Ein leeres, hohes Bild schiebt das Papier effektiv vor
+        // Erzeugt ein leeres weißes Bild für Vorschub
+        canvas.width = 384;
+        canvas.height = 200;
         ctx.fillStyle = "white";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         const dataUrl = canvas.toDataURL("image/png");
-        const base64Data = dataUrl.split(',')[1];
-        sendToRawBT(base64Data);
-        status.innerText = "Vorschub gesendet.";
+        window.location.href = `intent:base64,${dataUrl.split(',')[1]}#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;`;
+    }
+
+    function printExample() {
+        generateAndPrint("1234");
     }
 </script>
-
-</body>
-</html>
