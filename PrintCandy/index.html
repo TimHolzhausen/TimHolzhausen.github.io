@@ -142,24 +142,18 @@ async function testSmallPrint() {
 }
 
     async function sendRaw(dataArray) {
-        if (!printerChar) return;
-        const data = new Uint8Array(dataArray);
-        log(`Sende ${data.length} Bytes...`);
-        
-        try {
-            // Wir probieren beide Methoden, falls eine fehlschlägt
-            if (printerChar.properties.writeWithoutResponse) {
-                await printerChar.writeValueWithoutResponse(data);
-            } else {
-                await printerChar.writeValueWithResponse(data);
-            }
-            log("Senden OK");
-        } catch (e) {
-            log("Sende-Fehler: " + e.message);
-        }
+    if (!printerChar) return;
+    const data = new Uint8Array(dataArray);
+    const chunkSize = 10; // Noch kleiner!
+    for (let i = 0; i < data.length; i += chunkSize) {
+        const chunk = data.slice(i, i + chunkSize);
+        await printerChar.writeValueWithoutResponse(chunk);
+        await new Promise(r => setTimeout(r, 50)); // Viel langsamer!
     }
+}
 </script>
 
 </body>
 </html>
+
 
