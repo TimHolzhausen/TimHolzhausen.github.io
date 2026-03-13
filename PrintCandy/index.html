@@ -3,27 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PeriPage Bonbon-Counter</title>
+    <title>PeriPage Bonbon-Drucker Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Dancing+Script:wght@700&family=Pacifico&family=Indie+Flower&display=swap" rel="stylesheet">
     <style>
         :root { --primary: #6200ee; --bg: #f4f7f6; }
         body { font-family: 'Segoe UI', sans-serif; text-align: center; background: var(--bg); padding: 15px; margin: 0; }
-        .card { background: white; border-radius: 20px; padding: 20px; box-shadow: 0 8px 25px rgba(0,0,0,0.1); max-width: 450px; margin: auto; }
-        h1 { color: var(--primary); font-size: 1.3rem; margin: 0 0 15px 0; }
+        .card { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 8px 25px rgba(0,0,0,0.1); max-width: 450px; margin: auto; }
+        h1 { color: var(--primary); font-size: 1.4rem; margin: 0 0 15px 0; }
         
         .btn { width: 100%; padding: 16px; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; margin-bottom: 10px; }
-        .btn-listen { background: var(--primary); color: white; }
+        .btn-listen { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(98, 0, 238, 0.2); }
         .btn-listen.active { background: #ef4444; animation: pulse 1.5s infinite; }
         
         .setting-group { text-align: left; margin-bottom: 15px; background: #fafafa; padding: 12px; border-radius: 10px; border: 1px solid #eee; }
-        .label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
-        label { font-weight: bold; font-size: 13px; color: #666; }
-        .value-badge { background: var(--primary); color: white; padding: 2px 8px; border-radius: 10px; font-size: 12px; }
+        label { display: block; font-weight: bold; font-size: 13px; color: #666; margin-bottom: 5px; }
 
-        input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; box-sizing: border-box; }
-        #status { font-weight: bold; color: var(--primary); margin: 10px 0; min-height: 1.2em; font-size: 0.9rem; }
-        #fontPreview { margin: 10px 0; padding: 10px; background: white; border: 1px dashed #ccc; font-size: 40px; min-height: 50px; display: flex; align-items: center; justify-content: center; }
-        canvas { display: none; border: 1px solid #000; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; box-sizing: border-box; }
+        #status { font-weight: bold; color: var(--primary); margin: 15px 0; min-height: 1.2em; font-size: 0.95rem; }
+        #fontPreview { margin: 10px 0; padding: 10px; background: white; border: 1px dashed #ccc; font-size: 45px; min-height: 60px; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
+        
+        canvas { display: none; }
+        
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
     </style>
 </head>
@@ -32,18 +32,17 @@
 <div class="card">
     <h1>PeriPage Bonbon-Drucker</h1>
     
-    <div id="status">Bereit.</div>
+    <div id="status">Bereit zum Scannen.</div>
 
     <button id="startBtn" class="btn btn-listen" onclick="toggleRecognition()">🎤 Zuhören starten</button>
 
     <div class="setting-group">
         <label>Erkennungs-Muster:</label>
         <input type="text" id="pattern" value="es sind (\d{4}) bonbons" oninput="saveSettings()">
-        <small style="color: #999;">Tipp: (\d{4}) findet die 4 Zahlen.</small>
     </div>
 
     <div class="setting-group">
-        <label>Schriftart:</label>
+        <label>Schriftart auswählen:</label>
         <select id="fontSelect" onchange="updateFontPreview()">
             <option value="'Pacifico', cursive">Pacifico (Sehr Dick)</option>
             <option value="'Dancing Script', cursive">Dancing Script</option>
@@ -53,15 +52,7 @@
         <div id="fontPreview">7512</div>
     </div>
 
-    <div class="setting-group">
-        <div class="label-row">
-            <label>Papier-Vorschub:</label>
-            <span id="feedValue" class="value-badge">200 px</span>
-        </div>
-        <input type="range" id="feed" min="0" max="1000" step="20" value="200" oninput="updateFeedDisplay()">
-    </div>
-
-    <button class="btn" style="background: #ddd;" onclick="generateAndPrint('7512')">Test-Druck (7512)</button>
+    <button class="btn" style="background: #e0e0e0; color: #444;" onclick="generateAndPrint('7512')">Test-Druck (7512)</button>
     
     <canvas id="canvas"></canvas>
 </div>
@@ -71,35 +62,26 @@
     const ctx = canvas.getContext('2d');
     const status = document.getElementById('status');
     const startBtn = document.getElementById('startBtn');
-    const feedSlider = document.getElementById('feed');
-    const feedDisplay = document.getElementById('feedValue');
     
     let isListening = false;
+    let wasPrintedSuccessfully = false;
     let recognition;
 
-    // --- EINSTELLUNGEN LADEN/SPEICHERN ---
-    function updateFeedDisplay() {
-        feedDisplay.innerText = feedSlider.value + " px";
-        saveSettings();
-    }
-
+    // --- SETTINGS ---
     function saveSettings() {
         const settings = {
             pattern: document.getElementById('pattern').value,
-            font: document.getElementById('fontSelect').value,
-            feed: feedSlider.value
+            font: document.getElementById('fontSelect').value
         };
-        localStorage.setItem('peripage_bonbon_settings', JSON.stringify(settings));
+        localStorage.setItem('peripage_pro_v3', JSON.stringify(settings));
     }
 
     function loadSettings() {
-        const saved = localStorage.getItem('peripage_bonbon_settings');
+        const saved = localStorage.getItem('peripage_pro_v3');
         if (saved) {
             const s = JSON.parse(saved);
             document.getElementById('pattern').value = s.pattern;
             document.getElementById('fontSelect').value = s.font;
-            feedSlider.value = s.feed;
-            feedDisplay.innerText = s.feed + " px";
         }
         updateFontPreview();
     }
@@ -111,77 +93,89 @@
     }
 
     // --- SPRACHERKENNUNG ---
-    function toggleRecognition() {
-        if (isListening) { recognition.stop(); return; }
-
+    function initRecognition() {
         recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
         recognition.lang = 'de-DE';
-        recognition.continuous = true;
+        recognition.continuous = false; 
 
         recognition.onstart = () => {
             isListening = true;
+            status.innerText = "Ich höre zu...";
             startBtn.classList.add('active');
             startBtn.innerText = "🛑 Stoppen";
-            status.innerText = "Ich höre zu...";
         };
 
         recognition.onresult = (event) => {
             const transcript = event.results[event.results.length - 1][0].transcript;
             status.innerText = "Gehört: " + transcript;
             
-            const patternStr = document.getElementById('pattern').value;
-            const regex = new RegExp(patternStr, "i"); // "i" macht es egal ob Groß/Kleinschreibung
+            const regex = new RegExp(document.getElementById('pattern').value, "i");
             const match = transcript.match(regex);
 
             if (match && match[1]) {
                 const nr = match[1];
-                status.innerText = "GEFUNDEN: " + nr + "! Drucke...";
+                status.innerText = "TREFFER: " + nr + "!";
+                wasPrintedSuccessfully = true; 
                 generateAndPrint(nr);
+                recognition.stop();
             }
         };
 
         recognition.onend = () => {
-            isListening = false;
-            startBtn.classList.remove('active');
-            startBtn.innerText = "🎤 Zuhören starten";
+            if (isListening && !wasPrintedSuccessfully) {
+                recognition.start(); // Auto-Restart Loop
+            } else {
+                isListening = false;
+                wasPrintedSuccessfully = false;
+                startBtn.classList.remove('active');
+                startBtn.innerText = "🎤 Zuhören starten";
+            }
         };
 
-        recognition.start();
+        recognition.onerror = (e) => {
+            if (e.error === 'network') status.innerText = "Fehler: Netzwerk!";
+        };
     }
 
-    // --- DRUCK-FUNKTION (STABILE VERSION) ---
+    function toggleRecognition() {
+        if (isListening) {
+            isListening = false;
+            wasPrintedSuccessfully = true; 
+            recognition.stop();
+        } else {
+            wasPrintedSuccessfully = false;
+            initRecognition();
+            recognition.start();
+        }
+    }
+
+    // --- DRUCK-FUNKTION (KOMPAKT OHNE VORSCHUB) ---
     function generateAndPrint(text) {
-        const feedVal = parseInt(feedSlider.value);
         const selectedFont = document.getElementById('fontSelect').value;
         
         canvas.width = 384; 
-        canvas.height = 700 + feedVal; // Mehr Höhe für Riesen-Schrift + Vorschub
+        canvas.height = 650; // Festgelegte Höhe für optimalen Riesen-Text
 
-        // 1. Hintergrund Weiß
+        // Hintergrund Weiß
         ctx.fillStyle = "#FFFFFF";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
-        // 2. Riesen-Text (Füllt fast die ganze Breite)
+        // Riesen-Text (330px füllt fast die ganze Rollenbreite)
         ctx.fillStyle = "#000000";
         ctx.font = `bold 330px ${selectedFont}`; 
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         
         ctx.save();
-        // Positionierung: Text wird oben im Bild (ca. 300px vom Rand) platziert
-        ctx.translate(canvas.width / 2, 300);
-        ctx.rotate(Math.PI / 2); // Querformat Drehung
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        ctx.rotate(Math.PI / 2); // Querformat
         ctx.fillText(text, 0, 0);
         ctx.restore();
 
-        // 3. VORSCHUB-FIX: Schmutzpixel ganz unten rechts setzen
-        // Das zwingt RawBT das Bild nicht zu kürzen (kein Auto-Trim)
-        ctx.fillStyle = "#000000";
-        ctx.fillRect(canvas.width - 1, canvas.height - 1, 1, 1);
-
-        // 4. Senden über die funktionierende URI-Struktur
         const base64Data = canvas.toDataURL("image/png").split(',')[1];
         const uri = "data:image/png;base64," + base64Data;
+        
+        // Intent-Schnittstelle zu RawBT
         const intentUrl = `intent:${uri}#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;S.orientation=portrait;end;`;
         
         window.location.href = intentUrl;
