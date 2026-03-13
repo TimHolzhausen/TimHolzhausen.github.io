@@ -82,6 +82,23 @@
         }
     }
 
+    async function unlockPrinter() {
+    log("Sende Brute-Force Wake-up...");
+    
+    const sequences = [
+        [0x10, 0xff, 0x2f, 0x11], // Standard Init
+        [0x10, 0xff, 0x30, 0x11], // Status Abfrage (weckt oft auf)
+        [0x1b, 0x40],             // ESC @ (Hardware Reset)
+        [0x10, 0xff, 0xe1],       // Alternativer Handshake
+        [0x1d, 0x49, 0x01]        // Abfrage Drucker-ID
+    ];
+
+    for (let seq of sequences) {
+        await sendRaw(seq);
+        await new Promise(r => setTimeout(r, 50));
+    }
+}
+    
     async function testFeeds() {
         log("Teste Vorschub Typ 1 (Standard ESC/POS)...");
         await sendRaw([0x1b, 0x4a, 0x40]); 
@@ -95,13 +112,34 @@
         await sendRaw([0x10, 0xff, 0x30, 0x11, 0x1b, 0x4a, 0x40]);
     }
 
-    async function testSmallPrint() {
-        log("Sende Test-Pixel-Zeile...");
-        // Init + Grafik-Kommando + 48 Bytes schwarze Punkte
-        const lineHeader = [0x12, 0x54, 0x30]; // 0x30 = 48 Bytes
-        const blackLine = new Array(48).fill(0xff); 
-        await sendRaw([0x10, 0xff, 0x2f, 0x11, ...lineHeader, ...blackLine, 0x1b, 0x4a, 0x40]);
+async function testSmallPrint() {
+    log("Starte Power-Test-Druck...");
+
+    // 1. Full Init & Heat Setting
+    const initCmds = [
+        [0x10, 0xff, 0x2f, 0x11], // Init
+        [0x10, 0xff, 0x12, 0x01], // SET CONCENTRATION (0x01 = Normal, 0x02 = High)
+        [0x10, 0xff, 0x10, 0x00, 0x00, 0x00] // Reset Buffer
+    ];
+
+    for (let cmd of initCmds) {
+        await sendRaw(cmd);
+        await new Promise(r => setTimeout(r, 50));
     }
+
+    // 2. Eine simple schwarze Box (8x8 Pixel)
+    // Befehl: 0x1d 0x76 0x30 0x00 (GS v 0) - Standard ESC/POS Bit Image
+    // xL=1, xH=0 (1 Byte breit = 8 Pixel)
+    // yL=8, yH=0 (8 Pixel hoch)
+    const boxHeader = [0x1d, 0x76, 0x30, 0x00, 0x01, 0x00, 0x08, 0x00];
+    const boxData = new Array(8).fill(0xff); // 8 Zeilen voll schwarz
+    
+    log("Sende Test-Box...");
+    await sendRaw([...boxHeader, ...boxData]);
+    
+    // 3. Papiervorschub erzwingen
+    await sendRaw([0x1b, 0x4a, 0x80]);
+}
 
     async function sendRaw(dataArray) {
         if (!printerChar) return;
@@ -124,3 +162,4 @@
 
 </body>
 </html>
+
