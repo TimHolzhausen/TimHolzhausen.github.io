@@ -3,20 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#6200ee">
-    
-    <title>Bonbon Drucker Pro</title>
-    
+    <title>PeriPage Silent Printer</title>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Dancing+Script:wght@700&family=Pacifico&family=Indie+Flower&display=swap" rel="stylesheet">
-    
     <style>
         :root { --primary: #6200ee; --bg: #f4f7f6; }
         body { font-family: 'Segoe UI', sans-serif; text-align: center; background: var(--bg); padding: 15px; margin: 0; }
         .card { background: white; border-radius: 24px; padding: 25px; box-shadow: 0 12px 30px rgba(0,0,0,0.1); max-width: 450px; margin: auto; }
-        h1 { color: var(--primary); font-size: 1.5rem; margin-top: 0; }
+        h1 { color: var(--primary); font-size: 1.4rem; margin: 0 0 15px 0; }
         
         .btn { width: 100%; padding: 18px; border: none; border-radius: 16px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.3s; margin-bottom: 12px; }
         .btn-listen { background: var(--primary); color: white; box-shadow: 0 4px 15px rgba(98, 0, 238, 0.3); }
@@ -36,7 +29,7 @@
 <body>
 
 <div class="card">
-    <h1>Bonbon Drucker</h1>
+    <h1>Bonbon Drucker <small>(Silent)</small></h1>
     
     <div id="status">Bereit.</div>
 
@@ -73,17 +66,16 @@
     let wasPrintedSuccessfully = false;
     let recognition;
 
-    // --- SETTINGS ---
     function saveSettings() {
         const settings = {
             pattern: document.getElementById('pattern').value,
             font: document.getElementById('fontSelect').value
         };
-        localStorage.setItem('peripage_pwa_settings', JSON.stringify(settings));
+        localStorage.setItem('peripage_silent_settings', JSON.stringify(settings));
     }
 
     function loadSettings() {
-        const saved = localStorage.getItem('peripage_pwa_settings');
+        const saved = localStorage.getItem('peripage_silent_settings');
         if (saved) {
             const s = JSON.parse(saved);
             document.getElementById('pattern').value = s.pattern;
@@ -98,7 +90,6 @@
         saveSettings();
     }
 
-    // --- SPRACHERKENNUNG ---
     function initRecognition() {
         recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
         recognition.lang = 'de-DE';
@@ -122,7 +113,7 @@
                 const nr = match[1];
                 status.innerText = "TREFFER: " + nr;
                 wasPrintedSuccessfully = true; 
-                if (navigator.vibrate) navigator.vibrate(200); // Längere Vibration
+                if (navigator.vibrate) navigator.vibrate(200);
                 generateAndPrint(nr);
                 recognition.stop();
             }
@@ -130,7 +121,7 @@
 
         recognition.onend = () => {
             if (isListening && !wasPrintedSuccessfully) {
-                recognition.start(); // Auto-Restart Loop
+                recognition.start();
             } else {
                 isListening = false;
                 wasPrintedSuccessfully = false;
@@ -152,12 +143,12 @@
         }
     }
 
-    // --- DRUCK-FUNKTION (DEINE FUNKTIONIERENDE LOGIK) ---
-    function generateAndPrint(text) {
+    // --- DIE NEUE SERVER-DRUCK-FUNKTION ---
+    async function generateAndPrint(text) {
         const selectedFont = document.getElementById('fontSelect').value;
         
         canvas.width = 384; 
-        canvas.height = 650;
+        canvas.height = 600;
 
         ctx.fillStyle = "#FFFFFF";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -173,16 +164,28 @@
         ctx.fillText(text, 0, 0);
         ctx.restore();
 
-        const base64Data = canvas.toDataURL("image/png").split(',')[1];
+        const dataUrl = canvas.toDataURL("image/png");
         
-        // WICHTIG: Die URI-Struktur, die bei dir funktioniert hat
-        const uri = "data:image/png;base64," + base64Data;
-        const intentUrl = `intent:${uri}#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;S.orientation=portrait;end;`;
-        
-        // Kleiner Delay, damit man die Vibration spürt, bevor die App wechselt
-        setTimeout(() => {
-            window.location.href = intentUrl;
-        }, 150);
+        status.innerText = "Sende an RawBT Server...";
+
+        try {
+            // Wir senden das Bild per POST an den lokalen Server
+            // Der Server erwartet meist das komplette Data-URL Format
+            const response = await fetch('http://localhost:402d/print', {
+                method: 'POST',
+                mode: 'no-cors', // Verhindert CORS-Fehler im Browser
+                body: dataUrl
+            });
+
+            status.innerText = "Druckt! (Silent)";
+        } catch (err) {
+            console.error(err);
+            status.innerText = "Server-Fehler! (Ist die Server-App an?)";
+            
+            // Notfall-Fallback: Falls der Server nicht erreichbar ist, doch der Intent
+            const base64 = dataUrl.split(',')[1];
+            window.location.href = `intent:data:image/png;base64,${base64}#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;`;
+        }
     }
 
     window.onload = loadSettings;
