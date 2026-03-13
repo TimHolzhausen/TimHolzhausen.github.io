@@ -3,142 +3,124 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PeriPage A6 Pro (FF02 Fix)</title>
-    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+    <title>PeriPage Debugger</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; text-align: center; background-color: #f4f7f6; padding: 20px; }
-        .card { background: white; border-radius: 15px; padding: 25px; box-shadow: 0 8px 16px rgba(0,0,0,0.1); max-width: 400px; margin: auto; }
-        button { width: 100%; padding: 14px; margin: 8px 0; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 16px; }
-        #btnConnect { background: #2563eb; color: white; }
-        #btnListen { background: #10b981; color: white; }
-        #btnFeed { background: #ef4444; color: white; }
-        button:disabled { background: #ccc; opacity: 0.6; }
-        #status { margin: 15px 0; font-weight: bold; color: #2563eb; min-height: 1.5em; }
-        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        canvas { display: none; }
+        body { font-family: monospace; background: #222; color: #0f0; padding: 10px; font-size: 12px; }
+        .controls { background: #333; padding: 15px; border-radius: 10px; margin-bottom: 10px; }
+        button { width: 100%; padding: 12px; margin: 5px 0; cursor: pointer; font-weight: bold; }
+        #log { background: #000; border: 1px solid #555; height: 300px; overflow-y: scroll; padding: 10px; white-space: pre-wrap; }
+        .status-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: red; margin-right: 5px; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h2>PeriPage A6 Voice</h2>
-    
-    <label>Muster (RegEx):</label>
-    <input type="text" id="pattern" value="Zahl (\d{4}) bitte">
-
-    <button id="btnConnect">1. Drucker verbinden</button>
-    <button id="btnListen" disabled>2. Start Sprache</button>
-    <button id="btnFeed" disabled>Test: Papier schieben</button>
-
-    <div id="status">Bereit.</div>
-    <canvas id="canvas" width="384" height="240"></canvas>
+<div class="controls">
+    <h3 style="color:white; margin:0 0 10px 0;">PeriPage Debug Console</h3>
+    <button onclick="connect()">1. Verbinden & Services scannen</button>
+    <button id="btnFeed" onclick="testFeeds()" disabled>2. Teste 3 Vorschub-Arten</button>
+    <button id="btnPrint" onclick="testSmallPrint()" disabled>3. Test-Punkt drucken</button>
 </div>
 
+<div id="log">--- Debug Log gestartet ---</div>
+
 <script>
-    let printerChar = null;
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
-    const status = document.getElementById('status');
+    let device, server, service, printerChar;
+    const logEl = document.getElementById('log');
 
-    // Deine in nRF Connect gefundenen UUIDs
-    const SERVICE_UUID = 0xFF00; 
-    const CHAR_UUID = 0xFF02;
+    function log(msg) {
+        const time = new Date().toLocaleTimeString();
+        logEl.innerHTML += `[${time}] ${msg}\n`;
+        logEl.scrollTop = logEl.scrollHeight;
+        console.log(msg);
+    }
 
-    document.getElementById('btnConnect').onclick = async () => {
+    async function connect() {
         try {
-            status.innerText = "Suche Gerät...";
-            const device = await navigator.bluetooth.requestDevice({
+            log("Suche Geräte...");
+            device = await navigator.bluetooth.requestDevice({
                 filters: [{ namePrefix: 'PeriPage' }, { namePrefix: 'A6' }],
-                optionalServices: [SERVICE_UUID]
+                optionalServices: [0xFF00, 0xAF30, '49535343-fe7d-4ae5-8fa9-9fafd205e455']
             });
 
-            const server = await device.gatt.connect();
-            const service = await server.getPrimaryService(SERVICE_UUID);
-            printerChar = await service.getCharacteristic(CHAR_UUID);
+            log("Verbinde mit GATT Server...");
+            server = await device.gatt.connect();
 
-            // Wake up Sequenz senden
-            status.innerText = "Initialisiere...";
-            await sendData(new Uint8Array([0x10, 0xff, 0x2f, 0x11]));
-            await new Promise(r => setTimeout(r, 200));
+            log("Suche Primäre Services...");
+            const services = await server.getPrimaryServices();
+            log(`Gefunden: ${services.length} Services`);
 
-            status.innerText = "Verbunden & Bereit!";
-            document.getElementById('btnListen').disabled = false;
-            document.getElementById('btnFeed').disabled = false;
-        } catch (err) {
-            status.innerText = "Fehler: " + err.message;
-        }
-    };
-
-    // Papiervorschub Test
-    document.getElementById('btnFeed').onclick = async () => {
-        status.innerText = "Sende Feed...";
-        // ESC J 100
-        await sendData(new Uint8Array([0x1b, 0x4a, 0x64]));
-        status.innerText = "Feed gesendet.";
-    };
-
-    // Spracherkennung
-    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-    recognition.lang = 'de-DE';
-    recognition.onresult = (e) => {
-        const text = e.results[e.results.length - 1][0].transcript;
-        const match = text.match(new RegExp(document.getElementById('pattern').value, "i"));
-        if (match && match[1]) {
-            status.innerText = "Drucke: " + match[1];
-            printNumber(match[1]);
-        }
-    };
-    document.getElementById('btnListen').onclick = () => recognition.start();
-
-    function printNumber(num) {
-        ctx.fillStyle = "white";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = "black";
-        ctx.font = "bold 110px 'Dancing Script'";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.save();
-        ctx.translate(canvas.width / 2, canvas.height / 2);
-        ctx.rotate(Math.PI / 2);
-        ctx.fillText(num, 0, 0);
-        ctx.restore();
-        sendCanvas();
-    }
-
-    async function sendCanvas() {
-        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const bytesPerLine = canvas.width / 8;
-        
-        // Init
-        await sendData(new Uint8Array([0x1b, 0x40, 0x10, 0xff, 0x2f, 0x11]));
-
-        for (let y = 0; y < canvas.height; y++) {
-            let line = new Uint8Array(bytesPerLine);
-            for (let x = 0; x < canvas.width; x++) {
-                const idx = (y * canvas.width + x) * 4;
-                if ((imgData.data[idx] + imgData.data[idx+1] + imgData.data[idx+2]) / 3 < 128) {
-                    line[Math.floor(x / 8)] |= (0x80 >> (x % 8));
+            for (let s of services) {
+                log(`Service: ${s.uuid}`);
+                const chars = await s.getCharacteristics();
+                for (let c of chars) {
+                    let props = [];
+                    if (c.properties.write) props.push("WRITE");
+                    if (c.properties.writeWithoutResponse) props.push("WRITE_NO_RESP");
+                    if (c.properties.notify) props.push("NOTIFY");
+                    log(`  -> Char: ${c.uuid} [${props.join(", ")}]`);
+                    
+                    // Wir nehmen die 0xFF02 oder die erste Schreib-Charakteristik
+                    if (c.uuid.includes('ff02') || c.uuid.includes('af31') || (props.includes("WRITE") && !printerChar)) {
+                        printerChar = c;
+                        service = s;
+                    }
                 }
             }
-            // PeriPage A6 Line-Print: 0x12 0x54 [Width]
-            await sendData(new Uint8Array([0x12, 0x54, bytesPerLine]));
-            await sendData(line);
+
+            if (printerChar) {
+                log(`>>> GEWÄHLT: ${printerChar.uuid} im Service ${service.uuid}`);
+                document.getElementById('btnFeed').disabled = false;
+                document.getElementById('btnPrint').disabled = false;
+                // Wake up
+                await sendRaw([0x10, 0xff, 0x2f, 0x11]);
+            } else {
+                log("FEHLER: Keine Schreib-Charakteristik gefunden!");
+            }
+
+        } catch (err) {
+            log("CRASH: " + err);
         }
-        // Feed
-        await sendData(new Uint8Array([0x1b, 0x4a, 0x64]));
-        status.innerText = "Fertig!";
     }
 
-    async function sendData(data) {
+    async function testFeeds() {
+        log("Teste Vorschub Typ 1 (Standard ESC/POS)...");
+        await sendRaw([0x1b, 0x4a, 0x40]); 
+        await new Promise(r => setTimeout(r, 500));
+
+        log("Teste Vorschub Typ 2 (PeriPage Alt)...");
+        await sendRaw([0x0a, 0x0d]); 
+        await new Promise(r => setTimeout(r, 500));
+
+        log("Teste Vorschub Typ 3 (PeriPage Spezial)...");
+        await sendRaw([0x10, 0xff, 0x30, 0x11, 0x1b, 0x4a, 0x40]);
+    }
+
+    async function testSmallPrint() {
+        log("Sende Test-Pixel-Zeile...");
+        // Init + Grafik-Kommando + 48 Bytes schwarze Punkte
+        const lineHeader = [0x12, 0x54, 0x30]; // 0x30 = 48 Bytes
+        const blackLine = new Array(48).fill(0xff); 
+        await sendRaw([0x10, 0xff, 0x2f, 0x11, ...lineHeader, ...blackLine, 0x1b, 0x4a, 0x40]);
+    }
+
+    async function sendRaw(dataArray) {
         if (!printerChar) return;
-        const chunkSize = 20;
-        for (let i = 0; i < data.length; i += chunkSize) {
-            const chunk = data.slice(i, i + chunkSize);
-            // FF02 braucht meist writeWithoutResponse
-            await printerChar.writeValueWithoutResponse(chunk);
-            await new Promise(r => setTimeout(r, 10)); 
+        const data = new Uint8Array(dataArray);
+        log(`Sende ${data.length} Bytes...`);
+        
+        try {
+            // Wir probieren beide Methoden, falls eine fehlschlägt
+            if (printerChar.properties.writeWithoutResponse) {
+                await printerChar.writeValueWithoutResponse(data);
+            } else {
+                await printerChar.writeValueWithResponse(data);
+            }
+            log("Senden OK");
+        } catch (e) {
+            log("Sende-Fehler: " + e.message);
         }
     }
 </script>
+
 </body>
 </html>
