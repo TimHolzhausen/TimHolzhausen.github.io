@@ -39,21 +39,48 @@
 
     // 1. Bluetooth Verbindung
     document.getElementById('btnConnect').onclick = async () => {
-        try {
-            const device = await navigator.bluetooth.requestDevice({
-                filters: [{ namePrefix: 'PeriPage' }],
-                optionalServices: ['0000af30-0000-1000-8000-00805f9b34fb']
-            });
-            const server = await device.gatt.connect();
-            const service = await server.getPrimaryService('0000af30-0000-1000-8000-00805f9b34fb');
-            printerChar = await service.getCharacteristic('0000af31-0000-1000-8000-00805f9b34fb');
-            
-            status.innerText = "Verbunden mit " + device.name;
-            document.getElementById('btnListen').disabled = false;
-        } catch (err) {
-            status.innerText = "Fehler: " + err.message;
+    try {
+        status.innerText = "Suche Gerät...";
+        const device = await navigator.bluetooth.requestDevice({
+            // Wir lassen uns alle Geräte anzeigen, die "PeriPage" im Namen haben
+            filters: [{ namePrefix: 'PeriPage' }],
+            // Wir fragen alle bekannten Services ab
+            optionalServices: [
+                '0000af30-0000-1000-8000-00805f9b34fb', 
+                '0000ff00-0000-1000-8000-00805f9b34fb',
+                '49535343-fe7d-4ae5-8fa9-9fafd205e455'
+            ]
+        });
+
+        const server = await device.gatt.connect();
+        status.innerText = "Verbunden. Suche Service...";
+
+        // Wir versuchen den primären Service zu finden
+        const services = await server.getPrimaryServices();
+        console.log("Gefundene Services:", services);
+        
+        // Wir nehmen den ersten verfügbaren Service aus unserer Liste
+        let service;
+        for (let s of services) {
+            if (s.uuid.includes('af30') || s.uuid.includes('ff00') || s.uuid.includes('49535343')) {
+                service = s;
+                break;
+            }
         }
-    };
+
+        if (!service) throw new Error("Kein passender Druck-Service gefunden!");
+
+        const characteristics = await service.getCharacteristics();
+        // Wir nehmen die erste Characteristic, die "Write" erlaubt
+        printerChar = characteristics.find(c => c.properties.write || c.properties.writeWithoutResponse);
+
+        status.innerText = "Drucker bereit! (Service: " + service.uuid.substring(4,8) + ")";
+        document.getElementById('btnListen').disabled = false;
+    } catch (err) {
+        console.error(err);
+        status.innerText = "Fehler: " + err.message;
+    }
+};
 
     // 2. Spracherkennung
     const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
@@ -152,4 +179,5 @@
 </script>
 
 </body>
+
 </html>
