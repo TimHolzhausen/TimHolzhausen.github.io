@@ -165,26 +165,33 @@
     // --- DRUCK-FUNKTION (DEINE FUNKTIONIERENDE LOGIK) ---
     function generateAndPrint(text) {
         const feedVal = parseInt(feedSlider.value);
-        const selectedFont = document.getElementById('fontSelect').value;
-        
-        canvas.width = 384;
-        canvas.height = 400 + feedVal;
+    const selectedFont = document.getElementById('fontSelect').value;
+    
+    // 1. Die Breite bleibt 384 (Drucker-Limit)
+    canvas.width = 384; 
+    
+    // 2. Die Canvas-Höhe muss bei riesiger Schrift mitwachsen, 
+    // damit die Zahlen nicht oben/unten abgeschnitten werden.
+    // Ein Wert von 800 bis 1000 ist für 4 große Ziffern ideal.
+    canvas.height = 800 + feedVal; 
 
-        // 1. Alles Weiß machen
-        ctx.fillStyle = "#FFFFFF";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        // 2. Text zeichnen
-        ctx.fillStyle = "#000000";
-        ctx.font = `bold 140px ${selectedFont}`;
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        
-        ctx.save();
-        ctx.translate(canvas.width / 2, 200);
-        ctx.rotate(Math.PI / 2);
-        ctx.fillText(text, 0, 0);
-        ctx.restore();
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // 3. SCHRIFTGRÖSSE: 
+    // 320px bis 350px füllen das 384px breite Papier fast komplett aus.
+    ctx.fillStyle = "#000000";
+    ctx.font = `bold 330px ${selectedFont}`; 
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    
+    ctx.save();
+    // 4. POSITIONIERUNG:
+    // Wir schieben das Zentrum des Textes in die Mitte des (langen) Bildes
+    ctx.translate(canvas.width / 2, 400); 
+    ctx.rotate(Math.PI / 2);
+    ctx.fillText(text, 0, 0);
+    ctx.restore();
 
         // 3. Deine funktionierende Sende-Logik
         const lastGeneratedBase64 = canvas.toDataURL("image/png").split(',')[1];
@@ -199,3 +206,4 @@
 
 </body>
 </html>
+
