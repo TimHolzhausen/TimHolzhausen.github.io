@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PeriPage P21 – Sprachdruck v3</title>
+<title>PeriPage P21 – Sprachdruck v4</title>
 <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -22,13 +22,9 @@ button.ok-btn{background:linear-gradient(135deg,#1b5e20,#2e7d32);border-color:rg
 .sbar.ok{background:rgba(76,175,80,.1);border:1px solid rgba(76,175,80,.3);color:#81c784}
 .sbar.err{background:rgba(244,67,54,.1);border:1px solid rgba(244,67,54,.3);color:#e57373}
 .sbar.warn{background:rgba(255,152,0,.1);border:1px solid rgba(255,152,0,.3);color:#ffb74d}
-.logarea{background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:10px;max-height:220px;overflow-y:auto;font-family:'Courier New',monospace;font-size:11px}
+.logarea{background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:10px;max-height:260px;overflow-y:auto;font-family:'Courier New',monospace;font-size:11px}
 .ll{padding:1px 0}
-.ll.info{color:#90caf9}
-.ll.ok{color:#a5d6a7}
-.ll.err{color:#ef9a9a}
-.ll.warn{color:#ffe082}
-.ll.data{color:#ce93d8}
+.ll.info{color:#90caf9}.ll.ok{color:#a5d6a7}.ll.err{color:#ef9a9a}.ll.warn{color:#ffe082}.ll.data{color:#ce93d8}.ll.try{color:#80cbc4}
 .transcript{background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:12px;min-height:40px;margin:8px 0;font-style:italic;color:#aaa;font-size:13px}
 .numshow{font-family:'Dancing Script',cursive;font-size:64px;text-align:center;color:#00d4ff;letter-spacing:8px;padding:8px}
 .mrow{display:flex;gap:8px;margin-top:8px}
@@ -38,860 +34,627 @@ button.ok-btn{background:linear-gradient(135deg,#1b5e20,#2e7d32);border-color:rg
 .progwrap{height:6px;background:rgba(255,255,255,.1);border-radius:3px;margin-top:10px;display:none}
 .progfill{height:100%;background:linear-gradient(90deg,#00d4ff,#007bff);border-radius:3px;transition:width .15s;width:0%}
 code{background:rgba(0,0,0,.4);padding:2px 6px;border-radius:4px;font-size:11px;color:#a5d6a7}
-.svc-box{background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:8px;margin-top:8px;font-size:11px;max-height:200px;overflow-y:auto}
-.svc-item{padding:5px 8px;border-radius:5px;margin:2px;cursor:pointer;transition:background .15s;display:flex;align-items:center;gap:8px}
-.svc-item:hover{background:rgba(0,212,255,.1)}
-.svc-item.selected{background:rgba(0,212,255,.15);border:1px solid rgba(0,212,255,.3)}
-.tag{font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(0,212,255,.15);color:#00d4ff;font-weight:600}
-.tag.green{background:rgba(76,175,80,.15);color:#81c784}
+.sep{border:none;border-top:1px solid rgba(255,255,255,.08);margin:10px 0}
 .checklist{list-style:none;padding:0;margin:8px 0}
 .checklist li{padding:5px 8px;margin:3px 0;border-radius:6px;font-size:12px;display:flex;align-items:center;gap:8px}
 .checklist li.pass{background:rgba(76,175,80,.1);color:#81c784}
 .checklist li.fail{background:rgba(244,67,54,.1);color:#e57373}
-.checklist li.warn{background:rgba(255,152,0,.1);color:#ffb74d}
-.sep{border:none;border-top:1px solid rgba(255,255,255,.08);margin:10px 0}
+.uuid-try{background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:10px;margin-top:8px;font-size:11px;max-height:200px;overflow-y:auto}
+.uuid-row{padding:4px 6px;border-radius:4px;margin:2px 0;font-family:monospace;display:flex;align-items:center;gap:8px}
+.uuid-row.trying{color:#80cbc4}.uuid-row.found{background:rgba(76,175,80,.15);color:#a5d6a7}.uuid-row.fail{color:#ef9a9a;opacity:.5}
+.badge{font-size:9px;padding:1px 5px;border-radius:3px;font-weight:700;background:rgba(0,212,255,.2);color:#00d4ff}
+.badge.ok{background:rgba(76,175,80,.2);color:#81c784}
+.badge.fail{background:rgba(244,67,54,.2);color:#ef9a9a}
 </style>
 </head>
 <body>
 
-<h1>🖨 PeriPage P21</h1>
-<p class="sub">Spracherkennung · Schreibschrift · Querdruck (90°) · v3</p>
+<h1>&#128424; PeriPage P21</h1>
+<p class="sub">v4 &ndash; Auto-UUID-Scan &middot; Schreibschrift &middot; Querdruck</p>
 
 <!-- DIAGNOSE -->
 <div class="card">
-  <h3>🩹 Browser-Diagnose</h3>
-  <ul class="checklist" id="diagList"></ul>
-  <button onclick="runDiag()">🔄 Diagnose neu</button>
+<h3>&#129657; Browser-Diagnose</h3>
+<ul class="checklist" id="diagList"></ul>
 </div>
 
 <!-- VERBINDUNG -->
 <div class="card">
-  <h3>🔵 Bluetooth-Verbindung</h3>
-  <div id="pStatus" class="sbar warn">⚡ Nicht verbunden</div>
-
-  <button id="btnConnect" onclick="onConnectClick()">🔵 BLE-Gerät suchen</button>
-  <button id="btnDisconnect" onclick="disconnectPrinter()" disabled>❌ Trennen</button>
-
-  <div id="uuidPicker" style="display:none">
-    <hr class="sep">
-    <p style="font-size:11.5px;color:#aaa;margin-bottom:6px">
-      📋 Gefundene Services – schreibbare Characteristic wählen:
-    </p>
-    <div class="svc-box" id="svcList"></div>
-    <button onclick="applySelectedChar()" class="ok-btn" style="margin-top:8px">
-      ✓ Verbinden mit gewählter Characteristic
-    </button>
-  </div>
+<h3>&#128309; Bluetooth-Verbindung</h3>
+<div id="pStatus" class="sbar warn">&#9889; Nicht verbunden</div>
+<button id="btnConnect" onclick="onConnectClick()">&#128309; P21 verbinden</button>
+<button id="btnDisconnect" onclick="disconnectPrinter()" disabled>&#10060; Trennen</button>
+<div id="uuidProgress" style="display:none">
+<hr class="sep">
+<p style="font-size:11px;color:#80cbc4;margin-bottom:6px">&#128270; Teste alle bekannten UUIDs&hellip;</p>
+<div class="uuid-try" id="uuidTryList"></div>
+</div>
 </div>
 
 <!-- SPRACHE -->
 <div class="card">
-  <h3>🎤 Spracherkennung (Deutsch)</h3>
-  <div style="font-size:11px;color:#888;margin-bottom:8px">
-    Beispiele: „<em>eins zwei drei vier</em>“ ·
-    „<em>zweitausend vierundzwanzig</em>“ ·
-    „<em>neunzehnhundert achtzig</em>“
-  </div>
-  <button id="btnSpeak" onclick="toggleSpeech()">🎤 Sprechen</button>
-  <button onclick="clearSpeech()">🗑 Reset</button>
-  <div class="transcript" id="transcript">Warte auf Sprache …</div>
-  <div id="speechInfo" style="font-size:11px;color:#888;margin-top:4px"></div>
+<h3>&#127908; Spracherkennung</h3>
+<div style="font-size:11px;color:#888;margin-bottom:8px">
+&bdquo;<em>eins zwei drei vier</em>&ldquo; &middot; &bdquo;<em>zweitausend vierundzwanzig</em>&ldquo; &middot; &bdquo;<em>neunzehnhundert achtzig</em>&ldquo;
+</div>
+<button id="btnSpeak" onclick="toggleSpeech()">&#127908; Sprechen</button>
+<button onclick="clearSpeech()">&#128465; Reset</button>
+<div class="transcript" id="transcript">Warte auf Sprache &hellip;</div>
 </div>
 
 <!-- ZAHL -->
 <div class="card">
-  <h3>🔢 Erkannte / Manuelle Zahl</h3>
-  <div id="numDisplay" class="numshow">----</div>
-  <div class="mrow">
-    <input type="text" id="manualNum" placeholder="1234" maxlength="4"
-           inputmode="numeric"
-           oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,4)">
-    <button class="ok-btn" onclick="useManual()">✓ Übernehmen</button>
-  </div>
+<h3>&#128290; Zahl</h3>
+<div id="numDisplay" class="numshow">----</div>
+<div class="mrow">
+<input type="text" id="manualNum" placeholder="1234" maxlength="4" inputmode="numeric"
+oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,4)">
+<button class="ok-btn" onclick="useManual()">&#10003; OK</button>
+</div>
 </div>
 
 <!-- VORSCHAU -->
 <div class="card">
-  <h3>👁 Vorschau — Schreibschrift 90° quer</h3>
-  <canvas id="preview"></canvas>
-  <div class="progwrap" id="progWrap">
-    <div class="progfill" id="progFill"></div>
-  </div>
-  <div style="text-align:center;margin-top:12px">
-    <button id="btnPrint" onclick="doPrint()" disabled>🖨 Drucken</button>
-    <button onclick="downloadPNG()">💾 PNG speichern</button>
-  </div>
+<h3>&#128065; Vorschau &mdash; 90&deg; quer</h3>
+<canvas id="preview"></canvas>
+<div class="progwrap" id="progWrap"><div class="progfill" id="progFill"></div></div>
+<div style="text-align:center;margin-top:12px">
+<button id="btnPrint" onclick="doPrint()" disabled>&#128424; Drucken</button>
+<button onclick="downloadPNG()">&#128190; PNG</button>
+</div>
 </div>
 
 <!-- LOG -->
 <div class="card">
-  <h3>📋 Protokoll</h3>
-  <div class="logarea" id="logArea"></div>
-  <button onclick="document.getElementById('logArea').innerHTML=''"
-          style="margin-top:6px;font-size:11px;padding:5px 10px">
-    🗑 Log löschen
-  </button>
+<h3>&#128203; Log</h3>
+<div class="logarea" id="logArea"></div>
+<button onclick="document.getElementById('logArea').innerHTML=''" style="margin-top:6px;font-size:11px;padding:5px 10px">&#128465; Leeren</button>
 </div>
 
 <script>
 // ================================================================
-//  BEKANNTE BLE-PRESETS
+// ALLE BEKANNTEN UUID-KOMBINATIONEN FUR DEN P21
+// Reihenfolge: wahrscheinlichste zuerst
 // ================================================================
-var PRESETS = {
-  paperang: {
-    svc:   '0000ae30-0000-1000-8000-00ae9bdb96f0',
-    write: '0000ae01-0000-1000-8000-00ae9bdb96f0',
-    notif: '0000ae02-0000-1000-8000-00ae9bdb96f0',
-    name:  'Paperang / PeriPage'
-  },
-  nordic: {
-    svc:   '6e400001-b5a3-f393-e0a9-e50e24dcca9e',
-    write: '6e400002-b5a3-f393-e0a9-e50e24dcca9e',
-    notif: '6e400003-b5a3-f393-e0a9-e50e24dcca9e',
-    name:  'Nordic UART (NUS)'
-  },
-  xprinter: {
-    svc:   '49535343-fe7d-4ae5-8fa9-9fafd205e455',
-    write: '49535343-8841-43f4-a8d4-ecbe34729bb3',
-    notif: '49535343-1e4d-4bd9-ba61-23c647249616',
-    name:  'XPrinter / iDPRT'
-  }
-};
+var UUID_CANDIDATES = [
+// ── PeriPage / Paperang (haeufigstes Protokoll) ──────────────
+{
+label: 'PeriPage/Paperang AE30',
+svc: '0000ae30-0000-1000-8000-00ae9bdb96f0',
+write: '0000ae01-0000-1000-8000-00ae9bdb96f0',
+notif: '0000ae02-0000-1000-8000-00ae9bdb96f0'
+},
+// ── Gleiche Char-IDs, Standard-BT-Basis-UUID ────────────────
+{
+label: 'AE30 (BT Std. Base)',
+svc: '0000ae30-0000-1000-8000-00805f9b34fb',
+write: '0000ae01-0000-1000-8000-00805f9b34fb',
+notif: '0000ae02-0000-1000-8000-00805f9b34fb'
+},
+// ── Nordic UART Service (NUS) ────────────────────────────────
+{
+label: 'Nordic UART (NUS)',
+svc: '6e400001-b5a3-f393-e0a9-e50e24dcca9e',
+write: '6e400002-b5a3-f393-e0a9-e50e24dcca9e',
+notif: '6e400003-b5a3-f393-e0a9-e50e24dcca9e'
+},
+// ── Microchip / ISSC Transparent UART ───────────────────────
+{
+label: 'Microchip ISSC UART',
+svc: '49535343-fe7d-4ae5-8fa9-9fafd205e455',
+write: '49535343-8841-43f4-a8d4-ecbe34729bb3',
+notif: '49535343-1e4d-4bd9-ba61-23c647249616'
+},
+// ── Sifli / Peripage neuere Firmware ────────────────────────
+{
+label: 'Sifli/PPG FF00',
+svc: '0000ff00-0000-1000-8000-00805f9b34fb',
+write: '0000ff02-0000-1000-8000-00805f9b34fb',
+notif: '0000ff01-0000-1000-8000-00805f9b34fb'
+},
+// ── Generische SPP-artige Services ──────────────────────────
+{
+label: 'Generic FFF0',
+svc: '0000fff0-0000-1000-8000-00805f9b34fb',
+write: '0000fff2-0000-1000-8000-00805f9b34fb',
+notif: '0000fff1-0000-1000-8000-00805f9b34fb'
+},
+{
+label: 'Generic FFF0 (custom base)',
+svc: '0000fff0-0000-1000-8000-00ae9bdb96f0',
+write: '0000fff2-0000-1000-8000-00ae9bdb96f0',
+notif: '0000fff1-0000-1000-8000-00ae9bdb96f0'
+},
+// ── BM (Bixolon Micro) ───────────────────────────────────────
+{
+label: 'BM Series E7810',
+svc: 'e7810a71-73ae-499d-8c15-faa9aef0c3f2',
+write: 'bef8d6c9-9c21-4c9e-b632-bd58c1009f9f',
+notif: null
+}
+];
 
-var ALL_SVCS = Object.values(PRESETS).map(function(p){ return p.svc; });
+// Alle Service-UUIDs fuer optionalServices
+var ALL_SVC_UUIDS = UUID_CANDIDATES.map(function(c){ return c.svc; });
 
-// ================================================================
-//  KONFIGURATION
-// ================================================================
 var CFG = {
-  WIDTH    : 384,
-  ROW_BYTES: 48,
-  FONT_SIZE: 270,
-  HEAT     : 0x23,
-  FEED     : 60,
-  BLE_CHUNK: 20,
-  BLE_DELAY: 18,
-  ROW_DELAY: 5
+WIDTH: 384, ROW_BYTES: 48, FONT_SIZE: 270,
+HEAT: 0x23, FEED: 60,
+BLE_CHUNK: 20, BLE_DELAY: 18, ROW_DELAY: 5
 };
 
-// ================================================================
-//  ZUSTAND
-// ================================================================
 var printer = { dev: null, char: null, ok: false };
-var recog       = null;
-var listening   = false;
-var curNum      = null;
-var printing    = false;
-var selectedCharObj = null;
-var selectedSvcObj  = null;
+var recog = null, listening = false, curNum = null, printing = false;
 
 // ================================================================
-//  LOG-FUNKTION
+// LOG
 // ================================================================
 function lg(msg, type) {
-  type = type || 'info';
-  var a = document.getElementById('logArea');
-  var d = document.createElement('div');
-  d.className = 'll ' + type;
-  d.textContent = '[' + new Date().toLocaleTimeString('de-DE') + '] ' + msg;
-  a.appendChild(d);
-  a.scrollTop = a.scrollHeight;
+type = type || 'info';
+var a = document.getElementById('logArea');
+var d = document.createElement('div');
+d.className = 'll ' + type;
+d.textContent = '[' + new Date().toLocaleTimeString('de-DE') + '] ' + msg;
+a.appendChild(d); a.scrollTop = a.scrollHeight;
 }
 
 // ================================================================
-//  DIAGNOSE
+// DIAGNOSE
 // ================================================================
 function runDiag() {
-  var dl = document.getElementById('diagList');
-  dl.innerHTML = '';
-
-  var checks = [
-    {
-      label: 'Web Bluetooth API',
-      pass:  !!navigator.bluetooth,
-      msg:   navigator.bluetooth
-               ? 'navigator.bluetooth vorhanden'
-               : 'FEHLT! Bitte Chrome oder Edge verwenden.'
-    },
-    {
-      label: 'Sicherer Kontext (HTTPS / localhost)',
-      pass:  window.isSecureContext,
-      msg:   window.isSecureContext
-               ? window.location.origin + ' ist sicher'
-               : 'FEHLT! Aktuelle URL: ' + window.location.href
-                 + '  Tipp: python -m http.server 8080'
-    },
-    {
-      label: 'Spracherkennung',
-      pass:  !!(window.SpeechRecognition || window.webkitSpeechRecognition),
-      msg:   !!(window.SpeechRecognition || window.webkitSpeechRecognition)
-               ? 'Verfuegbar'
-               : 'Nicht verfuegbar (manuelle Eingabe nutzen)'
-    },
-    {
-      label: 'Browser',
-      pass:  /Chrome|Edg/.test(navigator.userAgent) && !/Firefox/.test(navigator.userAgent),
-      msg:   (navigator.userAgent.match(/(Chrome|Edg|Firefox)\/[\d.]+/) || ['unbekannt'])[0]
-    }
-  ];
-
-  checks.forEach(function(c) {
-    var li = document.createElement('li');
-    li.className = c.pass ? 'pass' : 'fail';
-    li.innerHTML = (c.pass ? '✅ ' : '❌ ')
-                 + '<strong>' + c.label + ':</strong> ' + c.msg;
-    dl.appendChild(li);
-  });
+var dl = document.getElementById('diagList');
+dl.innerHTML = '';
+[
+{
+label: 'Web Bluetooth',
+pass: !!navigator.bluetooth,
+msg: navigator.bluetooth ? 'Verfuegbar' : 'FEHLT – Chrome/Edge verwenden!'
+},
+{
+label: 'Sicherer Kontext',
+pass: window.isSecureContext,
+msg: window.isSecureContext ? window.location.origin : 'KEIN HTTPS/localhost: ' + window.location.href
+},
+{
+label: 'Spracherkennung',
+pass: !!(window.SpeechRecognition || window.webkitSpeechRecognition),
+msg: !!(window.SpeechRecognition || window.webkitSpeechRecognition) ? 'Verfuegbar' : 'Nicht verfuegbar'
+},
+{
+label: 'Browser',
+pass: /Chrome|Edg/.test(navigator.userAgent) && !/Firefox/.test(navigator.userAgent),
+msg: (navigator.userAgent.match(/(Chrome|Edg|Firefox)\/[\d.]+/) || ['unbekannt'])[0]
+}
+].forEach(function(c) {
+var li = document.createElement('li');
+li.className = c.pass ? 'pass' : 'fail';
+li.innerHTML = (c.pass ? '&#9989; ' : '&#10060; ') + '<strong>' + c.label + ':</strong> ' + c.msg;
+dl.appendChild(li);
+});
 }
 
 // ================================================================
-//  *** KERN-FIX ***
-//  requestDevice() DIREKT im synchronen onclick-Handler aufrufen.
-//  Kein async/await VOR dem Aufruf – sonst kein Dialog!
+// VERBINDEN – requestDevice direkt im Click-Handler!
 // ================================================================
 function onConnectClick() {
-  if (!navigator.bluetooth) {
-    lg('Web Bluetooth nicht verfuegbar! Bitte Chrome/Edge + HTTPS nutzen.', 'err');
-    runDiag();
-    return;
-  }
-  if (!window.isSecureContext) {
-    lg('Kein sicherer Kontext! Seite ueber localhost servieren.', 'err');
-    runDiag();
-    return;
-  }
+if (!navigator.bluetooth || !window.isSecureContext) {
+lg('Web Bluetooth oder sicherer Kontext fehlt!', 'err');
+runDiag(); return;
+}
+lg('Oeffne BLE-Dialog (alle Geraete) ...');
 
-  lg('Oeffne BLE-Geraete-Dialog (alle Geraete) ...');
-
-  // requestDevice() wird SOFORT synchron aus dem Click-Event aufgerufen.
-  // Danach laeuft alles asynchron mit .then()/.catch() weiter.
-  navigator.bluetooth.requestDevice({
-    acceptAllDevices: true,
-    optionalServices: ALL_SVCS.concat([
-      '0000180a-0000-1000-8000-00805f9b34fb',
-      '0000180f-0000-1000-8000-00805f9b34fb'
-    ])
-  })
-  .then(function(dev) {
-    lg('Geraet gewaehlt: ' + (dev.name || '(kein Name)') + ' | ' + dev.id);
-    printer.dev = dev;
-    dev.addEventListener('gattserverdisconnected', onDisc);
-    lg('Verbinde GATT ...');
-    return dev.gatt.connect();
-  })
-  .then(function(server) {
-    lg('GATT verbunden', 'ok');
-    return discoverServices(server);
-  })
-  .catch(function(e) {
-    if (e.name === 'NotFoundError' || (e.message && e.message.toLowerCase().includes('cancel'))) {
-      lg('Dialog abgebrochen.', 'warn');
-    } else {
-      lg('Fehler: ' + e.name + ': ' + e.message, 'err');
-    }
-  });
+navigator.bluetooth.requestDevice({
+acceptAllDevices: true,
+optionalServices: ALL_SVC_UUIDS
+})
+.then(function(dev) {
+lg('Geraet: ' + (dev.name || '(kein Name)') + ' | ' + dev.id);
+printer.dev = dev;
+dev.addEventListener('gattserverdisconnected', onDisc);
+lg('Verbinde GATT ...');
+return dev.gatt.connect();
+})
+.then(function(server) {
+lg('GATT verbunden', 'ok');
+// *** DER EIGENTLICHE FIX ***
+// getPrimaryServices() schlaegt bei PPG_P21 fehl.
+// Stattdessen: jeden UUID einzeln direkt testen!
+return tryAllUUIDs(server);
+})
+.catch(function(e) {
+if (e.name === 'NotFoundError' || (e.message && e.message.includes('cancel'))) {
+lg('Dialog abgebrochen.', 'warn');
+} else {
+lg('Fehler: ' + e.name + ': ' + e.message, 'err');
+}
+});
 }
 
 // ================================================================
-//  SERVICES & CHARACTERISTICS ENTDECKEN
+// KERN-FIX: Jeden Service-UUID einzeln direkt testen
+// (umgeht getPrimaryServices()-Limitierung)
 // ================================================================
-function discoverServices(gattServer) {
-  lg('Scanne alle Services ...');
+function tryAllUUIDs(gattServer) {
+var panel = document.getElementById('uuidProgress');
+var list = document.getElementById('uuidTryList');
+panel.style.display = 'block';
+list.innerHTML = '';
 
-  return gattServer.getPrimaryServices()
-  .catch(function(e) {
-    lg('getPrimaryServices() fehlgeschlagen: ' + e.message + ' – versuche bekannte Presets ...', 'warn');
-    // Presets direkt ausprobieren
-    var keys = Object.keys(PRESETS);
-    var idx = 0;
-    function tryNext() {
-      if (idx >= keys.length) {
-        lg('Kein bekannter Service gefunden. Bitte manuell auswaehlen.', 'err');
-        return Promise.resolve();
-      }
-      var p = PRESETS[keys[idx++]];
-      return gattServer.getPrimaryService(p.svc)
-      .then(function(svc) {
-        return svc.getCharacteristic(p.write)
-        .then(function(ch) {
-          lg('Preset gefunden: ' + p.name, 'ok');
-          return activateChar(svc, ch);
-        });
-      })
-      .catch(tryNext);
-    }
-    return tryNext();
-  })
-  .then(function(services) {
-    if (!services || !services.length) return;
-    lg(services.length + ' Service(s) gefunden.');
+// Zeilen vorbereiten
+var rows = UUID_CANDIDATES.map(function(c, i) {
+var row = document.createElement('div');
+row.className = 'uuid-row';
+row.id = 'urow_' + i;
+row.innerHTML =
+'<span class="badge" id="ubadge_' + i + '">&#8901;&#8901;&#8901;</span>'
++ '<span style="color:#aaa">' + c.label + '</span>'
++ '<span style="color:#546e7a;font-size:10px">' + c.svc.slice(0,8) + '...</span>';
+list.appendChild(row);
+return row;
+});
 
-    var svcList = document.getElementById('svcList');
-    svcList.innerHTML = '';
-    selectedCharObj = null;
-    selectedSvcObj  = null;
-    var autoOk = false;
+var idx = 0;
 
-    // Services sequentiell durchgehen
-    var i = 0;
-    function nextService() {
-      if (i >= services.length) {
-        document.getElementById('uuidPicker').style.display = 'block';
-        if (!autoOk) lg('Bitte schreibbare Characteristic auswaehlen und Knopf druecken.', 'warn');
-        return Promise.resolve();
-      }
-      var svc = services[i++];
-      var uuid = svc.uuid;
-      var knownEntry = null;
-      Object.entries(PRESETS).forEach(function(kv) {
-        if (kv[1].svc === uuid) knownEntry = kv;
-      });
-      lg('Service: ' + uuid + (knownEntry ? '  ->  ' + knownEntry[1].name : ''));
+function tryNext() {
+if (idx >= UUID_CANDIDATES.length) {
+lg('Alle bekannten UUIDs erfolglos getestet.', 'err');
+lg('Tipp: nRF Connect App nutzen um die echten UUIDs zu sehen.', 'warn');
+showManualHint();
+return Promise.resolve();
+}
 
-      return svc.getCharacteristics()
-      .then(function(chars) {
-        chars.forEach(function(ch) {
-          var props = [];
-          if (ch.properties.write)                props.push('Write');
-          if (ch.properties.writeWithoutResponse)  props.push('WriteNR');
-          if (ch.properties.notify)               props.push('Notify');
-          if (ch.properties.read)                 props.push('Read');
-          lg('  Char: ' + ch.uuid + ' [' + props.join(', ') + ']');
+var candidate = UUID_CANDIDATES[idx];
+var rowEl = rows[idx];
+var badgeEl = document.getElementById('ubadge_' + idx);
+idx++;
 
-          var writable = ch.properties.write || ch.properties.writeWithoutResponse;
+rowEl.className = 'uuid-row trying';
+badgeEl.textContent = '...';
+lg('Teste: ' + candidate.label + ' (' + candidate.svc + ')', 'try');
 
-          var item = document.createElement('div');
-          item.className = 'svc-item';
-          var tagClass  = writable ? 'green' : '';
-          var tagLabel  = props.join('+') || 'Read';
-          item.innerHTML =
-            '<span class="tag ' + tagClass + '">' + tagLabel + '</span>'
-            + '<span style="font-size:10.5px;color:#ddd;font-family:monospace">' + ch.uuid + '</span>'
-            + (knownEntry ? '<span class="tag">' + knownEntry[1].name + '</span>' : '');
+return gattServer.getPrimaryService(candidate.svc)
+.then(function(svc) {
+rowEl.className = 'uuid-row found';
+badgeEl.className = 'badge ok';
+badgeEl.textContent = 'OK';
+lg('Service gefunden: ' + candidate.label, 'ok');
+return svc.getCharacteristic(candidate.write)
+.then(function(ch) {
+lg('Write-Characteristic gefunden: ' + candidate.write, 'ok');
+return activateChar(svc, ch, candidate);
+})
+.catch(function(e2) {
+lg('Write-Char nicht gefunden: ' + e2.message + ' – versuche auto-scan ...', 'warn');
+return autoFindWriteChar(svc, candidate);
+});
+})
+.catch(function() {
+rowEl.className = 'uuid-row fail';
+badgeEl.className = 'badge fail';
+badgeEl.textContent = 'X';
+return tryNext();
+});
+}
 
-          if (writable) {
-            (function(_svc, _ch, _item) {
-              _item.onclick = function() {
-                document.querySelectorAll('.svc-item').forEach(function(x){ x.classList.remove('selected'); });
-                _item.classList.add('selected');
-                selectedSvcObj  = _svc;
-                selectedCharObj = _ch;
-              };
-            })(svc, ch, item);
-          }
-          svcList.appendChild(item);
-
-          // Auto-Connect bei bekanntem Preset
-          if (writable && knownEntry && !autoOk) {
-            autoOk = true;
-            item.classList.add('selected');
-            selectedSvcObj  = svc;
-            selectedCharObj = ch;
-            lg('Auto-Connect: ' + knownEntry[1].name, 'ok');
-            activateChar(svc, ch);
-          }
-        });
-      })
-      .catch(function(e) {
-        lg('  Characteristics nicht lesbar: ' + e.message, 'warn');
-      })
-      .then(nextService);
-    }
-    return nextService();
-  });
+return tryNext();
 }
 
 // ================================================================
-//  MANUELL GEWAEHLT ANWENDEN
+// SCHREIBBARE CHAR AUTO-FINDEN (falls UUID nicht direkt klappt)
 // ================================================================
-function applySelectedChar() {
-  if (!selectedCharObj) {
-    lg('Bitte zuerst eine schreibbare Characteristic auswaehlen.', 'warn');
-    return;
-  }
-  activateChar(selectedSvcObj, selectedCharObj);
+function autoFindWriteChar(svc, candidate) {
+return svc.getCharacteristics()
+.then(function(chars) {
+var writeChar = null, notifChar = null;
+chars.forEach(function(ch) {
+lg(' Char: ' + ch.uuid
++ ' W:' + (ch.properties.write || ch.properties.writeWithoutResponse ? 'ja' : 'nein')
++ ' N:' + (ch.properties.notify ? 'ja' : 'nein'));
+if (!writeChar && (ch.properties.write || ch.properties.writeWithoutResponse)) writeChar = ch;
+if (!notifChar && ch.properties.notify) notifChar = ch;
+});
+if (writeChar) {
+lg('Auto-gefundene Write-Char: ' + writeChar.uuid, 'ok');
+return activateChar(svc, writeChar, candidate);
+}
+lg('Keine schreibbare Characteristic in diesem Service.', 'warn');
+})
+.catch(function(e) {
+lg('getCharacteristics() fehlgeschlagen: ' + e.message, 'err');
+});
 }
 
 // ================================================================
-//  CHARACTERISTIC AKTIVIEREN
+// MANUELLER HINWEIS (wenn gar nichts klappt)
 // ================================================================
-function activateChar(svc, ch) {
-  printer.char = ch;
-  printer.ok   = true;
+function showManualHint() {
+var list = document.getElementById('uuidTryList');
+var hint = document.createElement('div');
+hint.style.cssText = 'padding:10px;margin-top:8px;background:rgba(255,152,0,.1);border:1px solid rgba(255,152,0,.3);border-radius:6px;color:#ffb74d;font-size:11px;line-height:1.6';
+hint.innerHTML =
+'<strong>&#128161; Naechste Schritte:</strong><br>'
++ '1. <strong>nRF Connect</strong> (Android/iOS) installieren<br>'
++ '2. P21 verbinden &rarr; "Services" Tab<br>'
++ '3. Service-UUID + Write-UUID notieren<br>'
++ '4. Unten manuell eintragen und verbinden:<br>'
++ '<div style="margin-top:6px;display:flex;flex-direction:column;gap:4px">'
++ '<input id="manSvc" placeholder="Service UUID" style="background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.15);border-radius:5px;padding:4px 8px;color:#fff;font-size:11px;font-family:monospace;width:100%">'
++ '<input id="manWrite" placeholder="Write Characteristic UUID" style="background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.15);border-radius:5px;padding:4px 8px;color:#fff;font-size:11px;font-family:monospace;width:100%">'
++ '</div>'
++ '<button onclick="connectManualUUID()" style="margin-top:6px;padding:6px 12px;font-size:11px">&#128279; Verbinden</button>';
+list.appendChild(hint);
+}
 
-  // Notify-Characteristic suchen und aktivieren
-  svc.getCharacteristics()
-  .then(function(chars) {
-    var nc = null;
-    chars.forEach(function(c) { if (c.properties.notify) nc = c; });
-    if (!nc) { lg('Kein Notify gefunden (OK).', 'warn'); return; }
-    return nc.startNotifications()
-    .then(function() {
-      nc.addEventListener('characteristicvaluechanged', function(e) {
-        var b = Array.from(new Uint8Array(e.target.value.buffer));
-        lg('<- ' + b.map(function(x){ return x.toString(16).padStart(2,'0'); }).join(' '), 'data');
-      });
-      lg('Notify aktiviert.', 'ok');
-    });
-  })
-  .catch(function(e) { lg('Notify-Fehler: ' + e.message, 'warn'); });
+function connectManualUUID() {
+var svcUUID = document.getElementById('manSvc').value.trim();
+var writeUUID = document.getElementById('manWrite').value.trim();
+if (!svcUUID || !writeUUID) { lg('Bitte beide UUIDs eingeben.', 'warn'); return; }
+if (!printer.dev || !printer.dev.gatt) { lg('Geraet nicht verbunden.', 'err'); return; }
 
-  updatePrinterUI(true, printer.dev ? (printer.dev.name || 'P21') : 'P21');
-  lg('Drucker bereit! Char: ' + ch.uuid, 'ok');
+lg('Versuche manuellen UUID: ' + svcUUID);
+printer.dev.gatt.connect()
+.then(function(srv) { return srv.getPrimaryService(svcUUID); })
+.then(function(svc) { return svc.getCharacteristic(writeUUID).then(function(ch){ return activateChar(svc, ch, {label:'Manuell',svc:svcUUID,write:writeUUID,notif:null}); }); })
+.catch(function(e) { lg('Manuell fehlgeschlagen: ' + e.message, 'err'); });
 }
 
 // ================================================================
-//  TRENNEN
+// CHARACTERISTIC AKTIVIEREN
 // ================================================================
-function onDisc() {
-  printer.ok   = false;
-  printer.char = null;
-  updatePrinterUI(false);
-  lg('Verbindung getrennt.', 'warn');
+function activateChar(svc, ch, candidate) {
+printer.char = ch;
+printer.ok = true;
+
+// Notify suchen
+var notifPromise;
+if (candidate && candidate.notif) {
+notifPromise = svc.getCharacteristic(candidate.notif).catch(function() { return null; });
+} else {
+notifPromise = svc.getCharacteristics().then(function(chars) {
+return chars.find(function(c){ return c.properties.notify; }) || null;
+}).catch(function(){ return null; });
 }
 
-function disconnectPrinter() {
-  if (printer.dev && printer.dev.gatt && printer.dev.gatt.connected) {
-    printer.dev.gatt.disconnect();
-  }
-  onDisc();
+return notifPromise.then(function(nc) {
+if (nc) {
+return nc.startNotifications().then(function() {
+nc.addEventListener('characteristicvaluechanged', function(e) {
+var b = Array.from(new Uint8Array(e.target.value.buffer));
+lg('<- ' + b.map(function(x){ return x.toString(16).padStart(2,'0'); }).join(' '), 'data');
+});
+lg('Notify aktiv.', 'ok');
+}).catch(function(e){ lg('Notify: ' + e.message, 'warn'); });
+}
+}).then(function() {
+updatePrinterUI(true, printer.dev ? (printer.dev.name || 'P21') : 'P21');
+lg('Drucker bereit! ' + (candidate ? candidate.label : '') + ' | ' + ch.uuid, 'ok');
+});
 }
 
+// ================================================================
+// TRENNEN
+// ================================================================
+function onDisc() { printer.ok = false; printer.char = null; updatePrinterUI(false); lg('Getrennt.', 'warn'); }
+function disconnectPrinter() { if (printer.dev && printer.dev.gatt && printer.dev.gatt.connected) printer.dev.gatt.disconnect(); onDisc(); }
 function updatePrinterUI(ok, name) {
-  name = name || '';
-  var s = document.getElementById('pStatus');
-  s.className = 'sbar ' + (ok ? 'ok' : 'warn');
-  s.textContent = ok ? 'Verbunden: ' + name : 'Nicht verbunden';
-  document.getElementById('btnConnect').disabled    = ok;
-  document.getElementById('btnDisconnect').disabled = !ok;
-  document.getElementById('btnPrint').disabled      = !(ok && curNum);
+name = name || '';
+var s = document.getElementById('pStatus');
+s.className = 'sbar ' + (ok ? 'ok' : 'warn');
+s.textContent = ok ? 'Verbunden: ' + name : 'Nicht verbunden';
+document.getElementById('btnConnect').disabled = ok;
+document.getElementById('btnDisconnect').disabled = !ok;
+document.getElementById('btnPrint').disabled = !(ok && curNum);
 }
 
 // ================================================================
-//  CRC-8 & BLE-PROTOKOLL (PeriPage)
+// CRC-8 & PROTOKOLL
 // ================================================================
 function crc8(arr) {
-  var c = 0;
-  for (var j = 0; j < arr.length; j++) {
-    c ^= arr[j];
-    for (var i = 0; i < 8; i++) {
-      c = (c & 0x80) ? ((c << 1) ^ 0x07) & 0xFF : (c << 1) & 0xFF;
-    }
-  }
-  return c;
+var c = 0;
+for (var j = 0; j < arr.length; j++) {
+c ^= arr[j];
+for (var i = 0; i < 8; i++) c = (c & 0x80) ? ((c << 1) ^ 0x07) & 0xFF : (c << 1) & 0xFF;
 }
-
+return c;
+}
 function buildPkt(command, data) {
-  var d = Array.isArray(data) ? data : Array.from(data);
-  var arr = [0x51, 0x78, command, 0x00, d.length & 0xFF, (d.length >> 8) & 0xFF]
-              .concat(d)
-              .concat([crc8(d)]);
-  return new Uint8Array(arr);
+var d = Array.isArray(data) ? data : Array.from(data);
+return new Uint8Array([0x51, 0x78, command, 0x00, d.length & 0xFF, (d.length >> 8) & 0xFF].concat(d).concat([crc8(d)]));
 }
-
-function wait(ms) {
-  return new Promise(function(resolve){ setTimeout(resolve, ms); });
-}
-
+function wait(ms) { return new Promise(function(r){ setTimeout(r, ms); }); }
 function bleWrite(buf) {
-  if (!printer.char) return Promise.reject(new Error('Nicht verbunden'));
-  var i = 0;
-  function writeChunk() {
-    if (i >= buf.length) return Promise.resolve();
-    var sl = buf.slice(i, i + CFG.BLE_CHUNK);
-    i += CFG.BLE_CHUNK;
-    var p;
-    try {
-      p = printer.char.writeValueWithoutResponse(sl);
-    } catch(e) {
-      p = printer.char.writeValue(sl);
-    }
-    if (!p || !p.catch) p = Promise.resolve();
-    return p.catch(function() {
-      return printer.char.writeValue(sl);
-    }).then(function() {
-      if (buf.length > CFG.BLE_CHUNK) return wait(CFG.BLE_DELAY);
-    }).then(writeChunk);
-  }
-  return writeChunk();
+if (!printer.char) return Promise.reject(new Error('Nicht verbunden'));
+var i = 0;
+function chunk() {
+if (i >= buf.length) return Promise.resolve();
+var sl = buf.slice(i, i + CFG.BLE_CHUNK); i += CFG.BLE_CHUNK;
+var p;
+try { p = printer.char.writeValueWithoutResponse(sl); } catch(e) { p = null; }
+if (!p) p = printer.char.writeValue(sl);
+return p.catch(function(){ return printer.char.writeValue(sl); })
+.then(function(){ if (buf.length > CFG.BLE_CHUNK) return wait(CFG.BLE_DELAY); })
+.then(chunk);
 }
-
-function sendCmd(c, d) {
-  return bleWrite(buildPkt(c, d));
+return chunk();
 }
+function sendCmd(c, d) { return bleWrite(buildPkt(c, d)); }
 
 // ================================================================
-//  SPRACHERKENNUNG
+// SPRACHERKENNUNG
 // ================================================================
-var DW = {
-  'null':0,'nul':0,'ein':1,'eine':1,'eins':1,
-  'zwei':2,'zwo':2,'drei':3,'vier':4,'fuenf':5,'fünf':5,
-  'sechs':6,'sieben':7,'acht':8,'neun':9,
-  'zero':0,'one':1,'two':2,'three':3,'four':4,
-  'five':5,'six':6,'seven':7,'eight':8,'nine':9
-};
+var DW = {'null':0,'ein':1,'eine':1,'eins':1,'zwei':2,'zwo':2,'drei':3,'vier':4,
+'fuenf':5,'fünf':5,'sechs':6,'sieben':7,'acht':8,'neun':9,
+'zero':0,'one':1,'two':2,'three':3,'four':4,'five':5,'six':6,'seven':7,'eight':8,'nine':9};
 
 function initRecog() {
-  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) { lg('Spracherkennung nicht verfuegbar.', 'err'); return; }
-  recog = new SR();
-  recog.lang = 'de-DE';
-  recog.continuous = false;
-  recog.interimResults = true;
-  recog.maxAlternatives = 5;
-
-  recog.onstart = function() {
-    document.getElementById('speechInfo').textContent = 'Hoert zu ...';
-  };
-  recog.onend = function() {
-    setListening(false);
-    document.getElementById('speechInfo').textContent = '';
-  };
-  recog.onerror = function(e) {
-    lg('Sprachfehler: ' + e.error, 'err');
-    setListening(false);
-  };
-  recog.onresult = function(e) {
-    var fin = '', tmp = '';
-    for (var i = e.resultIndex; i < e.results.length; i++) {
-      var t = e.results[i][0].transcript;
-      if (e.results[i].isFinal) fin += t; else tmp += t;
-    }
-    document.getElementById('transcript').textContent = fin || tmp;
-    if (fin) {
-      lg('Erkannt: "' + fin + '"');
-      parseSpoken(fin, e);
-    }
-  };
+var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+if (!SR) { lg('Spracherkennung fehlt.', 'err'); return; }
+recog = new SR(); recog.lang = 'de-DE'; recog.continuous = false;
+recog.interimResults = true; recog.maxAlternatives = 5;
+recog.onend = function() { setListening(false); };
+recog.onerror = function(e) { lg('Sprachfehler: ' + e.error, 'err'); setListening(false); };
+recog.onresult = function(e) {
+var fin = '', tmp = '';
+for (var i = e.resultIndex; i < e.results.length; i++) {
+var t = e.results[i][0].transcript;
+if (e.results[i].isFinal) fin += t; else tmp += t;
 }
-
+document.getElementById('transcript').textContent = fin || tmp;
+if (fin) { lg('Erkannt: "' + fin + '"'); parseSpoken(fin, e); }
+};
+}
 function toggleSpeech() {
-  if (!recog) initRecog();
-  if (!recog) return;
-  if (listening) { recog.stop(); setListening(false); }
-  else           { recog.start(); setListening(true); }
+if (!recog) initRecog();
+if (!recog) return;
+if (listening) { recog.stop(); setListening(false); } else { recog.start(); setListening(true); }
 }
-
 function setListening(v) {
-  listening = v;
-  var b = document.getElementById('btnSpeak');
-  b.textContent = v ? 'Stopp' : 'Sprechen';
-  b.className   = v ? 'active' : '';
+listening = v;
+var b = document.getElementById('btnSpeak');
+b.textContent = v ? 'Stopp' : 'Sprechen';
+b.className = v ? 'active' : '';
 }
+function clearSpeech() { document.getElementById('transcript').textContent = 'Warte ...'; if (listening) toggleSpeech(); }
 
-function clearSpeech() {
-  document.getElementById('transcript').textContent = 'Warte auf Sprache ...';
-  if (listening) toggleSpeech();
-}
-
-// ================================================================
-//  ZAHL AUS SPRACHE PARSEN
-// ================================================================
 function parseSpoken(text, ev) {
-  var alts = [];
-  if (ev) {
-    for (var i = 0; i < ev.results.length; i++)
-      for (var j = 0; j < ev.results[i].length; j++)
-        alts.push(ev.results[i][j].transcript.toLowerCase());
-  }
-  var all = [text.toLowerCase()].concat(alts);
-
-  // 1. Direkte 4-stellige Ziffernfolge
-  for (var k = 0; k < all.length; k++) {
-    var m = all[k].match(/\b(\d{4})\b/);
-    if (m) { lg('Direkte Zahl: ' + m[1], 'ok'); setNumber(m[1]); return; }
-  }
-
-  // 2. Einzelne Ziffernwoerter: "eins zwei drei vier"
-  var ws = text.toLowerCase().split(/[\s,\.]+/);
-  var digs = [];
-  for (var wi = 0; wi < ws.length && digs.length < 4; wi++) {
-    if (DW.hasOwnProperty(ws[wi])) digs.push(DW[ws[wi]]);
-  }
-  if (digs.length === 4) {
-    var n = digs.join('');
-    lg('Einzelziffern: ' + n, 'ok');
-    setNumber(n);
-    return;
-  }
-
-  // 3. Deutsche Zahlenwoerter
-  var gn = parseGerman(text.toLowerCase());
-  if (gn) { lg('Deutsch geparst: ' + gn, 'ok'); setNumber(gn); return; }
-
-  // 4. Beliebige 4 Ziffern hintereinander
-  var m2 = text.replace(/\s/g,'').match(/\d{4}/);
-  if (m2) { lg('4 Ziffern: ' + m2[0], 'ok'); setNumber(m2[0]); return; }
-
-  lg('Keine 4-stellige Zahl erkannt – bitte nochmals sprechen.', 'warn');
+var alts = [];
+if (ev) for (var i = 0; i < ev.results.length; i++) for (var j = 0; j < ev.results[i].length; j++) alts.push(ev.results[i][j].transcript.toLowerCase());
+var all = [text.toLowerCase()].concat(alts);
+for (var k = 0; k < all.length; k++) { var m = all[k].match(/\b(\d{4})\b/); if (m) { setNumber(m[1]); lg('Zahl: ' + m[1], 'ok'); return; } }
+var ws = text.toLowerCase().split(/[\s,\.]+/), digs = [];
+for (var wi = 0; wi < ws.length && digs.length < 4; wi++) if (DW.hasOwnProperty(ws[wi])) digs.push(DW[ws[wi]]);
+if (digs.length === 4) { var n = digs.join(''); setNumber(n); lg('Ziffern: ' + n, 'ok'); return; }
+var gn = parseGerman(text.toLowerCase());
+if (gn) { setNumber(gn); lg('Deutsch: ' + gn, 'ok'); return; }
+lg('Keine 4-stellige Zahl erkannt.', 'warn');
 }
-
 function parseGerman(t) {
-  // "neunzehnhundert achtzig" -> 1980
-  var hm = t.match(/(\w+)hundert\s*(\w*)/);
-  if (hm) {
-    var h = sg(hm[1]);
-    var r = hm[2] ? sg(hm[2]) : 0;
-    if (h !== null && h >= 10 && h <= 99) {
-      var n = h * 100 + (r || 0);
-      if (n >= 1000 && n <= 9999) return String(n);
-    }
-  }
-  // "zweitausend vierundzwanzig" -> 2024
-  var tm = t.match(/(ein|zwei|drei|vier|f[uü]nf|sechs|sieben|acht|neun)tausend\s*(\w*)/);
-  if (tm) {
-    var th = sg(tm[1]);
-    var r2 = tm[2] ? sg(tm[2]) : 0;
-    if (th !== null && th >= 1 && th <= 9) {
-      var n2 = th * 1000 + (r2 || 0);
-      if (n2 >= 1000 && n2 <= 9999) return String(n2).padStart(4,'0');
-    }
-  }
-  return null;
+var hm = t.match(/(\w+)hundert\s*(\w*)/);
+if (hm) { var h = sg(hm[1]), r = hm[2] ? sg(hm[2]) : 0; if (h !== null && h >= 10 && h <= 99) { var n = h*100+(r||0); if (n>=1000&&n<=9999) return String(n); } }
+var tm = t.match(/(ein|zwei|drei|vier|f[uü]nf|sechs|sieben|acht|neun)tausend\s*(\w*)/);
+if (tm) { var th = sg(tm[1]), r2 = tm[2] ? sg(tm[2]) : 0; if (th !== null) { var n2 = th*1000+(r2||0); if (n2>=1000&&n2<=9999) return String(n2).padStart(4,'0'); } }
+return null;
 }
-
 function sg(w) {
-  var M = {
-    'null':0,'ein':1,'eine':1,'eins':1,'zwei':2,'drei':3,
-    'vier':4,'funf':5,'fuenf':5,'fünf':5,'sechs':6,'sieben':7,
-    'acht':8,'neun':9,'zehn':10,'elf':11,'zwoelf':12,'zwölf':12,
-    'dreizehn':13,'vierzehn':14,'fuenfzehn':15,'fünfzehn':15,
-    'sechzehn':16,'siebzehn':17,'achtzehn':18,'neunzehn':19,
-    'zwanzig':20,'dreissig':30,'dreißig':30,'vierzig':40,
-    'fuenfzig':50,'fünfzig':50,'sechzig':60,'siebzig':70,
-    'achtzig':80,'neunzig':90
-  };
-  return M.hasOwnProperty(w) ? M[w] : null;
+var M = {'null':0,'ein':1,'eine':1,'eins':1,'zwei':2,'drei':3,'vier':4,'funf':5,'fuenf':5,'fünf':5,'sechs':6,'sieben':7,'acht':8,'neun':9,'zehn':10,'elf':11,'zwoelf':12,'zwölf':12,'dreizehn':13,'vierzehn':14,'fuenfzehn':15,'fünfzehn':15,'sechzehn':16,'siebzehn':17,'achtzehn':18,'neunzehn':19,'zwanzig':20,'dreissig':30,'dreißig':30,'vierzig':40,'fuenfzig':50,'fünfzig':50,'sechzig':60,'siebzig':70,'achtzig':80,'neunzig':90};
+return M.hasOwnProperty(w) ? M[w] : null;
 }
-
 function useManual() {
-  var v = document.getElementById('manualNum').value.trim();
-  if (/^\d{4}$/.test(v)) { setNumber(v); lg('Manuell: ' + v); }
-  else lg('Bitte genau 4 Ziffern eingeben.', 'warn');
+var v = document.getElementById('manualNum').value.trim();
+if (/^\d{4}$/.test(v)) { setNumber(v); lg('Manuell: ' + v); } else lg('4 Ziffern bitte.', 'warn');
 }
 
 // ================================================================
-//  CANVAS: SCHREIBSCHRIFT 90 GRAD GEDREHT (QUER)
+// CANVAS / RENDER
 // ================================================================
 function renderCursive(text, targetW, fontSize) {
-  // Schritt 1: Text horizontal auf temp-Canvas zeichnen
-  var tmp = document.createElement('canvas');
-  var tc  = tmp.getContext('2d');
-  var fstr = 'bold ' + fontSize + "px 'Dancing Script','Segoe Script',cursive";
-  tc.font = fstr;
-  var tw = Math.ceil(tc.measureText(text).width) + 60;
-  var th = Math.ceil(fontSize * 1.35) + 30;
-  tmp.width  = tw;
-  tmp.height = th;
-  tc.fillStyle = '#ffffff';
-  tc.fillRect(0, 0, tw, th);
-  tc.font          = fstr;
-  tc.fillStyle     = '#000000';
-  tc.textBaseline  = 'middle';
-  tc.textAlign     = 'center';
-  tc.fillText(text, tw / 2, th / 2);
-
-  // Schritt 2: 90 Grad im Uhrzeigersinn drehen
-  // Skalierung so, dass die (bisherige) Texthoehe = targetW (Druckbreite)
-  var sc  = targetW / th;
-  var rw  = Math.round(th * sc);   // = targetW
-  var rh  = Math.round(tw * sc);   // Laenge auf dem Papier
-
-  var rot = document.createElement('canvas');
-  rot.width  = rw;
-  rot.height = rh;
-  var rc = rot.getContext('2d');
-  rc.fillStyle = '#ffffff';
-  rc.fillRect(0, 0, rw, rh);
-  rc.save();
-  rc.translate(rw, 0);
-  rc.rotate(Math.PI / 2);
-  rc.scale(sc, sc);
-  rc.drawImage(tmp, 0, 0);
-  rc.restore();
-  return rot;
+var tmp = document.createElement('canvas'), tc = tmp.getContext('2d');
+var fstr = 'bold ' + fontSize + "px 'Dancing Script','Segoe Script',cursive";
+tc.font = fstr;
+var tw = Math.ceil(tc.measureText(text).width) + 60, th = Math.ceil(fontSize * 1.35) + 30;
+tmp.width = tw; tmp.height = th;
+tc.fillStyle = '#fff'; tc.fillRect(0,0,tw,th);
+tc.font = fstr; tc.fillStyle = '#000'; tc.textBaseline = 'middle'; tc.textAlign = 'center';
+tc.fillText(text, tw/2, th/2);
+var sc = targetW / th, rot = document.createElement('canvas');
+rot.width = Math.round(th*sc); rot.height = Math.round(tw*sc);
+var rc = rot.getContext('2d');
+rc.fillStyle = '#fff'; rc.fillRect(0,0,rot.width,rot.height);
+rc.save(); rc.translate(rot.width,0); rc.rotate(Math.PI/2); rc.scale(sc,sc); rc.drawImage(tmp,0,0); rc.restore();
+return rot;
 }
-
 function renderPreview(n) {
-  var src  = renderCursive(n, CFG.WIDTH * 0.88, CFG.FONT_SIZE * 0.8);
-  var pv   = document.getElementById('preview');
-  var maxW = Math.min(src.width, 380);
-  var sc   = maxW / src.width;
-  pv.width  = Math.round(src.width  * sc);
-  pv.height = Math.min(Math.round(src.height * sc), 290);
-  var ctx = pv.getContext('2d');
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, 0, pv.width, pv.height);
-  ctx.drawImage(src, 0, 0, pv.width, pv.height);
+var src = renderCursive(n, CFG.WIDTH*0.88, CFG.FONT_SIZE*0.8);
+var pv = document.getElementById('preview');
+var sc = Math.min(380, src.width) / src.width;
+pv.width = Math.round(src.width*sc); pv.height = Math.min(Math.round(src.height*sc), 290);
+var ctx = pv.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0,0,pv.width,pv.height); ctx.drawImage(src,0,0,pv.width,pv.height);
 }
-
 function setNumber(n) {
-  curNum = n;
-  document.getElementById('numDisplay').textContent = n;
-  document.getElementById('manualNum').value = n;
-  document.getElementById('btnPrint').disabled = !printer.ok;
-  renderPreview(n);
+curNum = n; document.getElementById('numDisplay').textContent = n;
+document.getElementById('manualNum').value = n;
+document.getElementById('btnPrint').disabled = !printer.ok;
+renderPreview(n);
 }
 
 // ================================================================
-//  FLOYD-STEINBERG DITHERING -> 1-BIT BITMAP
+// FLOYD-STEINBERG -> 1-BIT
 // ================================================================
 function toBitmap(canvas) {
-  var W  = canvas.width;
-  var H  = canvas.height;
-  var id = canvas.getContext('2d').getImageData(0, 0, W, H);
-  var g  = new Float32Array(W * H);
-
-  // Graustufen
-  for (var idx = 0; idx < W * H; idx++) {
-    var p = idx * 4;
-    g[idx] = 0.299 * id.data[p] + 0.587 * id.data[p+1] + 0.114 * id.data[p+2];
-  }
-
-  // Dithering
-  for (var y = 0; y < H; y++) {
-    for (var x = 0; x < W; x++) {
-      var i  = y * W + x;
-      var ov = g[i];
-      var nv = ov < 128 ? 0 : 255;
-      var er = ov - nv;
-      g[i] = nv;
-      if (x + 1 < W)          g[i + 1]     += er * 7 / 16;
-      if (y + 1 < H) {
-        if (x > 0)             g[i + W - 1] += er * 3 / 16;
-                               g[i + W]     += er * 5 / 16;
-        if (x + 1 < W)        g[i + W + 1] += er * 1 / 16;
-      }
-    }
-  }
-
-  // 1-Bit packen (MSB zuerst, dunkle Pixel = 1)
-  var rb = Math.ceil(W / 8);
-  var bm = new Uint8Array(H * rb);
-  for (var y2 = 0; y2 < H; y2++) {
-    for (var x2 = 0; x2 < W; x2++) {
-      if (g[y2 * W + x2] < 128) {
-        bm[y2 * rb + Math.floor(x2 / 8)] |= (0x80 >> (x2 % 8));
-      }
-    }
-  }
-  return { bm: bm, W: W, H: H, rb: rb };
+var W = canvas.width, H = canvas.height;
+var id = canvas.getContext('2d').getImageData(0,0,W,H);
+var g = new Float32Array(W*H);
+for (var idx=0; idx<W*H; idx++) { var p=idx*4; g[idx]=0.299*id.data[p]+0.587*id.data[p+1]+0.114*id.data[p+2]; }
+for (var y=0; y<H; y++) for (var x=0; x<W; x++) {
+var i=y*W+x, ov=g[i], nv=ov<128?0:255, er=ov-nv; g[i]=nv;
+if (x+1<W) g[i+1]+=er*7/16;
+if (y+1<H) { if(x>0) g[i+W-1]+=er*3/16; g[i+W]+=er*5/16; if(x+1<W) g[i+W+1]+=er*1/16; }
+}
+var rb = Math.ceil(W/8), bm = new Uint8Array(H*rb);
+for (var y2=0; y2<H; y2++) for (var x2=0; x2<W; x2++) if (g[y2*W+x2]<128) bm[y2*rb+Math.floor(x2/8)]|=(0x80>>(x2%8));
+return {bm:bm, W:W, H:H, rb:rb};
 }
 
 // ================================================================
-//  DRUCKEN
+// DRUCKEN
 // ================================================================
 function doPrint() {
-  if (!curNum || !printer.ok || printing) return;
-  printing = true;
-  document.getElementById('btnPrint').disabled = true;
-  document.getElementById('progWrap').style.display = 'block';
-  setP(0);
-  lg('Starte Druckauftrag "' + curNum + '" (quer, Schreibschrift) ...');
-
-  // Canvas vorbereiten
-  var src = renderCursive(curNum, CFG.WIDTH, CFG.FONT_SIZE);
-  var fc  = document.createElement('canvas');
-  fc.width  = CFG.WIDTH;
-  fc.height = src.height;
-  var fx = fc.getContext('2d');
-  fx.fillStyle = '#ffffff';
-  fx.fillRect(0, 0, CFG.WIDTH, src.height);
-  var xoff = Math.max(0, Math.floor((CFG.WIDTH - src.width) / 2));
-  fx.drawImage(src, xoff, 0);
-
-  var bdata = toBitmap(fc);
-  lg('Bitmap: ' + bdata.W + 'x' + bdata.H + ' Dots | ' + bdata.H + ' Zeilen');
-
-  // Protokoll senden
-  sendCmd(0xA4, [CFG.HEAT])
-  .then(function() { return wait(120); })
-  .then(function() {
-    return sendCmd(0xBE, [(bdata.H >> 8) & 0xFF, bdata.H & 0xFF]);
-  })
-  .then(function() { return wait(150); })
-  .then(function() {
-    // Zeilen senden
-    var r = 0;
-    function nextRow() {
-      if (r >= bdata.H) return Promise.resolve();
-      var row = Array.from(bdata.bm.slice(r * bdata.rb, (r + 1) * bdata.rb));
-      return sendCmd(0xA3, row).then(function() {
-        if (r % 15 === 0) {
-          setP(Math.round(r / bdata.H * 88));
-          return wait(CFG.ROW_DELAY);
-        }
-      }).then(function() { r++; return nextRow(); });
-    }
-    return nextRow();
-  })
-  .then(function() {
-    setP(95);
-    return wait(300);
-  })
-  .then(function() {
-    return sendCmd(0xA9, [0x00, CFG.FEED & 0xFF]);
-  })
-  .then(function() {
-    return wait(600);
-  })
-  .then(function() {
-    setP(100);
-    lg('Druckauftrag abgeschlossen!', 'ok');
-  })
-  .catch(function(e) {
-    lg('Druckfehler: ' + e.message, 'err');
-  })
-  .then(function() {
-    printing = false;
-    document.getElementById('btnPrint').disabled = !printer.ok;
-    setTimeout(function() {
-      document.getElementById('progWrap').style.display = 'none';
-      setP(0);
-    }, 2500);
-  });
+if (!curNum || !printer.ok || printing) return;
+printing = true;
+document.getElementById('btnPrint').disabled = true;
+document.getElementById('progWrap').style.display = 'block';
+setP(0); lg('Drucke "' + curNum + '" ...');
+var src = renderCursive(curNum, CFG.WIDTH, CFG.FONT_SIZE);
+var fc = document.createElement('canvas'); fc.width = CFG.WIDTH; fc.height = src.height;
+var fx = fc.getContext('2d'); fx.fillStyle = '#fff'; fx.fillRect(0,0,CFG.WIDTH,src.height);
+fx.drawImage(src, Math.max(0, Math.floor((CFG.WIDTH-src.width)/2)), 0);
+var bdata = toBitmap(fc);
+lg('Bitmap: ' + bdata.W + 'x' + bdata.H);
+sendCmd(0xA4, [CFG.HEAT])
+.then(function(){ return wait(120); })
+.then(function(){ return sendCmd(0xBE, [(bdata.H>>8)&0xFF, bdata.H&0xFF]); })
+.then(function(){ return wait(150); })
+.then(function(){
+var r = 0;
+function nxt() {
+if (r >= bdata.H) return Promise.resolve();
+var row = Array.from(bdata.bm.slice(r*bdata.rb, (r+1)*bdata.rb));
+return sendCmd(0xA3, row).then(function(){
+if (r%15===0) { setP(Math.round(r/bdata.H*88)); return wait(CFG.ROW_DELAY); }
+}).then(function(){ r++; return nxt(); });
 }
-
-function setP(v) {
-  document.getElementById('progFill').style.width = v + '%';
+return nxt();
+})
+.then(function(){ setP(95); return wait(300); })
+.then(function(){ return sendCmd(0xA9, [0x00, CFG.FEED&0xFF]); })
+.then(function(){ return wait(600); })
+.then(function(){ setP(100); lg('Fertig!', 'ok'); })
+.catch(function(e){ lg('Fehler: ' + e.message, 'err'); })
+.then(function(){
+printing = false;
+document.getElementById('btnPrint').disabled = !printer.ok;
+setTimeout(function(){ document.getElementById('progWrap').style.display='none'; setP(0); }, 2500);
+});
 }
-
-// ================================================================
-//  PNG DOWNLOAD (ohne Drucker testen)
-// ================================================================
+function setP(v){ document.getElementById('progFill').style.width = v+'%'; }
 function downloadPNG() {
-  if (!curNum) { lg('Bitte zuerst eine Zahl eingeben.', 'warn'); return; }
-  var src = renderCursive(curNum, CFG.WIDTH, CFG.FONT_SIZE);
-  var a = document.createElement('a');
-  a.download = 'p21_' + curNum + '_quer.png';
-  a.href = src.toDataURL('image/png');
-  a.click();
-  lg('PNG gespeichert: p21_' + curNum + '_quer.png', 'ok');
+if (!curNum) { lg('Zahl fehlt.', 'warn'); return; }
+var src = renderCursive(curNum, CFG.WIDTH, CFG.FONT_SIZE);
+var a = document.createElement('a'); a.download = 'p21_'+curNum+'_quer.png'; a.href = src.toDataURL('image/png'); a.click();
+lg('PNG gespeichert.', 'ok');
 }
 
 // ================================================================
-//  INITIALISIERUNG
+// INIT
 // ================================================================
 window.addEventListener('load', function() {
-  runDiag();
-
-  if (!navigator.bluetooth) {
-    lg('Web Bluetooth nicht verfuegbar! Chrome/Edge + HTTPS benoetigt.', 'err');
-    document.getElementById('btnConnect').disabled = true;
-  } else {
-    lg('Web Bluetooth: verfuegbar', 'ok');
-  }
-
-  if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
-    lg('Spracherkennung nicht verfuegbar – manuelle Eingabe nutzen.', 'warn');
-    document.getElementById('btnSpeak').disabled = true;
-  } else {
-    initRecog();
-    lg('Spracherkennung: bereit', 'ok');
-  }
-
-  setNumber('1234');
-  lg('Webapp v3 bereit. Viel Erfolg!', 'ok');
+runDiag();
+if (!navigator.bluetooth) { lg('Web Bluetooth fehlt!', 'err'); document.getElementById('btnConnect').disabled = true; }
+else lg('Web Bluetooth bereit.', 'ok');
+if (!window.SpeechRecognition && !window.webkitSpeechRecognition) { lg('Spracherkennung fehlt.', 'warn'); document.getElementById('btnSpeak').disabled = true; }
+else { initRecog(); lg('Spracherkennung bereit.', 'ok'); }
+setNumber('1234');
+lg('v4 bereit.', 'ok');
 });
 </script>
 </body>
