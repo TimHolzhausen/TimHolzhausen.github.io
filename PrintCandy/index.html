@@ -1,188 +1,660 @@
-<!DOCTYPE html>
+html = r"""<!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PeriPage Bonbon-Drucker Pro</title>
-    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Dancing+Script:wght@700&family=Pacifico&family=Indie+Flower&display=swap" rel="stylesheet">
-    <style>
-        :root { --primary: #6200ee; --bg: #f4f7f6; }
-        body { font-family: 'Segoe UI', sans-serif; text-align: center; background: var(--bg); padding: 15px; margin: 0; }
-        .card { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 8px 25px rgba(0,0,0,0.1); max-width: 450px; margin: auto; }
-        h1 { color: var(--primary); font-size: 1.4rem; margin: 0 0 15px 0; }
-        
-        .btn { width: 100%; padding: 16px; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; margin-bottom: 10px; }
-        .btn-listen { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(98, 0, 238, 0.2); }
-        .btn-listen.active { background: #ef4444; animation: pulse 1.5s infinite; }
-        
-        .setting-group { text-align: left; margin-bottom: 15px; background: #fafafa; padding: 12px; border-radius: 10px; border: 1px solid #eee; }
-        label { display: block; font-weight: bold; font-size: 13px; color: #666; margin-bottom: 5px; }
-
-        input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; box-sizing: border-box; }
-        #status { font-weight: bold; color: var(--primary); margin: 15px 0; min-height: 1.2em; font-size: 0.95rem; }
-        #fontPreview { margin: 10px 0; padding: 10px; background: white; border: 1px dashed #ccc; font-size: 45px; min-height: 60px; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
-        
-        canvas { display: none; }
-        
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PeriPage P21 – Sprachdruck</title>
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Segoe UI',Tahoma,sans-serif;
+  background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);
+  min-height:100vh;color:#f0f0f0;padding:16px;
+}
+h1{
+  text-align:center;font-size:1.9em;color:#00d4ff;
+  margin-bottom:4px;text-shadow:0 0 20px rgba(0,212,255,.5);
+}
+.sub{text-align:center;color:#888;font-size:.85em;margin-bottom:18px}
+.card{
+  background:rgba(255,255,255,.05);backdrop-filter:blur(10px);
+  border:1px solid rgba(255,255,255,.1);border-radius:16px;
+  padding:20px;margin-bottom:14px;max-width:620px;
+  margin-left:auto;margin-right:auto;
+}
+.card h3{font-size:.95em;color:#00d4ff;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+btn,button{
+  background:linear-gradient(135deg,#0f3460,#162447);
+  color:#fff;border:1px solid rgba(0,212,255,.3);
+  padding:11px 22px;border-radius:10px;cursor:pointer;
+  font-size:13px;font-weight:600;transition:all .2s;
+  display:inline-flex;align-items:center;gap:6px;margin:3px;
+}
+button:hover:not(:disabled){
+  background:linear-gradient(135deg,#00d4ff,#007bff);
+  color:#0f0c29;transform:translateY(-2px);
+  box-shadow:0 4px 15px rgba(0,212,255,.3);
+}
+button:disabled{opacity:.35;cursor:not-allowed;transform:none}
+button.active{
+  background:linear-gradient(135deg,#e94560,#b71c1c);
+  border-color:rgba(233,69,96,.5);
+  animation:pulse 1.4s ease-in-out infinite;
+}
+button.ok-btn{background:linear-gradient(135deg,#1b5e20,#2e7d32);border-color:rgba(76,175,80,.4)}
+@keyframes pulse{0%,100%{box-shadow:0 0 5px rgba(233,69,96,.4)}50%{box-shadow:0 0 20px rgba(233,69,96,.8)}}
+.sbar{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 13px;border-radius:8px;margin-bottom:10px;font-size:13px;
+}
+.sbar.ok{background:rgba(76,175,80,.1);border:1px solid rgba(76,175,80,.3);color:#81c784}
+.sbar.err{background:rgba(244,67,54,.1);border:1px solid rgba(244,67,54,.3);color:#e57373}
+.sbar.warn{background:rgba(255,152,0,.1);border:1px solid rgba(255,152,0,.3);color:#ffb74d}
+.transcript{
+  background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);
+  border-radius:8px;padding:12px;min-height:44px;
+  margin:10px 0;font-style:italic;color:#aaa;font-size:13px;
+}
+.numshow{
+  font-family:'Dancing Script',cursive;font-size:68px;
+  text-align:center;color:#00d4ff;letter-spacing:8px;padding:8px;
+  text-shadow:0 0 30px rgba(0,212,255,.35);
+}
+.mrow{display:flex;gap:8px;margin-top:8px}
+.mrow input{
+  flex:1;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.2);
+  border-radius:8px;padding:10px 14px;color:#fff;font-size:22px;
+  text-align:center;font-family:'Dancing Script',cursive;letter-spacing:4px;
+}
+.mrow input:focus{outline:none;border-color:#00d4ff;box-shadow:0 0 10px rgba(0,212,255,.3)}
+#preview{border:1px solid rgba(255,255,255,.2);border-radius:8px;max-width:100%;background:#fff;display:block;margin:0 auto}
+.logarea{
+  background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.1);
+  border-radius:8px;padding:10px;max-height:170px;overflow-y:auto;
+  font-family:'Courier New',monospace;font-size:11px;
+}
+.ll{padding:1px 0}
+.ll.info{color:#90caf9}.ll.ok{color:#a5d6a7}.ll.err{color:#ef9a9a}.ll.warn{color:#ffe082}
+.progwrap{height:5px;background:rgba(255,255,255,.1);border-radius:3px;margin-top:10px;display:none}
+.progfill{height:100%;background:linear-gradient(90deg,#00d4ff,#007bff);border-radius:3px;transition:width .15s;width:0%}
+.hint{font-size:11px;color:#607d8b;margin-top:6px}
+code{background:rgba(0,0,0,.3);padding:2px 5px;border-radius:4px;font-size:11px;color:#a5d6a7}
+.infobox{background:rgba(0,212,255,.05);border:1px solid rgba(0,212,255,.2);border-radius:8px;padding:11px;font-size:11.5px;color:#90caf9;margin-top:10px}
+ul.hints{padding-left:18px;margin-top:4px}
+ul.hints li{margin-bottom:2px}
+</style>
 </head>
 <body>
 
+<h1>🖨️ PeriPage P21</h1>
+<p class="sub">Spracherkennung · Schreibschrift · Querdruck (90°)</p>
+
+<!-- ── VERBINDUNG ── -->
 <div class="card">
-    <h1>PeriPage Bonbon-Drucker</h1>
-    
-    <div id="status">Bereit zum Scannen.</div>
+  <h3>🔵 Bluetooth-Verbindung</h3>
+  <div id="pStatus" class="sbar warn">⚡ Nicht verbunden</div>
+  <div>
+    <button id="btnConnect" onclick="connectPrinter()">🔵 Verbinden</button>
+    <button id="btnDisconnect" onclick="disconnectPrinter()" disabled>❌ Trennen</button>
+  </div>
+  <div class="infobox">
+    ⚠️ Web Bluetooth erfordert <strong>Chrome / Edge</strong> + <strong>HTTPS oder localhost</strong>.<br>
+    Lokaler Start: <code>python -m http.server 8080</code> →
+    <code>http://localhost:8080/peripage_p21_webapp.html</code>
+  </div>
+</div>
 
-    <button id="startBtn" class="btn btn-listen" onclick="toggleRecognition()">🎤 Zuhören starten</button>
+<!-- ── SPRACHE ── -->
+<div class="card">
+  <h3>🎤 Spracherkennung (Deutsch)</h3>
+  <ul class="hints" style="color:#888;font-size:12px;margin-bottom:10px">
+    <li>„<em>eins zwei drei vier</em>" → 1234</li>
+    <li>„<em>zweitausend vierundzwanzig</em>" → 2024</li>
+    <li>„<em>neunzehnhundert achtzig</em>" → 1980</li>
+    <li>Direkte Zahl: „<em>neun acht sieben sechs</em>" → 9876</li>
+  </ul>
+  <button id="btnSpeak" onclick="toggleSpeech()">🎤 Sprechen</button>
+  <button onclick="clearSpeech()">🗑️ Löschen</button>
+  <div class="transcript" id="transcript">Warte auf Sprache …</div>
+  <div id="speechInfo" style="font-size:11px;color:#888"></div>
+</div>
 
-    <div class="setting-group">
-        <label>Erkennungs-Muster:</label>
-        <input type="text" id="pattern" value="es sind (\d{4}) bonbons" oninput="saveSettings()">
-    </div>
+<!-- ── ZAHL ── -->
+<div class="card">
+  <h3>🔢 Erkannte / Manuelle Zahl</h3>
+  <div id="numDisplay" class="numshow">----</div>
+  <div class="mrow">
+    <input type="text" id="manualNum" placeholder="1234"
+           maxlength="4" inputmode="numeric"
+           oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,4)">
+    <button class="ok-btn" onclick="useManual()">✓</button>
+  </div>
+  <p class="hint">Manuelle Eingabe: 4 Ziffern tippen → ✓ drücken</p>
+</div>
 
-    <div class="setting-group">
-        <label>Schriftart auswählen:</label>
-        <select id="fontSelect" onchange="updateFontPreview()">
-            <option value="'Pacifico', cursive">Pacifico (Sehr Dick)</option>
-            <option value="'Dancing Script', cursive">Dancing Script</option>
-            <option value="'Caveat', cursive">Caveat (Handschrift)</option>
-            <option value="'Indie Flower', cursive">Indie Flower</option>
-        </select>
-        <div id="fontPreview">7512</div>
-    </div>
+<!-- ── VORSCHAU ── -->
+<div class="card">
+  <h3>👁️ Vorschau — Schreibschrift 90° (quer)</h3>
+  <canvas id="preview"></canvas>
+  <div class="progwrap" id="progWrap"><div class="progfill" id="progFill"></div></div>
+  <div style="text-align:center;margin-top:12px">
+    <button id="btnPrint" onclick="doPrint()" disabled>🖨️ Drucken</button>
+    <button onclick="downloadPNG()">💾 PNG speichern</button>
+  </div>
+</div>
 
-    <button class="btn" style="background: #e0e0e0; color: #444;" onclick="generateAndPrint('7512')">Test-Druck (7512)</button>
-    
-    <canvas id="canvas"></canvas>
+<!-- ── LOG ── -->
+<div class="card">
+  <h3>📋 Protokoll</h3>
+  <div class="logarea" id="logArea"></div>
+  <button onclick="document.getElementById('logArea').innerHTML=''" style="margin-top:8px;font-size:11px;padding:5px 10px">🗑️ Log löschen</button>
 </div>
 
 <script>
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
-    const status = document.getElementById('status');
-    const startBtn = document.getElementById('startBtn');
-    
-    let isListening = false;
-    let wasPrintedSuccessfully = false;
-    let recognition;
+// ================================================================
+//  KONFIGURATION
+// ================================================================
+const CFG = {
+  WIDTH      : 384,          // Druckbreite in Dots (48 mm × 8)
+  ROW_BYTES  : 48,           // WIDTH / 8
+  FONT_SIZE  : 270,          // px für Schreibschrift
+  FONT       : "bold 270px 'Dancing Script', 'Segoe Script', cursive",
+  HEAT       : 0x23,         // Wärme/Dunkelheit (0x10–0x30)
+  FEED       : 60,           // Leerzeilen nach dem Druck
+  BLE_CHUNK  : 20,           // Bytes pro BLE-Paket
+  BLE_DELAY  : 18,           // ms zwischen BLE-Paketen
+  ROW_DELAY  : 4,            // ms zwischen Zeilen
+};
 
-    // --- SETTINGS ---
-    function saveSettings() {
-        const settings = {
-            pattern: document.getElementById('pattern').value,
-            font: document.getElementById('fontSelect').value
-        };
-        localStorage.setItem('peripage_pro_v3', JSON.stringify(settings));
+// BLE UUIDs (PeriPage / Paperang Protokoll)
+const BLE = {
+  SERVICE : '0000ae30-0000-1000-8000-00ae9bdb96f0',
+  WRITE   : '0000ae01-0000-1000-8000-00ae9bdb96f0',
+  NOTIFY  : '0000ae02-0000-1000-8000-00ae9bdb96f0',
+};
+
+// ================================================================
+//  STATE
+// ================================================================
+let printer    = { dev: null, char: null, ok: false };
+let recog      = null;
+let listening  = false;
+let curNum     = null;
+let printing   = false;
+
+// ================================================================
+//  LOG
+// ================================================================
+function lg(msg, type='info'){
+  const a = document.getElementById('logArea');
+  const d = document.createElement('div');
+  d.className = 'll '+type;
+  d.textContent = '['+new Date().toLocaleTimeString('de-DE')+'] '+msg;
+  a.appendChild(d);
+  a.scrollTop = a.scrollHeight;
+}
+
+// ================================================================
+//  CRC-8  (PeriPage Protokoll)
+// ================================================================
+function crc8(arr){
+  let c=0;
+  for(const b of arr){
+    c^=b;
+    for(let i=0;i<8;i++) c=(c&0x80)?((c<<1)^0x07)&0xFF:(c<<1)&0xFF;
+  }
+  return c;
+}
+
+// ================================================================
+//  PAKET BAUEN
+// ================================================================
+function pkt(cmd, data){
+  const d=Array.isArray(data)?data:[...data];
+  return new Uint8Array([0x51,0x78,cmd,0x00,d.length&0xFF,(d.length>>8)&0xFF,...d,crc8(d)]);
+}
+
+// ================================================================
+//  BLE SCHREIBEN (mit Chunking)
+// ================================================================
+async function bleWrite(buf){
+  if(!printer.char) throw new Error('Nicht verbunden');
+  for(let i=0;i<buf.length;i+=CFG.BLE_CHUNK){
+    const sl=buf.slice(i,i+CFG.BLE_CHUNK);
+    try{ await printer.char.writeValueWithoutResponse(sl); }
+    catch{ await printer.char.writeValue(sl); }
+    if(buf.length>CFG.BLE_CHUNK) await wait(CFG.BLE_DELAY);
+  }
+}
+async function cmd(c,d){ await bleWrite(pkt(c,d)); }
+
+// ================================================================
+//  DRUCKER VERBINDEN
+// ================================================================
+async function connectPrinter(){
+  if(!navigator.bluetooth){
+    lg('Web Bluetooth fehlt – Chrome/Edge + HTTPS nötig','err');
+    return;
+  }
+  lg('Suche PeriPage P21 …');
+  try{
+    let dev;
+    try{
+      dev=await navigator.bluetooth.requestDevice({
+        filters:[
+          {name:'P21'},{namePrefix:'P21'},{namePrefix:'M-P21'},
+          {namePrefix:'Peripage'},{namePrefix:'PeriPage'},
+          {services:[BLE.SERVICE]}
+        ],
+        optionalServices:[BLE.SERVICE]
+      });
+    }catch{
+      dev=await navigator.bluetooth.requestDevice({
+        acceptAllDevices:true, optionalServices:[BLE.SERVICE]
+      });
+    }
+    lg('Gerät: '+(dev.name||dev.id));
+    printer.dev=dev;
+    const srv=await dev.gatt.connect();
+    const svc=await srv.getPrimaryService(BLE.SERVICE);
+    printer.char=await svc.getCharacteristic(BLE.WRITE);
+    try{
+      const nc=await svc.getCharacteristic(BLE.NOTIFY);
+      await nc.startNotifications();
+      nc.addEventListener('characteristicvaluechanged',e=>{
+        const b=[...new Uint8Array(e.target.value.buffer)];
+        lg('← '+b.map(x=>x.toString(16).padStart(2,'0')).join(' '));
+      });
+    }catch{ lg('Notify nicht verfügbar (OK)','warn'); }
+    printer.ok=true;
+    dev.addEventListener('gattserverdisconnected',onDisc);
+    updatePrinterUI(true,dev.name||'P21');
+    lg('Verbunden ✓','ok');
+  }catch(e){
+    lg('Fehler: '+e.message,'err');
+    if(e.message.includes('cancelled')) lg('Abgebrochen','warn');
+  }
+}
+
+function onDisc(){
+  printer.ok=false; printer.char=null;
+  updatePrinterUI(false);
+  lg('Getrennt','warn');
+}
+
+async function disconnectPrinter(){
+  if(printer.dev?.gatt?.connected) printer.dev.gatt.disconnect();
+  onDisc();
+}
+
+function updatePrinterUI(ok, name=''){
+  const s=document.getElementById('pStatus');
+  s.className='sbar '+(ok?'ok':'warn');
+  s.textContent=ok?'✅ Verbunden: '+name:'⚡ Nicht verbunden';
+  document.getElementById('btnConnect').disabled=ok;
+  document.getElementById('btnDisconnect').disabled=!ok;
+  document.getElementById('btnPrint').disabled=!(ok&&curNum);
+}
+
+// ================================================================
+//  SPRACHERKENNUNG
+// ================================================================
+function initRecog(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){ lg('Spracherkennung nicht verfügbar','err'); return; }
+  recog=new SR();
+  recog.lang='de-DE';
+  recog.continuous=false;
+  recog.interimResults=true;
+  recog.maxAlternatives=5;
+
+  recog.onstart=()=>{ document.getElementById('speechInfo').textContent='🎙️ Hört zu …'; };
+  recog.onend=()=>{ setListening(false); document.getElementById('speechInfo').textContent=''; };
+  recog.onerror=e=>{ lg('Sprachfehler: '+e.error,'err'); setListening(false); };
+
+  recog.onresult=e=>{
+    let fin='', tmp='';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      const t=e.results[i][0].transcript;
+      e.results[i].isFinal?(fin+=t):(tmp+=t);
+    }
+    document.getElementById('transcript').textContent=fin||tmp;
+    if(fin){
+      lg('Erkannt: "'+fin+'"');
+      const alts=[];
+      for(let i=0;i<e.results.length;i++)
+        for(let j=0;j<e.results[i].length;j++) alts.push(e.results[i][j].transcript);
+      parseSpoken(fin,alts);
+    }
+  };
+}
+
+function toggleSpeech(){
+  if(!recog) initRecog();
+  if(!recog) return;
+  if(listening){ recog.stop(); setListening(false); }
+  else{ recog.start(); setListening(true); }
+}
+
+function setListening(v){
+  listening=v;
+  const b=document.getElementById('btnSpeak');
+  b.textContent=v?'🔴 Stopp':'🎤 Sprechen';
+  b.className=v?'active':'';
+}
+
+function clearSpeech(){
+  document.getElementById('transcript').textContent='Warte auf Sprache …';
+  if(listening) toggleSpeech();
+}
+
+// ================================================================
+//  ZAHL PARSEN
+// ================================================================
+const DW={
+  'null':0,'nul':0,'zero':0,
+  'ein':1,'eine':1,'eins':1,'one':1,
+  'zwei':2,'zwo':2,'two':2,
+  'drei':3,'three':3,
+  'vier':4,'four':4,
+  'fünf':5,'five':5,
+  'sechs':6,'six':6,
+  'sieben':7,'seven':7,
+  'acht':8,'eight':8,
+  'neun':9,'nine':9
+};
+
+function parseSpoken(text, alts=[]){
+  const all=[text,...alts].map(s=>s.toLowerCase().trim());
+
+  // 1. Direkte 4-stellige Zahl
+  for(const t of all){
+    const m=t.match(/\b(\d{4})\b/);
+    if(m){ lg('Direkte Zahl: '+m[1],'ok'); setNumber(m[1]); return; }
+  }
+
+  // 2. Einzelne Ziffernwörter "eins zwei drei vier"
+  const ws=text.toLowerCase().split(/[\s,\.]+/);
+  let digs=[];
+  for(const w of ws){
+    if(DW.hasOwnProperty(w)){ digs.push(DW[w]); if(digs.length===4) break; }
+  }
+  if(digs.length===4){ const n=digs.join(''); lg('Einzelziffern: '+n,'ok'); setNumber(n); return; }
+
+  // 3. Deutsche Zahlenworte
+  const gn=parseGerman(text.toLowerCase());
+  if(gn){ lg('Deutsch: '+gn,'ok'); setNumber(gn); return; }
+
+  // 4. Irgendwo 4 Ziffern hintereinander
+  const m2=text.replace(/\s/g,'').match(/\d{4}/);
+  if(m2){ lg('4 Ziffern: '+m2[0],'ok'); setNumber(m2[0]); return; }
+
+  lg('Keine 4-stellige Zahl erkannt – nochmals sprechen','warn');
+  document.getElementById('speechInfo').textContent='❌ Nicht erkannt';
+}
+
+function parseGerman(t){
+  // XhundertY  z.B. "neunzehnhundert achtzig" = 1980
+  const hm=t.match(/(\w+)hundert\s*(\w*)/);
+  if(hm){
+    const h=sg(hm[1]), r=hm[2]?sg(hm[2]):0;
+    if(h!==null&&h>=10&&h<=99){
+      const n=h*100+(r||0);
+      if(n>=1000&&n<=9999) return String(n);
+    }
+  }
+  // XtausendY  z.B. "zweitausend vierundzwanzig" = 2024
+  const tm=t.match(/(ein|zwei|drei|vier|fünf|sechs|sieben|acht|neun)tausend\s*(\w*)/);
+  if(tm){
+    const th=sg(tm[1]), r=tm[2]?sg(tm[2]):0;
+    if(th!==null&&th>=1&&th<=9){
+      const n=th*1000+(r||0);
+      if(n>=1000&&n<=9999) return String(n).padStart(4,'0');
+    }
+  }
+  return null;
+}
+
+function sg(w){
+  const M={'null':0,'ein':1,'eine':1,'eins':1,'zwei':2,'drei':3,'vier':4,
+    'fünf':5,'sechs':6,'sieben':7,'acht':8,'neun':9,'zehn':10,
+    'elf':11,'zwölf':12,'dreizehn':13,'vierzehn':14,'fünfzehn':15,
+    'sechzehn':16,'siebzehn':17,'achtzehn':18,'neunzehn':19,
+    'zwanzig':20,'dreißig':30,'vierzig':40,'fünfzig':50,
+    'sechzig':60,'siebzig':70,'achtzig':80,'neunzig':90};
+  return M[w]!==undefined?M[w]:null;
+}
+
+// ================================================================
+//  MANUELLE EINGABE
+// ================================================================
+function useManual(){
+  const v=document.getElementById('manualNum').value.trim();
+  if(/^\d{4}$/.test(v)){ setNumber(v); lg('Manuell: '+v); }
+  else lg('Bitte genau 4 Ziffern eingeben','warn');
+}
+
+// ================================================================
+//  ZAHL SETZEN & VORSCHAU
+// ================================================================
+function setNumber(n){
+  curNum=n;
+  document.getElementById('numDisplay').textContent=n;
+  document.getElementById('manualNum').value=n;
+  document.getElementById('btnPrint').disabled=!printer.ok;
+  renderPreview(n);
+}
+
+// ================================================================
+//  CANVAS: SCHREIBSCHRIFT 90° GEDREHT (QUER)
+// ================================================================
+function renderCursive(text, targetW, fontSize){
+  // Schritt 1: Text auf temp-Canvas zeichnen
+  const tmp=document.createElement('canvas');
+  const tc=tmp.getContext('2d');
+  const fstr=`bold ${fontSize}px 'Dancing Script','Segoe Script',cursive`;
+  tc.font=fstr;
+  const tw=Math.ceil(tc.measureText(text).width)+60;
+  const th=Math.ceil(fontSize*1.35)+30;
+  tmp.width=tw; tmp.height=th;
+  tc.fillStyle='#fff'; tc.fillRect(0,0,tw,th);
+  tc.font=fstr; tc.fillStyle='#000';
+  tc.textBaseline='middle'; tc.textAlign='center';
+  tc.fillText(text,tw/2,th/2);
+
+  // Schritt 2: 90° im Uhrzeigersinn drehen
+  // Skalierung: originale Höhe → neue Breite = targetW
+  const sc=targetW/th;
+  const rw=Math.round(th*sc); // = targetW
+  const rh=Math.round(tw*sc); // Papierlänge
+
+  const rot=document.createElement('canvas');
+  rot.width=rw; rot.height=rh;
+  const rc=rot.getContext('2d');
+  rc.fillStyle='#fff'; rc.fillRect(0,0,rw,rh);
+  rc.save();
+  rc.translate(rw,0);
+  rc.rotate(Math.PI/2);
+  rc.scale(sc,sc);
+  rc.drawImage(tmp,0,0);
+  rc.restore();
+  return rot;
+}
+
+function renderPreview(n){
+  const src=renderCursive(n,CFG.WIDTH*0.88,CFG.FONT_SIZE*0.82);
+  const pv=document.getElementById('preview');
+  const maxW=Math.min(src.width,380);
+  const sc=maxW/src.width;
+  pv.width=Math.round(src.width*sc);
+  pv.height=Math.min(Math.round(src.height*sc),300);
+  const ctx=pv.getContext('2d');
+  ctx.fillStyle='#fff'; ctx.fillRect(0,0,pv.width,pv.height);
+  ctx.drawImage(src,0,0,pv.width,pv.height);
+}
+
+// ================================================================
+//  FLOYD-STEINBERG DITHERING → 1-BIT BITMAP
+// ================================================================
+function toBitmap(canvas){
+  const W=canvas.width, H=canvas.height;
+  const id=canvas.getContext('2d').getImageData(0,0,W,H);
+  const g=new Float32Array(W*H);
+  for(let i=0;i<W*H;i++){
+    const p=i*4;
+    g[i]=0.299*id.data[p]+0.587*id.data[p+1]+0.114*id.data[p+2];
+  }
+  // Dithering
+  for(let y=0;y<H;y++){
+    for(let x=0;x<W;x++){
+      const i=y*W+x, ov=g[i], nv=ov<128?0:255, er=ov-nv;
+      g[i]=nv;
+      if(x+1<W)          g[i+1]      +=er*7/16;
+      if(y+1<H){
+        if(x>0)          g[i+W-1]    +=er*3/16;
+                         g[i+W]      +=er*5/16;
+        if(x+1<W)        g[i+W+1]    +=er*1/16;
+      }
+    }
+  }
+  const rb=Math.ceil(W/8);
+  const bm=new Uint8Array(H*rb);
+  for(let y=0;y<H;y++)
+    for(let x=0;x<W;x++)
+      if(g[y*W+x]<128) bm[y*rb+Math.floor(x/8)]|=0x80>>(x%8);
+  return {bm,W,H,rb};
+}
+
+// ================================================================
+//  DRUCKEN
+// ================================================================
+async function doPrint(){
+  if(!curNum||!printer.ok||printing) return;
+  printing=true;
+  document.getElementById('btnPrint').disabled=true;
+  document.getElementById('progWrap').style.display='block';
+  setP(0);
+
+  lg('Starte Druckauftrag für "'+curNum+'" (quer / Schreibschrift) …');
+  try{
+    const src=renderCursive(curNum,CFG.WIDTH,CFG.FONT_SIZE);
+    const fc=document.createElement('canvas');
+    fc.width=CFG.WIDTH; fc.height=src.height;
+    const fx=fc.getContext('2d');
+    fx.fillStyle='#fff'; fx.fillRect(0,0,CFG.WIDTH,src.height);
+    const xo=Math.max(0,Math.floor((CFG.WIDTH-src.width)/2));
+    fx.drawImage(src,xo,0);
+
+    const {bm,W,H,rb}=toBitmap(fc);
+    lg('Bitmap: '+W+'×'+H+' px | '+H+' Zeilen | '+bm.length+' Bytes');
+
+    // PeriPage Protokoll
+    lg('Setze Druckintensität (0x'+CFG.HEAT.toString(16)+') …');
+    await cmd(0xA4,[CFG.HEAT]); await wait(120);
+
+    lg('Ankündigung: '+H+' Zeilen …');
+    await cmd(0xBE,[(H>>8)&0xFF,H&0xFF]); await wait(150);
+
+    lg('Sende Bilddaten …');
+    for(let r=0;r<H;r++){
+      await cmd(0xA3,[...bm.slice(r*rb,(r+1)*rb)]);
+      if(r%15===0){ setP(Math.round(r/H*88)); await wait(CFG.ROW_DELAY); }
     }
 
-    function loadSettings() {
-        const saved = localStorage.getItem('peripage_pro_v3');
-        if (saved) {
-            const s = JSON.parse(saved);
-            document.getElementById('pattern').value = s.pattern;
-            document.getElementById('fontSelect').value = s.font;
-        }
-        updateFontPreview();
-    }
+    setP(95); await wait(300);
+    lg('Papiervorschub …');
+    await cmd(0xA9,[0x00,CFG.FEED&0xFF]); await wait(600);
 
-    function updateFontPreview() {
-        const font = document.getElementById('fontSelect').value;
-        document.getElementById('fontPreview').style.fontFamily = font;
-        saveSettings();
-    }
+    setP(100);
+    lg('✅ Druckauftrag abgeschlossen!','ok');
+  }catch(e){
+    lg('❌ Druckfehler: '+e.message,'err');
+  }finally{
+    printing=false;
+    document.getElementById('btnPrint').disabled=!printer.ok;
+    setTimeout(()=>{
+      document.getElementById('progWrap').style.display='none';
+      setP(0);
+    },2500);
+  }
+}
 
-    // --- SPRACHERKENNUNG ---
-    function initRecognition() {
-        recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-        recognition.lang = 'de-DE';
-        recognition.continuous = false; 
+function setP(v){ document.getElementById('progFill').style.width=v+'%'; }
 
-        recognition.onstart = () => {
-            isListening = true;
-            status.innerText = "Ich höre zu...";
-            startBtn.classList.add('active');
-            startBtn.innerText = "🛑 Stoppen";
-        };
+// ================================================================
+//  PNG DOWNLOAD
+// ================================================================
+function downloadPNG(){
+  if(!curNum){ lg('Bitte zuerst Zahl eingeben','warn'); return; }
+  const src=renderCursive(curNum,CFG.WIDTH,CFG.FONT_SIZE);
+  const a=document.createElement('a');
+  a.download='peripage_'+curNum+'_quer.png';
+  a.href=src.toDataURL('image/png');
+  a.click();
+  lg('PNG gespeichert: peripage_'+curNum+'_quer.png','ok');
+}
 
-        recognition.onresult = (event) => {
-            const transcript = event.results[event.results.length - 1][0].transcript;
-            status.innerText = "Gehört: " + transcript;
-            
-            const regex = new RegExp(document.getElementById('pattern').value, "i");
-            const match = transcript.match(regex);
+// ================================================================
+//  HILFSFUNKTIONEN
+// ================================================================
+function wait(ms){ return new Promise(r=>setTimeout(r,ms)); }
 
-            if (match && match[1]) {
-                const nr = match[1];
-                status.innerText = "TREFFER: " + nr + "!";
-                wasPrintedSuccessfully = true; 
-                generateAndPrint(nr);
-                recognition.stop();
-            }
-        };
+// ================================================================
+//  INIT
+// ================================================================
+window.addEventListener('load',()=>{
+  if(!navigator.bluetooth){
+    lg('⚠️ Web Bluetooth nicht verfügbar – Chrome/Edge + HTTPS erforderlich','err');
+    document.getElementById('btnConnect').disabled=true;
+  } else { lg('Web Bluetooth: verfügbar ✓','ok'); }
 
-        recognition.onend = () => {
-            if (isListening && !wasPrintedSuccessfully) {
-                recognition.start(); // Auto-Restart Loop
-            } else {
-                isListening = false;
-                wasPrintedSuccessfully = false;
-                startBtn.classList.remove('active');
-                startBtn.innerText = "🎤 Zuhören starten";
-            }
-        };
+  if(!window.SpeechRecognition&&!window.webkitSpeechRecognition){
+    lg('⚠️ Spracherkennung nicht verfügbar – manuelle Eingabe nutzen','warn');
+    document.getElementById('btnSpeak').disabled=true;
+  } else {
+    lg('Spracherkennung: verfügbar ✓','ok');
+    initRecog();
+  }
 
-        recognition.onerror = (e) => {
-            if (e.error === 'network') status.innerText = "Fehler: Netzwerk!";
-        };
-    }
-
-    function toggleRecognition() {
-        if (isListening) {
-            isListening = false;
-            wasPrintedSuccessfully = true; 
-            recognition.stop();
-        } else {
-            wasPrintedSuccessfully = false;
-            initRecognition();
-            recognition.start();
-        }
-    }
-
-    // --- DRUCK-FUNKTION (KOMPAKT OHNE VORSCHUB) ---
-    function generateAndPrint(text) {
-        const selectedFont = document.getElementById('fontSelect').value;
-        
-        canvas.width = 384; 
-        canvas.height = 650; // Festgelegte Höhe für optimalen Riesen-Text
-
-        // Hintergrund Weiß
-        ctx.fillStyle = "#FFFFFF";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        // Riesen-Text (330px füllt fast die ganze Rollenbreite)
-        ctx.fillStyle = "#000000";
-        ctx.font = `bold 330px ${selectedFont}`; 
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        
-        ctx.save();
-        ctx.translate(canvas.width / 2, canvas.height / 2);
-        ctx.rotate(Math.PI / 2); // Querformat
-        ctx.fillText(text, 0, 0);
-        ctx.restore();
-
-        const base64Data = canvas.toDataURL("image/png").split(',')[1];
-        const uri = "data:image/png;base64," + base64Data;
-        
-        // Intent-Schnittstelle zu RawBT
-        const intentUrl = `intent:${uri}#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;S.orientation=portrait;end;`;
-        
-        window.location.href = intentUrl;
-    }
-
-    window.onload = loadSettings;
+  setNumber('1234');  // Demo-Vorschau
+  lg('Webapp bereit 🚀','ok');
+});
 </script>
-
 </body>
 </html>
+"""
+
+out = '/mnt/uploads/peripage_p21_webapp.html'
+with open(out, 'w', encoding='utf-8') as f:
+    f.write(html)
+
+size = len(html.encode('utf-8'))
+lines = html.count('\n')
+print(f"✅ HTML-Datei erstellt: {out}")
+print(f"   Größe : {size:,} Bytes ({size/1024:.1f} KB)")
+print(f"   Zeilen: {lines}")
+print()
+print("──────────────────────────────────────────────────")
+print("  NUTZUNG:")
+print("──────────────────────────────────────────────────")
+print("  1. Datei herunterladen: peripage_p21_webapp.html")
+print()
+print("  Option A – lokaler HTTP-Server (empfohlen):")
+print("    python -m http.server 8080")
+print("    → Chrome öffnen: http://localhost:8080/peripage_p21_webapp.html")
+print()
+print("  Option B – Chrome Flag:")
+print("    chrome://flags → 'Enable new Bluetooth scanning API'")
+print("    → HTML direkt per file:// öffnen (ggf. Chrome-Argument nötig)")
+print("──────────────────────────────────────────────────")
+print("  PROTOKOLL (PeriPage P21 BLE):")
+print("    Service : 0000ae30-0000-1000-8000-00ae9bdb96f0")
+print("    Write   : 0000ae01-0000-1000-8000-00ae9bdb96f0")
+print("    Notify  : 0000ae02-0000-1000-8000-00ae9bdb96f0")
+print("    Paket   : [0x51,0x78, CMD, 0x00, LEN_LO, LEN_HI, ...DATA, CRC8]")
+print("    CMD 0xA4: Druckintensität setzen")
+print("    CMD 0xBE: Druckstart + Zeilenanzahl")
+print("    CMD 0xA3: Bildzeile senden (48 Bytes)")
+print("    CMD 0xA9: Papiervorschub")
+print("──────────────────────────────────────────────────")
