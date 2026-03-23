@@ -7,82 +7,42 @@
 <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{
-  font-family:'Segoe UI',Tahoma,sans-serif;
-  background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);
-  min-height:100vh;color:#f0f0f0;padding:16px;
-}
-h1{
-  text-align:center;font-size:1.9em;color:#00d4ff;
-  margin-bottom:4px;text-shadow:0 0 20px rgba(0,212,255,.5);
-}
-.sub{text-align:center;color:#888;font-size:.85em;margin-bottom:18px}
-.card{
-  background:rgba(255,255,255,.05);backdrop-filter:blur(10px);
-  border:1px solid rgba(255,255,255,.1);border-radius:16px;
-  padding:20px;margin-bottom:14px;max-width:620px;
-  margin-left:auto;margin-right:auto;
-}
-.card h3{font-size:.95em;color:#00d4ff;margin-bottom:10px;display:flex;align-items:center;gap:8px}
-btn,button{
-  background:linear-gradient(135deg,#0f3460,#162447);
-  color:#fff;border:1px solid rgba(0,212,255,.3);
-  padding:11px 22px;border-radius:10px;cursor:pointer;
-  font-size:13px;font-weight:600;transition:all .2s;
-  display:inline-flex;align-items:center;gap:6px;margin:3px;
-}
-button:hover:not(:disabled){
-  background:linear-gradient(135deg,#00d4ff,#007bff);
-  color:#0f0c29;transform:translateY(-2px);
-  box-shadow:0 4px 15px rgba(0,212,255,.3);
-}
+body{font-family:'Segoe UI',Tahoma,sans-serif;background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);min-height:100vh;color:#f0f0f0;padding:16px}
+h1{text-align:center;font-size:1.8em;color:#00d4ff;margin-bottom:3px;text-shadow:0 0 20px rgba(0,212,255,.5)}
+.sub{text-align:center;color:#888;font-size:.82em;margin-bottom:16px}
+.card{background:rgba(255,255,255,.05);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:18px;margin-bottom:12px;max-width:640px;margin-left:auto;margin-right:auto}
+.card h3{font-size:.9em;color:#00d4ff;margin-bottom:10px}
+button{background:linear-gradient(135deg,#0f3460,#162447);color:#fff;border:1px solid rgba(0,212,255,.3);padding:10px 18px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;transition:all .2s;display:inline-flex;align-items:center;gap:5px;margin:3px}
+button:hover:not(:disabled){background:linear-gradient(135deg,#00d4ff,#007bff);color:#0f0c29;transform:translateY(-2px);box-shadow:0 4px 15px rgba(0,212,255,.3)}
 button:disabled{opacity:.35;cursor:not-allowed;transform:none}
-button.active{
-  background:linear-gradient(135deg,#e94560,#b71c1c);
-  border-color:rgba(233,69,96,.5);
-  animation:pulse 1.4s ease-in-out infinite;
-}
+button.active{background:linear-gradient(135deg,#e94560,#b71c1c);border-color:rgba(233,69,96,.5);animation:pulse 1.4s ease-in-out infinite}
 button.ok-btn{background:linear-gradient(135deg,#1b5e20,#2e7d32);border-color:rgba(76,175,80,.4)}
+button.warn-btn{background:linear-gradient(135deg,#e65100,#bf360c);border-color:rgba(255,152,0,.4)}
 @keyframes pulse{0%,100%{box-shadow:0 0 5px rgba(233,69,96,.4)}50%{box-shadow:0 0 20px rgba(233,69,96,.8)}}
-.sbar{
-  display:flex;align-items:center;gap:10px;
-  padding:9px 13px;border-radius:8px;margin-bottom:10px;font-size:13px;
-}
+.sbar{display:flex;align-items:center;gap:10px;padding:9px 13px;border-radius:8px;margin-bottom:10px;font-size:12.5px}
 .sbar.ok{background:rgba(76,175,80,.1);border:1px solid rgba(76,175,80,.3);color:#81c784}
 .sbar.err{background:rgba(244,67,54,.1);border:1px solid rgba(244,67,54,.3);color:#e57373}
 .sbar.warn{background:rgba(255,152,0,.1);border:1px solid rgba(255,152,0,.3);color:#ffb74d}
-.transcript{
-  background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);
-  border-radius:8px;padding:12px;min-height:44px;
-  margin:10px 0;font-style:italic;color:#aaa;font-size:13px;
-}
-.numshow{
-  font-family:'Dancing Script',cursive;font-size:68px;
-  text-align:center;color:#00d4ff;letter-spacing:8px;padding:8px;
-  text-shadow:0 0 30px rgba(0,212,255,.35);
-}
+.transcript{background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:12px;min-height:40px;margin:8px 0;font-style:italic;color:#aaa;font-size:13px}
+.numshow{font-family:'Dancing Script',cursive;font-size:64px;text-align:center;color:#00d4ff;letter-spacing:8px;padding:8px;text-shadow:0 0 30px rgba(0,212,255,.35)}
 .mrow{display:flex;gap:8px;margin-top:8px}
-.mrow input{
-  flex:1;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.2);
-  border-radius:8px;padding:10px 14px;color:#fff;font-size:22px;
-  text-align:center;font-family:'Dancing Script',cursive;letter-spacing:4px;
-}
+.mrow input{flex:1;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:10px 14px;color:#fff;font-size:20px;text-align:center;font-family:'Dancing Script',cursive;letter-spacing:4px}
 .mrow input:focus{outline:none;border-color:#00d4ff;box-shadow:0 0 10px rgba(0,212,255,.3)}
 #preview{border:1px solid rgba(255,255,255,.2);border-radius:8px;max-width:100%;background:#fff;display:block;margin:0 auto}
-.logarea{
-  background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.1);
-  border-radius:8px;padding:10px;max-height:170px;overflow-y:auto;
-  font-family:'Courier New',monospace;font-size:11px;
-}
-.ll{padding:1px 0}
-.ll.info{color:#90caf9}.ll.ok{color:#a5d6a7}.ll.err{color:#ef9a9a}.ll.warn{color:#ffe082}
-.progwrap{height:5px;background:rgba(255,255,255,.1);border-radius:3px;margin-top:10px;display:none}
+.logarea{background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:10px;max-height:200px;overflow-y:auto;font-family:'Courier New',monospace;font-size:11px}
+.ll{padding:1px 0}.ll.info{color:#90caf9}.ll.ok{color:#a5d6a7}.ll.err{color:#ef9a9a}.ll.warn{color:#ffe082}.ll.data{color:#ce93d8}
+.progwrap{height:6px;background:rgba(255,255,255,.1);border-radius:3px;margin-top:10px;display:none}
 .progfill{height:100%;background:linear-gradient(90deg,#00d4ff,#007bff);border-radius:3px;transition:width .15s;width:0%}
-.hint{font-size:11px;color:#607d8b;margin-top:6px}
-code{background:rgba(0,0,0,.3);padding:2px 5px;border-radius:4px;font-size:11px;color:#a5d6a7}
-.infobox{background:rgba(0,212,255,.05);border:1px solid rgba(0,212,255,.2);border-radius:8px;padding:11px;font-size:11.5px;color:#90caf9;margin-top:10px}
-ul.hints{padding-left:18px;margin-top:4px}
-ul.hints li{margin-bottom:2px}
+code{background:rgba(0,0,0,.4);padding:2px 6px;border-radius:4px;font-size:11px;color:#a5d6a7;display:inline-block;margin:2px}
+.svc-box{background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:10px;margin-top:8px;font-size:11px;max-height:180px;overflow-y:auto}
+.svc-item{padding:4px 6px;border-radius:5px;margin:2px;cursor:pointer;transition:background .15s;display:flex;align-items:center;gap:8px}
+.svc-item:hover{background:rgba(0,212,255,.1)}
+.svc-item.selected{background:rgba(0,212,255,.15);border:1px solid rgba(0,212,255,.3)}
+.hint{font-size:11px;color:#607d8b;margin-top:5px}
+.sep{border:none;border-top:1px solid rgba(255,255,255,.08);margin:10px 0}
+.tag{font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(0,212,255,.15);color:#00d4ff;font-weight:600}
+.tag.green{background:rgba(76,175,80,.15);color:#81c784}
+.tag.orange{background:rgba(255,152,0,.15);color:#ffb74d}
 </style>
 </head>
 <body>
@@ -94,532 +54,58 @@ ul.hints li{margin-bottom:2px}
 <div class="card">
   <h3>🔵 Bluetooth-Verbindung</h3>
   <div id="pStatus" class="sbar warn">⚡ Nicht verbunden</div>
+
   <div>
-    <button id="btnConnect" onclick="connectPrinter()">🔵 Verbinden</button>
+    <button id="btnConnect" onclick="connectAuto()">🔵 Alle Geräte zeigen</button>
+    <button id="btnScan" onclick="scanAndDiscover()" disabled>🔍 Services scannen</button>
     <button id="btnDisconnect" onclick="disconnectPrinter()" disabled>❌ Trennen</button>
   </div>
-  <div class="infobox">
-    ⚠️ Web Bluetooth erfordert <strong>Chrome / Edge</strong> + <strong>HTTPS oder localhost</strong>.<br>
-    Lokaler Start: <code>python -m http.server 8080</code> →
-    <code>http://localhost:8080/peripage_p21_webapp.html</code>
+
+  <div id="uuidPicker" style="display:none">
+    <hr class="sep">
+    <p style="font-size:12px;color:#aaa;margin-bottom:6px">
+      📋 Gefundene Services/Characteristics – Schreibbar auswählen:
+    </p>
+    <div class="svc-box" id="svcList"></div>
+    <button onclick="applySelectedUUID()" class="ok-btn" style="margin-top:8px">✓ Auswahl anwenden</button>
   </div>
+
+  <hr class="sep">
+  <p style="font-size:11.5px;color:#888;margin-bottom:6px">⚙️ Manuelle UUID-Konfiguration</p>
+  <div style="display:flex;flex-direction:column;gap:6px">
+    <div style="display:flex;gap:6px;align-items:center">
+      <span style="font-size:11px;color:#aaa;min-width:90px">Service UUID:</span>
+      <input id="cfgSvc" value="0000ae30-0000-1000-8000-00ae9bdb96f0"
+        style="flex:1;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:5px 8px;color:#fff;font-size:11px;font-family:monospace">
+    </div>
+    <div style="display:flex;gap:6px;align-items:center">
+      <span style="font-size:11px;color:#aaa;min-width:90px">Write UUID:</span>
+      <input id="cfgWrite" value="0000ae01-0000-1000-8000-00ae9bdb96f0"
+        style="flex:1;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:5px 8px;color:#fff;font-size:11px;font-family:monospace">
+    </div>
+  </div>
+  <p class="hint" style="margin-top:6px">
+    Bekannte Preset-UUIDs:
+    <code onclick="setPreset('paperang')" style="cursor:pointer" title="klicken">Paperang/PeriPage</code>
+    <code onclick="setPreset('nordic')" style="cursor:pointer" title="klicken">Nordic UART</code>
+    <code onclick="setPreset('xprinter')" style="cursor:pointer" title="klicken">XPrinter</code>
+  </p>
+  <div style="margin-top:8px">
+    <button onclick="connectWithManualUUID()" class="ok-btn">🔌 Mit diesen UUIDs verbinden</button>
+  </div>
+
+  <hr class="sep">
+  <p style="font-size:11px;color:#607d8b">
+    ⚠️ Benötigt <strong>Chrome / Edge</strong> + <strong>HTTPS oder localhost</strong><br>
+    Lokaler Start: <code>python -m http.server 8080</code>
+  </p>
 </div>
 
 <!-- ── SPRACHE ── -->
 <div class="card">
   <h3>🎤 Spracherkennung (Deutsch)</h3>
-  <ul class="hints" style="color:#888;font-size:12px;margin-bottom:10px">
-    <li>„<em>eins zwei drei vier</em>" → 1234</li>
-    <li>„<em>zweitausend vierundzwanzig</em>" → 2024</li>
-    <li>„<em>neunzehnhundert achtzig</em>" → 1980</li>
-    <li>Direkte Zahl: „<em>neun acht sieben sechs</em>" → 9876</li>
-  </ul>
+  <div style="font-size:11.5px;color:#888;margin-bottom:8px">
+    Beispiele: „<em>eins zwei drei vier</em>" · „<em>zweitausend vierundzwanzig</em>" · „<em>neunzehnhundert achtzig</em>"
+  </div>
   <button id="btnSpeak" onclick="toggleSpeech()">🎤 Sprechen</button>
-  <button onclick="clearSpeech()">🗑️ Löschen</button>
-  <div class="transcript" id="transcript">Warte auf Sprache …</div>
-  <div id="speechInfo" style="font-size:11px;color:#888"></div>
-</div>
-
-<!-- ── ZAHL ── -->
-<div class="card">
-  <h3>🔢 Erkannte / Manuelle Zahl</h3>
-  <div id="numDisplay" class="numshow">----</div>
-  <div class="mrow">
-    <input type="text" id="manualNum" placeholder="1234"
-           maxlength="4" inputmode="numeric"
-           oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,4)">
-    <button class="ok-btn" onclick="useManual()">✓</button>
-  </div>
-  <p class="hint">Manuelle Eingabe: 4 Ziffern tippen → ✓ drücken</p>
-</div>
-
-<!-- ── VORSCHAU ── -->
-<div class="card">
-  <h3>👁️ Vorschau — Schreibschrift 90° (quer)</h3>
-  <canvas id="preview"></canvas>
-  <div class="progwrap" id="progWrap"><div class="progfill" id="progFill"></div></div>
-  <div style="text-align:center;margin-top:12px">
-    <button id="btnPrint" onclick="doPrint()" disabled>🖨️ Drucken</button>
-    <button onclick="downloadPNG()">💾 PNG speichern</button>
-  </div>
-</div>
-
-<!-- ── LOG ── -->
-<div class="card">
-  <h3>📋 Protokoll</h3>
-  <div class="logarea" id="logArea"></div>
-  <button onclick="document.getElementById('logArea').innerHTML=''" style="margin-top:8px;font-size:11px;padding:5px 10px">🗑️ Log löschen</button>
-</div>
-
-<script>
-// ================================================================
-//  KONFIGURATION
-// ================================================================
-const CFG = {
-  WIDTH      : 384,          // Druckbreite in Dots (48 mm × 8)
-  ROW_BYTES  : 48,           // WIDTH / 8
-  FONT_SIZE  : 270,          // px für Schreibschrift
-  FONT       : "bold 270px 'Dancing Script', 'Segoe Script', cursive",
-  HEAT       : 0x23,         // Wärme/Dunkelheit (0x10–0x30)
-  FEED       : 60,           // Leerzeilen nach dem Druck
-  BLE_CHUNK  : 20,           // Bytes pro BLE-Paket
-  BLE_DELAY  : 18,           // ms zwischen BLE-Paketen
-  ROW_DELAY  : 4,            // ms zwischen Zeilen
-};
-
-// BLE UUIDs (PeriPage / Paperang Protokoll)
-const BLE = {
-  SERVICE : '0000ae30-0000-1000-8000-00ae9bdb96f0',
-  WRITE   : '0000ae01-0000-1000-8000-00ae9bdb96f0',
-  NOTIFY  : '0000ae02-0000-1000-8000-00ae9bdb96f0',
-};
-
-// ================================================================
-//  STATE
-// ================================================================
-let printer    = { dev: null, char: null, ok: false };
-let recog      = null;
-let listening  = false;
-let curNum     = null;
-let printing   = false;
-
-// ================================================================
-//  LOG
-// ================================================================
-function lg(msg, type='info'){
-  const a = document.getElementById('logArea');
-  const d = document.createElement('div');
-  d.className = 'll '+type;
-  d.textContent = '['+new Date().toLocaleTimeString('de-DE')+'] '+msg;
-  a.appendChild(d);
-  a.scrollTop = a.scrollHeight;
-}
-
-// ================================================================
-//  CRC-8  (PeriPage Protokoll)
-// ================================================================
-function crc8(arr){
-  let c=0;
-  for(const b of arr){
-    c^=b;
-    for(let i=0;i<8;i++) c=(c&0x80)?((c<<1)^0x07)&0xFF:(c<<1)&0xFF;
-  }
-  return c;
-}
-
-// ================================================================
-//  PAKET BAUEN
-// ================================================================
-function pkt(cmd, data){
-  const d=Array.isArray(data)?data:[...data];
-  return new Uint8Array([0x51,0x78,cmd,0x00,d.length&0xFF,(d.length>>8)&0xFF,...d,crc8(d)]);
-}
-
-// ================================================================
-//  BLE SCHREIBEN (mit Chunking)
-// ================================================================
-async function bleWrite(buf){
-  if(!printer.char) throw new Error('Nicht verbunden');
-  for(let i=0;i<buf.length;i+=CFG.BLE_CHUNK){
-    const sl=buf.slice(i,i+CFG.BLE_CHUNK);
-    try{ await printer.char.writeValueWithoutResponse(sl); }
-    catch{ await printer.char.writeValue(sl); }
-    if(buf.length>CFG.BLE_CHUNK) await wait(CFG.BLE_DELAY);
-  }
-}
-async function cmd(c,d){ await bleWrite(pkt(c,d)); }
-
-// ================================================================
-//  DRUCKER VERBINDEN
-// ================================================================
-async function connectPrinter(){
-  if(!navigator.bluetooth){
-    lg('Web Bluetooth fehlt – Chrome/Edge + HTTPS nötig','err');
-    return;
-  }
-  lg('Suche PeriPage P21 …');
-  try{
-    let dev;
-    try{
-      dev=await navigator.bluetooth.requestDevice({
-        filters:[
-          {name:'P21'},{namePrefix:'P21'},{namePrefix:'M-P21'},
-          {namePrefix:'Peripage'},{namePrefix:'PeriPage'},
-          {services:[BLE.SERVICE]}
-        ],
-        optionalServices:[BLE.SERVICE]
-      });
-    }catch{
-      dev=await navigator.bluetooth.requestDevice({
-        acceptAllDevices:true, optionalServices:[BLE.SERVICE]
-      });
-    }
-    lg('Gerät: '+(dev.name||dev.id));
-    printer.dev=dev;
-    const srv=await dev.gatt.connect();
-    const svc=await srv.getPrimaryService(BLE.SERVICE);
-    printer.char=await svc.getCharacteristic(BLE.WRITE);
-    try{
-      const nc=await svc.getCharacteristic(BLE.NOTIFY);
-      await nc.startNotifications();
-      nc.addEventListener('characteristicvaluechanged',e=>{
-        const b=[...new Uint8Array(e.target.value.buffer)];
-        lg('← '+b.map(x=>x.toString(16).padStart(2,'0')).join(' '));
-      });
-    }catch{ lg('Notify nicht verfügbar (OK)','warn'); }
-    printer.ok=true;
-    dev.addEventListener('gattserverdisconnected',onDisc);
-    updatePrinterUI(true,dev.name||'P21');
-    lg('Verbunden ✓','ok');
-  }catch(e){
-    lg('Fehler: '+e.message,'err');
-    if(e.message.includes('cancelled')) lg('Abgebrochen','warn');
-  }
-}
-
-function onDisc(){
-  printer.ok=false; printer.char=null;
-  updatePrinterUI(false);
-  lg('Getrennt','warn');
-}
-
-async function disconnectPrinter(){
-  if(printer.dev?.gatt?.connected) printer.dev.gatt.disconnect();
-  onDisc();
-}
-
-function updatePrinterUI(ok, name=''){
-  const s=document.getElementById('pStatus');
-  s.className='sbar '+(ok?'ok':'warn');
-  s.textContent=ok?'✅ Verbunden: '+name:'⚡ Nicht verbunden';
-  document.getElementById('btnConnect').disabled=ok;
-  document.getElementById('btnDisconnect').disabled=!ok;
-  document.getElementById('btnPrint').disabled=!(ok&&curNum);
-}
-
-// ================================================================
-//  SPRACHERKENNUNG
-// ================================================================
-function initRecog(){
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){ lg('Spracherkennung nicht verfügbar','err'); return; }
-  recog=new SR();
-  recog.lang='de-DE';
-  recog.continuous=false;
-  recog.interimResults=true;
-  recog.maxAlternatives=5;
-
-  recog.onstart=()=>{ document.getElementById('speechInfo').textContent='🎙️ Hört zu …'; };
-  recog.onend=()=>{ setListening(false); document.getElementById('speechInfo').textContent=''; };
-  recog.onerror=e=>{ lg('Sprachfehler: '+e.error,'err'); setListening(false); };
-
-  recog.onresult=e=>{
-    let fin='', tmp='';
-    for(let i=e.resultIndex;i<e.results.length;i++){
-      const t=e.results[i][0].transcript;
-      e.results[i].isFinal?(fin+=t):(tmp+=t);
-    }
-    document.getElementById('transcript').textContent=fin||tmp;
-    if(fin){
-      lg('Erkannt: "'+fin+'"');
-      const alts=[];
-      for(let i=0;i<e.results.length;i++)
-        for(let j=0;j<e.results[i].length;j++) alts.push(e.results[i][j].transcript);
-      parseSpoken(fin,alts);
-    }
-  };
-}
-
-function toggleSpeech(){
-  if(!recog) initRecog();
-  if(!recog) return;
-  if(listening){ recog.stop(); setListening(false); }
-  else{ recog.start(); setListening(true); }
-}
-
-function setListening(v){
-  listening=v;
-  const b=document.getElementById('btnSpeak');
-  b.textContent=v?'🔴 Stopp':'🎤 Sprechen';
-  b.className=v?'active':'';
-}
-
-function clearSpeech(){
-  document.getElementById('transcript').textContent='Warte auf Sprache …';
-  if(listening) toggleSpeech();
-}
-
-// ================================================================
-//  ZAHL PARSEN
-// ================================================================
-const DW={
-  'null':0,'nul':0,'zero':0,
-  'ein':1,'eine':1,'eins':1,'one':1,
-  'zwei':2,'zwo':2,'two':2,
-  'drei':3,'three':3,
-  'vier':4,'four':4,
-  'fünf':5,'five':5,
-  'sechs':6,'six':6,
-  'sieben':7,'seven':7,
-  'acht':8,'eight':8,
-  'neun':9,'nine':9
-};
-
-function parseSpoken(text, alts=[]){
-  const all=[text,...alts].map(s=>s.toLowerCase().trim());
-
-  // 1. Direkte 4-stellige Zahl
-  for(const t of all){
-    const m=t.match(/\b(\d{4})\b/);
-    if(m){ lg('Direkte Zahl: '+m[1],'ok'); setNumber(m[1]); return; }
-  }
-
-  // 2. Einzelne Ziffernwörter "eins zwei drei vier"
-  const ws=text.toLowerCase().split(/[\s,\.]+/);
-  let digs=[];
-  for(const w of ws){
-    if(DW.hasOwnProperty(w)){ digs.push(DW[w]); if(digs.length===4) break; }
-  }
-  if(digs.length===4){ const n=digs.join(''); lg('Einzelziffern: '+n,'ok'); setNumber(n); return; }
-
-  // 3. Deutsche Zahlenworte
-  const gn=parseGerman(text.toLowerCase());
-  if(gn){ lg('Deutsch: '+gn,'ok'); setNumber(gn); return; }
-
-  // 4. Irgendwo 4 Ziffern hintereinander
-  const m2=text.replace(/\s/g,'').match(/\d{4}/);
-  if(m2){ lg('4 Ziffern: '+m2[0],'ok'); setNumber(m2[0]); return; }
-
-  lg('Keine 4-stellige Zahl erkannt – nochmals sprechen','warn');
-  document.getElementById('speechInfo').textContent='❌ Nicht erkannt';
-}
-
-function parseGerman(t){
-  // XhundertY  z.B. "neunzehnhundert achtzig" = 1980
-  const hm=t.match(/(\w+)hundert\s*(\w*)/);
-  if(hm){
-    const h=sg(hm[1]), r=hm[2]?sg(hm[2]):0;
-    if(h!==null&&h>=10&&h<=99){
-      const n=h*100+(r||0);
-      if(n>=1000&&n<=9999) return String(n);
-    }
-  }
-  // XtausendY  z.B. "zweitausend vierundzwanzig" = 2024
-  const tm=t.match(/(ein|zwei|drei|vier|fünf|sechs|sieben|acht|neun)tausend\s*(\w*)/);
-  if(tm){
-    const th=sg(tm[1]), r=tm[2]?sg(tm[2]):0;
-    if(th!==null&&th>=1&&th<=9){
-      const n=th*1000+(r||0);
-      if(n>=1000&&n<=9999) return String(n).padStart(4,'0');
-    }
-  }
-  return null;
-}
-
-function sg(w){
-  const M={'null':0,'ein':1,'eine':1,'eins':1,'zwei':2,'drei':3,'vier':4,
-    'fünf':5,'sechs':6,'sieben':7,'acht':8,'neun':9,'zehn':10,
-    'elf':11,'zwölf':12,'dreizehn':13,'vierzehn':14,'fünfzehn':15,
-    'sechzehn':16,'siebzehn':17,'achtzehn':18,'neunzehn':19,
-    'zwanzig':20,'dreißig':30,'vierzig':40,'fünfzig':50,
-    'sechzig':60,'siebzig':70,'achtzig':80,'neunzig':90};
-  return M[w]!==undefined?M[w]:null;
-}
-
-// ================================================================
-//  MANUELLE EINGABE
-// ================================================================
-function useManual(){
-  const v=document.getElementById('manualNum').value.trim();
-  if(/^\d{4}$/.test(v)){ setNumber(v); lg('Manuell: '+v); }
-  else lg('Bitte genau 4 Ziffern eingeben','warn');
-}
-
-// ================================================================
-//  ZAHL SETZEN & VORSCHAU
-// ================================================================
-function setNumber(n){
-  curNum=n;
-  document.getElementById('numDisplay').textContent=n;
-  document.getElementById('manualNum').value=n;
-  document.getElementById('btnPrint').disabled=!printer.ok;
-  renderPreview(n);
-}
-
-// ================================================================
-//  CANVAS: SCHREIBSCHRIFT 90° GEDREHT (QUER)
-// ================================================================
-function renderCursive(text, targetW, fontSize){
-  // Schritt 1: Text auf temp-Canvas zeichnen
-  const tmp=document.createElement('canvas');
-  const tc=tmp.getContext('2d');
-  const fstr=`bold ${fontSize}px 'Dancing Script','Segoe Script',cursive`;
-  tc.font=fstr;
-  const tw=Math.ceil(tc.measureText(text).width)+60;
-  const th=Math.ceil(fontSize*1.35)+30;
-  tmp.width=tw; tmp.height=th;
-  tc.fillStyle='#fff'; tc.fillRect(0,0,tw,th);
-  tc.font=fstr; tc.fillStyle='#000';
-  tc.textBaseline='middle'; tc.textAlign='center';
-  tc.fillText(text,tw/2,th/2);
-
-  // Schritt 2: 90° im Uhrzeigersinn drehen
-  // Skalierung: originale Höhe → neue Breite = targetW
-  const sc=targetW/th;
-  const rw=Math.round(th*sc); // = targetW
-  const rh=Math.round(tw*sc); // Papierlänge
-
-  const rot=document.createElement('canvas');
-  rot.width=rw; rot.height=rh;
-  const rc=rot.getContext('2d');
-  rc.fillStyle='#fff'; rc.fillRect(0,0,rw,rh);
-  rc.save();
-  rc.translate(rw,0);
-  rc.rotate(Math.PI/2);
-  rc.scale(sc,sc);
-  rc.drawImage(tmp,0,0);
-  rc.restore();
-  return rot;
-}
-
-function renderPreview(n){
-  const src=renderCursive(n,CFG.WIDTH*0.88,CFG.FONT_SIZE*0.82);
-  const pv=document.getElementById('preview');
-  const maxW=Math.min(src.width,380);
-  const sc=maxW/src.width;
-  pv.width=Math.round(src.width*sc);
-  pv.height=Math.min(Math.round(src.height*sc),300);
-  const ctx=pv.getContext('2d');
-  ctx.fillStyle='#fff'; ctx.fillRect(0,0,pv.width,pv.height);
-  ctx.drawImage(src,0,0,pv.width,pv.height);
-}
-
-// ================================================================
-//  FLOYD-STEINBERG DITHERING → 1-BIT BITMAP
-// ================================================================
-function toBitmap(canvas){
-  const W=canvas.width, H=canvas.height;
-  const id=canvas.getContext('2d').getImageData(0,0,W,H);
-  const g=new Float32Array(W*H);
-  for(let i=0;i<W*H;i++){
-    const p=i*4;
-    g[i]=0.299*id.data[p]+0.587*id.data[p+1]+0.114*id.data[p+2];
-  }
-  // Dithering
-  for(let y=0;y<H;y++){
-    for(let x=0;x<W;x++){
-      const i=y*W+x, ov=g[i], nv=ov<128?0:255, er=ov-nv;
-      g[i]=nv;
-      if(x+1<W)          g[i+1]      +=er*7/16;
-      if(y+1<H){
-        if(x>0)          g[i+W-1]    +=er*3/16;
-                         g[i+W]      +=er*5/16;
-        if(x+1<W)        g[i+W+1]    +=er*1/16;
-      }
-    }
-  }
-  const rb=Math.ceil(W/8);
-  const bm=new Uint8Array(H*rb);
-  for(let y=0;y<H;y++)
-    for(let x=0;x<W;x++)
-      if(g[y*W+x]<128) bm[y*rb+Math.floor(x/8)]|=0x80>>(x%8);
-  return {bm,W,H,rb};
-}
-
-// ================================================================
-//  DRUCKEN
-// ================================================================
-async function doPrint(){
-  if(!curNum||!printer.ok||printing) return;
-  printing=true;
-  document.getElementById('btnPrint').disabled=true;
-  document.getElementById('progWrap').style.display='block';
-  setP(0);
-
-  lg('Starte Druckauftrag für "'+curNum+'" (quer / Schreibschrift) …');
-  try{
-    const src=renderCursive(curNum,CFG.WIDTH,CFG.FONT_SIZE);
-    const fc=document.createElement('canvas');
-    fc.width=CFG.WIDTH; fc.height=src.height;
-    const fx=fc.getContext('2d');
-    fx.fillStyle='#fff'; fx.fillRect(0,0,CFG.WIDTH,src.height);
-    const xo=Math.max(0,Math.floor((CFG.WIDTH-src.width)/2));
-    fx.drawImage(src,xo,0);
-
-    const {bm,W,H,rb}=toBitmap(fc);
-    lg('Bitmap: '+W+'×'+H+' px | '+H+' Zeilen | '+bm.length+' Bytes');
-
-    // PeriPage Protokoll
-    lg('Setze Druckintensität (0x'+CFG.HEAT.toString(16)+') …');
-    await cmd(0xA4,[CFG.HEAT]); await wait(120);
-
-    lg('Ankündigung: '+H+' Zeilen …');
-    await cmd(0xBE,[(H>>8)&0xFF,H&0xFF]); await wait(150);
-
-    lg('Sende Bilddaten …');
-    for(let r=0;r<H;r++){
-      await cmd(0xA3,[...bm.slice(r*rb,(r+1)*rb)]);
-      if(r%15===0){ setP(Math.round(r/H*88)); await wait(CFG.ROW_DELAY); }
-    }
-
-    setP(95); await wait(300);
-    lg('Papiervorschub …');
-    await cmd(0xA9,[0x00,CFG.FEED&0xFF]); await wait(600);
-
-    setP(100);
-    lg('✅ Druckauftrag abgeschlossen!','ok');
-  }catch(e){
-    lg('❌ Druckfehler: '+e.message,'err');
-  }finally{
-    printing=false;
-    document.getElementById('btnPrint').disabled=!printer.ok;
-    setTimeout(()=>{
-      document.getElementById('progWrap').style.display='none';
-      setP(0);
-    },2500);
-  }
-}
-
-function setP(v){ document.getElementById('progFill').style.width=v+'%'; }
-
-// ================================================================
-//  PNG DOWNLOAD
-// ================================================================
-function downloadPNG(){
-  if(!curNum){ lg('Bitte zuerst Zahl eingeben','warn'); return; }
-  const src=renderCursive(curNum,CFG.WIDTH,CFG.FONT_SIZE);
-  const a=document.createElement('a');
-  a.download='peripage_'+curNum+'_quer.png';
-  a.href=src.toDataURL('image/png');
-  a.click();
-  lg('PNG gespeichert: peripage_'+curNum+'_quer.png','ok');
-}
-
-// ================================================================
-//  HILFSFUNKTIONEN
-// ================================================================
-function wait(ms){ return new Promise(r=>setTimeout(r,ms)); }
-
-// ================================================================
-//  INIT
-// ================================================================
-window.addEventListener('load',()=>{
-  if(!navigator.bluetooth){
-    lg('⚠️ Web Bluetooth nicht verfügbar – Chrome/Edge + HTTPS erforderlich','err');
-    document.getElementById('btnConnect').disabled=true;
-  } else { lg('Web Bluetooth: verfügbar ✓','ok'); }
-
-  if(!window.SpeechRecognition&&!window.webkitSpeechRecognition){
-    lg('⚠️ Spracherkennung nicht verfügbar – manuelle Eingabe nutzen','warn');
-    document.getElementById('btnSpeak').disabled=true;
-  } else {
-    lg('Spracherkennung: verfügbar ✓','ok');
-    initRecog();
-  }
-
-  setNumber('1234');  // Demo-Vorschau
-  lg('Webapp bereit 🚀','ok');
-});
-</script>
-</body>
 </html>
