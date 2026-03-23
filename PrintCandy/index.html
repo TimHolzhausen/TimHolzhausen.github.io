@@ -623,38 +623,3 @@ window.addEventListener('load',()=>{
 </script>
 </body>
 </html>
-"""
-
-out = '/mnt/uploads/peripage_p21_webapp.html'
-with open(out, 'w', encoding='utf-8') as f:
-    f.write(html)
-
-size = len(html.encode('utf-8'))
-lines = html.count('\n')
-print(f"✅ HTML-Datei erstellt: {out}")
-print(f"   Größe : {size:,} Bytes ({size/1024:.1f} KB)")
-print(f"   Zeilen: {lines}")
-print()
-print("──────────────────────────────────────────────────")
-print("  NUTZUNG:")
-print("──────────────────────────────────────────────────")
-print("  1. Datei herunterladen: peripage_p21_webapp.html")
-print()
-print("  Option A – lokaler HTTP-Server (empfohlen):")
-print("    python -m http.server 8080")
-print("    → Chrome öffnen: http://localhost:8080/peripage_p21_webapp.html")
-print()
-print("  Option B – Chrome Flag:")
-print("    chrome://flags → 'Enable new Bluetooth scanning API'")
-print("    → HTML direkt per file:// öffnen (ggf. Chrome-Argument nötig)")
-print("──────────────────────────────────────────────────")
-print("  PROTOKOLL (PeriPage P21 BLE):")
-print("    Service : 0000ae30-0000-1000-8000-00ae9bdb96f0")
-print("    Write   : 0000ae01-0000-1000-8000-00ae9bdb96f0")
-print("    Notify  : 0000ae02-0000-1000-8000-00ae9bdb96f0")
-print("    Paket   : [0x51,0x78, CMD, 0x00, LEN_LO, LEN_HI, ...DATA, CRC8]")
-print("    CMD 0xA4: Druckintensität setzen")
-print("    CMD 0xBE: Druckstart + Zeilenanzahl")
-print("    CMD 0xA3: Bildzeile senden (48 Bytes)")
-print("    CMD 0xA9: Papiervorschub")
-print("──────────────────────────────────────────────────")
