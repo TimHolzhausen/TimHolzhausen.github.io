@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Peripage P21 Banner Drucker</title>
+  <meta name="description" content="Banner-Drucker für den Peripage P21 Thermodrucker mit Spracherkennung und Kursivschrift." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;600;700&family=Caveat:wght@400;600;700&family=Pacifico&family=Great+Vibes&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-container">
+
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-glow"></div>
+      <div class="header-content">
+        <div class="logo">
+          <span class="logo-icon">🖨️</span>
+          <div class="logo-text">
+            <h1>Banner<span class="accent">Drucker</span></h1>
+            <p class="logo-sub">Peripage P21 · Kursivschrift</p>
+          </div>
+        </div>
+        <div class="connection-area">
+          <div id="status-indicator" class="status-indicator disconnected">
+            <span class="status-dot"></span>
+            <span id="status-text">Nicht verbunden</span>
+          </div>
+          <button id="btn-connect" class="btn btn-primary btn-connect" onclick="connectPrinter(false)">
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>
+            </svg>
+            <span>Verbinden</span>
+          </button>
+          <button id="btn-connect-android" class="btn btn-secondary btn-connect" onclick="connectPrinter(true)" title="Alle BLE-Geräte anzeigen – nötig wenn normaler Scan leer ist (Android)">
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2L8 6l4 4-4 4 4 4 4-4-4-4 4-4-4-4z"/>
+            </svg>
+            <span>Alle Geräte</span>
+          </button>
+        </div>
+
+      </div>
+    </header>
+
+    <main class="main-content">
+
+      <!-- Left column: Input + Controls -->
+      <section class="input-section">
+
+        <!-- Text Input Card -->
+        <div class="card input-card">
+          <div class="card-header">
+            <h2 class="card-title">
+              <span class="icon">✍️</span> Dein Text
+            </h2>
+          </div>
+          <div class="card-body">
+            <div class="textarea-wrapper">
+              <textarea
+                id="banner-text"
+                class="banner-textarea"
+                placeholder="Gib deinen Banner-Text ein..."
+                maxlength="500"
+                oninput="updatePreview()"
+                onkeydown="handleKeydown(event)"
+              ></textarea>
+              <div class="char-counter"><span id="char-count">0</span>/500</div>
+            </div>
+            <div class="quick-phrases">
+              <span class="quick-label">Schnellauswahl:</span>
+              <button class="quick-btn" onclick="setQuickText('Herzlichen Glückwunsch!')">🎉 Glückwunsch</button>
+              <button class="quick-btn" onclick="setQuickText('Willkommen!')">🏠 Willkommen</button>
+              <button class="quick-btn" onclick="setQuickText('Alles Liebe!')">💕 Alles Liebe</button>
+              <button class="quick-btn" onclick="setQuickText('Happy Birthday!')">🎂 Happy B-Day</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Font & Style Card -->
+        <div class="card style-card">
+          <div class="card-header">
+            <h2 class="card-title">
+              <span class="icon">🎨</span> Schrift & Stil
+            </h2>
+          </div>
+          <div class="card-body">
+            <div class="font-grid">
+              <button class="font-option active" data-font="Dancing Script" onclick="selectFont(this)" style="font-family: 'Dancing Script'">Dancing Script</button>
+              <button class="font-option" data-font="Caveat" onclick="selectFont(this)" style="font-family: 'Caveat'">Caveat</button>
+              <button class="font-option" data-font="Pacifico" onclick="selectFont(this)" style="font-family: 'Pacifico'">Pacifico</button>
+              <button class="font-option" data-font="Great Vibes" onclick="selectFont(this)" style="font-family: 'Great Vibes'">Great Vibes</button>
+            </div>
+
+            <div class="controls-row">
+              <div class="control-group">
+                <label class="control-label">Schriftgröße</label>
+                <div class="slider-wrapper">
+                  <input type="range" id="font-size" class="slider" min="40" max="120" value="72" oninput="updatePreview()" />
+                  <span class="slider-value" id="font-size-val">72</span>
+                </div>
+              </div>
+              <div class="control-group">
+                <label class="control-label">Kontrast/Schwärze</label>
+                <div class="slider-wrapper">
+                  <input type="range" id="contrast" class="slider" min="0" max="255" value="128" oninput="updatePreview()" />
+                  <span class="slider-value" id="contrast-val">128</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="controls-row">
+              <div class="control-group">
+                <label class="control-label">Zeilenabstand</label>
+                <div class="slider-wrapper">
+                  <input type="range" id="line-spacing" class="slider" min="0" max="60" value="20" oninput="updatePreview()" />
+                  <span class="slider-value" id="line-spacing-val">20</span>
+                </div>
+              </div>
+              <div class="control-group">
+                <label class="control-label">Ausrichtung</label>
+                <div class="align-btns">
+                  <button class="align-btn active" id="align-left" onclick="setAlign('left', this)" title="Links">&#8676;</button>
+                  <button class="align-btn" id="align-center" onclick="setAlign('center', this)" title="Mitte">&#8596;</button>
+                  <button class="align-btn" id="align-right" onclick="setAlign('right', this)" title="Rechts">&#8677;</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Speech Recognition Card -->
+        <div class="card speech-card">
+          <div class="card-header">
+            <h2 class="card-title">
+              <span class="icon">🎤</span> Spracherkennung
+            </h2>
+            <div class="speech-toggle-area">
+              <label class="toggle-switch" title="Spracherkennung aktivieren">
+                <input type="checkbox" id="speech-toggle" onchange="toggleSpeech(this.checked)" />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="wakeword-row">
+              <label class="control-label">Wake-Word / Muster</label>
+              <input
+                type="text"
+                id="wakeword-input"
+                class="text-input"
+                value="drucke"
+                placeholder="z.B. drucke, print, hey drucker"
+              />
+              <p class="hint-text">Sprich das Wake-Word, gefolgt von deinem Text.<br>Beispiel: <em>"drucke Herzlichen Glückwunsch"</em></p>
+            </div>
+            <div class="speech-status-area" id="speech-status-area">
+              <div class="speech-wave" id="speech-wave">
+                <span></span><span></span><span></span><span></span><span></span>
+              </div>
+              <p id="speech-status-text" class="speech-status-text">Spracherkennung inaktiv</p>
+              <div class="transcript-box" id="transcript-box">
+                <span id="interim-text" class="interim"></span>
+                <span id="final-text"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+          <button id="btn-print" class="btn btn-success btn-large" onclick="printBanner()" disabled>
+            <span class="btn-icon-large">🖨️</span>
+            <span>Drucken</span>
+          </button>
+          <button class="btn btn-secondary" onclick="clearText()">
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6l-1 14H6L5 6"></path>
+            </svg>
+            <span>Löschen</span>
+          </button>
+          <button class="btn btn-secondary" onclick="feedPaper()">
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <polyline points="19 12 12 19 5 12"></polyline>
+            </svg>
+            <span>Papier vor</span>
+          </button>
+        </div>
+
+      </section>
+
+      <!-- Right column: Preview -->
+      <section class="preview-section">
+        <div class="card preview-card">
+          <div class="card-header">
+            <h2 class="card-title">
+              <span class="icon">👁️</span> Vorschau
+            </h2>
+            <div class="preview-badge">384px Breite</div>
+          </div>
+          <div class="card-body preview-body">
+            <div class="printer-mockup">
+              <div class="printer-top">
+                <div class="printer-led" id="printer-led"></div>
+              </div>
+              <div class="paper-slot">
+                <div class="paper-output" id="paper-output">
+                  <canvas id="preview-canvas"></canvas>
+                </div>
+              </div>
+            </div>
+            <div class="preview-info">
+              <span id="preview-dims">0 × 0 px</span>
+              <span id="preview-lines">0 Zeilen</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Print History -->
+        <div class="card history-card">
+          <div class="card-header">
+            <h2 class="card-title">
+              <span class="icon">📜</span> Druckverlauf
+            </h2>
+            <button class="btn-small" onclick="clearHistory()">Leeren</button>
+          </div>
+          <div class="card-body">
+            <ul class="history-list" id="history-list">
+              <li class="history-empty">Noch nichts gedruckt.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Debug Log (collapsible) -->
+    <div class="debug-panel" id="debug-panel">
+      <div class="debug-header" onclick="toggleDebug()">
+        <span>🔍 Debug Log</span>
+        <span id="debug-toggle-icon">▼</span>
+      </div>
+      <div class="debug-body" id="debug-body">
+        <div id="debug-log" class="debug-log"></div>
+        <button class="btn-small" onclick="clearDebugLog()" style="margin-top:8px">Löschen</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="printer.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
