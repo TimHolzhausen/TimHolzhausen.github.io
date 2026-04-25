@@ -186,6 +186,23 @@
           </button>
         </div>
 
+        <!-- Debug-Werkzeuge -->
+        <div class="action-buttons" style="margin-top:8px; flex-wrap:wrap; gap:8px;">
+          <button id="btn-protocol" class="btn btn-secondary" onclick="switchProtocol()" title="Protokoll-Modus A oder B wechseln">
+            🔄 Protokoll: Modus <strong>A</strong>
+          </button>
+          <button class="btn btn-secondary" onclick="testPrint()" title="Einfaches Test-Muster drucken (ohne Text)">
+            🧪 Test-Druck
+          </button>
+          <label class="toggle-switch" style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px 12px;background:rgba(255,255,255,0.05);border-radius:10px;border:1px solid rgba(255,255,255,0.1);">
+            <input type="checkbox" onchange="toggleBannerMode(this.checked)" />
+            <span class="toggle-slider"></span>
+            <span id="banner-badge" style="font-size:12px;color:#a0aec0;">Hochformat</span>
+          </label>
+        </div>
+
+
+
       </section>
 
       <!-- Right column: Preview -->

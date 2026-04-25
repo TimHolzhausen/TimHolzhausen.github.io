@@ -1,27 +1,39 @@
 /**
- * printer.js — Peripage P21 BLE Protocol v3
+ * printer.js — Peripage P21 BLE Protocol v4
  *
- * VERBINDEN: Multi-UUID-Scan mit acceptAllDevices (funktioniert auf Android)
+ * VERBINDEN: Multi-UUID-Scan, acceptAllDevices (Android-kompatibel)
  *
- * DRUCKPROTOKOLL (ae30-Basis, korrekte Befehlsfolge):
- *   0xAF = Energie setzen [lo, hi]
- *   0xBE + [0x31] = Lattice-Modus EIN (Druckjob starten)
- *   0xA2 = Eine Bitmap-Zeile drucken (48 Bytes Daten)
- *   0xBE + [0x30] = Lattice-Modus AUS (Druckjob beenden)
- *   0xA1 = Papier vorschub [0x00, zeilen]
+ * DRUCKPROTOKOLL:
+ *   Es werden zwei Modi unterstuetzt (MODE A und MODE B), da das exakte
+ *   Protokoll des P21 nicht oeffentlich dokumentiert ist.
  *
- * PACKET-FORMAT: [0x51, 0x78, CMD, 0x00, LEN_LO, LEN_HI, DATA..., CRC8(DATA)]
- *   - CRC nur ueber DATA (nicht Header)
- *   - Kein 0xFF am Ende
+ *   MODE A (Standard, am wahrscheinlichsten korrekt fuer P21):
+ *     0xA4 [heat]             – Drueckwaerme setzen
+ *     0xBE [hi, lo]           – Druckjob starten (Anzahl Zeilen)
+ *     0xA2 [48 Bytes] x N     – Eine Bitmap-Zeile senden
+ *     0xA9 [0x00, lines]      – Papiervorschub
  *
- * BLE-WRITE: Jedes Paket als EIN einzelner Write (kein Chunking!).
- *   Chrome handelt MTU=512 aus — Pakete bis 55 Bytes passen problemlos.
- *   Chunking auf 20 Bytes war die Ursache fuer das Druckproblem.
+ *   MODE B (Alternative, Lattice-Protokoll):
+ *     0xAF [lo, hi]           – Energie setzen
+ *     0xBE [0x31]             – Lattice EIN
+ *     0xA2 [48 Bytes] x N     – Zeile senden
+ *     0xBE [0x30]             – Lattice AUS
+ *     0xA1 [0x00, lines]      – Papiervorschub
+ *
+ * PACKET: [0x51, 0x78, CMD, 0x00, LEN_LO, LEN_HI, DATA..., CRC8(DATA)]
+ *
+ * BLE-WRITE: writeValueWithoutResponse zuerst (dann writeValue als Fallback),
+ *   aufgeteilt in 20-Byte-Chunks — exakt wie das funktionierende Referenz-Skript.
  */
 
 'use strict';
 
 class PeripagePrinter {
+
+  // === Druckmodi ================================================
+  // A: heat+height+row+feed  (wahrscheinlichste Option fuer P21)
+  // B: energy+lattice-on+row+lattice-off+feed (ae30-Standard-Doku)
+  static PROTOCOL_MODE = 'A';  // 'A' oder 'B'
 
   // === Alle bekannten UUID-Kombinationen ========================
   static UUID_CANDIDATES = [
@@ -80,14 +92,9 @@ class PeripagePrinter {
   }
 
   static PRINT_WIDTH = 384;
-  static ROW_BYTES   = 48;
-  static ROW_DELAY   = 8;    // ms nach jeder Druckzeile
-
-  // Befehlscodes (korrekte Peripage-ae30-Befehle)
-  static CMD_SET_ENERGY = 0xAF;  // Energie setzen [lo, hi]
-  static CMD_LATTICE    = 0xBE;  // Lattice-Modus [0x31=ein, 0x30=aus]
-  static CMD_PRINT_ROW  = 0xA2;  // Bitmap-Zeile [48 Bytes]
-  static CMD_FEED_PAPER = 0xA1;  // Papiervorschub [0x00, zeilen]
+  static ROW_BYTES   = 48;   // 384 / 8
+  static BLE_CHUNK   = 20;   // Bytes pro BLE-Write (exakt wie Referenz)
+  static BLE_DELAY   = 18;   // ms zwischen Chunks
 
   constructor() {
     this.device     = null;
@@ -114,11 +121,13 @@ class PeripagePrinter {
   }
 
   // === Paket bauen ==============================================
-  static buildPacket(cmd, data = []) {
-    const d = Array.from(data);
+  // Format: [0x51, 0x78, CMD, 0x00, LEN_LO, LEN_HI, DATA..., CRC8(DATA)]
+  static buildPacket(cmd, data) {
+    data = data || [];
+    const d = Array.isArray(data) ? data : Array.from(data);
     const header = [0x51, 0x78, cmd, 0x00, d.length & 0xFF, (d.length >> 8) & 0xFF];
     const crc = PeripagePrinter.crc8(d);
-    return new Uint8Array([...header, ...d, crc]);
+    return new Uint8Array(header.concat(d).concat([crc]));
   }
 
   // === VERBINDEN ================================================
@@ -127,10 +136,10 @@ class PeripagePrinter {
       throw new Error('Web Bluetooth nicht verfuegbar. Bitte Chrome/Edge verwenden.');
     }
     if (!window.isSecureContext) {
-      throw new Error('Kein sicherer Kontext (HTTPS/localhost erforderlich).');
+      throw new Error('Kein sicherer Kontext (HTTPS oder localhost erforderlich).');
     }
 
-    this._log('info', 'Oeffne BLE-Geraeteauswahl (alle Geraete)...');
+    this._log('info', 'Oeffne BLE-Geraeteauswahl...');
     this._status('connecting', 'Verbinde...');
 
     const device = await navigator.bluetooth.requestDevice({
@@ -139,7 +148,7 @@ class PeripagePrinter {
     });
 
     this.device = device;
-    this._log('info', 'Geraet: ' + (device.name || '(kein Name)'));
+    this._log('info', 'Geraet: ' + (device.name || '(kein Name)') + ' [' + device.id + ']');
 
     device.addEventListener('gattserverdisconnected', () => {
       this._log('warn', 'GATT getrennt');
@@ -151,13 +160,13 @@ class PeripagePrinter {
 
     const char = await this._tryAllUUIDs(this.gattServer);
     if (!char) {
-      throw new Error('Kein kompatibler Service gefunden. Ist der Drucker eingeschaltet?');
+      throw new Error('Kein kompatibler Service gefunden. Drucker eingeschaltet?');
     }
 
     this.writeChar = char;
     this.connected = true;
     this._status('connected', device.name || 'Peripage P21');
-    this._log('success', 'Drucker bereit!');
+    this._log('success', 'Drucker bereit! Protokoll-Modus: ' + PeripagePrinter.PROTOCOL_MODE);
     return true;
   }
 
@@ -167,7 +176,7 @@ class PeripagePrinter {
     for (let i = 0; i < candidates.length; i++) {
       const c = candidates[i];
       this._uuidProgress(i, c.label, 'trying');
-      this._log('info', 'Teste [' + (i+1) + '/' + candidates.length + ']: ' + c.label);
+      this._log('info', 'Teste [' + (i + 1) + '/' + candidates.length + ']: ' + c.label);
       try {
         const svc = await gattServer.getPrimaryService(c.svc);
         this._uuidProgress(i, c.label, 'found');
@@ -194,11 +203,11 @@ class PeripagePrinter {
       const chars = await svc.getCharacteristics();
       for (const ch of chars) {
         const w = ch.properties.write || ch.properties.writeWithoutResponse;
-        this._log('info', '  Char ' + ch.uuid + ': write=' + (w ? 'ja' : 'nein'));
-        if (w) { this._log('success', 'Auto-Write-Char: ' + ch.uuid); return ch; }
+        this._log('info', '  ' + ch.uuid + ' write=' + (w ? 'JA' : 'nein') + ' notify=' + (ch.properties.notify ? 'JA' : 'nein'));
+        if (w) { this._log('success', 'Auto-Write: ' + ch.uuid); return ch; }
       }
     } catch (e) {
-      this._log('warn', 'getCharacteristics(): ' + e.message);
+      this._log('warn', 'getCharacteristics: ' + e.message);
     }
     return null;
   }
@@ -217,10 +226,10 @@ class PeripagePrinter {
           const b = Array.from(new Uint8Array(e.target.value.buffer));
           this._log('info', '<< ' + b.map(x => x.toString(16).padStart(2,'0')).join(' '));
         });
-        this._log('info', 'Notify aktiv');
+        this._log('info', 'Notify aktiv (Drucker-Antworten werden geloggt)');
       }
     } catch (e) {
-      this._log('warn', 'Notify: ' + e.message);
+      this._log('warn', 'Notify nicht verfuegbar: ' + e.message);
     }
   }
 
@@ -240,141 +249,232 @@ class PeripagePrinter {
   }
 
   // === DRUCKEN ==================================================
-  // canvas: HTMLCanvasElement
-  // energy: 0-255 (Kontraststufe aus Slider)
-  async printCanvas(canvas, energy) {
-    energy = (energy === undefined) ? 128 : energy;
+  // canvas: HTMLCanvasElement mit Inhalt
+  // heat:   0-63 (Druckwaerme; ~35 = gut)
+  // rotate: wenn true → 90° Drehung fuer Banner-/Querformat
+  async printCanvas(canvas, heat, rotate) {
+    heat   = (heat   === undefined) ? 35  : heat;
+    rotate = (rotate === undefined) ? false : rotate;
+
     if (!this.connected || !this.writeChar) throw new Error('Drucker nicht verbunden!');
     if (this.printing) throw new Error('Druck laeuft bereits!');
+
     this.printing = true;
     this._status('connected', 'Druckt...');
 
     try {
-      const bdata = this._canvasToBitmap(canvas);
-      this._log('info', 'Bitmap: ' + bdata.W + 'x' + bdata.H + 'px, ' + bdata.H + ' Zeilen');
+      // Canvas ggf. rotieren fuer Querformat/Banner
+      const srcCanvas = rotate ? this._rotateCanvas(canvas) : canvas;
+      const bdata = this._canvasToBitmap(srcCanvas);
 
-      // 1. Energie setzen (0-255 → sinnvoller Bereich fuer P21)
-      const energyVal = 5000 + Math.round((energy / 255) * 45000);
-      const eLo = energyVal & 0xFF;
-      const eHi = (energyVal >> 8) & 0xFF;
-      this._log('info', 'Energie: ' + energyVal + ' (0x' + eHi.toString(16) + eHi.toString(16) + ')');
-      await this._sendCmd(PeripagePrinter.CMD_SET_ENERGY, [eLo, eHi]);
-      await this._delay(50);
+      this._log('info', 'Bitmap: ' + bdata.W + 'x' + bdata.H + 'px [heat=' + heat + ' mode=' + PeripagePrinter.PROTOCOL_MODE + ']');
 
-      // 2. Lattice-Modus EIN
-      this._log('info', 'Lattice EIN (0xBE 0x31)');
-      await this._sendCmd(PeripagePrinter.CMD_LATTICE, [0x31]);
-      await this._delay(50);
-
-      // 3. Zeilen senden
-      let errors = 0;
-      for (let row = 0; row < bdata.H; row++) {
-        const rowData = Array.from(bdata.bm.slice(row * bdata.rb, (row + 1) * bdata.rb));
-        try {
-          await this._sendCmd(PeripagePrinter.CMD_PRINT_ROW, rowData);
-        } catch (e) {
-          errors++;
-          this._log('warn', 'Zeile ' + row + ' Fehler: ' + e.message);
-          if (errors > 15) throw new Error('Zu viele BLE-Fehler: ' + e.message);
-        }
-        await this._delay(PeripagePrinter.ROW_DELAY);
-
-        if (row % 20 === 0) {
-          this._log('info', 'Zeile ' + row + '/' + bdata.H + ' (' + Math.round(row/bdata.H*100) + '%)');
-        }
+      if (PeripagePrinter.PROTOCOL_MODE === 'A') {
+        await this._printModeA(bdata, heat);
+      } else {
+        await this._printModeB(bdata, heat);
       }
 
-      await this._delay(200);
-
-      // 4. Lattice-Modus AUS
-      this._log('info', 'Lattice AUS (0xBE 0x30)');
-      await this._sendCmd(PeripagePrinter.CMD_LATTICE, [0x30]);
-      await this._delay(100);
-
-      // 5. Papiervorschub
-      await this._sendCmd(PeripagePrinter.CMD_FEED_PAPER, [0x00, 0x40]);
-      await this._delay(800);
-
       this._log('success', 'Druck abgeschlossen!');
-
     } finally {
       this.printing = false;
       this._status('connected', (this.device && this.device.name) ? this.device.name : 'Verbunden');
     }
   }
 
+  // --- MODE A: heat + height + row(0xA2) + feed(0xA9) ----------
+  // Entspricht der Referenz-Implementierung, aber mit 0xA2 statt 0xA3
+  async _printModeA(bdata, heat) {
+    heat = Math.max(0, Math.min(255, heat));
+
+    // 1. Waerme setzen (0xA4)
+    this._log('info', 'MODE A: 0xA4 heat=' + heat);
+    await this._sendCmd(0xA4, [heat & 0xFF]);
+    await this._delay(120);
+
+    // 2. Hoehe mitteilen (0xBE) — hi byte zuerst, dann lo
+    const hi = (bdata.H >> 8) & 0xFF;
+    const lo = bdata.H & 0xFF;
+    this._log('info', 'MODE A: 0xBE height=' + bdata.H + ' [' + hi + ',' + lo + ']');
+    await this._sendCmd(0xBE, [hi, lo]);
+    await this._delay(150);
+
+    // 3. Zeilen senden (0xA2 — exakt 48 Bytes pro Zeile)
+    for (let r = 0; r < bdata.H; r++) {
+      const row = Array.from(bdata.bm.slice(r * bdata.rb, (r + 1) * bdata.rb));
+      await this._sendCmd(0xA2, row);
+      if (r % 15 === 0) {
+        this._log('info', 'Zeile ' + r + '/' + bdata.H);
+        await this._delay(5);
+      }
+    }
+
+    await this._delay(300);
+
+    // 4. Papiervorschub (0xA9)
+    this._log('info', 'MODE A: 0xA9 feed');
+    await this._sendCmd(0xA9, [0x00, 60]);
+    await this._delay(600);
+  }
+
+  // --- MODE B: energy(0xAF) + lattice(0xBE) + row(0xA2) + feed(0xA1)
+  async _printModeB(bdata, heat) {
+    // Energie als 16-Bit-Wert (5000–50000)
+    const energyVal = 5000 + Math.round((heat / 63) * 45000);
+    const eLo = energyVal & 0xFF;
+    const eHi = (energyVal >> 8) & 0xFF;
+
+    this._log('info', 'MODE B: 0xAF energy=' + energyVal);
+    await this._sendCmd(0xAF, [eLo, eHi]);
+    await this._delay(50);
+
+    this._log('info', 'MODE B: 0xBE lattice EIN');
+    await this._sendCmd(0xBE, [0x31]);
+    await this._delay(50);
+
+    for (let r = 0; r < bdata.H; r++) {
+      const row = Array.from(bdata.bm.slice(r * bdata.rb, (r + 1) * bdata.rb));
+      await this._sendCmd(0xA2, row);
+      if (r % 15 === 0) {
+        this._log('info', 'Zeile ' + r + '/' + bdata.H);
+        await this._delay(5);
+      }
+    }
+
+    await this._delay(300);
+
+    this._log('info', 'MODE B: 0xBE lattice AUS');
+    await this._sendCmd(0xBE, [0x30]);
+    await this._delay(100);
+
+    this._log('info', 'MODE B: 0xA1 feed');
+    await this._sendCmd(0xA1, [0x00, 60]);
+    await this._delay(600);
+  }
+
   // === Papiervorschub (separat) =================================
   async feedPaper(lines) {
-    lines = (lines === undefined) ? 60 : lines;
+    lines = lines || 60;
     if (!this.connected) return;
-    this._log('info', 'Papier vor: ' + lines + ' Zeilen');
-    await this._sendCmd(PeripagePrinter.CMD_FEED_PAPER, [0x00, lines & 0xFF]);
-    await this._delay(800);
+    // MODE A nutzt 0xA9, MODE B nutzt 0xA1 — versuche beide
+    try {
+      await this._sendCmd(0xA9, [0x00, lines & 0xFF]);
+    } catch {
+      await this._sendCmd(0xA1, [0x00, lines & 0xFF]);
+    }
+    await this._delay(600);
+  }
+
+  // === TEST-DRUCK: Einfaches Muster zum Protokoll-Debug =========
+  // Druckt 20 Zeilen mit abwechselnden Mustern (hilfreich fuer
+  // Protokoll-Debugging — wenn was gedruckt wird, funktionieren die Befehle)
+  async testPrint() {
+    if (!this.connected || !this.writeChar) throw new Error('Nicht verbunden!');
+    this._log('info', '=== TEST-DRUCK START (Modus ' + PeripagePrinter.PROTOCOL_MODE + ') ===');
+
+    const rb = PeripagePrinter.ROW_BYTES; // 48
+    const H  = 40;
+
+    // 40 Zeilen: gerade = schwarz, ungerade = weiss
+    const bm = new Uint8Array(H * rb);
+    for (let r = 0; r < H; r++) {
+      if (r % 4 < 2) {  // gestreifte Muster
+        for (let b = 0; b < rb; b++) bm[r * rb + b] = 0xAA;  // 10101010
+      }
+    }
+    const bdata = { bm, W: 384, H, rb };
+
+    try {
+      if (PeripagePrinter.PROTOCOL_MODE === 'A') {
+        await this._printModeA(bdata, 35);
+      } else {
+        await this._printModeB(bdata, 35);
+      }
+      this._log('success', 'Test-Druck abgeschlossen. Etwas gedruckt?');
+    } catch (e) {
+      this._log('error', 'Test-Druck Fehler: ' + e.message);
+      throw e;
+    }
   }
 
   // === Befehl senden ============================================
   async _sendCmd(cmd, data) {
     data = data || [];
     const pkt = PeripagePrinter.buildPacket(cmd, data);
-    const hexStr = Array.from(pkt).map(b => b.toString(16).padStart(2,'0')).join(' ');
-    this._log('info', '>> 0x' + cmd.toString(16).toUpperCase() + ' [' + data.length + 'B PKT=' + pkt.length + 'B]: ' + hexStr.substring(0, 80));
+    if (data.length < 10) {   // kurze Pakete vollstaendig loggen
+      const hexStr = Array.from(pkt).map(b => b.toString(16).padStart(2,'0')).join(' ');
+      this._log('info', '>> CMD 0x' + cmd.toString(16).toUpperCase() + ': ' + hexStr);
+    } else {
+      this._log('info', '>> CMD 0x' + cmd.toString(16).toUpperCase() + ' [' + data.length + 'B Daten, PKT=' + pkt.length + 'B]');
+    }
     await this._bleWrite(pkt);
   }
 
-  // === BLE-Write: GANZES PAKET als EIN Write ===================
-  // Chrome handelt MTU=512 aus. Ein Zeilenpaket ist 55 Bytes -> passt!
-  // Kein 20-Byte-Chunking mehr (das war die Ursache des Druckproblems).
+  // === BLE-Write: writeWithoutResponse zuerst, dann writeValue ==
+  // Exakt wie im funktionierenden Referenz-Skript, aber mit saubererem
+  // Promise-Handling. 20-Byte-Chunks.
   async _bleWrite(buf) {
     if (!this.writeChar) throw new Error('Nicht verbunden');
-    const pkt = (buf instanceof Uint8Array) ? buf : new Uint8Array(buf);
+    const arr = (buf instanceof Uint8Array) ? buf : new Uint8Array(buf);
+    const CHUNK = PeripagePrinter.BLE_CHUNK;  // 20
+    const DELAY = PeripagePrinter.BLE_DELAY;  // 18
 
-    // Methoden nach verfuegbaren Properties waehlen
-    const hasWrite    = this.writeChar.properties.write;
-    const hasNoResp   = this.writeChar.properties.writeWithoutResponse;
-
-    // Prioritaet: writeValueWithResponse (zuverlaessiger), dann withoutResponse
-    const tryMethods = [];
-    if (hasWrite)  tryMethods.push('withResponse');
-    if (hasNoResp) tryMethods.push('withoutResponse');
-    if (tryMethods.length === 0) tryMethods.push('withResponse', 'withoutResponse');
-
-    for (const method of tryMethods) {
-      try {
-        if (method === 'withResponse') {
-          await this.writeChar.writeValueWithResponse(pkt);
-        } else {
-          await this.writeChar.writeValueWithoutResponse(pkt);
-        }
-        return;  // Erfolg!
-      } catch (e) {
-        const msg = (e.message || '').toLowerCase();
-        this._log('warn', method + ' fehlgeschlagen [' + e.name + ']: ' + e.message);
-        // "Paket zu gross" → Chunking versuchen
-        if (msg.includes('bytes') || msg.includes('length') || msg.includes('mtu') || msg.includes('large') || e.name === 'InvalidStateError') {
-          this._log('warn', 'Paket zu gross fuer MTU, versuche 20-Byte-Chunking...');
-          await this._bleWriteChunked(pkt, method);
-          return;
-        }
-        // Anderer Fehler: naechste Methode versuchen
-      }
+    for (let i = 0; i < arr.length; i += CHUNK) {
+      const slice = arr.slice(i, i + CHUNK);
+      await this._writeSlice(slice);
+      if (arr.length > CHUNK) await this._delay(DELAY);
     }
-
-    // Letzter Ausweg: Chunking
-    this._log('warn', 'Alle Write-Methoden fehlgeschlagen, Chunking...');
-    await this._bleWriteChunked(pkt, tryMethods[0]);
   }
 
-  async _bleWriteChunked(buf, method) {
-    const CHUNK = 20;
-    for (let i = 0; i < buf.length; i += CHUNK) {
-      const slice = buf.slice(i, i + CHUNK);
-      if (method === 'withResponse') {
-        await this.writeChar.writeValueWithResponse(slice);
-      } else {
+  async _writeSlice(slice) {
+    // 1. writeValueWithoutResponse (bevorzugt fuer Drucker)
+    if (this.writeChar.properties.writeWithoutResponse) {
+      try {
         await this.writeChar.writeValueWithoutResponse(slice);
+        return;
+      } catch (e) {
+        this._log('warn', 'writeWithoutResponse: ' + e.name + ' – ' + e.message);
       }
-      await this._delay(20);
     }
+    // 2. writeValueWithResponse (Fallback)
+    if (this.writeChar.properties.write) {
+      try {
+        await this.writeChar.writeValueWithResponse(slice);
+        return;
+      } catch (e) {
+        this._log('warn', 'writeWithResponse: ' + e.name + ' – ' + e.message);
+      }
+    }
+    // 3. writeValue (deprecated, letzter Ausweg)
+    try {
+      await this.writeChar.writeValue(slice);
+    } catch (e) {
+      throw new Error('Alle Write-Methoden fehlgeschlagen: ' + e.message);
+    }
+  }
+
+  // === 90°-Rotation fuer Querformat/Banner ======================
+  // Dreht den Canvas 90° im Uhrzeigersinn, sodass horizontaler Text
+  // laengs des Papierstreifens gedruckt wird (Banner-Modus).
+  _rotateCanvas(src) {
+    const W = PeripagePrinter.PRINT_WIDTH;
+    const scale = W / src.height;   // Hoehe des Originals wird zur Druckbreite
+    const rotW = Math.round(src.height * scale);  // = W = 384
+    const rotH = Math.round(src.width  * scale);  // Breite wird zur Drucklaenge
+
+    const rot = document.createElement('canvas');
+    rot.width  = rotW;
+    rot.height = rotH;
+    const ctx = rot.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, rotW, rotH);
+    ctx.save();
+    ctx.translate(rotW, 0);
+    ctx.rotate(Math.PI / 2);
+    ctx.scale(scale, scale);
+    ctx.drawImage(src, 0, 0);
+    ctx.restore();
+    return rot;
   }
 
   // === Canvas -> 1-Bit-Bitmap (Floyd-Steinberg) ================
@@ -435,6 +535,6 @@ class PeripagePrinter {
   _uuidProgress(i, l, r) { if (this.onUuidProgress) this.onUuidProgress(i, l, r); }
   _log(level, msg) {
     if (this.onLog) this.onLog(level, msg);
-    console.log('[' + level.toUpperCase() + '] ' + msg);
+    console.log('[' + level.toUpperCase().padEnd(7) + '] ' + msg);
   }
 }

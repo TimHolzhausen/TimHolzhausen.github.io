@@ -9,12 +9,13 @@
 // State
 // ============================================================
 const state = {
-  font:       'Dancing Script',
-  fontSize:   72,
-  contrast:   128,
-  lineSpacing: 20,
-  align:      'left',
-  text:       '',
+  font:         'Dancing Script',
+  fontSize:     72,
+  contrast:     128,
+  lineSpacing:  20,
+  align:        'left',
+  text:         '',
+  bannerMode:   false,   // Querformat/Bannerdruck
   speechActive: false,
   speechRecognition: null,
   printer: new PeripagePrinter(),
@@ -285,12 +286,13 @@ async function printBanner() {
       width:       PeripagePrinter.PRINT_WIDTH,
     });
 
-    // heat: 0-63 für den P21 (aus Kontrast-Slider 0–255 skaliert; ~35 = gut)
+    // heat: 0-63 fuer P21 (aus Kontrast-Slider 0-255 skaliert; ~35=gut)
     const heat = Math.round(20 + (+document.getElementById('contrast').value / 255) * 43);
-    addDebugLog('info', `Starte Druck: "${state.text.substring(0,40)}", Heat: ${heat}`);
-    showToast('🖨️ Druckt...', 'info', 30000);
+    const mode = PeripagePrinter.PROTOCOL_MODE;
+    addDebugLog('info', 'Druck: "' + state.text.substring(0,40) + '" | heat=' + heat + ' | Modus=' + mode + ' | Banner=' + state.bannerMode);
+    showToast('\uD83D\uDDA8\uFE0F Druckt... (Modus ' + mode + ')', 'info', 30000);
 
-    await state.printer.printCanvas(printCanvas, heat);
+    await state.printer.printCanvas(printCanvas, heat, state.bannerMode);
 
     showToast('✅ Erfolgreich gedruckt!', 'success');
     addToHistory(state.text);
@@ -311,12 +313,51 @@ async function feedPaper() {
     return;
   }
   try {
-    await state.printer.feedPaper(5);
+    await state.printer.feedPaper(60);
     showToast('📄 Papier vorgeschoben', 'info');
   } catch (e) {
-    showToast(`❌ Fehler: ${e.message}`, 'error');
+    showToast('❌ Fehler: ' + e.message, 'error');
   }
 }
+
+// Test-Druck: einfaches Streifenmuster — zum Protokoll-Debuggen
+async function testPrint() {
+  if (!state.printer.connected) {
+    showToast('❌ Drucker nicht verbunden!', 'error');
+    return;
+  }
+  const mode = PeripagePrinter.PROTOCOL_MODE;
+  addDebugLog('info', '=== TEST-DRUCK Modus ' + mode + ' ===');
+  showToast('🖨️ Test-Druck (Modus ' + mode + ')...', 'info', 15000);
+  try {
+    await state.printer.testPrint();
+    showToast('✅ Test fertig! Etwas gedruckt?', 'success', 5000);
+  } catch (e) {
+    showToast('❌ Test-Fehler: ' + e.message, 'error', 8000);
+    addDebugLog('error', 'Test-Fehler: ' + e.message);
+  }
+}
+
+// Protokoll-Modus wechseln A <-> B
+function switchProtocol() {
+  const next = PeripagePrinter.PROTOCOL_MODE === 'A' ? 'B' : 'A';
+  PeripagePrinter.PROTOCOL_MODE = next;
+  const btn = document.getElementById('btn-protocol');
+  if (btn) btn.innerHTML = '🔄 Protokoll: Modus <strong>' + next + '</strong>';
+  showToast('🔄 Protokoll: Modus ' + next, 'info', 2000);
+  addDebugLog('info', 'Protokoll-Modus: ' + next);
+}
+
+// Banner-/Querformat-Modus umschalten
+function toggleBannerMode(on) {
+  state.bannerMode = on;
+  const badge = document.getElementById('banner-badge');
+  if (badge) badge.textContent = on ? 'Banner (90°)' : 'Hochformat';
+  addDebugLog('info', on ? 'Banner-Modus EIN (Text wird 90° gedreht)' : 'Hochformat-Modus');
+  updatePreview();
+}
+
+
 
 // ============================================================
 // Font Selection
