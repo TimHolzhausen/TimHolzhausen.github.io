@@ -338,14 +338,16 @@ async function testPrint() {
   }
 }
 
-// Protokoll-Modus wechseln A <-> B
+// Protokoll-Modus wechseln: Zeilen-CMD 0xA2 <-> 0xA3
 function switchProtocol() {
-  const next = PeripagePrinter.PROTOCOL_MODE === 'A' ? 'B' : 'A';
-  PeripagePrinter.PROTOCOL_MODE = next;
+  const cur  = PeripagePrinter.ROW_CMD;
+  const next = cur === 0xA2 ? 0xA3 : 0xA2;
+  PeripagePrinter.ROW_CMD = next;
+  const label = '0x' + next.toString(16).toUpperCase();
   const btn = document.getElementById('btn-protocol');
-  if (btn) btn.innerHTML = '🔄 Protokoll: Modus <strong>' + next + '</strong>';
-  showToast('🔄 Protokoll: Modus ' + next, 'info', 2000);
-  addDebugLog('info', 'Protokoll-Modus: ' + next);
+  if (btn) btn.innerHTML = '🔄 Zeilen-CMD: <strong>' + label + '</strong>';
+  showToast('🔄 Zeilen-Befehl: ' + label, 'info', 2000);
+  addDebugLog('info', 'Zeilen-CMD geaendert: ' + label + ' (war 0x' + cur.toString(16).toUpperCase() + ')');
 }
 
 // Banner-/Querformat-Modus umschalten

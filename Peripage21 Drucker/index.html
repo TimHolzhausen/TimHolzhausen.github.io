@@ -188,8 +188,8 @@
 
         <!-- Debug-Werkzeuge -->
         <div class="action-buttons" style="margin-top:8px; flex-wrap:wrap; gap:8px;">
-          <button id="btn-protocol" class="btn btn-secondary" onclick="switchProtocol()" title="Protokoll-Modus A oder B wechseln">
-            🔄 Protokoll: Modus <strong>A</strong>
+          <button id="btn-protocol" class="btn btn-secondary" onclick="switchProtocol()" title="Zeilen-Befehl 0xA2 oder 0xA3 wechseln">
+            🔄 Zeilen-CMD: <strong>0xA2</strong>
           </button>
           <button class="btn btn-secondary" onclick="testPrint()" title="Einfaches Test-Muster drucken (ohne Text)">
             🧪 Test-Druck
@@ -259,7 +259,7 @@
         <span>🔍 Debug Log</span>
         <span id="debug-toggle-icon">▼</span>
       </div>
-      <div class="debug-body" id="debug-body">
+      <div class="debug-body open" id="debug-body">
         <div id="debug-log" class="debug-log"></div>
         <button class="btn-small" onclick="clearDebugLog()" style="margin-top:8px">Löschen</button>
       </div>
