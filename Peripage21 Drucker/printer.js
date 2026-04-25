@@ -1,182 +1,265 @@
 /**
- * printer.js — Peripage P21 BLE Protocol Implementation
+ * printer.js — Peripage P21 BLE Protocol Implementation v2
  *
- * Protocol references:
- * - BLE Service UUID: 0000ae30-0000-1000-8000-00805f9b34fb
- * - Write Characteristic: 0000ae01-0000-1000-8000-00805f9b34fb
- * - Notify Characteristic: 0000ae02-0000-1000-8000-00805f9b34fb
+ * Verbindungs-Logik:  Multi-UUID-Scan (aus funktionierender Referenz-Impl.)
+ * Druckprotokoll:     Row-by-row mit Befehlen 0xA4/0xBE/0xA3/0xA9
  *
- * Packet format (for ae30-based models):
- *   [0x51, 0x78] [CMD] [0x00] [LEN_LO] [LEN_HI] [DATA...] [CRC8] [0xFF]
+ * Packet-Format: [0x51, 0x78, CMD, 0x00, LEN_LO, LEN_HI, ...DATA, CRC8(DATA)]
+ *   - CRC wird nur über DATA berechnet (nicht über Header)
+ *   - Kein abschließendes 0xFF
  *
- * A6/P21 also supports RFCOMM-style direct commands used via the older Python lib.
- * For BLE (P21), we use the ae30 service with packeted protocol.
+ * UUID-Basis: 0000ae30-0000-1000-8000-00ae9bdb96f0 (Peripage-spezifisch!)
+ *   Die Standard-BT-Basis 00805f9b34fb funktioniert auf manchen Geräten NICHT.
  */
 
 'use strict';
 
 class PeripagePrinter {
-  // BLE UUIDs
-  static SERVICE_UUID      = '0000ae30-0000-1000-8000-00805f9b34fb';
-  static WRITE_CHAR_UUID   = '0000ae01-0000-1000-8000-00805f9b34fb';
-  static NOTIFY_CHAR_UUID  = '0000ae02-0000-1000-8000-00805f9b34fb';
 
-  // Print width in pixels (fixed for Peripage A6/P21)
-  static PRINT_WIDTH   = 384;
-  static CHUNK_SIZE    = 200; // bytes per BLE write
-  static CHUNK_DELAY   = 20;  // ms between chunks
+  // ── Alle bekannten UUID-Kombinationen ─────────────────────────
+  // Reihenfolge: wahrscheinlichste zuerst
+  static UUID_CANDIDATES = [
+    {
+      label: 'PeriPage/Paperang AE30 (Peripage-Basis)',
+      svc:   '0000ae30-0000-1000-8000-00ae9bdb96f0',
+      write: '0000ae01-0000-1000-8000-00ae9bdb96f0',
+      notif: '0000ae02-0000-1000-8000-00ae9bdb96f0',
+    },
+    {
+      label: 'AE30 (BT-Standard-Basis)',
+      svc:   '0000ae30-0000-1000-8000-00805f9b34fb',
+      write: '0000ae01-0000-1000-8000-00805f9b34fb',
+      notif: '0000ae02-0000-1000-8000-00805f9b34fb',
+    },
+    {
+      label: 'Nordic UART Service (NUS)',
+      svc:   '6e400001-b5a3-f393-e0a9-e50e24dcca9e',
+      write: '6e400002-b5a3-f393-e0a9-e50e24dcca9e',
+      notif: '6e400003-b5a3-f393-e0a9-e50e24dcca9e',
+    },
+    {
+      label: 'Microchip ISSC UART',
+      svc:   '49535343-fe7d-4ae5-8fa9-9fafd205e455',
+      write: '49535343-8841-43f4-a8d4-ecbe34729bb3',
+      notif: '49535343-1e4d-4bd9-ba61-23c647249616',
+    },
+    {
+      label: 'Sifli/PPG FF00',
+      svc:   '0000ff00-0000-1000-8000-00805f9b34fb',
+      write: '0000ff02-0000-1000-8000-00805f9b34fb',
+      notif: '0000ff01-0000-1000-8000-00805f9b34fb',
+    },
+    {
+      label: 'Generic FFF0',
+      svc:   '0000fff0-0000-1000-8000-00805f9b34fb',
+      write: '0000fff2-0000-1000-8000-00805f9b34fb',
+      notif: '0000fff1-0000-1000-8000-00805f9b34fb',
+    },
+    {
+      label: 'Generic FFF0 (Peripage-Basis)',
+      svc:   '0000fff0-0000-1000-8000-00ae9bdb96f0',
+      write: '0000fff2-0000-1000-8000-00ae9bdb96f0',
+      notif: '0000fff1-0000-1000-8000-00ae9bdb96f0',
+    },
+    {
+      label: 'BM Series E7810',
+      svc:   'e7810a71-73ae-499d-8c15-faa9aef0c3f2',
+      write: 'bef8d6c9-9c21-4c9e-b632-bd58c1009f9f',
+      notif: null,
+    },
+  ];
 
-  // Protocol commands
-  static CMD_GET_DEVICE_INFO = 0xA8;
-  static CMD_PRINT_BITMAP    = 0xA2;
-  static CMD_FEED_PAPER      = 0xA1;
-  static CMD_SET_ENERGY      = 0xAF;
-  static CMD_SET_QUALITY     = 0xBE;
-  static CMD_GET_STATUS      = 0xA3;
+  // Alle Service-UUIDs für optionalServices
+  static get ALL_SVC_UUIDS() {
+    return PeripagePrinter.UUID_CANDIDATES.map(c => c.svc);
+  }
+
+  // ── Drucker-Konfiguration ──────────────────────────────────────
+  static PRINT_WIDTH = 384;          // px (fest für P21)
+  static ROW_BYTES   = 48;           // 384 / 8
+  static BLE_CHUNK   = 20;           // Bytes pro BLE-Write (klein für Stabilität)
+  static BLE_DELAY   = 18;           // ms zwischen Chunks
+  static ROW_DELAY   = 5;            // ms zwischen Druckzeilen
+
+  // ── Protokoll-Befehle ──────────────────────────────────────────
+  static CMD_SET_HEAT    = 0xA4;  // Druckdichte [heat_value]
+  static CMD_SET_HEIGHT  = 0xBE;  // Jobhöhe [hi, lo]
+  static CMD_PRINT_ROW   = 0xA3;  // Eine Zeile [48 bytes]
+  static CMD_FEED_PAPER  = 0xA9;  // Papiervorschub [0x00, lines]
+  static CMD_GET_STATUS  = 0xA8;  // Status abfragen
 
   constructor() {
-    this.device         = null;
-    this.server         = null;
-    this.service        = null;
-    this.writeChar      = null;
-    this.notifyChar     = null;
-    this.connected      = false;
-    this.printing       = false;
-    this.onStatusChange = null; // callback(status, message)
-    this.onLog          = null; // callback(level, message)
+    this.device     = null;
+    this.gattServer = null;
+    this.writeChar  = null;
+    this.connected  = false;
+    this.printing   = false;
+
+    // UI-Callbacks
+    this.onStatusChange  = null;   // (state, message) => void
+    this.onLog           = null;   // (level, message) => void
+    this.onUuidProgress  = null;   // (index, label, result) => void  result: 'trying'|'found'|'fail'
   }
 
-  // -------------------------------------------------------
-  // CRC8 Checksum (polynomial 0x07, standard CRC-8)
-  // -------------------------------------------------------
+  // ════════════════════════════════════════════════════════════════
+  // CRC-8 — nur über DATA berechnet (kein Header, kein Trailer!)
+  // ════════════════════════════════════════════════════════════════
   static crc8(data) {
-    let crc = 0;
+    let c = 0;
     for (let i = 0; i < data.length; i++) {
-      crc ^= data[i];
+      c ^= data[i];
       for (let j = 0; j < 8; j++) {
-        if (crc & 0x80) {
-          crc = ((crc << 1) ^ 0x07) & 0xFF;
-        } else {
-          crc = (crc << 1) & 0xFF;
-        }
+        c = (c & 0x80) ? ((c << 1) ^ 0x07) & 0xFF : (c << 1) & 0xFF;
       }
     }
-    return crc;
+    return c;
   }
 
-  // -------------------------------------------------------
-  // Build a packet: [0x51, 0x78, cmd, 0x00, lenLo, lenHi, ...data, crc, 0xFF]
-  // -------------------------------------------------------
+  // ════════════════════════════════════════════════════════════════
+  // Paket bauen: [0x51, 0x78, CMD, 0x00, LEN_LO, LEN_HI, ...DATA, CRC8(DATA)]
+  // ════════════════════════════════════════════════════════════════
   static buildPacket(cmd, data = []) {
-    const dataArray = Array.from(data);
-    const lenLo = dataArray.length & 0xFF;
-    const lenHi = (dataArray.length >> 8) & 0xFF;
-    const body = [0x51, 0x78, cmd, 0x00, lenLo, lenHi, ...dataArray];
-    const crc = PeripagePrinter.crc8(body);
-    return new Uint8Array([...body, crc, 0xFF]);
+    const d = Array.from(data);
+    const header = [0x51, 0x78, cmd, 0x00, d.length & 0xFF, (d.length >> 8) & 0xFF];
+    const crc = PeripagePrinter.crc8(d);  // CRC nur über DATA
+    return new Uint8Array([...header, ...d, crc]);  // kein 0xFF am Ende!
   }
 
-  // -------------------------------------------------------
-  // Connect to printer via Web Bluetooth
-  // -------------------------------------------------------
+  // ════════════════════════════════════════════════════════════════
+  // VERBINDEN — Multi-UUID-Scan (funktioniert auf Android)
+  // ════════════════════════════════════════════════════════════════
   async connect() {
     if (!navigator.bluetooth) {
-      throw new Error('Web Bluetooth wird von diesem Browser nicht unterstützt. Bitte Chrome oder Edge (mit Bluetooth-Flag) verwenden.');
+      throw new Error('Web Bluetooth nicht verfügbar. Bitte Chrome/Edge verwenden.');
+    }
+    if (!window.isSecureContext) {
+      throw new Error('Kein sicherer Kontext (HTTPS/localhost erforderlich).');
     }
 
-    this._log('info', 'Suche nach Peripage P21...');
+    this._log('info', 'Öffne BLE-Dialog (alle Geräte)...');
     this._status('connecting', 'Verbinde...');
 
-    try {
-      this.device = await navigator.bluetooth.requestDevice({
-        filters: [
-          { namePrefix: 'PeriPage' },
-          { namePrefix: 'Peripage' },
-          { namePrefix: 'GB03' },
-          { namePrefix: 'MX10' },
-        ],
-        optionalServices: [PeripagePrinter.SERVICE_UUID],
-        // Also accept any device that has our service
-        acceptAllDevices: false,
-      });
-    } catch (e) {
-      // Fallback: accept all and look for service
-      this._log('warn', 'Gefilterter Scan fehlgeschlagen, versuche acceptAllDevices...');
-      this.device = await navigator.bluetooth.requestDevice({
-        acceptAllDevices: true,
-        optionalServices: [PeripagePrinter.SERVICE_UUID],
-      });
-    }
+    // Direkt acceptAllDevices — funktioniert zuverlässig auf Android
+    const device = await navigator.bluetooth.requestDevice({
+      acceptAllDevices: true,
+      optionalServices: PeripagePrinter.ALL_SVC_UUIDS,
+    });
 
-    this._log('info', `Gerät gefunden: ${this.device.name || 'Unbekannt'}`);
+    this.device = device;
+    this._log('info', `Gerät: ${device.name || '(kein Name)'} | ${device.id}`);
 
-    this.device.addEventListener('gattserverdisconnected', () => {
-      this._log('warn', 'Drucker getrennt (GATT disconnect)');
+    device.addEventListener('gattserverdisconnected', () => {
+      this._log('warn', 'GATT getrennt');
       this._onDisconnect();
     });
 
-    this.server = await this.device.gatt.connect();
-    this._log('info', 'GATT Server verbunden');
+    this._log('info', 'Verbinde GATT...');
+    this.gattServer = await device.gatt.connect();
+    this._log('success', 'GATT verbunden');
 
-    try {
-      this.service = await this.server.getPrimaryService(PeripagePrinter.SERVICE_UUID);
-      this._log('success', 'AE30 Service gefunden');
-    } catch (e) {
-      throw new Error(`Service ${PeripagePrinter.SERVICE_UUID} nicht gefunden. Überprüfe ob der Drucker eingeschaltet und nicht mit einem anderen Gerät verbunden ist.`);
+    // Jeden Service-UUID einzeln testen
+    const char = await this._tryAllUUIDs(this.gattServer);
+    if (!char) {
+      throw new Error('Kein kompatibler Service gefunden. Prüfe ob der Drucker eingeschaltet ist.');
     }
 
-    try {
-      this.writeChar = await this.service.getCharacteristic(PeripagePrinter.WRITE_CHAR_UUID);
-      this._log('success', 'Write-Characteristic AE01 bereit');
-    } catch (e) {
-      throw new Error('Write-Characteristic AE01 nicht gefunden.');
-    }
-
-    try {
-      this.notifyChar = await this.service.getCharacteristic(PeripagePrinter.NOTIFY_CHAR_UUID);
-      await this.notifyChar.startNotifications();
-      this.notifyChar.addEventListener('characteristicvaluechanged', (e) => {
-        const val = e.target.value;
-        const hex = Array.from(new Uint8Array(val.buffer)).map(b => b.toString(16).padStart(2,'0')).join(' ');
-        this._log('info', `Notify: ${hex}`);
-      });
-      this._log('info', 'Notify-Characteristic AE02 aktiv');
-    } catch (e) {
-      this._log('warn', 'Notify-Characteristic nicht verfügbar (kein Problem)');
-    }
-
+    this.writeChar = char;
     this.connected = true;
-    this._status('connected', `${this.device.name || 'Peripage P21'}`);
-    this._log('success', 'Drucker verbunden!');
-
-    // Initialize printer
-    await this._initPrinter();
+    this._status('connected', device.name || 'Peripage P21');
+    this._log('success', 'Drucker bereit!');
     return true;
   }
 
-  // -------------------------------------------------------
-  // Initialize printer (set energy, quality)
-  // -------------------------------------------------------
-  async _initPrinter() {
-    this._log('info', 'Initialisiere Drucker...');
+  // ════════════════════════════════════════════════════════════════
+  // Jeden UUID-Kandidaten einzeln prüfen
+  // ════════════════════════════════════════════════════════════════
+  async _tryAllUUIDs(gattServer) {
+    const candidates = PeripagePrinter.UUID_CANDIDATES;
+
+    for (let i = 0; i < candidates.length; i++) {
+      const c = candidates[i];
+      this._uuidProgress(i, c.label, 'trying');
+      this._log('info', `Teste [${i+1}/${candidates.length}]: ${c.label}`);
+
+      try {
+        const svc = await gattServer.getPrimaryService(c.svc);
+        this._uuidProgress(i, c.label, 'found');
+        this._log('success', `Service gefunden: ${c.label}`);
+
+        // Write-Characteristic direkt versuchen
+        try {
+          const ch = await svc.getCharacteristic(c.write);
+          this._log('success', `Write-Char: ${c.write}`);
+          await this._setupNotify(svc, c);
+          return ch;
+        } catch {
+          this._log('warn', 'Write-Char nicht direkt gefunden, auto-scan...');
+          const ch = await this._autoFindWriteChar(svc);
+          if (ch) {
+            await this._setupNotify(svc, c);
+            return ch;
+          }
+        }
+      } catch {
+        this._uuidProgress(i, c.label, 'fail');
+        // Nächster Kandidat
+      }
+    }
+    return null;
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // Schreibbare Characteristic automatisch finden
+  // ════════════════════════════════════════════════════════════════
+  async _autoFindWriteChar(svc) {
     try {
-      // Set print energy (0-65535, default ~8000 for medium darkness)
-      await this._sendPacket(PeripagePrinter.CMD_SET_ENERGY, [0x40, 0x1F]); // ~8000
-      await this._delay(50);
-      // Set drawing mode
-      await this._sendPacket(PeripagePrinter.CMD_SET_QUALITY, [0x33]);
-      await this._delay(50);
-      this._log('success', 'Drucker initialisiert');
+      const chars = await svc.getCharacteristics();
+      for (const ch of chars) {
+        const w = ch.properties.write || ch.properties.writeWithoutResponse;
+        this._log('info', `  Char ${ch.uuid}: write=${w?'ja':'nein'} notify=${ch.properties.notify?'ja':'nein'}`);
+        if (w) {
+          this._log('success', `Auto: Write-Char gefunden: ${ch.uuid}`);
+          return ch;
+        }
+      }
     } catch (e) {
-      this._log('warn', `Init-Fehler (ignoriert): ${e.message}`);
+      this._log('warn', `getCharacteristics() fehlgeschlagen: ${e.message}`);
+    }
+    return null;
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // Notify-Characteristic einrichten (optional)
+  // ════════════════════════════════════════════════════════════════
+  async _setupNotify(svc, candidate) {
+    try {
+      let nc = null;
+      if (candidate.notif) {
+        nc = await svc.getCharacteristic(candidate.notif).catch(() => null);
+      }
+      if (!nc) {
+        const chars = await svc.getCharacteristics().catch(() => []);
+        nc = chars.find(c => c.properties.notify) || null;
+      }
+      if (nc) {
+        await nc.startNotifications();
+        nc.addEventListener('characteristicvaluechanged', (e) => {
+          const b = Array.from(new Uint8Array(e.target.value.buffer));
+          const hex = b.map(x => x.toString(16).padStart(2,'0')).join(' ');
+          this._log('info', `<< Notify: ${hex}`);
+        });
+        this._log('info', 'Notify-Char aktiv');
+      }
+    } catch (e) {
+      this._log('warn', `Notify nicht verfügbar: ${e.message}`);
     }
   }
 
-  // -------------------------------------------------------
-  // Disconnect
-  // -------------------------------------------------------
-  async disconnect() {
-    if (this.device && this.device.gatt.connected) {
+  // ════════════════════════════════════════════════════════════════
+  // TRENNEN
+  // ════════════════════════════════════════════════════════════════
+  disconnect() {
+    if (this.device?.gatt?.connected) {
       this.device.gatt.disconnect();
     }
     this._onDisconnect();
@@ -184,183 +267,168 @@ class PeripagePrinter {
 
   _onDisconnect() {
     this.connected = false;
-    this.printing = false;
-    this.server = null;
-    this.service = null;
+    this.printing  = false;
     this.writeChar = null;
-    this.notifyChar = null;
+    this.gattServer = null;
     this._status('disconnected', 'Nicht verbunden');
   }
 
-  // -------------------------------------------------------
-  // Print a canvas-rendered image bitmap
-  // canvas: HTMLCanvasElement (any size, will be scaled to 384px wide)
-  // energy: 0-100 (darkness), 50 = default
-  // -------------------------------------------------------
-  async printCanvas(canvas, energy = 50) {
-    if (!this.connected || !this.writeChar) {
-      throw new Error('Drucker nicht verbunden!');
-    }
-    if (this.printing) {
-      throw new Error('Druckvorgang läuft bereits!');
-    }
+  // ════════════════════════════════════════════════════════════════
+  // DRUCKEN — Canvas → 1-Bit-Bitmap → Row-by-Row
+  // canvas:  HTMLCanvasElement (beliebige Größe, wird skaliert)
+  // heat:    0–63 (Druckdichte, Default 35)
+  // ════════════════════════════════════════════════════════════════
+  async printCanvas(canvas, heat = 35) {
+    if (!this.connected || !this.writeChar) throw new Error('Drucker nicht verbunden!');
+    if (this.printing) throw new Error('Druck läuft bereits!');
     this.printing = true;
     this._status('connected', 'Druckt...');
 
     try {
-      // Scale energy (0-100 → energyValue 0x0000–0xFFFF, sane range 0x1388–0xFFFF)
-      const energyVal = Math.round(5000 + (energy / 100) * 60535);
-      const energyHi = (energyVal >> 8) & 0xFF;
-      const energyLo = energyVal & 0xFF;
-      await this._sendPacket(PeripagePrinter.CMD_SET_ENERGY, [energyLo, energyHi]);
-      await this._delay(30);
+      // Zu 384px skalieren
+      const bdata = this._canvasToBitmap(canvas);
+      this._log('info', `Bitmap: ${bdata.W}×${bdata.H}px, ${bdata.H} Zeilen`);
 
-      // Convert canvas to 1-bit monochrome bitmap at 384px wide
-      const bitmapData = await this._canvasToBitmap(canvas);
-      const { data: rows, height } = bitmapData;
+      // 1. Wärme/Dichte setzen
+      await this._sendCmd(PeripagePrinter.CMD_SET_HEAT, [heat & 0xFF]);
+      await this._delay(120);
 
-      this._log('info', `Drucke: 384 × ${height}px, ${rows.length} Bytes`);
+      // 2. Druckjob starten (mit Höhe)
+      const hi = (bdata.H >> 8) & 0xFF;
+      const lo = bdata.H & 0xFF;
+      await this._sendCmd(PeripagePrinter.CMD_SET_HEIGHT, [hi, lo]);
+      await this._delay(150);
 
-      // Send print header
-      // AE30 protocol: send CMD_PRINT_BITMAP with height info, then row data
-      const heightLo = height & 0xFF;
-      const heightHi = (height >> 8) & 0xFF;
-      await this._sendPacket(PeripagePrinter.CMD_PRINT_BITMAP, [0x00, heightLo, heightHi]);
-      await this._delay(50);
+      // 3. Zeilen senden
+      for (let row = 0; row < bdata.H; row++) {
+        const rowData = Array.from(bdata.bm.slice(row * bdata.rb, (row + 1) * bdata.rb));
+        await this._sendCmd(PeripagePrinter.CMD_PRINT_ROW, rowData);
+        if (row % 15 === 0) {
+          this._log('info', `Fortschritt: ${row}/${bdata.H} (${Math.round(row/bdata.H*100)}%)`);
+          await this._delay(PeripagePrinter.ROW_DELAY);
+        }
+      }
 
-      // Send raw row data in chunks
-      await this._sendRaw(rows);
-      this._log('success', 'Bild-Daten gesendet');
+      await this._delay(300);
 
-      // Feed paper after printing
-      await this._delay(200);
-      await this.feedPaper(3);
+      // 4. Papier vorschub
+      await this._sendCmd(PeripagePrinter.CMD_FEED_PAPER, [0x00, 60]);
+      await this._delay(600);
 
+      this._log('success', 'Druck abgeschlossen!');
     } finally {
       this.printing = false;
       this._status('connected', this.device?.name || 'Verbunden');
     }
   }
 
-  // -------------------------------------------------------
-  // Feed paper (num = number of feed steps)
-  // -------------------------------------------------------
-  async feedPaper(num = 3) {
+  // ════════════════════════════════════════════════════════════════
+  // Papier vorschub
+  // ════════════════════════════════════════════════════════════════
+  async feedPaper(lines = 60) {
     if (!this.connected) return;
-    this._log('info', `Papier vor: ${num} Schritte`);
-    await this._sendPacket(PeripagePrinter.CMD_FEED_PAPER, [num]);
-    await this._delay(num * 100);
+    await this._sendCmd(PeripagePrinter.CMD_FEED_PAPER, [0x00, lines & 0xFF]);
+    await this._delay(600);
   }
 
-  // -------------------------------------------------------
-  // Send a protocol packet
-  // -------------------------------------------------------
-  async _sendPacket(cmd, data = []) {
-    const packet = PeripagePrinter.buildPacket(cmd, data);
-    const hex = Array.from(packet).map(b => b.toString(16).padStart(2,'0')).join(' ');
-    this._log('info', `TX Packet [${cmd.toString(16)}]: ${hex}`);
-    await this._writeChunk(packet);
-  }
+  // ════════════════════════════════════════════════════════════════
+  // Canvas → Floyd-Steinberg geditherte 1-Bit-Bitmap
+  // ════════════════════════════════════════════════════════════════
+  _canvasToBitmap(sourceCanvas) {
+    const W  = PeripagePrinter.PRINT_WIDTH;
+    const rb = PeripagePrinter.ROW_BYTES;  // 48
 
-  // -------------------------------------------------------
-  // Send raw byte array in chunks
-  // -------------------------------------------------------
-  async _sendRaw(data) {
-    const arr = data instanceof Uint8Array ? data : new Uint8Array(data);
-    const total = arr.length;
-    let sent = 0;
-    while (sent < total) {
-      const chunk = arr.slice(sent, sent + PeripagePrinter.CHUNK_SIZE);
-      await this._writeChunk(chunk);
-      sent += chunk.length;
-      await this._delay(PeripagePrinter.CHUNK_DELAY);
-      // Progress log every 2000 bytes
-      if (sent % 2000 < PeripagePrinter.CHUNK_SIZE) {
-        this._log('info', `Fortschritt: ${sent}/${total} Bytes (${Math.round(sent/total*100)}%)`);
-      }
-    }
-  }
+    // Skalieren
+    const scale = W / sourceCanvas.width;
+    const H = Math.ceil(sourceCanvas.height * scale);
 
-  // -------------------------------------------------------
-  // Write to BLE characteristic (with retry)
-  // -------------------------------------------------------
-  async _writeChunk(data) {
-    const arr = data instanceof Uint8Array ? data : new Uint8Array(data);
-    for (let attempt = 0; attempt < 3; attempt++) {
-      try {
-        // Try writeValueWithoutResponse first (faster, less overhead)
-        if (this.writeChar.properties.writeWithoutResponse) {
-          await this.writeChar.writeValueWithoutResponse(arr);
-        } else {
-          await this.writeChar.writeValueWithResponse(arr);
-        }
-        return;
-      } catch (e) {
-        if (attempt === 2) throw e;
-        this._log('warn', `Write retry ${attempt+1}: ${e.message}`);
-        await this._delay(50);
-      }
-    }
-  }
-
-  // -------------------------------------------------------
-  // Convert canvas to 384px-wide 1-bit bitmap row data
-  // Returns { data: Uint8Array, height: number }
-  // -------------------------------------------------------
-  async _canvasToBitmap(sourceCanvas) {
-    const targetWidth = PeripagePrinter.PRINT_WIDTH;
-
-    // Draw scaled image to offscreen canvas
-    const scaleRatio = targetWidth / sourceCanvas.width;
-    const targetHeight = Math.ceil(sourceCanvas.height * scaleRatio);
-
-    const offscreen = document.createElement('canvas');
-    offscreen.width  = targetWidth;
-    offscreen.height = targetHeight;
-    const ctx = offscreen.getContext('2d');
+    const off = document.createElement('canvas');
+    off.width  = W;
+    off.height = H;
+    const ctx = off.getContext('2d');
     ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, targetWidth, targetHeight);
-    ctx.drawImage(sourceCanvas, 0, 0, targetWidth, targetHeight);
+    ctx.fillRect(0, 0, W, H);
+    ctx.drawImage(sourceCanvas, 0, 0, W, H);
 
-    const imageData = ctx.getImageData(0, 0, targetWidth, targetHeight);
-    const pixels = imageData.data;
+    const id = ctx.getImageData(0, 0, W, H);
+    const px = id.data;
 
-    // Convert to 1-bit: each row is ceil(384/8) = 48 bytes
-    const bytesPerRow = Math.ceil(targetWidth / 8);
-    const result = new Uint8Array(targetHeight * bytesPerRow);
+    // Zu Graustufen-Float-Array
+    const gray = new Float32Array(W * H);
+    for (let i = 0; i < W * H; i++) {
+      const p = i * 4;
+      gray[i] = 0.299 * px[p] + 0.587 * px[p+1] + 0.114 * px[p+2];
+    }
 
-    for (let y = 0; y < targetHeight; y++) {
-      for (let x = 0; x < targetWidth; x++) {
-        const idx = (y * targetWidth + x) * 4;
-        const r = pixels[idx];
-        const g = pixels[idx + 1];
-        const b = pixels[idx + 2];
-        // Convert to grayscale
-        const gray = 0.299 * r + 0.587 * g + 0.114 * b;
-        // Threshold: dark pixel (< 128) → set bit (print dot)
-        if (gray < 128) {
-          const byteIdx = y * bytesPerRow + Math.floor(x / 8);
-          const bitPos  = 7 - (x % 8);
-          result[byteIdx] |= (1 << bitPos);
+    // Floyd-Steinberg Dithering
+    for (let y = 0; y < H; y++) {
+      for (let x = 0; x < W; x++) {
+        const i  = y * W + x;
+        const ov = gray[i];
+        const nv = ov < 128 ? 0 : 255;
+        const er = ov - nv;
+        gray[i] = nv;
+        if (x + 1 < W)            gray[i + 1]     += er * 7 / 16;
+        if (y + 1 < H) {
+          if (x > 0)               gray[i + W - 1] += er * 3 / 16;
+                                   gray[i + W]     += er * 5 / 16;
+          if (x + 1 < W)           gray[i + W + 1] += er * 1 / 16;
         }
       }
     }
 
-    return { data: result, height: targetHeight };
+    // 1-Bit-Bitmap
+    const bm = new Uint8Array(H * rb);
+    for (let y = 0; y < H; y++) {
+      for (let x = 0; x < W; x++) {
+        if (gray[y * W + x] < 128) {
+          bm[y * rb + Math.floor(x / 8)] |= (0x80 >> (x % 8));
+        }
+      }
+    }
+
+    return { bm, W, H, rb };
   }
 
-  // -------------------------------------------------------
+  // ════════════════════════════════════════════════════════════════
+  // BLE-Schreiben mit Chunking (20 Bytes / Chunk)
+  // ════════════════════════════════════════════════════════════════
+  async _sendCmd(cmd, data = []) {
+    const pkt = PeripagePrinter.buildPacket(cmd, data);
+    await this._bleWrite(pkt);
+  }
+
+  async _bleWrite(buf) {
+    if (!this.writeChar) throw new Error('Nicht verbunden');
+    const ch = PeripagePrinter.BLE_CHUNK;
+    const dl = PeripagePrinter.BLE_DELAY;
+    for (let i = 0; i < buf.length; i += ch) {
+      const slice = buf.slice(i, i + ch);
+      try {
+        await this.writeChar.writeValueWithoutResponse(slice);
+      } catch {
+        await this.writeChar.writeValue(slice);
+      }
+      if (buf.length > ch) await this._delay(dl);
+    }
+  }
+
+  // ════════════════════════════════════════════════════════════════
   // Utilities
-  // -------------------------------------------------------
-  _delay(ms) { return new Promise(res => setTimeout(res, ms)); }
+  // ════════════════════════════════════════════════════════════════
+  _delay(ms) { return new Promise(r => setTimeout(r, ms)); }
 
   _status(state, message) {
     if (this.onStatusChange) this.onStatusChange(state, message);
   }
 
+  _uuidProgress(index, label, result) {
+    if (this.onUuidProgress) this.onUuidProgress(index, label, result);
+  }
+
   _log(level, message) {
     if (this.onLog) this.onLog(level, message);
-    const prefix = { info: '[INFO]', warn: '[WARN]', error: '[ERR ]', success: '[OK  ]' }[level] || '[LOG ]';
-    console.log(`${prefix} Peripage: ${message}`);
+    const pfx = { info: '[INFO]', warn: '[WARN]', error: '[ERR ]', success: '[OK  ]' }[level] || '[LOG ]';
+    console.log(`${pfx} ${message}`);
   }
 }

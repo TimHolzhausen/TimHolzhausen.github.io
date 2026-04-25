@@ -28,6 +28,11 @@ window.addEventListener('DOMContentLoaded', () => {
   // Wire up printer callbacks
   state.printer.onStatusChange = updateConnectionStatus;
   state.printer.onLog = (level, msg) => addDebugLog(level, msg);
+  state.printer.onUuidProgress = (index, label, result) => {
+    const icons = { trying: '⏳', found: '✅', fail: '✗' };
+    const levels = { trying: 'info', found: 'success', fail: 'info' };
+    addDebugLog(levels[result] || 'info', `${icons[result]} UUID [${index+1}]: ${label}`);
+  };
 
   // Init sliders
   syncSlider('font-size', 'font-size-val', v => { state.fontSize = +v; });
@@ -84,7 +89,7 @@ function syncSlider(sliderId, labelId, onChange) {
 async function connectPrinter() {
   const btn = document.getElementById('btn-connect');
   if (state.printer.connected) {
-    await state.printer.disconnect();
+    state.printer.disconnect();
     btn.querySelector('span').textContent = 'Verbinden';
     return;
   }
@@ -97,9 +102,13 @@ async function connectPrinter() {
     document.getElementById('printer-led').className = 'printer-led connected-led';
     showToast('✅ Drucker verbunden!', 'success');
   } catch (e) {
-    showToast(`❌ Fehler: ${e.message}`, 'error', 7000);
+    const userCancelled = e.name === 'NotFoundError' || (e.message && e.message.toLowerCase().includes('cancel'));
+    if (!userCancelled) {
+      showToast(`❌ Fehler: ${e.message}`, 'error', 7000);
+      addDebugLog('error', `Verbindungsfehler: ${e.name} – ${e.message}`);
+    }
     btn.querySelector('span').textContent = 'Verbinden';
-    updateConnectionStatus('error', 'Verbindungsfehler');
+    updateConnectionStatus(userCancelled ? 'disconnected' : 'error', userCancelled ? 'Nicht verbunden' : 'Verbindungsfehler');
   } finally {
     btn.disabled = false;
   }
@@ -276,11 +285,12 @@ async function printBanner() {
       width:       PeripagePrinter.PRINT_WIDTH,
     });
 
-    const energyPct = Math.round((+document.getElementById('contrast').value / 255) * 100);
-    addDebugLog('info', `Starte Druck: "${state.text.substring(0,40)}", Energie: ${energyPct}%`);
-    showToast('🖨️ Druckt...', 'info', 10000);
+    // heat: 0-63 für den P21 (aus Kontrast-Slider 0–255 skaliert; ~35 = gut)
+    const heat = Math.round(20 + (+document.getElementById('contrast').value / 255) * 43);
+    addDebugLog('info', `Starte Druck: "${state.text.substring(0,40)}", Heat: ${heat}`);
+    showToast('🖨️ Druckt...', 'info', 30000);
 
-    await state.printer.printCanvas(printCanvas, energyPct);
+    await state.printer.printCanvas(printCanvas, heat);
 
     showToast('✅ Erfolgreich gedruckt!', 'success');
     addToHistory(state.text);
