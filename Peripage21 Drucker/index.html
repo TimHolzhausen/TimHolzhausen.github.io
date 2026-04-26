@@ -188,11 +188,11 @@
 
         <!-- Debug-Werkzeuge -->
         <div class="action-buttons" style="margin-top:8px; flex-wrap:wrap; gap:8px;">
-          <button id="btn-protocol" class="btn btn-secondary" onclick="switchProtocol()" title="Zeilen-Befehl 0xA2 oder 0xA3 wechseln">
-            🔄 Zeilen-CMD: <strong>0xA2</strong>
+          <button class="btn btn-secondary" onclick="selfTest()" title="TSPL2 SELFTEST — Drucker druckt eingebauten Testausdruck">
+            🧪 SELFTEST
           </button>
-          <button class="btn btn-secondary" onclick="testPrint()" title="Einfaches Test-Muster drucken (ohne Text)">
-            🧪 Test-Druck
+          <button class="btn btn-secondary" onclick="testPrint()" title="Streifenmuster — testet BITMAP-Befehl">
+            📊 Test-Bitmap
           </button>
           <label class="toggle-switch" style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px 12px;background:rgba(255,255,255,0.05);border-radius:10px;border:1px solid rgba(255,255,255,0.1);">
             <input type="checkbox" onchange="toggleBannerMode(this.checked)" />

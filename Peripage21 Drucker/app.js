@@ -313,10 +313,11 @@ async function feedPaper() {
     return;
   }
   try {
-    await state.printer.feedPaper(60);
-    showToast('📄 Papier vorgeschoben', 'info');
+    await state.printer.feedPaper(20);  // 20mm = 160 dots
+    showToast('📄 Papier vorgeschoben (20mm)', 'info');
   } catch (e) {
     showToast('❌ Fehler: ' + e.message, 'error');
+    addDebugLog('error', 'feedPaper: ' + e.message);
   }
 }
 
@@ -326,9 +327,8 @@ async function testPrint() {
     showToast('❌ Drucker nicht verbunden!', 'error');
     return;
   }
-  const mode = PeripagePrinter.PROTOCOL_MODE;
-  addDebugLog('info', '=== TEST-DRUCK Modus ' + mode + ' ===');
-  showToast('🖨️ Test-Druck (Modus ' + mode + ')...', 'info', 15000);
+  addDebugLog('info', '=== TEST-DRUCK ===');
+  showToast('🖨️ Test-Druck...', 'info', 15000);
   try {
     await state.printer.testPrint();
     showToast('✅ Test fertig! Etwas gedruckt?', 'success', 5000);
@@ -338,16 +338,27 @@ async function testPrint() {
   }
 }
 
+// TSPL2 SELFTEST: Druckt eingebaute Testseite
+// Bester Nachweis, dass TSPL2-Protokoll funktioniert!
+async function selfTest() {
+  if (!state.printer.connected) {
+    showToast('❌ Drucker nicht verbunden!', 'error');
+    return;
+  }
+  addDebugLog('info', '=== SELFTEST (TSPL2 SELFTEST-Befehl) ===');
+  showToast('🧪 SELFTEST wird gesendet...', 'info', 5000);
+  try {
+    await state.printer.selfTest();
+    showToast('✅ SELFTEST gesendet! Druckt der Drucker?', 'success', 5000);
+  } catch(e) {
+    showToast('❌ SELFTEST Fehler: ' + e.message, 'error', 8000);
+    addDebugLog('error', 'SELFTEST: ' + e.message);
+  }
+}
+
 // Protokoll-Modus wechseln: Zeilen-CMD 0xA2 <-> 0xA3
 function switchProtocol() {
-  const cur  = PeripagePrinter.ROW_CMD;
-  const next = cur === 0xA2 ? 0xA3 : 0xA2;
-  PeripagePrinter.ROW_CMD = next;
-  const label = '0x' + next.toString(16).toUpperCase();
-  const btn = document.getElementById('btn-protocol');
-  if (btn) btn.innerHTML = '🔄 Zeilen-CMD: <strong>' + label + '</strong>';
-  showToast('🔄 Zeilen-Befehl: ' + label, 'info', 2000);
-  addDebugLog('info', 'Zeilen-CMD geaendert: ' + label + ' (war 0x' + cur.toString(16).toUpperCase() + ')');
+  showToast('⚙️ TSPL2 Protokoll aktiv — kein Umschalten nötig', 'info', 2000);
 }
 
 // Banner-/Querformat-Modus umschalten
