@@ -1,3 +1,14 @@
+// Load local storage content if updated by the CMS, fallback to data.js CATERING_DATA
+let cateringData = CATERING_DATA;
+try {
+    const savedData = localStorage.getItem("tw_catering_data");
+    if (savedData) {
+        cateringData = JSON.parse(savedData);
+    }
+} catch (e) {
+    console.error("Fehler beim Laden der CMS-Daten:", e);
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     // 1. Initial Content Loading
     initializeCompanyDetails();
@@ -72,7 +83,7 @@ function setupScrollAnimations() {
 
 // Setup company info in header, contact area, and footer
 function initializeCompanyDetails() {
-    const company = CATERING_DATA.company;
+    const company = cateringData.company;
     
     // Set text content for various contact elements
     document.querySelectorAll(".company-phone").forEach(el => {
@@ -99,7 +110,7 @@ function renderServices() {
     const servicesContainer = document.getElementById("services-grid");
     if (!servicesContainer) return;
     
-    servicesContainer.innerHTML = CATERING_DATA.services.map(service => `
+    servicesContainer.innerHTML = cateringData.services.map(service => `
         <article class="service-card" data-aos="fade-up">
             <div class="service-img-wrapper">
                 <img src="${service.image}" alt="${service.title}" class="service-img" loading="lazy">
@@ -119,7 +130,7 @@ function renderMenuTabs() {
     const tabsContainer = document.getElementById("menu-tabs");
     if (!tabsContainer) return;
     
-    tabsContainer.innerHTML = CATERING_DATA.menuCategories.map((cat, index) => `
+    tabsContainer.innerHTML = cateringData.menuCategories.map((cat, index) => `
         <button class="menu-tab ${index === 0 ? 'active' : ''}" data-category="${cat.id}">
             ${cat.name}
         </button>
@@ -131,7 +142,7 @@ function renderMenuItems(categoryId) {
     const menuContent = document.getElementById("menu-content");
     if (!menuContent) return;
     
-    const items = CATERING_DATA.menuItems[categoryId] || [];
+    const items = cateringData.menuItems[categoryId] || [];
     
     // Split items into 2 columns for a balanced layout
     const midIndex = Math.ceil(items.length / 2);
@@ -198,7 +209,7 @@ function loadTestimonials() {
     if (stored) {
         testimonialsList = JSON.parse(stored);
     } else {
-        testimonialsList = [...CATERING_DATA.testimonials];
+        testimonialsList = [...cateringData.testimonials];
         localStorage.setItem("tw_testimonials", JSON.stringify(testimonialsList));
     }
     

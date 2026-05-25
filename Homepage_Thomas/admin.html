@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thomas Wies Catering – Website Administration (CMS)</title>
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+
+    <!-- 1. LOGIN INTERFACE -->
+    <div class="login-wrapper" id="login-section">
+        <div class="login-card">
+            <div class="login-logo">
+                <svg width="180" height="60" viewBox="0 0 500 160" xmlns="http://www.w3.org/2000/svg">
+                    <text x="25" y="45" font-family="'Cinzel', serif" font-size="24" font-weight="600" fill="#c24b24" letter-spacing="2">Catering</text>
+                    <text x="25" y="100" font-family="'Cinzel', serif" font-size="46" font-weight="700" fill="#cfa234" letter-spacing="3">THOMAS WIES</text>
+                    <g transform="translate(25, 105)">
+                        <path d="M 90 8 C 170 8, 230 8, 280 9 C 240 20, 160 40, 90 40 L 90 38 Z" fill="#cfa234" />
+                        <path d="M 4 12 L 85 12 C 87 12 88 14 88 16 L 88 32 C 88 34 87 36 85 36 L 4 36 C 2 36 0 34 0 32 L 0 16 C 0 14 2 12 4 12 Z" fill="#cfa234" />
+                        <circle cx="18" cy="24" r="3" fill="#181b1d" />
+                        <circle cx="42" cy="24" r="3" fill="#181b1d" />
+                        <circle cx="66" cy="24" r="3" fill="#181b1d" />
+                    </g>
+                    <text x="135" y="152" font-family="'Outfit', sans-serif" font-style="italic" font-size="18" font-weight="300" fill="#ffffff" letter-spacing="1">Ihr persönlicher Koch</text>
+                </svg>
+            </div>
+            <h2>Admin Login</h2>
+            <div class="login-error" id="login-error-msg">Falsches Passwort. Bitte versuchen Sie es erneut.</div>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="admin-pass" class="form-label" style="text-align:left;">Passwort</label>
+                    <input type="password" id="admin-pass" class="form-control" placeholder="Passwort eingeben" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width:100%;">Anmelden</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 2. ADMIN PANEL INTERFACE -->
+    <div class="admin-container" id="admin-dashboard" style="display:none;">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="admin-sidebar">
+            <div class="sidebar-logo">
+                <svg width="150" height="50" viewBox="0 0 500 160" xmlns="http://www.w3.org/2000/svg">
+                    <text x="25" y="45" font-family="'Cinzel', serif" font-size="24" font-weight="600" fill="#c24b24" letter-spacing="2">Catering</text>
+                    <text x="25" y="100" font-family="'Cinzel', serif" font-size="46" font-weight="700" fill="#cfa234" letter-spacing="3">THOMAS WIES</text>
+                    <g transform="translate(25, 105)">
+                        <path d="M 90 8 C 170 8, 230 8, 280 9 C 240 20, 160 40, 90 40 L 90 38 Z" fill="#cfa234" />
+                        <circle cx="18" cy="24" r="3" fill="#181b1d" />
+                        <circle cx="42" cy="24" r="3" fill="#181b1d" />
+                        <circle cx="66" cy="24" r="3" fill="#181b1d" />
+                    </g>
+                </svg>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <button class="nav-btn active" data-target="company-settings">Company Info</button>
+                <button class="nav-btn" data-target="services-settings">Catering Services</button>
+                <button class="nav-btn" data-target="menu-settings">Speisekarte</button>
+                <button class="nav-btn" data-target="testimonials-settings">Kundenstimmen</button>
+                <button class="nav-btn" data-target="export-settings" style="color: var(--accent-gold); font-weight:600;">Daten-Export</button>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <a href="index.html" target="_blank" class="btn btn-secondary btn-sm" style="text-align:center;">Vorschau Website</a>
+                <button class="btn-logout" id="logout-btn">Abmelden</button>
+            </div>
+        </aside>
+        
+        <!-- Main Content Area -->
+        <main class="admin-main">
+            
+            <!-- Dashboard Header -->
+            <div class="dashboard-header">
+                <h1 id="panel-title">Company Info</h1>
+                <span class="text-muted" id="last-saved-time"></span>
+            </div>
+            
+            <!-- A. Company Info Tab Pane -->
+            <section class="admin-section active" id="company-settings">
+                <div class="editor-card">
+                    <h2>Kontaktdaten & Adresse</h2>
+                    <form id="company-form">
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label for="company-name" class="form-label">Firmenname</label>
+                                <input type="text" id="company-name" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="company-tagline" class="form-label">Slogan / Untertitel</label>
+                                <input type="text" id="company-tagline" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label for="company-phone" class="form-label">Telefonnummer</label>
+                                <input type="text" id="company-phone" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="company-email" class="form-label">E-Mail-Adresse</label>
+                                <input type="email" id="company-email" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="company-street" class="form-label">Straße & Hausnummer</label>
+                            <input type="text" id="company-street" class="form-control" required>
+                        </div>
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label for="company-zip" class="form-label">Postleitzahl</label>
+                                <input type="text" id="company-zip" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="company-city" class="form-label">Stadt</label>
+                                <input type="text" id="company-city" class="form-control" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Firma-Daten Speichern</button>
+                    </form>
+                </div>
+            </section>
+            
+            <!-- B. Services Tab Pane -->
+            <section class="admin-section" id="services-settings">
+                <div class="editor-card">
+                    <h2>Catering Services verwalten</h2>
+                    <p class="text-muted" style="margin-bottom: 2rem;">Hier verwalten Sie die drei Hauptrubriken auf Ihrer Webseite.</p>
+                    <div class="items-list" id="services-list">
+                        <!-- Dynamically filled -->
+                    </div>
+                </div>
+            </section>
+            
+            <!-- C. Menu Tab Pane -->
+            <section class="admin-section" id="menu-settings">
+                <div class="editor-card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 2rem;">
+                        <h2>Speisekarten-Einträge</h2>
+                        <button class="btn btn-primary btn-sm" id="btn-add-menu-item">+ Neues Gericht</button>
+                    </div>
+                    
+                    <div class="form-group" style="max-width:300px; margin-bottom:2rem;">
+                        <label for="menu-category-filter" class="form-label">Kategorie-Filter</label>
+                        <select id="menu-category-filter" class="form-control">
+                            <option value="fingerfood_glas">Fingerfood & Salate im Glas</option>
+                            <option value="herzhaft_snacks">Herzhafte Snacks & Spieße</option>
+                            <option value="desserts_glas">Desserts im Glas</option>
+                        </select>
+                    </div>
+                    
+                    <div class="items-list" id="menu-items-list">
+                        <!-- Dynamically filled -->
+                    </div>
+                </div>
+            </section>
+            
+            <!-- D. Testimonials Tab Pane -->
+            <section class="admin-section" id="testimonials-settings">
+                <div class="editor-card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 2rem;">
+                        <h2>Kundenstimmen verwalten</h2>
+                        <button class="btn btn-primary btn-sm" id="btn-add-testimonial">+ Neue Kundenstimme</button>
+                    </div>
+                    
+                    <div class="items-list" id="testimonials-list">
+                        <!-- Dynamically filled -->
+                    </div>
+                </div>
+            </section>
+            
+            <!-- E. Export Tab Pane -->
+            <section class="admin-section" id="export-settings">
+                <div class="editor-card">
+                    <h2>Daten-Exportieren (data.js)</h2>
+                    <div class="export-box">
+                        <p>Sobald Sie alle Änderungen vorgenommen haben, laden Sie die aktualisierte <strong>data.js</strong> Datei herunter und ersetzen Sie damit die bestehende Datei im Ordner <strong>js/data.js</strong> Ihres Webhostings.</p>
+                        <button class="btn btn-primary" id="btn-download-config" style="padding: 1rem 3rem; font-size:1.1rem; letter-spacing:0.05em;">💾 data.js herunterladen</button>
+                    </div>
+                    
+                    <div class="code-preview-box">
+                        <h3>Code-Vorschau der exportierten Datei:</h3>
+                        <pre class="code-preview" id="code-export-preview"></pre>
+                    </div>
+                </div>
+            </section>
+            
+        </main>
+    </div>
+
+    <!-- 3. MODALS FOR ADDING / EDITING ITEMS -->
+    
+    <!-- Menu Item Modal -->
+    <div class="modal" id="menu-item-modal">
+        <div class="modal-content">
+            <button class="modal-close" id="close-menu-item-modal">&times;</button>
+            <h3 class="modal-title" id="menu-modal-title">Gericht bearbeiten</h3>
+            <form id="menu-item-form">
+                <input type="hidden" id="menu-item-index">
+                <div class="form-group">
+                    <label for="menu-item-cat" class="form-label">Kategorie</label>
+                    <select id="menu-item-cat" class="form-control">
+                        <option value="fingerfood_glas">Fingerfood & Salate im Glas</option>
+                        <option value="herzhaft_snacks">Herzhafte Snacks & Spieße</option>
+                        <option value="desserts_glas">Desserts im Glas</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="menu-item-name" class="form-label">Name des Gerichts *</label>
+                    <input type="text" id="menu-item-name" class="form-control" required placeholder="z.B. Veggie Kartoffelsalat im Glas">
+                </div>
+                <div class="form-group">
+                    <label for="menu-item-desc" class="form-label">Beschreibung *</label>
+                    <textarea id="menu-item-desc" class="form-control" rows="3" required placeholder="z.B. Klassischer Kartoffelsalat mit Kräutern..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="menu-item-tags" class="form-label">Tags (mit Komma getrennt)</label>
+                    <input type="text" id="menu-item-tags" class="form-control" placeholder="z.B. Vegetarisch, Glutenfrei, Bestseller">
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:1rem; margin-top:2rem;">
+                    <button type="button" class="btn btn-secondary" id="btn-cancel-menu-item">Abbrechen</button>
+                    <button type="submit" class="btn btn-primary" id="btn-save-menu-item">Speichern</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Service Item Modal -->
+    <div class="modal" id="service-item-modal">
+        <div class="modal-content">
+            <button class="modal-close" id="close-service-item-modal">&times;</button>
+            <h3 class="modal-title">Catering Service bearbeiten</h3>
+            <form id="service-item-form">
+                <input type="hidden" id="service-item-index">
+                <div class="form-group">
+                    <label for="service-title" class="form-label">Service Titel *</label>
+                    <input type="text" id="service-title" class="form-control" required readonly>
+                </div>
+                <div class="form-group">
+                    <label for="service-icon" class="form-label">Emoji-Icon *</label>
+                    <input type="text" id="service-icon" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="service-desc" class="form-label">Beschreibung *</label>
+                    <textarea id="service-desc" class="form-control" rows="5" required></textarea>
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:1rem; margin-top:2rem;">
+                    <button type="button" class="btn btn-secondary" id="btn-cancel-service-item">Abbrechen</button>
+                    <button type="submit" class="btn btn-primary">Speichern</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Testimonial Modal -->
+    <div class="modal" id="testimonial-modal">
+        <div class="modal-content">
+            <button class="modal-close" id="close-testimonial-modal">&times;</button>
+            <h3 class="modal-title" id="testimonial-modal-title">Kundenstimme bearbeiten</h3>
+            <form id="testimonial-form">
+                <input type="hidden" id="testimonial-index">
+                <div class="form-group">
+                    <label for="test-rating" class="form-label">Bewertung (Sterne: 1 bis 5)</label>
+                    <select id="test-rating" class="form-control">
+                        <option value="5">★★★★★ (5 Sterne)</option>
+                        <option value="4">★★★★☆ (4 Sterne)</option>
+                        <option value="3">★★★☆☆ (3 Sterne)</option>
+                        <option value="2">★★☆☆☆ (2 Sterne)</option>
+                        <option value="1">★☆☆☆☆ (1 Stern)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="test-author" class="form-label">Name des Kunden *</label>
+                    <input type="text" id="test-author" class="form-control" required placeholder="z.B. Julia & Tom S.">
+                </div>
+                <div class="form-group">
+                    <label for="test-event" class="form-label">Anlass & Ort *</label>
+                    <input type="text" id="test-event" class="form-control" required placeholder="z.B. Hochzeit, Eltville">
+                </div>
+                <div class="form-group">
+                    <label for="test-text" class="form-label">Erfahrungstext *</label>
+                    <textarea id="test-text" class="form-control" rows="4" required placeholder="Erfahrungsbericht eingeben..."></textarea>
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:1rem; margin-top:2rem;">
+                    <button type="button" class="btn btn-secondary" id="btn-cancel-testimonial">Abbrechen</button>
+                    <button type="submit" class="btn btn-primary">Speichern</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Core Database & CMS scripts -->
+    <script src="js/data.js"></script>
+    
+    <!-- Inline JS for CMS panel management -->
+    <script>
+        // 1. Password verification
+        const CORRECT_PASSWORD_HASH = "wies-catering-2026"; // Frontend password comparison
+        
+        const loginForm = document.getElementById("login-form");
+        const loginSection = document.getElementById("login-section");
+        const adminDashboard = document.getElementById("admin-dashboard");
+        const errorMsg = document.getElementById("login-error-msg");
+        
+        // Session checking
+        if (sessionStorage.getItem("tw_admin_logged") === "true") {
+            showDashboard();
+        }
+        
+        loginForm.addEventListener("submit", (e) => {
+            e.preventDefault();
+            const password = document.getElementById("admin-pass").value;
+            if (password === CORRECT_PASSWORD_HASH) {
+                sessionStorage.setItem("tw_admin_logged", "true");
+                showDashboard();
+            } else {
+                errorMsg.style.display = "block";
+                document.getElementById("admin-pass").value = "";
+            }
+        });
+        
+        document.getElementById("logout-btn").addEventListener("click", () => {
+            sessionStorage.removeItem("tw_admin_logged");
+            window.location.reload();
+        });
+        
+        function showDashboard() {
+            loginSection.style.display = "none";
+            adminDashboard.style.display = "flex";
+            initCMS();
+        }
+        
+        // 2. CMS logic
+        let cmsData = null;
+        
+        function initCMS() {
+            // Load from localStorage or fallback to data.js CATERING_DATA
+            const saved = localStorage.getItem("tw_catering_data");
+            if (saved) {
+                try {
+                    cmsData = JSON.parse(saved);
+                } catch(e) {
+                    cmsData = {...CATERING_DATA};
+                }
+            } else {
+                cmsData = {...CATERING_DATA};
+            }
+            
+            setupTabNavigation();
+            loadCompanyForm();
+            loadServicesList();
+            loadMenuItemsList();
+            loadTestimonialsList();
+            updateExportCodePreview();
+            
+            // Register save listeners
+            document.getElementById("company-form").addEventListener("submit", saveCompanyInfo);
+            document.getElementById("menu-category-filter").addEventListener("change", loadMenuItemsList);
+            
+            // Modals triggers
+            setupMenuModals();
+            setupServiceModals();
+            setupTestimonialModals();
+            
+            // Config Download
+            document.getElementById("btn-download-config").addEventListener("click", downloadConfig);
+        }
+        
+        // Tab Navigation
+        function setupTabNavigation() {
+            const navButtons = document.querySelectorAll(".nav-btn");
+            const sections = document.querySelectorAll(".admin-section");
+            const panelTitle = document.getElementById("panel-title");
+            
+            navButtons.forEach(btn => {
+                btn.addEventListener("click", () => {
+                    const target = btn.dataset.target;
+                    
+                    navButtons.forEach(b => b.classList.remove("active"));
+                    btn.classList.add("active");
+                    
+                    sections.forEach(sec => {
+                        if (sec.id === target) {
+                            sec.classList.add("active");
+                        } else {
+                            sec.classList.remove("active");
+                        }
+                    });
+                    
+                    panelTitle.textContent = btn.textContent;
+                });
+            });
+        }
+        
+        // A. Company Info Tab
+        function loadCompanyForm() {
+            const comp = cmsData.company;
+            document.getElementById("company-name").value = comp.name;
+            document.getElementById("company-tagline").value = comp.tagline;
+            document.getElementById("company-phone").value = comp.phone;
+            document.getElementById("company-email").value = comp.email;
+            document.getElementById("company-street").value = comp.address.street;
+            document.getElementById("company-zip").value = comp.address.zip;
+            document.getElementById("company-city").value = comp.address.city;
+        }
+        
+        function saveCompanyInfo(e) {
+            e.preventDefault();
+            cmsData.company.name = document.getElementById("company-name").value;
+            cmsData.company.tagline = document.getElementById("company-tagline").value;
+            cmsData.company.phone = document.getElementById("company-phone").value;
+            cmsData.company.email = document.getElementById("company-email").value;
+            cmsData.company.address.street = document.getElementById("company-street").value;
+            cmsData.company.address.zip = document.getElementById("company-zip").value;
+            cmsData.company.address.city = document.getElementById("company-city").value;
+            
+            saveToLocalStorage();
+            showToast("Unternehmensdaten erfolgreich gespeichert!");
+        }
+        
+        // B. Services Tab
+        function loadServicesList() {
+            const container = document.getElementById("services-list");
+            container.innerHTML = cmsData.services.map((ser, index) => `
+                <div class="item-row">
+                    <div class="item-info">
+                        <h4>${ser.icon} ${ser.title}</h4>
+                        <p>${ser.description.substring(0, 100)}...</p>
+                    </div>
+                    <div class="item-actions">
+                        <button class="btn btn-secondary btn-sm" onclick="editService(${index})">Bearbeiten</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // C. Menu Tab
+        function loadMenuItemsList() {
+            const container = document.getElementById("menu-items-list");
+            const category = document.getElementById("menu-category-filter").value;
+            const items = cmsData.menuItems[category] || [];
+            
+            if (items.length === 0) {
+                container.innerHTML = `<p class="text-muted" style="text-align:center; padding: 2rem;">Keine Gerichte in dieser Kategorie vorhanden.</p>`;
+                return;
+            }
+            
+            container.innerHTML = items.map((item, index) => `
+                <div class="item-row">
+                    <div class="item-info">
+                        <h4>${item.name}</h4>
+                        <p>${item.description}</p>
+                        <p style="margin-top:0.4rem;">
+                            ${item.tags ? item.tags.map(t => `<span style="font-size:0.75rem; background:#1e2124; padding:0.1rem 0.5rem; margin-right:0.3rem; border-radius:2px; border:1px solid var(--border-color);">${t}</span>`).join('') : ''}
+                        </p>
+                    </div>
+                    <div class="item-actions">
+                        <button class="btn btn-secondary btn-sm" onclick="editMenuItem('${category}', ${index})">Bearbeiten</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteMenuItem('${category}', ${index})">Löschen</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // D. Testimonials Tab
+        function loadTestimonialsList() {
+            const container = document.getElementById("testimonials-list");
+            container.innerHTML = cmsData.testimonials.map((t, index) => `
+                <div class="item-row">
+                    <div class="item-info">
+                        <h4>${'★'.repeat(t.rating) + '☆'.repeat(5 - t.rating)} — ${t.author}</h4>
+                        <p style="font-style:italic;">"${t.text}"</p>
+                        <p style="margin-top:0.3rem; font-size:0.8rem; color:var(--accent-gold);">${t.event}</p>
+                    </div>
+                    <div class="item-actions">
+                        <button class="btn btn-secondary btn-sm" onclick="editTestimonial(${index})">Bearbeiten</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteTestimonial(${index})">Löschen</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Local persistence
+        function saveToLocalStorage() {
+            localStorage.setItem("tw_catering_data", JSON.stringify(cmsData));
+            // Keep testimonials slider in sync
+            localStorage.setItem("tw_testimonials", JSON.stringify(cmsData.testimonials));
+            
+            updateExportCodePreview();
+            
+            const now = new Date();
+            document.getElementById("last-saved-time").textContent = `Zuletzt gespeichert: ${now.toLocaleTimeString()}`;
+        }
+        
+        // Toast
+        function showToast(message, type = "success") {
+            let toast = document.getElementById("toast-notification");
+            if (!toast) {
+                toast = document.createElement("div");
+                toast.id = "toast-notification";
+                toast.className = "toast";
+                document.body.appendChild(toast);
+            }
+            
+            toast.className = `toast ${type === "success" ? "success" : "error"} show`;
+            toast.innerHTML = `
+                <span>${type === "success" ? "✓" : "✗"}</span>
+                <span>${message}</span>
+            `;
+            
+            setTimeout(() => {
+                toast.classList.remove("show");
+            }, 4000);
+        }
+        
+        // Modals management helpers
+        
+        // 1. Menu Item Modals Edit / Create
+        function setupMenuModals() {
+            const modal = document.getElementById("menu-item-modal");
+            
+            document.getElementById("btn-add-menu-item").addEventListener("click", () => {
+                document.getElementById("menu-modal-title").textContent = "Neues Gericht hinzufügen";
+                document.getElementById("menu-item-index").value = "";
+                document.getElementById("menu-item-cat").value = document.getElementById("menu-category-filter").value;
+                document.getElementById("menu-item-name").value = "";
+                document.getElementById("menu-item-desc").value = "";
+                document.getElementById("menu-item-tags").value = "";
+                
+                modal.classList.add("active");
+            });
+            
+            document.getElementById("close-menu-item-modal").addEventListener("click", () => modal.classList.remove("active"));
+            document.getElementById("btn-cancel-menu-item").addEventListener("click", () => modal.classList.remove("active"));
+            
+            document.getElementById("menu-item-form").addEventListener("submit", (e) => {
+                e.preventDefault();
+                const indexVal = document.getElementById("menu-item-index").value;
+                const cat = document.getElementById("menu-item-cat").value;
+                const name = document.getElementById("menu-item-name").value.trim();
+                const desc = document.getElementById("menu-item-desc").value.trim();
+                const tagsStr = document.getElementById("menu-item-tags").value.trim();
+                const tags = tagsStr ? tagsStr.split(",").map(t => t.trim()) : [];
+                
+                const itemData = { name, description: desc, tags };
+                
+                if (indexVal === "") {
+                    // Add new
+                    if (!cmsData.menuItems[cat]) cmsData.menuItems[cat] = [];
+                    cmsData.menuItems[cat].push(itemData);
+                } else {
+                    // Edit existing
+                    const originalCat = document.getElementById("menu-category-filter").value;
+                    const idx = parseInt(indexVal);
+                    
+                    if (originalCat === cat) {
+                        cmsData.menuItems[cat][idx] = itemData;
+                    } else {
+                        // Moved category
+                        cmsData.menuItems[originalCat].splice(idx, 1);
+                        if (!cmsData.menuItems[cat]) cmsData.menuItems[cat] = [];
+                        cmsData.menuItems[cat].push(itemData);
+                    }
+                }
+                
+                saveToLocalStorage();
+                loadMenuItemsList();
+                modal.classList.remove("active");
+                showToast("Gericht erfolgreich gespeichert!");
+            });
+        }
+        
+        window.editMenuItem = function(cat, index) {
+            const modal = document.getElementById("menu-item-modal");
+            const item = cmsData.menuItems[cat][index];
+            
+            document.getElementById("menu-modal-title").textContent = "Gericht bearbeiten";
+            document.getElementById("menu-item-index").value = index;
+            document.getElementById("menu-item-cat").value = cat;
+            document.getElementById("menu-item-name").value = item.name;
+            document.getElementById("menu-item-desc").value = item.description;
+            document.getElementById("menu-item-tags").value = item.tags ? item.tags.join(", ") : "";
+            
+            modal.classList.add("active");
+        };
+        
+        window.deleteMenuItem = function(cat, index) {
+            if (confirm("Möchten Sie dieses Gericht wirklich löschen?")) {
+                cmsData.menuItems[cat].splice(index, 1);
+                saveToLocalStorage();
+                loadMenuItemsList();
+                showToast("Gericht gelöscht.", "success");
+            }
+        };
+        
+        // 2. Service Modals Edit
+        function setupServiceModals() {
+            const modal = document.getElementById("service-item-modal");
+            document.getElementById("close-service-item-modal").addEventListener("click", () => modal.classList.remove("active"));
+            document.getElementById("btn-cancel-service-item").addEventListener("click", () => modal.classList.remove("active"));
+            
+            document.getElementById("service-item-form").addEventListener("submit", (e) => {
+                e.preventDefault();
+                const idx = parseInt(document.getElementById("service-item-index").value);
+                
+                cmsData.services[idx].icon = document.getElementById("service-icon").value.trim();
+                cmsData.services[idx].description = document.getElementById("service-desc").value.trim();
+                
+                saveToLocalStorage();
+                loadServicesList();
+                modal.classList.remove("active");
+                showToast("Service erfolgreich aktualisiert!");
+            });
+        }
+        
+        window.editService = function(index) {
+            const modal = document.getElementById("service-item-modal");
+            const service = cmsData.services[index];
+            
+            document.getElementById("service-item-index").value = index;
+            document.getElementById("service-title").value = service.title;
+            document.getElementById("service-icon").value = service.icon;
+            document.getElementById("service-desc").value = service.description;
+            
+            modal.classList.add("active");
+        };
+        
+        // 3. Testimonial Modals Add / Edit
+        function setupTestimonialModals() {
+            const modal = document.getElementById("testimonial-modal");
+            
+            document.getElementById("btn-add-testimonial").addEventListener("click", () => {
+                document.getElementById("testimonial-modal-title").textContent = "Kundenstimme hinzufügen";
+                document.getElementById("testimonial-index").value = "";
+                document.getElementById("test-rating").value = "5";
+                document.getElementById("test-author").value = "";
+                document.getElementById("test-event").value = "";
+                document.getElementById("test-text").value = "";
+                
+                modal.classList.add("active");
+            });
+            
+            document.getElementById("close-testimonial-modal").addEventListener("click", () => modal.classList.remove("active"));
+            document.getElementById("btn-cancel-testimonial").addEventListener("click", () => modal.classList.remove("active"));
+            
+            document.getElementById("testimonial-form").addEventListener("submit", (e) => {
+                e.preventDefault();
+                const indexVal = document.getElementById("testimonial-index").value;
+                const rating = parseInt(document.getElementById("test-rating").value);
+                const author = document.getElementById("test-author").value.trim();
+                const event = document.getElementById("test-event").value.trim();
+                const text = document.getElementById("test-text").value.trim();
+                
+                const testData = { rating, text, author, event };
+                
+                if (indexVal === "") {
+                    cmsData.testimonials.push(testData);
+                } else {
+                    const idx = parseInt(indexVal);
+                    cmsData.testimonials[idx] = testData;
+                }
+                
+                saveToLocalStorage();
+                loadTestimonialsList();
+                modal.classList.remove("active");
+                showToast("Kundenstimme erfolgreich gespeichert!");
+            });
+        }
+        
+        window.editTestimonial = function(index) {
+            const modal = document.getElementById("testimonial-modal");
+            const t = cmsData.testimonials[index];
+            
+            document.getElementById("testimonial-modal-title").textContent = "Kundenstimme bearbeiten";
+            document.getElementById("testimonial-index").value = index;
+            document.getElementById("test-rating").value = t.rating;
+            document.getElementById("test-author").value = t.author;
+            document.getElementById("test-event").value = t.event;
+            document.getElementById("test-text").value = t.text;
+            
+            modal.classList.add("active");
+        };
+        
+        window.deleteTestimonial = function(index) {
+            if (confirm("Möchten Sie diese Kundenstimme wirklich löschen?")) {
+                cmsData.testimonials.splice(index, 1);
+                saveToLocalStorage();
+                loadTestimonialsList();
+                showToast("Kundenstimme gelöscht.", "success");
+            }
+        };
+        
+        // E. Export & Code Preview
+        function updateExportCodePreview() {
+            const codeBox = document.getElementById("code-export-preview");
+            if (codeBox) {
+                const codeStr = `// Thomas Wies Catering - Webpage Content Database
+// This file contains the complete content database. 
+// Simply edit these arrays and objects to update the website text, menus, reviews, or locations!
+
+const CATERING_DATA = ${JSON.stringify(cmsData, null, 4)};\n`;
+                codeBox.textContent = codeStr;
+            }
+        }
+        
+        function downloadConfig() {
+            const dataStr = "data:text/javascript;charset=utf-8," + encodeURIComponent(`// Thomas Wies Catering - Webpage Content Database
+// This file contains the complete content database. 
+// Simply edit these arrays and objects to update the website text, menus, reviews, or locations!
+
+const CATERING_DATA = ${JSON.stringify(cmsData, null, 4)};\n`);
+            
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", "data.js");
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            
+            showToast("Konfiguration heruntergeladen! Bitte ersetzen Sie js/data.js.", "success");
+        }
+    </script>
+</body>
+</html>
