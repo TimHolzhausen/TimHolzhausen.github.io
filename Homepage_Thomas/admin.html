@@ -12,18 +12,7 @@
     <div class="login-wrapper" id="login-section">
         <div class="login-card">
             <div class="login-logo">
-                <svg width="180" height="60" viewBox="0 0 500 160" xmlns="http://www.w3.org/2000/svg">
-                    <text x="25" y="45" font-family="'Cinzel', serif" font-size="24" font-weight="600" fill="#c24b24" letter-spacing="2">Catering</text>
-                    <text x="25" y="100" font-family="'Cinzel', serif" font-size="46" font-weight="700" fill="#cfa234" letter-spacing="3">THOMAS WIES</text>
-                    <g transform="translate(25, 105)">
-                        <path d="M 90 8 C 170 8, 230 8, 280 9 C 240 20, 160 40, 90 40 L 90 38 Z" fill="#cfa234" />
-                        <path d="M 4 12 L 85 12 C 87 12 88 14 88 16 L 88 32 C 88 34 87 36 85 36 L 4 36 C 2 36 0 34 0 32 L 0 16 C 0 14 2 12 4 12 Z" fill="#cfa234" />
-                        <circle cx="18" cy="24" r="3" fill="#181b1d" />
-                        <circle cx="42" cy="24" r="3" fill="#181b1d" />
-                        <circle cx="66" cy="24" r="3" fill="#181b1d" />
-                    </g>
-                    <text x="135" y="152" font-family="'Outfit', sans-serif" font-style="italic" font-size="18" font-weight="300" fill="#ffffff" letter-spacing="1">Ihr persönlicher Koch</text>
-                </svg>
+                <img src="Bilder/Logo_Visitenkarte.png" alt="Thomas Wies Catering Logo" height="60" style="height: 60px; width: auto;">
             </div>
             <h2>Admin Login</h2>
             <div class="login-error" id="login-error-msg">Falsches Passwort. Bitte versuchen Sie es erneut.</div>
@@ -43,16 +32,7 @@
         <!-- Sidebar Navigation -->
         <aside class="admin-sidebar">
             <div class="sidebar-logo">
-                <svg width="150" height="50" viewBox="0 0 500 160" xmlns="http://www.w3.org/2000/svg">
-                    <text x="25" y="45" font-family="'Cinzel', serif" font-size="24" font-weight="600" fill="#c24b24" letter-spacing="2">Catering</text>
-                    <text x="25" y="100" font-family="'Cinzel', serif" font-size="46" font-weight="700" fill="#cfa234" letter-spacing="3">THOMAS WIES</text>
-                    <g transform="translate(25, 105)">
-                        <path d="M 90 8 C 170 8, 230 8, 280 9 C 240 20, 160 40, 90 40 L 90 38 Z" fill="#cfa234" />
-                        <circle cx="18" cy="24" r="3" fill="#181b1d" />
-                        <circle cx="42" cy="24" r="3" fill="#181b1d" />
-                        <circle cx="66" cy="24" r="3" fill="#181b1d" />
-                    </g>
-                </svg>
+                <img src="Bilder/Logo_Visitenkarte.png" alt="Thomas Wies Catering Logo" height="40" style="height: 40px; width: auto;">
             </div>
             
             <nav class="sidebar-nav">
@@ -60,6 +40,7 @@
                 <button class="nav-btn" data-target="services-settings">Catering Services</button>
                 <button class="nav-btn" data-target="menu-settings">Speisekarte</button>
                 <button class="nav-btn" data-target="testimonials-settings">Kundenstimmen</button>
+                <button class="nav-btn" data-target="homepage-settings">Webseite Texte</button>
                 <button class="nav-btn" data-target="export-settings" style="color: var(--accent-gold); font-weight:600;">Daten-Export</button>
             </nav>
             
@@ -117,6 +98,16 @@
                                 <input type="text" id="company-city" class="form-control" required>
                             </div>
                         </div>
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label for="company-facebook" class="form-label">Facebook Link (Zauberkunst)</label>
+                                <input type="text" id="company-facebook" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label for="company-instagram" class="form-label">Instagram Link (Zauberkunst)</label>
+                                <input type="text" id="company-instagram" class="form-control">
+                            </div>
+                        </div>
                         <button type="submit" class="btn btn-primary">Firma-Daten Speichern</button>
                     </form>
                 </div>
@@ -138,15 +129,16 @@
                 <div class="editor-card">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 2rem;">
                         <h2>Speisekarten-Einträge</h2>
-                        <button class="btn btn-primary btn-sm" id="btn-add-menu-item">+ Neues Gericht</button>
+                        <div style="display:flex; gap:0.8rem;">
+                            <button class="btn btn-secondary btn-sm" id="btn-manage-categories">Kategorien verwalten</button>
+                            <button class="btn btn-primary btn-sm" id="btn-add-menu-item">+ Neues Gericht</button>
+                        </div>
                     </div>
                     
                     <div class="form-group" style="max-width:300px; margin-bottom:2rem;">
                         <label for="menu-category-filter" class="form-label">Kategorie-Filter</label>
                         <select id="menu-category-filter" class="form-control">
-                            <option value="fingerfood_glas">Fingerfood & Salate im Glas</option>
-                            <option value="herzhaft_snacks">Herzhafte Snacks & Spieße</option>
-                            <option value="desserts_glas">Desserts im Glas</option>
+                            <!-- Dynamically filled -->
                         </select>
                     </div>
                     
@@ -169,14 +161,181 @@
                     </div>
                 </div>
             </section>
-            
+            <!-- F. Webseite Texte Tab Pane -->
+            <section class="admin-section" id="homepage-settings">
+                <div class="editor-card">
+                    <h2>Homepage-Texte verwalten</h2>
+                    <p class="text-muted" style="margin-bottom: 2rem;">Hier können Sie alle Texte und Abschnitte der Hauptseite inhaltlich anpassen.</p>
+                    
+                    <form id="homepage-form">
+                        <!-- Hero Section Card -->
+                        <div style="border: 1px solid var(--border-color); padding: 1.5rem; border-radius: 4px; margin-bottom: 1.5rem; background-color: var(--bg-card);">
+                            <h3 style="color: var(--accent-gold); margin-bottom: 1rem; font-family: var(--font-heading); font-size: 1.1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">A. Hero-Bereich (Startbildschirm)</h3>
+                            <div class="form-group">
+                                <label for="hp-hero-tagline" class="form-label">Slogan / Tagline *</label>
+                                <textarea id="hp-hero-tagline" class="form-control" rows="2" required></textarea>
+                            </div>
+                            <div class="grid-2">
+                                <div class="form-group">
+                                    <label for="hp-hero-btn-primary" class="form-label">Primärer Button Text</label>
+                                    <input type="text" id="hp-hero-btn-primary" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label for="hp-hero-btn-secondary" class="form-label">Sekundärer Button Text</label>
+                                    <input type="text" id="hp-hero-btn-secondary" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Services Intro Card -->
+                        <div style="border: 1px solid var(--border-color); padding: 1.5rem; border-radius: 4px; margin-bottom: 1.5rem; background-color: var(--bg-card);">
+                            <h3 style="color: var(--accent-gold); margin-bottom: 1rem; font-family: var(--font-heading); font-size: 1.1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">B. Leistungen-Einleitung</h3>
+                            <div class="form-group">
+                                <label for="hp-services-title" class="form-label">Titel *</label>
+                                <input type="text" id="hp-services-title" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="hp-services-desc" class="form-label">Beschreibung *</label>
+                                <textarea id="hp-services-desc" class="form-control" rows="3" required></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Philosophy Card -->
+                        <div style="border: 1px solid var(--border-color); padding: 1.5rem; border-radius: 4px; margin-bottom: 1.5rem; background-color: var(--bg-card);">
+                            <h3 style="color: var(--accent-gold); margin-bottom: 1rem; font-family: var(--font-heading); font-size: 1.1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">C. Philosophie (Über mich)</h3>
+                            <div class="grid-2">
+                                <div class="form-group">
+                                    <label for="hp-philosophy-badge" class="form-label">Badge Text *</label>
+                                    <input type="text" id="hp-philosophy-badge" class="form-control" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="hp-philosophy-title" class="form-label">Titel *</label>
+                                    <input type="text" id="hp-philosophy-title" class="form-control" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="hp-philosophy-text1" class="form-label">Absatz 1 *</label>
+                                <textarea id="hp-philosophy-text1" class="form-control" rows="4" required></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="hp-philosophy-text2" class="form-label">Absatz 2 *</label>
+                                <textarea id="hp-philosophy-text2" class="form-control" rows="4" required></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="hp-philosophy-btn" class="form-label">Button Text</label>
+                                <input type="text" id="hp-philosophy-btn" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Philosophie Bild hochladen (PC)</label>
+                                <input type="file" id="hp-philosophy-file" accept="image/*" class="form-control" style="background-color: var(--bg-primary); border-color: var(--border-color); color: var(--text-white);">
+                            </div>
+                            <div class="form-group" id="hp-philosophy-preview-group" style="display:none; text-align:center; margin-bottom: 1.5rem;">
+                                <label class="form-label">Bild-Vorschau</label>
+                                <div style="position:relative; display:inline-block;">
+                                    <img id="hp-philosophy-preview" src="" alt="Vorschau" style="max-width:200px; max-height:200px; object-fit:cover; border-radius:4px; border:1px solid var(--border-color);">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="hp-philosophy-image" class="form-label">Bild-Referenz (Pfad oder Base64)</label>
+                                <input type="text" id="hp-philosophy-image" class="form-control" readonly style="background-color: var(--bg-primary); opacity: 0.7; cursor: not-allowed;">
+                            </div>
+                        </div>
+
+                        <!-- Menu Intro Card -->
+                        <div style="border: 1px solid var(--border-color); padding: 1.5rem; border-radius: 4px; margin-bottom: 1.5rem; background-color: var(--bg-card);">
+                            <h3 style="color: var(--accent-gold); margin-bottom: 1rem; font-family: var(--font-heading); font-size: 1.1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">D. Speisekarte-Einleitung</h3>
+                            <div class="form-group">
+                                <label for="hp-menu-title" class="form-label">Titel *</label>
+                                <input type="text" id="hp-menu-title" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="hp-menu-desc" class="form-label">Beschreibung *</label>
+                                <textarea id="hp-menu-desc" class="form-control" rows="3" required></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Testimonials Intro Card -->
+                        <div style="border: 1px solid var(--border-color); padding: 1.5rem; border-radius: 4px; margin-bottom: 1.5rem; background-color: var(--bg-card);">
+                            <h3 style="color: var(--accent-gold); margin-bottom: 1rem; font-family: var(--font-heading); font-size: 1.1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">E. Kundenstimmen-Bereich</h3>
+                            <div class="form-group">
+                                <label for="hp-testi-title" class="form-label">Bereichs-Titel *</label>
+                                <input type="text" id="hp-testi-title" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="hp-testi-desc" class="form-label">Beschreibung *</label>
+                                <textarea id="hp-testi-desc" class="form-control" rows="3" required></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="hp-testi-formtitle" class="form-label">Bewertungsformular Titel *</label>
+                                <input type="text" id="hp-testi-formtitle" class="form-control" required>
+                            </div>
+                        </div>
+
+                        <!-- Contact Intro & Cards -->
+                        <div style="border: 1px solid var(--border-color); padding: 1.5rem; border-radius: 4px; margin-bottom: 1.5rem; background-color: var(--bg-card);">
+                            <h3 style="color: var(--accent-gold); margin-bottom: 1rem; font-family: var(--font-heading); font-size: 1.1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">F. Kontakt & Info-Karten</h3>
+                            <div class="form-group">
+                                <label for="hp-contact-title" class="form-label">Anfrage-Titel *</label>
+                                <input type="text" id="hp-contact-title" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="hp-contact-desc" class="form-label">Beschreibung *</label>
+                                <textarea id="hp-contact-desc" class="form-control" rows="3" required></textarea>
+                            </div>
+                            <!-- Card 1 -->
+                            <div style="border-top: 1px solid var(--border-color); padding-top: 1rem; margin-top: 1rem;">
+                                <h4 style="color: var(--text-white); font-size: 0.95rem; margin-bottom: 1rem;">Info-Karte (Regionalität & Qualität)</h4>
+                                <div class="form-group">
+                                    <label for="hp-card1-title" class="form-label">Titel *</label>
+                                    <input type="text" id="hp-card1-title" class="form-control" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="hp-card1-desc" class="form-label">Text *</label>
+                                    <textarea id="hp-card1-desc" class="form-control" rows="3" required></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Footer brand section -->
+                        <div style="border: 1px solid var(--border-color); padding: 1.5rem; border-radius: 4px; margin-bottom: 1.5rem; background-color: var(--bg-card);">
+                            <h3 style="color: var(--accent-gold); margin-bottom: 1rem; font-family: var(--font-heading); font-size: 1.1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">G. Footer Beschreibung</h3>
+                            <div class="form-group">
+                                <label for="hp-footer-desc" class="form-label">Text *</label>
+                                <textarea id="hp-footer-desc" class="form-control" rows="3" required></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Legal HTML Card -->
+                        <div style="border: 1px solid var(--border-color); padding: 1.5rem; border-radius: 4px; margin-bottom: 1.5rem; background-color: var(--bg-card);">
+                            <h3 style="color: var(--accent-gold); margin-bottom: 1rem; font-family: var(--font-heading); font-size: 1.1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">H. Rechtstexte (Impressum & Datenschutz HTML)</h3>
+                            <div class="form-group">
+                                <label for="hp-legal-impressum" class="form-label">Impressum (HTML-Format erlaubt)</label>
+                                <textarea id="hp-legal-impressum" class="form-control" rows="8" required style="font-family:monospace; font-size:0.85rem;"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="hp-legal-datenschutz" class="form-label">Datenschutzerklärung (HTML-Format erlaubt)</label>
+                                <textarea id="hp-legal-datenschutz" class="form-control" rows="8" required style="font-family:monospace; font-size:0.85rem;"></textarea>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="padding: 1rem 3rem;">Webseite Texte Speichern</button>
+                    </form>
+                </div>
+            </section>
+
             <!-- E. Export Tab Pane -->
             <section class="admin-section" id="export-settings">
                 <div class="editor-card">
                     <h2>Daten-Exportieren (data.js)</h2>
-                    <div class="export-box">
+                    <div class="export-box" style="margin-bottom: 2rem;">
                         <p>Sobald Sie alle Änderungen vorgenommen haben, laden Sie die aktualisierte <strong>data.js</strong> Datei herunter und ersetzen Sie damit die bestehende Datei im Ordner <strong>js/data.js</strong> Ihres Webhostings.</p>
                         <button class="btn btn-primary" id="btn-download-config" style="padding: 1rem 3rem; font-size:1.1rem; letter-spacing:0.05em;">💾 data.js herunterladen</button>
+                    </div>
+                    
+                    <div class="export-box" style="border-color: var(--accent-orange); background-color: rgba(194, 75, 36, 0.05); margin-bottom: 2rem;">
+                        <h3 style="color: var(--accent-orange); margin-bottom: 1rem; font-family: var(--font-heading); font-size: 1.1rem;">CMS Zurücksetzen</h3>
+                        <p style="margin-bottom: 1.5rem;">Möchten Sie alle Ihre Änderungen verwerfen und die ursprünglichen Standarddaten (aus der Datei data.js) wiederherstellen?</p>
+                        <button class="btn btn-danger" id="btn-reset-defaults" style="background-color: var(--accent-orange); border-color: var(--accent-orange);">⚠️ Standard-Daten wiederherstellen</button>
                     </div>
                     
                     <div class="code-preview-box">
@@ -201,9 +360,7 @@
                 <div class="form-group">
                     <label for="menu-item-cat" class="form-label">Kategorie</label>
                     <select id="menu-item-cat" class="form-control">
-                        <option value="fingerfood_glas">Fingerfood & Salate im Glas</option>
-                        <option value="herzhaft_snacks">Herzhafte Snacks & Spieße</option>
-                        <option value="desserts_glas">Desserts im Glas</option>
+                        <!-- Dynamically filled -->
                     </select>
                 </div>
                 <div class="form-group">
@@ -217,6 +374,21 @@
                 <div class="form-group">
                     <label for="menu-item-tags" class="form-label">Tags (mit Komma getrennt)</label>
                     <input type="text" id="menu-item-tags" class="form-control" placeholder="z.B. Vegetarisch, Glutenfrei, Bestseller">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Bild vom PC hochladen</label>
+                    <input type="file" id="menu-item-file" accept="image/*" class="form-control" style="background-color: var(--bg-primary); border-color: var(--border-color); color: var(--text-white);">
+                </div>
+                <div class="form-group" id="menu-item-preview-group" style="display:none; text-align:center; margin-bottom: 1.5rem;">
+                    <label class="form-label">Bild-Vorschau</label>
+                    <div style="position:relative; display:inline-block;">
+                        <img id="menu-item-preview" src="" alt="Vorschau" style="max-width:150px; max-height:150px; object-fit:cover; border-radius:4px; border:1px solid var(--border-color);">
+                        <button type="button" id="btn-remove-menu-image" style="position:absolute; top:-10px; right:-10px; background:var(--accent-orange); color:var(--text-white); border:none; border-radius:50%; width:24px; height:24px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size: 1rem; line-height: 1;">&times;</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="menu-item-image" class="form-label">Bild-Referenz (Pfad oder Base64)</label>
+                    <input type="text" id="menu-item-image" class="form-control" placeholder="Kein Bild hinterlegt" readonly style="background-color: var(--bg-primary); opacity: 0.7; cursor: not-allowed;">
                 </div>
                 <div style="display:flex; justify-content:flex-end; gap:1rem; margin-top:2rem;">
                     <button type="button" class="btn btn-secondary" id="btn-cancel-menu-item">Abbrechen</button>
@@ -244,6 +416,10 @@
                 <div class="form-group">
                     <label for="service-desc" class="form-label">Beschreibung *</label>
                     <textarea id="service-desc" class="form-control" rows="5" required></textarea>
+                </div>
+                <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem; margin-top: 1rem;">
+                    <input type="checkbox" id="service-visible" style="width: 1.2rem; height: 1.2rem; accent-color: var(--accent-gold); cursor: pointer;">
+                    <label for="service-visible" class="form-label" style="margin-bottom: 0; cursor: pointer;">Auf der Webseite anzeigen</label>
                 </div>
                 <div style="display:flex; justify-content:flex-end; gap:1rem; margin-top:2rem;">
                     <button type="button" class="btn btn-secondary" id="btn-cancel-service-item">Abbrechen</button>
@@ -290,8 +466,38 @@
         </div>
     </div>
 
+    <!-- Categories Modal -->
+    <div class="modal" id="categories-modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <button class="modal-close" id="close-categories-modal">&times;</button>
+            <h3 class="modal-title">Speisekarten-Kategorien verwalten</h3>
+            
+            <div style="margin-bottom: 2rem;">
+                <h4 style="margin-bottom: 0.8rem; color: var(--text-white); font-size: 0.95rem;">Bestehende Kategorien (Reihenfolge anpassbar):</h4>
+                <div class="items-list" id="categories-list-container" style="max-height: 250px; overflow-y: auto;">
+                    <!-- Dynamically populated -->
+                </div>
+            </div>
+            
+            <div style="border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+                <h4 style="margin-bottom: 0.8rem; color: var(--text-white); font-size: 0.95rem;">Neue Kategorie hinzufügen:</h4>
+                <form id="add-category-form" style="display: flex; gap: 0.5rem; align-items: flex-end;">
+                    <div class="form-group" style="flex-grow: 1; margin-bottom: 0;">
+                        <label for="new-cat-name" class="form-label">Name der Kategorie *</label>
+                        <input type="text" id="new-cat-name" class="form-control" placeholder="z.B. Suppen & Eintöpfe" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="height: 42px;">Hinzufügen</button>
+                </form>
+            </div>
+            
+            <div style="display:flex; justify-content:flex-end; margin-top:2rem;">
+                <button type="button" class="btn btn-secondary" id="btn-close-categories-mgr">Schließen</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Core Database & CMS scripts -->
-    <script src="js/data.js"></script>
+    <script src="js/data.js?v=20260525-4"></script>
     
     <!-- Inline JS for CMS panel management -->
     <script>
@@ -339,32 +545,123 @@
             const saved = localStorage.getItem("tw_catering_data");
             if (saved) {
                 try {
-                    cmsData = JSON.parse(saved);
+                    const parsed = JSON.parse(saved);
+                    // Auto-migration: If old "Kabinettstücke" categories are found, reset to new default culinary categories
+                    const hasKabinett = parsed.menuCategories && parsed.menuCategories.some(cat => 
+                        cat.name.toLowerCase().includes("kabinett") || cat.id.toLowerCase().includes("kabinett")
+                    );
+                    const isOldStructure = !parsed.menuCategories || !parsed.menuCategories.some(cat => cat.id === "fingerfood_wraps");
+                    
+                    if (hasKabinett || isOldStructure) {
+                        localStorage.removeItem("tw_catering_data");
+                        cmsData = JSON.parse(JSON.stringify(CATERING_DATA));
+                    } else {
+                        cmsData = parsed;
+                        // Ensure core objects exist (crucial for older browser sessions)
+                        if (!cmsData.company) cmsData.company = { ...CATERING_DATA.company };
+                        if (!cmsData.services) cmsData.services = [ ...CATERING_DATA.services ];
+                        if (!cmsData.menuItems) cmsData.menuItems = { ...CATERING_DATA.menuItems };
+                        if (!cmsData.testimonials) cmsData.testimonials = [ ...CATERING_DATA.testimonials ];
+                        if (!cmsData.menuCategories) cmsData.menuCategories = [ ...CATERING_DATA.menuCategories ];
+                        if (!cmsData.homepage) {
+                            cmsData.homepage = { ...CATERING_DATA.homepage };
+                        } else {
+                            // Ensure newly added fields exist in older sessions
+                            if (!cmsData.homepage.testimonialsIntro) {
+                                cmsData.homepage.testimonialsIntro = { ...CATERING_DATA.homepage.testimonialsIntro };
+                            } else if (!cmsData.homepage.testimonialsIntro.formTitle) {
+                                cmsData.homepage.testimonialsIntro.formTitle = CATERING_DATA.homepage.testimonialsIntro.formTitle;
+                            }
+                            if (!cmsData.homepage.contactCards) {
+                                cmsData.homepage.contactCards = [ ...CATERING_DATA.homepage.contactCards ];
+                            }
+                            if (!cmsData.homepage.footerDescription) {
+                                cmsData.homepage.footerDescription = CATERING_DATA.homepage.footerDescription;
+                            }
+                        }
+
+                        // Fallback for social links if they are # or missing in localStorage
+                        if (!cmsData.company.social) {
+                            cmsData.company.social = { ...CATERING_DATA.company.social };
+                        } else {
+                            if (!cmsData.company.social.facebook || cmsData.company.social.facebook === "#") {
+                                cmsData.company.social.facebook = CATERING_DATA.company.social.facebook;
+                            }
+                            if (!cmsData.company.social.instagram || cmsData.company.social.instagram === "#") {
+                                cmsData.company.social.instagram = CATERING_DATA.company.social.instagram;
+                            }
+                        }
+                        // Migrate services to include the "visible" property if missing in cache
+                        if (cmsData.services) {
+                            cmsData.services.forEach(service => {
+                                if (service.visible === undefined) {
+                                    const defaultService = CATERING_DATA.services.find(s => s.id === service.id);
+                                    if (defaultService) {
+                                        service.visible = defaultService.visible;
+                                    } else {
+                                        service.visible = true;
+                                    }
+                                }
+                            });
+                        }
+                        // Migrate menu items to include images from CATERING_DATA if missing in cache
+                        if (cmsData.menuItems) {
+                            for (const cat in cmsData.menuItems) {
+                                if (cmsData.menuItems.hasOwnProperty(cat)) {
+                                    cmsData.menuItems[cat].forEach(item => {
+                                        if (!item.image) {
+                                            const defaultCatItems = CATERING_DATA.menuItems[cat];
+                                            if (defaultCatItems) {
+                                                const defaultItem = defaultCatItems.find(i => i.name === item.name);
+                                                if (defaultItem && defaultItem.image) {
+                                                    item.image = defaultItem.image;
+                                                }
+                                            }
+                                        }
+                                    });
+                                }
+                            }
+                        }
+                    }
                 } catch(e) {
-                    cmsData = {...CATERING_DATA};
+                    cmsData = JSON.parse(JSON.stringify(CATERING_DATA));
                 }
             } else {
-                cmsData = {...CATERING_DATA};
+                cmsData = JSON.parse(JSON.stringify(CATERING_DATA));
             }
             
             setupTabNavigation();
+            populateCategorySelects();
             loadCompanyForm();
             loadServicesList();
             loadMenuItemsList();
             loadTestimonialsList();
+            loadHomepageForm();
             updateExportCodePreview();
             
             // Register save listeners
             document.getElementById("company-form").addEventListener("submit", saveCompanyInfo);
+            document.getElementById("homepage-form").addEventListener("submit", saveHomepageInfo);
             document.getElementById("menu-category-filter").addEventListener("change", loadMenuItemsList);
             
             // Modals triggers
             setupMenuModals();
             setupServiceModals();
             setupTestimonialModals();
+            setupCategoryModals();
+            setupHomepageFileUploader();
             
             // Config Download
             document.getElementById("btn-download-config").addEventListener("click", downloadConfig);
+            
+            // Config Reset
+            document.getElementById("btn-reset-defaults").addEventListener("click", () => {
+                if (confirm("Möchten Sie alle Daten auf die Standardeinstellungen zurücksetzen? Ihre vorgenommenen Änderungen gehen dabei verloren.")) {
+                    localStorage.removeItem("tw_catering_data");
+                    localStorage.removeItem("tw_testimonials");
+                    window.location.reload();
+                }
+            });
         }
         
         // Tab Navigation
@@ -393,6 +690,36 @@
             });
         }
         
+        // Category dropdown populating helper
+        function populateCategorySelects() {
+            const filterSelect = document.getElementById("menu-category-filter");
+            const itemSelect = document.getElementById("menu-item-cat");
+            if (!filterSelect || !itemSelect) return;
+            
+            const currentFilterVal = filterSelect.value;
+            const currentItemVal = itemSelect.value;
+            
+            const optionsHtml = cmsData.menuCategories.map(cat => 
+                `<option value="${cat.id}">${cat.name}</option>`
+            ).join('');
+            
+            filterSelect.innerHTML = optionsHtml;
+            itemSelect.innerHTML = optionsHtml;
+            
+            // Keep previous selection if it still exists, otherwise default to first available
+            if (cmsData.menuCategories.some(c => c.id === currentFilterVal)) {
+                filterSelect.value = currentFilterVal;
+            } else if (cmsData.menuCategories.length > 0) {
+                filterSelect.value = cmsData.menuCategories[0].id;
+            }
+            
+            if (cmsData.menuCategories.some(c => c.id === currentItemVal)) {
+                itemSelect.value = currentItemVal;
+            } else if (cmsData.menuCategories.length > 0) {
+                itemSelect.value = cmsData.menuCategories[0].id;
+            }
+        }
+
         // A. Company Info Tab
         function loadCompanyForm() {
             const comp = cmsData.company;
@@ -403,6 +730,8 @@
             document.getElementById("company-street").value = comp.address.street;
             document.getElementById("company-zip").value = comp.address.zip;
             document.getElementById("company-city").value = comp.address.city;
+            document.getElementById("company-facebook").value = comp.social.facebook || "";
+            document.getElementById("company-instagram").value = comp.social.instagram || "";
         }
         
         function saveCompanyInfo(e) {
@@ -414,6 +743,8 @@
             cmsData.company.address.street = document.getElementById("company-street").value;
             cmsData.company.address.zip = document.getElementById("company-zip").value;
             cmsData.company.address.city = document.getElementById("company-city").value;
+            cmsData.company.social.facebook = document.getElementById("company-facebook").value;
+            cmsData.company.social.instagram = document.getElementById("company-instagram").value;
             
             saveToLocalStorage();
             showToast("Unternehmensdaten erfolgreich gespeichert!");
@@ -422,17 +753,26 @@
         // B. Services Tab
         function loadServicesList() {
             const container = document.getElementById("services-list");
-            container.innerHTML = cmsData.services.map((ser, index) => `
-                <div class="item-row">
-                    <div class="item-info">
-                        <h4>${ser.icon} ${ser.title}</h4>
-                        <p>${ser.description.substring(0, 100)}...</p>
+            container.innerHTML = cmsData.services.map((ser, index) => {
+                const isVisible = ser.visible !== false;
+                const statusBadge = isVisible 
+                    ? `<span style="font-size:0.75rem; background:rgba(46, 125, 50, 0.2); color:#81c784; border:1px solid #2e7d32; padding:0.1rem 0.5rem; border-radius:2px; margin-left:0.5rem;">Sichtbar</span>`
+                    : `<span style="font-size:0.75rem; background:rgba(194, 75, 36, 0.2); color:#e2e8f0; border:1px solid var(--border-color); padding:0.1rem 0.5rem; border-radius:2px; margin-left:0.5rem;">Ausgeblendet</span>`;
+                
+                return `
+                    <div class="item-row">
+                        <div class="item-info">
+                            <h4 style="display:flex; align-items:center; gap:0.5rem;">
+                                ${ser.icon} ${ser.title} ${statusBadge}
+                            </h4>
+                            <p>${ser.description.substring(0, 100)}...</p>
+                        </div>
+                        <div class="item-actions">
+                            <button class="btn btn-secondary btn-sm" onclick="editService(${index})">Bearbeiten</button>
+                        </div>
                     </div>
-                    <div class="item-actions">
-                        <button class="btn btn-secondary btn-sm" onclick="editService(${index})">Bearbeiten</button>
-                    </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
         
         // C. Menu Tab
@@ -446,21 +786,28 @@
                 return;
             }
             
-            container.innerHTML = items.map((item, index) => `
-                <div class="item-row">
-                    <div class="item-info">
-                        <h4>${item.name}</h4>
-                        <p>${item.description}</p>
-                        <p style="margin-top:0.4rem;">
-                            ${item.tags ? item.tags.map(t => `<span style="font-size:0.75rem; background:#1e2124; padding:0.1rem 0.5rem; margin-right:0.3rem; border-radius:2px; border:1px solid var(--border-color);">${t}</span>`).join('') : ''}
-                        </p>
+            container.innerHTML = items.map((item, index) => {
+                const imgTag = item.image 
+                    ? `<img src="${item.image}" alt="${item.name}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border-color); flex-shrink: 0;">`
+                    : `<div style="width: 50px; height: 50px; border-radius: 4px; border: 1px dashed var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: var(--text-muted); flex-shrink: 0;">🍽️</div>`;
+                
+                return `
+                    <div class="item-row" style="display:flex; align-items:flex-start; gap:1rem;">
+                        ${imgTag}
+                        <div class="item-info" style="flex-grow: 1;">
+                            <h4>${item.name}</h4>
+                            <p>${item.description}</p>
+                            <p style="margin-top:0.4rem;">
+                                ${item.tags ? item.tags.map(t => `<span style="font-size:0.75rem; background:#1e2124; padding:0.1rem 0.5rem; margin-right:0.3rem; border-radius:2px; border:1px solid var(--border-color);">${t}</span>`).join('') : ''}
+                            </p>
+                        </div>
+                        <div class="item-actions">
+                            <button class="btn btn-secondary btn-sm" onclick="editMenuItem('${category}', ${index})">Bearbeiten</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteMenuItem('${category}', ${index})">Löschen</button>
+                        </div>
                     </div>
-                    <div class="item-actions">
-                        <button class="btn btn-secondary btn-sm" onclick="editMenuItem('${category}', ${index})">Bearbeiten</button>
-                        <button class="btn btn-danger btn-sm" onclick="deleteMenuItem('${category}', ${index})">Löschen</button>
-                    </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
         
         // D. Testimonials Tab
@@ -527,12 +874,69 @@
                 document.getElementById("menu-item-name").value = "";
                 document.getElementById("menu-item-desc").value = "";
                 document.getElementById("menu-item-tags").value = "";
+                document.getElementById("menu-item-image").value = "";
+                document.getElementById("menu-item-file").value = "";
+                document.getElementById("menu-item-preview-group").style.display = "none";
+                document.getElementById("menu-item-preview").src = "";
                 
                 modal.classList.add("active");
             });
             
             document.getElementById("close-menu-item-modal").addEventListener("click", () => modal.classList.remove("active"));
             document.getElementById("btn-cancel-menu-item").addEventListener("click", () => modal.classList.remove("active"));
+            
+            // File input listener with client-side image compression
+            document.getElementById("menu-item-file").addEventListener("change", (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            // Target size: max 600px width or height (retains good quality but small payload)
+                            const maxDim = 600;
+                            let width = img.width;
+                            let height = img.height;
+                            
+                            if (width > maxDim || height > maxDim) {
+                                if (width > height) {
+                                    height = Math.round((height * maxDim) / width);
+                                    width = maxDim;
+                                } else {
+                                    width = Math.round((width * maxDim) / height);
+                                    height = maxDim;
+                                }
+                            }
+                            
+                            const canvas = document.createElement("canvas");
+                            canvas.width = width;
+                            canvas.height = height;
+                            
+                            const ctx = canvas.getContext("2d");
+                            ctx.drawImage(img, 0, 0, width, height);
+                            
+                            // Compress to JPEG with 0.75 quality factor (20-40KB typical)
+                            const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.75);
+                            document.getElementById("menu-item-image").value = compressedDataUrl;
+                            
+                            // Show preview
+                            const previewImg = document.getElementById("menu-item-preview");
+                            previewImg.src = compressedDataUrl;
+                            document.getElementById("menu-item-preview-group").style.display = "block";
+                        };
+                        img.src = event.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // Remove image button listener
+            document.getElementById("btn-remove-menu-image").addEventListener("click", () => {
+                document.getElementById("menu-item-image").value = "";
+                document.getElementById("menu-item-file").value = "";
+                document.getElementById("menu-item-preview-group").style.display = "none";
+                document.getElementById("menu-item-preview").src = "";
+            });
             
             document.getElementById("menu-item-form").addEventListener("submit", (e) => {
                 e.preventDefault();
@@ -542,8 +946,12 @@
                 const desc = document.getElementById("menu-item-desc").value.trim();
                 const tagsStr = document.getElementById("menu-item-tags").value.trim();
                 const tags = tagsStr ? tagsStr.split(",").map(t => t.trim()) : [];
+                const image = document.getElementById("menu-item-image").value.trim();
                 
                 const itemData = { name, description: desc, tags };
+                if (image) {
+                    itemData.image = image;
+                }
                 
                 if (indexVal === "") {
                     // Add new
@@ -581,6 +989,18 @@
             document.getElementById("menu-item-name").value = item.name;
             document.getElementById("menu-item-desc").value = item.description;
             document.getElementById("menu-item-tags").value = item.tags ? item.tags.join(", ") : "";
+            document.getElementById("menu-item-image").value = item.image || "";
+            document.getElementById("menu-item-file").value = "";
+            
+            const previewGroup = document.getElementById("menu-item-preview-group");
+            const previewImg = document.getElementById("menu-item-preview");
+            if (item.image) {
+                previewImg.src = item.image;
+                previewGroup.style.display = "block";
+            } else {
+                previewImg.src = "";
+                previewGroup.style.display = "none";
+            }
             
             modal.classList.add("active");
         };
@@ -606,6 +1026,7 @@
                 
                 cmsData.services[idx].icon = document.getElementById("service-icon").value.trim();
                 cmsData.services[idx].description = document.getElementById("service-desc").value.trim();
+                cmsData.services[idx].visible = document.getElementById("service-visible").checked;
                 
                 saveToLocalStorage();
                 loadServicesList();
@@ -622,6 +1043,7 @@
             document.getElementById("service-title").value = service.title;
             document.getElementById("service-icon").value = service.icon;
             document.getElementById("service-desc").value = service.description;
+            document.getElementById("service-visible").checked = service.visible !== false;
             
             modal.classList.add("active");
         };
@@ -691,6 +1113,340 @@
             }
         };
         
+        // F. Webseite Texte Editor Tab Logic
+        function loadHomepageForm() {
+            const hp = cmsData.homepage;
+            if (!hp) return;
+            
+            // Hero
+            if (hp.hero) {
+                document.getElementById("hp-hero-tagline").value = hp.hero.tagline || "";
+                document.getElementById("hp-hero-btn-primary").value = hp.hero.buttonPrimary || "";
+                document.getElementById("hp-hero-btn-secondary").value = hp.hero.buttonSecondary || "";
+            }
+            
+            // Services Intro
+            if (hp.servicesIntro) {
+                document.getElementById("hp-services-title").value = hp.servicesIntro.title || "";
+                document.getElementById("hp-services-desc").value = hp.servicesIntro.description || "";
+            }
+            
+            // Philosophy
+            if (hp.philosophy) {
+                document.getElementById("hp-philosophy-badge").value = hp.philosophy.badge || "";
+                document.getElementById("hp-philosophy-title").value = hp.philosophy.title || "";
+                document.getElementById("hp-philosophy-text1").value = hp.philosophy.text1 || "";
+                document.getElementById("hp-philosophy-text2").value = hp.philosophy.text2 || "";
+                document.getElementById("hp-philosophy-btn").value = hp.philosophy.buttonText || "";
+                document.getElementById("hp-philosophy-image").value = hp.philosophy.image || "";
+                
+                const previewImg = document.getElementById("hp-philosophy-preview");
+                const previewGroup = document.getElementById("hp-philosophy-preview-group");
+                if (hp.philosophy.image) {
+                    previewImg.src = hp.philosophy.image;
+                    previewGroup.style.display = "block";
+                } else {
+                    previewImg.src = "";
+                    previewGroup.style.display = "none";
+                }
+            }
+            
+            // Menu Intro
+            if (hp.menuIntro) {
+                document.getElementById("hp-menu-title").value = hp.menuIntro.title || "";
+                document.getElementById("hp-menu-desc").value = hp.menuIntro.description || "";
+            }
+            
+            // Testimonials Intro
+            if (hp.testimonialsIntro) {
+                document.getElementById("hp-testi-title").value = hp.testimonialsIntro.title || "";
+                document.getElementById("hp-testi-desc").value = hp.testimonialsIntro.description || "";
+                document.getElementById("hp-testi-formtitle").value = hp.testimonialsIntro.formTitle || "";
+            }
+            
+            // Contact Intro
+            if (hp.contactIntro) {
+                document.getElementById("hp-contact-title").value = hp.contactIntro.title || "";
+                document.getElementById("hp-contact-desc").value = hp.contactIntro.description || "";
+            }
+            
+            // Contact Cards
+            if (hp.contactCards && hp.contactCards.length >= 1) {
+                document.getElementById("hp-card1-title").value = hp.contactCards[0].title || "";
+                document.getElementById("hp-card1-desc").value = hp.contactCards[0].description || "";
+            }
+            
+            // Footer Description
+            document.getElementById("hp-footer-desc").value = hp.footerDescription || "";
+            
+            // Legal
+            if (hp.legal) {
+                document.getElementById("hp-legal-impressum").value = hp.legal.impressum || "";
+                document.getElementById("hp-legal-datenschutz").value = hp.legal.datenschutz || "";
+            }
+        }
+        
+        function saveHomepageInfo(e) {
+            e.preventDefault();
+            if (!cmsData.homepage) cmsData.homepage = {};
+            
+            // Hero
+            cmsData.homepage.hero = {
+                tagline: document.getElementById("hp-hero-tagline").value.trim(),
+                buttonPrimary: document.getElementById("hp-hero-btn-primary").value.trim(),
+                buttonSecondary: document.getElementById("hp-hero-btn-secondary").value.trim()
+            };
+            
+            // Services Intro
+            cmsData.homepage.servicesIntro = {
+                title: document.getElementById("hp-services-title").value.trim(),
+                description: document.getElementById("hp-services-desc").value.trim()
+            };
+            
+            // Philosophy
+            cmsData.homepage.philosophy = {
+                badge: document.getElementById("hp-philosophy-badge").value.trim(),
+                title: document.getElementById("hp-philosophy-title").value.trim(),
+                text1: document.getElementById("hp-philosophy-text1").value.trim(),
+                text2: document.getElementById("hp-philosophy-text2").value.trim(),
+                buttonText: document.getElementById("hp-philosophy-btn").value.trim(),
+                image: document.getElementById("hp-philosophy-image").value.trim()
+            };
+            
+            // Menu Intro
+            cmsData.homepage.menuIntro = {
+                title: document.getElementById("hp-menu-title").value.trim(),
+                description: document.getElementById("hp-menu-desc").value.trim()
+            };
+            
+            // Testimonials Intro
+            cmsData.homepage.testimonialsIntro = {
+                title: document.getElementById("hp-testi-title").value.trim(),
+                description: document.getElementById("hp-testi-desc").value.trim(),
+                formTitle: document.getElementById("hp-testi-formtitle").value.trim()
+            };
+            
+            // Contact Intro
+            cmsData.homepage.contactIntro = {
+                title: document.getElementById("hp-contact-title").value.trim(),
+                description: document.getElementById("hp-contact-desc").value.trim()
+            };
+            
+            // Contact Cards
+            cmsData.homepage.contactCards = [
+                {
+                    title: document.getElementById("hp-card1-title").value.trim(),
+                    description: document.getElementById("hp-card1-desc").value.trim()
+                }
+            ];
+            
+            // Footer Description
+            cmsData.homepage.footerDescription = document.getElementById("hp-footer-desc").value.trim();
+            
+            // Legal
+            cmsData.homepage.legal = {
+                impressum: document.getElementById("hp-legal-impressum").value.trim(),
+                datenschutz: document.getElementById("hp-legal-datenschutz").value.trim()
+            };
+            
+            saveToLocalStorage();
+            showToast("Webseiten-Texte erfolgreich gespeichert!");
+        }
+        
+        function setupHomepageFileUploader() {
+            document.getElementById("hp-philosophy-file").addEventListener("change", (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            const maxDim = 800; // Larger threshold for banner image
+                            let width = img.width;
+                            let height = img.height;
+                            
+                            if (width > maxDim || height > maxDim) {
+                                if (width > height) {
+                                    height = Math.round((height * maxDim) / width);
+                                    width = maxDim;
+                                } else {
+                                    width = Math.round((width * maxDim) / height);
+                                    height = maxDim;
+                                }
+                            }
+                            
+                            const canvas = document.createElement("canvas");
+                            canvas.width = width;
+                            canvas.height = height;
+                            
+                            const ctx = canvas.getContext("2d");
+                            ctx.drawImage(img, 0, 0, width, height);
+                            
+                            const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.75);
+                            document.getElementById("hp-philosophy-image").value = compressedDataUrl;
+                            
+                            // Show preview
+                            const previewImg = document.getElementById("hp-philosophy-preview");
+                            previewImg.src = compressedDataUrl;
+                            document.getElementById("hp-philosophy-preview-group").style.display = "block";
+                        };
+                        img.src = event.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+        
+        // Category Manager Modals & logic
+        function setupCategoryModals() {
+            const modal = document.getElementById("categories-modal");
+            const btnManage = document.getElementById("btn-manage-categories");
+            const btnClose = document.getElementById("btn-close-categories-mgr");
+            const btnCloseX = document.getElementById("close-categories-modal");
+            const formAdd = document.getElementById("add-category-form");
+            
+            if (!btnManage) return;
+            
+            btnManage.addEventListener("click", () => {
+                renderCategoriesList();
+                modal.classList.add("active");
+            });
+            
+            const closeModal = () => {
+                modal.classList.remove("active");
+                loadMenuItemsList();
+            };
+            
+            btnClose.addEventListener("click", closeModal);
+            btnCloseX.addEventListener("click", closeModal);
+            
+            formAdd.addEventListener("submit", (e) => {
+                e.preventDefault();
+                const name = document.getElementById("new-cat-name").value.trim();
+                if (!name) return;
+                
+                const exists = cmsData.menuCategories.some(c => c.name.toLowerCase() === name.toLowerCase());
+                if (exists) {
+                    showToast("Diese Kategorie existiert bereits!", "error");
+                    return;
+                }
+                
+                const id = slugify(name);
+                if (!id) {
+                    showToast("Ungültiger Name für die Kategorie!", "error");
+                    return;
+                }
+                
+                cmsData.menuCategories.push({ id, name });
+                if (!cmsData.menuItems[id]) {
+                    cmsData.menuItems[id] = [];
+                }
+                
+                saveToLocalStorage();
+                populateCategorySelects();
+                renderCategoriesList();
+                
+                document.getElementById("new-cat-name").value = "";
+                showToast("Kategorie erfolgreich hinzugefügt!");
+            });
+        }
+        
+        function renderCategoriesList() {
+            const container = document.getElementById("categories-list-container");
+            if (!container) return;
+            
+            if (cmsData.menuCategories.length === 0) {
+                container.innerHTML = `<p class="text-muted" style="text-align:center; padding:1rem;">Keine Kategorien vorhanden.</p>`;
+                return;
+            }
+            
+            container.innerHTML = cmsData.menuCategories.map((cat, index) => {
+                const itemCount = (cmsData.menuItems[cat.id] || []).length;
+                return `
+                    <div class="item-row" style="padding: 0.8rem 1.2rem; margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: space-between; background-color: var(--bg-primary); border: 1px solid var(--border-color);">
+                        <div>
+                            <strong style="color:var(--text-white);">${cat.name}</strong>
+                            <span class="text-muted" style="font-size:0.8rem; margin-left:0.5rem;">(${itemCount} Gerichte)</span>
+                        </div>
+                        <div style="display:flex; gap:0.5rem; align-items:center;">
+                            <button class="btn btn-secondary btn-sm" style="padding:0.2rem 0.5rem; background: transparent; border: 1px solid var(--border-color);" onclick="renameCategory(${index})" title="Umbenennen">✏️</button>
+                            <button class="btn btn-secondary btn-sm" style="padding:0.2rem 0.5rem; background: transparent; border: 1px solid var(--border-color);" onclick="moveCategory(${index}, -1)" ${index === 0 ? 'disabled style="opacity:0.3; cursor:not-allowed;"' : ''} title="Nach oben verschieben">↑</button>
+                            <button class="btn btn-secondary btn-sm" style="padding:0.2rem 0.5rem; background: transparent; border: 1px solid var(--border-color);" onclick="moveCategory(${index}, 1)" ${index === cmsData.menuCategories.length - 1 ? 'disabled style="opacity:0.3; cursor:not-allowed;"' : ''} title="Nach unten verschieben">↓</button>
+                            <button class="btn btn-danger btn-sm" style="padding:0.2rem 0.5rem;" onclick="deleteCategory(${index})" title="Löschen">🗑️</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        window.renameCategory = function(index) {
+            const cat = cmsData.menuCategories[index];
+            const newName = prompt(`Kategorie umbenennen. Geben Sie einen neuen Namen für "${cat.name}" ein:`, cat.name);
+            if (newName && newName.trim() !== "" && newName.trim() !== cat.name) {
+                const trimmed = newName.trim();
+                const exists = cmsData.menuCategories.some((c, idx) => idx !== index && c.name.toLowerCase() === trimmed.toLowerCase());
+                if (exists) {
+                    showToast("Dieser Kategoriename existiert bereits!", "error");
+                    return;
+                }
+                
+                cmsData.menuCategories[index].name = trimmed;
+                
+                saveToLocalStorage();
+                populateCategorySelects();
+                renderCategoriesList();
+                showToast("Kategorie erfolgreich umbenannt!");
+            }
+        };
+        
+        window.moveCategory = function(index, direction) {
+            const targetIndex = index + direction;
+            if (targetIndex < 0 || targetIndex >= cmsData.menuCategories.length) return;
+            
+            const temp = cmsData.menuCategories[index];
+            cmsData.menuCategories[index] = cmsData.menuCategories[targetIndex];
+            cmsData.menuCategories[targetIndex] = temp;
+            
+            saveToLocalStorage();
+            populateCategorySelects();
+            renderCategoriesList();
+        };
+        
+        window.deleteCategory = function(index) {
+            const cat = cmsData.menuCategories[index];
+            const items = cmsData.menuItems[cat.id] || [];
+            
+            let message = `Möchten Sie die Kategorie "${cat.name}" wirklich löschen?`;
+            if (items.length > 0) {
+                message = `ACHTUNG: Die Kategorie "${cat.name}" enthält ${items.length} Gerichte. Wenn Sie diese Kategorie löschen, werden ALLE darin enthaltenen Gerichte ebenfalls dauerhaft gelöscht!\n\nMöchten Sie wirklich fortfahren?`;
+            }
+            
+            if (confirm(message)) {
+                delete cmsData.menuItems[cat.id];
+                cmsData.menuCategories.splice(index, 1);
+                
+                saveToLocalStorage();
+                populateCategorySelects();
+                renderCategoriesList();
+                showToast("Kategorie gelöscht.", "success");
+            }
+        };
+        
+        function slugify(text) {
+            return text
+                .toString()
+                .toLowerCase()
+                .replace(/ä/g, 'ae')
+                .replace(/ö/g, 'oe')
+                .replace(/ü/g, 'ue')
+                .replace(/ß/g, 'ss')
+                .replace(/\s+/g, '_')
+                .replace(/[^\w\-]+/g, '')
+                .replace(/\-\-+/g, '-')
+                .replace(/^-+/, '')
+                .replace(/-+$/, '');
+        }
+
         // E. Export & Code Preview
         function updateExportCodePreview() {
             const codeBox = document.getElementById("code-export-preview");

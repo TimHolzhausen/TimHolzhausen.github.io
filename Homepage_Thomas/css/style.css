@@ -543,9 +543,32 @@ header.scrolled .nav-container {
 
 .menu-item {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    gap: 1.25rem;
+    align-items: flex-start;
     border-bottom: 1px dashed rgba(59, 66, 71, 0.6);
     padding-bottom: 1.5rem;
+}
+
+.menu-item-img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    flex-shrink: 0;
+    transition: var(--transition-smooth);
+    cursor: pointer;
+}
+
+.menu-item-img:hover {
+    border-color: var(--accent-gold);
+    transform: scale(1.08);
+    box-shadow: var(--shadow-glow);
+}
+
+.menu-item-info-wrapper {
+    flex-grow: 1;
 }
 
 .menu-item-header {
@@ -976,6 +999,7 @@ footer {
 .footer-brand {
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
     gap: 1.5rem;
 }
 

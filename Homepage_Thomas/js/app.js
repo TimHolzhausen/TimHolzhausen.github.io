@@ -1,9 +1,85 @@
-// Load local storage content if updated by the CMS, fallback to data.js CATERING_DATA
 let cateringData = CATERING_DATA;
 try {
     const savedData = localStorage.getItem("tw_catering_data");
     if (savedData) {
-        cateringData = JSON.parse(savedData);
+        const parsed = JSON.parse(savedData);
+        // Auto-migration: If old "Kabinettstücke" categories are found, reset to new default culinary categories
+        const hasKabinett = parsed.menuCategories && parsed.menuCategories.some(cat => 
+            cat.name.toLowerCase().includes("kabinett") || cat.id.toLowerCase().includes("kabinett")
+        );
+        const isOldStructure = !parsed.menuCategories || !parsed.menuCategories.some(cat => cat.id === "fingerfood_wraps");
+        
+        if (hasKabinett || isOldStructure) {
+            localStorage.removeItem("tw_catering_data");
+            cateringData = CATERING_DATA;
+        } else {
+            cateringData = parsed;
+            // Ensure core objects exist (crucial for older browser sessions)
+            if (!cateringData.company) cateringData.company = { ...CATERING_DATA.company };
+            if (!cateringData.services) cateringData.services = [ ...CATERING_DATA.services ];
+            if (!cateringData.menuItems) cateringData.menuItems = { ...CATERING_DATA.menuItems };
+            if (!cateringData.testimonials) cateringData.testimonials = [ ...CATERING_DATA.testimonials ];
+            if (!cateringData.menuCategories) cateringData.menuCategories = [ ...CATERING_DATA.menuCategories ];
+            if (!cateringData.homepage) {
+                cateringData.homepage = { ...CATERING_DATA.homepage };
+            } else {
+            // Ensure newly added fields exist in older sessions
+            if (!cateringData.homepage.testimonialsIntro) {
+                cateringData.homepage.testimonialsIntro = { ...CATERING_DATA.homepage.testimonialsIntro };
+            } else if (!cateringData.homepage.testimonialsIntro.formTitle) {
+                cateringData.homepage.testimonialsIntro.formTitle = CATERING_DATA.homepage.testimonialsIntro.formTitle;
+            }
+            if (!cateringData.homepage.contactCards) {
+                cateringData.homepage.contactCards = [ ...CATERING_DATA.homepage.contactCards ];
+            }
+            if (!cateringData.homepage.footerDescription) {
+                cateringData.homepage.footerDescription = CATERING_DATA.homepage.footerDescription;
+            }
+        }
+
+        // Fallback for social links if they are # or missing in localStorage (e.g. from cached sessions)
+        if (!cateringData.company.social) {
+            cateringData.company.social = { ...CATERING_DATA.company.social };
+        } else {
+            if (!cateringData.company.social.facebook || cateringData.company.social.facebook === "#") {
+                cateringData.company.social.facebook = CATERING_DATA.company.social.facebook;
+            }
+            if (!cateringData.company.social.instagram || cateringData.company.social.instagram === "#") {
+                cateringData.company.social.instagram = CATERING_DATA.company.social.instagram;
+            }
+        }
+        // Migrate services to include the "visible" property from CATERING_DATA if missing in cache
+        if (cateringData.services) {
+            cateringData.services.forEach(service => {
+                if (service.visible === undefined) {
+                    const defaultService = CATERING_DATA.services.find(s => s.id === service.id);
+                    if (defaultService) {
+                        service.visible = defaultService.visible;
+                    } else {
+                        service.visible = true;
+                    }
+                }
+            });
+        }
+        // Migrate menu items to include images from CATERING_DATA if missing in cache
+        if (cateringData.menuItems) {
+            for (const cat in cateringData.menuItems) {
+                if (cateringData.menuItems.hasOwnProperty(cat)) {
+                    cateringData.menuItems[cat].forEach(item => {
+                        if (!item.image) {
+                            const defaultCatItems = CATERING_DATA.menuItems[cat];
+                            if (defaultCatItems) {
+                                const defaultItem = defaultCatItems.find(i => i.name === item.name);
+                                if (defaultItem && defaultItem.image) {
+                                    item.image = defaultItem.image;
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+        }
+    }
     }
 } catch (e) {
     console.error("Fehler beim Laden der CMS-Daten:", e);
@@ -12,9 +88,15 @@ try {
 document.addEventListener("DOMContentLoaded", () => {
     // 1. Initial Content Loading
     initializeCompanyDetails();
+    renderHomepageTexts(); // Load all dynamic page texts (Hero, Philosophy, Legal, etc.)
     renderServices();
     renderMenuTabs();
-    renderMenuItems("fingerfood_glas"); // Default menu category
+    
+    // Automatically select first available menu category dynamically
+    const defaultCat = (cateringData.menuCategories && cateringData.menuCategories.length > 0) 
+        ? cateringData.menuCategories[0].id 
+        : "fingerfood_glas";
+    renderMenuItems(defaultCat);
     loadTestimonials();
     
     // 2. Navigation Behavior
@@ -26,6 +108,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setupReviewForm();
     setupContactForm();
     setupModals();
+    setupMenuLightbox(); // Lightbox overlay modal for menu images
 
     // 4. Hero Slider & Scroll Animations
     startHeroSlider();
@@ -103,6 +186,24 @@ function initializeCompanyDetails() {
     document.querySelectorAll(".company-address").forEach(el => {
         el.innerHTML = `${company.address.street}<br>${company.address.zip} ${company.address.city}`;
     });
+
+    document.querySelectorAll(".company-facebook-link").forEach(el => {
+        el.href = company.social.facebook || "#";
+        if (!company.social.facebook || company.social.facebook === "#") {
+            el.style.display = "none";
+        } else {
+            el.style.display = "inline-block";
+        }
+    });
+    
+    document.querySelectorAll(".company-instagram-link").forEach(el => {
+        el.href = company.social.instagram || "#";
+        if (!company.social.instagram || company.social.instagram === "#") {
+            el.style.display = "none";
+        } else {
+            el.style.display = "inline-block";
+        }
+    });
 }
 
 // Render Catering Services Cards
@@ -110,7 +211,10 @@ function renderServices() {
     const servicesContainer = document.getElementById("services-grid");
     if (!servicesContainer) return;
     
-    servicesContainer.innerHTML = cateringData.services.map(service => `
+    // Only render visible services
+    const visibleServices = cateringData.services.filter(s => s.visible !== false);
+    
+    servicesContainer.innerHTML = visibleServices.map(service => `
         <article class="service-card" data-aos="fade-up">
             <div class="service-img-wrapper">
                 <img src="${service.image}" alt="${service.title}" class="service-img" loading="lazy">
@@ -156,13 +260,20 @@ function renderMenuItems(categoryId) {
             return `<span class="menu-tag ${tagClass}">${tag}</span>`;
         }).join('') : '';
         
+        const imgHtml = item.image 
+            ? `<img src="${item.image}" alt="${item.name}" class="menu-item-img" loading="lazy">` 
+            : '';
+            
         return `
             <div class="menu-item">
-                <div class="menu-item-header">
-                    <h4>${item.name}</h4>
+                ${imgHtml}
+                <div class="menu-item-info-wrapper">
+                    <div class="menu-item-header">
+                        <h4>${item.name}</h4>
+                    </div>
+                    <p>${item.description}</p>
+                    ${tagsHtml ? `<div class="menu-item-tags">${tagsHtml}</div>` : ''}
                 </div>
-                <p>${item.description}</p>
-                ${tagsHtml ? `<div class="menu-item-tags">${tagsHtml}</div>` : ''}
             </div>
         `;
     }).join('');
@@ -364,15 +475,14 @@ function setupContactForm() {
         const date = document.getElementById("inquiry-date").value;
         const guests = document.getElementById("inquiry-guests").value;
         const details = document.getElementById("inquiry-details").value.trim();
-        
-        // Get checked services
-        const selectedServices = [];
-        form.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => {
-            selectedServices.push(cb.value);
-        });
-        
+        const guestNum = parseInt(guests);
         if (!name || !email || !date || !guests) {
             showToast("Bitte füllen Sie alle Pflichtfelder (*) aus.", "error");
+            return;
+        }
+        
+        if (guestNum > 50) {
+            showToast("Als 1-Mann-Betrieb koche ich für maximal 50 Personen. Bitte passen Sie Ihre Anfrage an.", "error");
             return;
         }
         
@@ -381,7 +491,6 @@ function setupContactForm() {
         const newInquiry = {
             id: Date.now(),
             name, email, phone, date, guests, details,
-            services: selectedServices,
             timestamp: new Date().toISOString()
         };
         inquiries.push(newInquiry);
@@ -391,7 +500,7 @@ function setupContactForm() {
         form.reset();
         
         // Show Success Dialog / Toast
-        showToast("Ihre Anfrage wurde erfolgreich gesendet! Wir melden uns in Kürze bei Ihnen.", "success");
+        showToast("Ihre Anfrage wurde erfolgreich gesendet! Ich melde mich in Kürze bei Ihnen.", "success");
     });
 }
 
@@ -432,14 +541,15 @@ function setupModals() {
             e.preventDefault();
             const modalType = btn.dataset.modal;
             
+            const hp = cateringData.homepage;
             if (modalType === "impressum") {
                 modalTitle.textContent = "Impressum";
-                modalBody.innerHTML = `
+                modalBody.innerHTML = hp?.legal?.impressum || `
                     <h4>Angaben gemäß § 5 TMG</h4>
-                    <p>Thomas Wies Catering GmbH<br>Große Bleiche 64<br>55116 Mainz</p>
+                    <p>Thomas Wies Catering<br>Naheweinstrasse 29<br>55425 Waldalgesheim</p>
                     
                     <h4>Vertreten durch:</h4>
-                    <p>Thomas Wies (Geschäftsführer)</p>
+                    <p>Thomas Wies</p>
                     
                     <h4>Kontakt:</h4>
                     <p>Telefon: +49 1575 3672500<br>E-Mail: hallo@thomaswies-catering.de</p>
@@ -448,14 +558,14 @@ function setupModals() {
                     <p>Umsatzsteuer-Identifikationsnummer gemäß § 27 a Umsatzsteuergesetz:<br>DE 123 456 789</p>
                     
                     <h4>Aufsichtsbehörde:</h4>
-                    <p>Gewerbeamt Mainz</p>
+                    <p>Gewerbeamt Waldalgesheim</p>
                     
                     <h4>EU-Streitschlichtung:</h4>
                     <p>Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit: <a href="https://ec.europa.eu/consumers/odr/" target="_blank" style="color:var(--accent-gold);text-decoration:underline;">https://ec.europa.eu/consumers/odr/</a>.<br>Unsere E-Mail-Adresse finden Sie oben im Impressum.</p>
                 `;
             } else if (modalType === "datenschutz") {
                 modalTitle.textContent = "Datenschutzerklärung";
-                modalBody.innerHTML = `
+                modalBody.innerHTML = hp?.legal?.datenschutz || `
                     <h4>1. Datenschutz auf einen Blick</h4>
                     <p>Die folgenden Hinweise geben einen einfachen Überblick darüber, was mit Ihren personenbezogenen Daten passiert, wenn Sie diese Website besuchen. Personenbezogene Daten sind alle Daten, mit denen Sie persönlich identifiziert werden können.</p>
                     
@@ -498,4 +608,148 @@ function setupModals() {
             closeModalFunc();
         }
     });
+}
+
+// Setup Lightbox Overlay for Menu Images
+function setupMenuLightbox() {
+    const modal = document.getElementById("lightbox-modal");
+    const lightboxImg = document.getElementById("lightbox-img");
+    const lightboxCaption = document.getElementById("lightbox-caption");
+    const closeBtn = document.getElementById("lightbox-close");
+    
+    if (!modal || !lightboxImg || !closeBtn) return;
+    
+    // Delegate click events on the menu container to capture dynamic images
+    const menuContent = document.getElementById("menu-content");
+    if (menuContent) {
+        menuContent.addEventListener("click", (e) => {
+            const img = e.target.closest(".menu-item-img");
+            if (img) {
+                lightboxImg.src = img.src;
+                lightboxImg.alt = img.alt;
+                lightboxCaption.textContent = img.alt || "Gericht";
+                modal.classList.add("active");
+                document.body.style.overflow = "hidden"; // Disable body scrolling
+            }
+        });
+    }
+    
+    const closeModal = () => {
+        modal.classList.remove("active");
+        document.body.style.overflow = ""; // Enable body scrolling
+    };
+    
+    closeBtn.addEventListener("click", closeModal);
+    
+    // Close on backdrop click
+    modal.addEventListener("click", (e) => {
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
+    
+    // Close on Escape key press
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && modal.classList.contains("active")) {
+            closeModal();
+        }
+    });
+}
+
+// Dynamically populates all homepage text blocks from database
+function renderHomepageTexts() {
+    const hp = cateringData.homepage;
+    if (!hp) return;
+    
+    // Hero
+    if (hp.hero) {
+        document.querySelectorAll(".hero-tagline").forEach(el => el.textContent = hp.hero.tagline);
+        document.querySelectorAll(".hero-cta .btn-primary").forEach(el => el.textContent = hp.hero.buttonPrimary || "Jetzt anfragen");
+        document.querySelectorAll(".hero-cta .btn-secondary").forEach(el => el.textContent = hp.hero.buttonSecondary || "Speisekarte ansehen");
+    }
+    
+    // Services Intro
+    if (hp.servicesIntro) {
+        const sHeader = document.querySelector("#leistungen .section-header");
+        if (sHeader) {
+            sHeader.innerHTML = `
+                <h2>${hp.servicesIntro.title}</h2>
+                <p>${hp.servicesIntro.description}</p>
+            `;
+        }
+    }
+    
+    // Philosophy
+    if (hp.philosophy) {
+        const introText = document.querySelector(".intro-text");
+        if (introText) {
+            introText.innerHTML = `
+                <span class="text-orange" style="font-weight:600; text-transform:uppercase; letter-spacing:0.1em; font-size:0.9rem;">${hp.philosophy.badge}</span>
+                <h3 style="margin-top:0.5rem;">${hp.philosophy.title}</h3>
+                <p style="margin-top:1.5rem;">${hp.philosophy.text1}</p>
+                <p>${hp.philosophy.text2}</p>
+                <a href="#kontakt" class="btn btn-primary" style="margin-top:1rem;">${hp.philosophy.buttonText || 'Lernen Sie mich kennen'}</a>
+            `;
+        }
+        const introImg = document.querySelector(".intro-image");
+        if (introImg && hp.philosophy.image) {
+            introImg.src = hp.philosophy.image;
+        }
+    }
+    
+    // Menu Intro
+    if (hp.menuIntro) {
+        const mHeader = document.querySelector("#speisekarte .section-header");
+        if (mHeader) {
+            mHeader.innerHTML = `
+                <h2>${hp.menuIntro.title}</h2>
+                <p>${hp.menuIntro.description}</p>
+            `;
+        }
+    }
+    
+    // Testimonials Intro
+    if (hp.testimonialsIntro) {
+        const tHeader = document.querySelector("#kundenstimmen .section-header");
+        if (tHeader) {
+            tHeader.innerHTML = `
+                <h2>${hp.testimonialsIntro.title}</h2>
+                <p>${hp.testimonialsIntro.description}</p>
+            `;
+        }
+    }
+    
+    // Contact Intro
+    if (hp.contactIntro) {
+        const cHeader = document.querySelector("#kontakt .section-header");
+        if (cHeader) {
+            cHeader.innerHTML = `
+                <h2>${hp.contactIntro.title}</h2>
+                <p>${hp.contactIntro.description}</p>
+            `;
+        }
+    }
+    
+    // Testimonials Form Title
+    if (hp.testimonialsIntro && hp.testimonialsIntro.formTitle) {
+        const formTitle = document.querySelector(".add-review-box h3");
+        if (formTitle) formTitle.textContent = hp.testimonialsIntro.formTitle;
+    }
+    
+    // Contact Info Cards
+    if (hp.contactCards && hp.contactCards.length >= 1) {
+        const cards = document.querySelectorAll(".contact-info-container .info-card:not(.personal-brand)");
+        if (cards.length >= 1) {
+            cards[0].innerHTML = `
+                <h4>${hp.contactCards[0].title}</h4>
+                <p>${hp.contactCards[0].description}</p>
+            `;
+        }
+    }
+    
+    // Footer description
+    if (hp.footerDescription) {
+        const footerDesc = document.querySelector(".footer-brand p");
+        if (footerDesc) footerDesc.textContent = hp.footerDescription;
+    }
 }
