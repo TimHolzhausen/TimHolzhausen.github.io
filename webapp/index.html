@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Davinci Color Prediction Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <!-- Meta Tags for mobile app feeling -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0a0915">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header Section -->
+        <header>
+            <div class="logo-container">
+                <span class="logo-dot"></span>
+                <h1>Davinci Color</h1>
+            </div>
+            
+            <div class="connection-status-box">
+                <!-- Battery Circle Indicator -->
+                <div class="battery-wrapper tooltip" id="battery-tooltip" data-tooltip="Batteriestand unbekannt">
+                    <svg class="battery-svg" viewBox="0 0 36 36">
+                        <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        <path class="circle" id="battery-progress" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    </svg>
+                    <div class="battery-text" id="battery-value">--%</div>
+                </div>
+                
+                <!-- BLE Connect Button -->
+                <button id="connect-btn" class="connect-btn disconnected">
+                    <span class="btn-icon">⚡</span>
+                    <span class="btn-text">Verbinden</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Dashboard -->
+        <main>
+            <!-- Pots Grid (6 Channels) -->
+            <section class="pots-section">
+                <h2 class="section-title">Sensor Status</h2>
+                <div class="pots-grid" id="pots-grid">
+                    <!-- Dynamic rendering in JS, but static template here for SEO and initial layout -->
+                    <div class="pot-card" id="pot-0" style="--accent-color: #ff3b30; --glow-color: rgba(255, 59, 48, 0.4)">
+                        <div class="pot-header">
+                            <span class="pot-badge">1</span>
+                            <button class="edit-pot-btn" onclick="openEditModal(0)">⚙️</button>
+                        </div>
+                        <div class="pot-content">
+                            <h3 class="pot-name" id="pot-name-0">Topf 1</h3>
+                            <p class="pot-status" id="pot-status-0">Inaktiv</p>
+                        </div>
+                    </div>
+                    
+                    <div class="pot-card" id="pot-1" style="--accent-color: #ffcc00; --glow-color: rgba(255, 204, 0, 0.4)">
+                        <div class="pot-header">
+                            <span class="pot-badge">2</span>
+                            <button class="edit-pot-btn" onclick="openEditModal(1)">⚙️</button>
+                        </div>
+                        <div class="pot-content">
+                            <h3 class="pot-name" id="pot-name-1">Topf 2</h3>
+                            <p class="pot-status" id="pot-status-1">Inaktiv</p>
+                        </div>
+                    </div>
+
+                    <div class="pot-card" id="pot-2" style="--accent-color: #007aff; --glow-color: rgba(0, 122, 255, 0.4)">
+                        <div class="pot-header">
+                            <span class="pot-badge">3</span>
+                            <button class="edit-pot-btn" onclick="openEditModal(2)">⚙️</button>
+                        </div>
+                        <div class="pot-content">
+                            <h3 class="pot-name" id="pot-name-2">Topf 3</h3>
+                            <p class="pot-status" id="pot-status-2">Inaktiv</p>
+                        </div>
+                    </div>
+
+                    <div class="pot-card" id="pot-3" style="--accent-color: #34c759; --glow-color: rgba(52, 199, 89, 0.4)">
+                        <div class="pot-header">
+                            <span class="pot-badge">4</span>
+                            <button class="edit-pot-btn" onclick="openEditModal(3)">⚙️</button>
+                        </div>
+                        <div class="pot-content">
+                            <h3 class="pot-name" id="pot-name-3">Topf 4</h3>
+                            <p class="pot-status" id="pot-status-3">Inaktiv</p>
+                        </div>
+                    </div>
+
+                    <div class="pot-card" id="pot-4" style="--accent-color: #ff9500; --glow-color: rgba(255, 149, 0, 0.4)">
+                        <div class="pot-header">
+                            <span class="pot-badge">5</span>
+                            <button class="edit-pot-btn" onclick="openEditModal(4)">⚙️</button>
+                        </div>
+                        <div class="pot-content">
+                            <h3 class="pot-name" id="pot-name-4">Topf 5</h3>
+                            <p class="pot-status" id="pot-status-4">Inaktiv</p>
+                        </div>
+                    </div>
+
+                    <div class="pot-card" id="pot-5" style="--accent-color: #af52de; --glow-color: rgba(175, 82, 222, 0.4)">
+                        <div class="pot-header">
+                            <span class="pot-badge">6</span>
+                            <button class="edit-pot-btn" onclick="openEditModal(5)">⚙️</button>
+                        </div>
+                        <div class="pot-content">
+                            <h3 class="pot-name" id="pot-name-5">Topf 6</h3>
+                            <p class="pot-status" id="pot-status-5">Inaktiv</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Feedback & Settings Section -->
+            <section class="controls-section">
+                <div class="control-card">
+                    <h3>Feedback-Optionen</h3>
+                    <div class="switches-container">
+                        <label class="switch-label">
+                            <span class="switch-text">Vibration (Smartphone)</span>
+                            <div class="switch">
+                                <input type="checkbox" id="vibro-feedback" checked>
+                                <span class="slider"></span>
+                            </div>
+                        </label>
+                        <label class="switch-label">
+                            <span class="switch-text">Audio-Töne</span>
+                            <div class="switch">
+                                <input type="checkbox" id="audio-feedback">
+                                <span class="slider"></span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Event Log Section -->
+            <section class="log-section">
+                <div class="log-header">
+                    <h2 class="section-title">Aktivitäts-Protokoll</h2>
+                    <button id="clear-log-btn" class="clear-btn">Löschen</button>
+                </div>
+                <div class="log-container" id="log-container">
+                    <div class="log-placeholder">Keine Ereignisse protokolliert. Verbinde dich mit dem Board, um Messwerte zu empfangen.</div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Edit Pot Name / Color Modal -->
+        <div id="edit-modal" class="modal">
+            <div class="modal-content glass">
+                <span class="close-modal-btn" onclick="closeEditModal()">&times;</span>
+                <h3>Topf konfigurieren</h3>
+                <div class="form-group">
+                    <label for="modal-pot-name">Name / Farbe des Topfes:</label>
+                    <input type="text" id="modal-pot-name" placeholder="z. B. Roter Topf">
+                </div>
+                <div class="form-group">
+                    <label>Farbe wählen:</label>
+                    <div class="color-palette">
+                        <button class="color-dot active" style="background-color: #ff3b30;" data-color="#ff3b30" data-glow="rgba(255, 59, 48, 0.4)"></button>
+                        <button class="color-dot" style="background-color: #ffcc00;" data-color="#ffcc00" data-glow="rgba(255, 204, 0, 0.4)"></button>
+                        <button class="color-dot" style="background-color: #34c759;" data-color="#34c759" data-glow="rgba(52, 199, 89, 0.4)"></button>
+                        <button class="color-dot" style="background-color: #007aff;" data-color="#007aff" data-glow="rgba(0, 122, 255, 0.4)"></button>
+                        <button class="color-dot" style="background-color: #af52de;" data-color="#af52de" data-glow="rgba(175, 82, 222, 0.4)"></button>
+                        <button class="color-dot" style="background-color: #ff9500;" data-color="#ff9500" data-glow="rgba(255, 149, 0, 0.4)"></button>
+                        <button class="color-dot" style="background-color: #ff2d55;" data-color="#ff2d55" data-glow="rgba(255, 45, 85, 0.4)"></button>
+                        <button class="color-dot" style="background-color: #5ac8fa;" data-color="#5ac8fa" data-glow="rgba(90, 200, 250, 0.4)"></button>
+                    </div>
+                </div>
+                <button id="save-modal-btn" class="save-btn">Speichern</button>
+            </div>
+        </div>
+
+        <!-- Notification Banner -->
+        <div id="notification-toast" class="toast">Nachricht</div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
