@@ -2,6 +2,7 @@
 const SENSOR_SERVICE_UUID = 0x181a;       // Environmental Sensing
 const SENSOR_CHAR_UUID = 0x2a58;          // Analog State
 const SENSOR_CONFIG_UUID = 0x2a59;        // Lock/Reset Config State
+const SENSOR_THRESHOLD_UUID = 0x2a5a;     // Threshold Config State
 const BATTERY_SERVICE_UUID = 0x180f;     // Battery Service
 const BATTERY_CHAR_UUID = 0x2a19;        // Battery Level
 
@@ -9,6 +10,7 @@ const BATTERY_CHAR_UUID = 0x2a19;        // Battery Level
 let bleDevice = null;
 let sensorCharacteristic = null;
 let configCharacteristic = null;
+let thresholdCharacteristic = null;
 let batteryCharacteristic = null;
 let lastStateByte = 0;
 let isConnecting = false;
@@ -195,6 +197,43 @@ function setupEventListeners() {
             }
         });
     }
+
+    // Threshold-Slider
+    const thresholdSlider = document.getElementById('threshold-slider');
+    const thresholdVal = document.getElementById('threshold-val');
+    if (thresholdSlider && thresholdVal) {
+        // Live Wert-Anzeige beim Ziehen
+        thresholdSlider.addEventListener('input', () => {
+            thresholdVal.innerText = thresholdSlider.value;
+        });
+
+        // BLE-Schreiben nach dem Loslassen
+        thresholdSlider.addEventListener('change', async () => {
+            if (thresholdCharacteristic) {
+                try {
+                    const val = parseInt(thresholdSlider.value);
+                    // 16-Bit Wert als Little-Endian senden (2 Bytes)
+                    const data = new Uint8Array([val & 0xff, (val >> 8) & 0xff]);
+                    await writeConfigValue(thresholdCharacteristic, data);
+                    showToast(`Schwellenwert auf ${val} geändert.`);
+                } catch (err) {
+                    console.error("Fehler beim Senden des Schwellenwerts:", err);
+                    showToast("Schreibfehler: " + err.message);
+                    // Regler zurücksetzen
+                    try {
+                        const valData = await thresholdCharacteristic.readValue();
+                        const val = valData.getUint16(0, true);
+                        thresholdSlider.value = val;
+                        thresholdVal.innerText = val;
+                    } catch (readErr) {
+                        console.error(readErr);
+                    }
+                }
+            } else {
+                showToast("Nicht mit dem Board verbunden.");
+            }
+        });
+    }
 }
 
 // Hilfsfunktion für robustes BLE-Schreiben mit Fallback
@@ -317,6 +356,25 @@ async function connectBLE() {
         } catch (configError) {
             console.warn("Konfigurations-Charakteristik nicht verfügbar:", configError);
         }
+
+        // Get Threshold Characteristic
+        try {
+            console.log("Hole Schwellenwert-Charakteristik...");
+            thresholdCharacteristic = await sensorService.getCharacteristic(SENSOR_THRESHOLD_UUID);
+            
+            // Initialen Wert lesen (16-bit Little-Endian)
+            const valData = await thresholdCharacteristic.readValue();
+            const val = valData.getUint16(0, true);
+            const thresholdSlider = document.getElementById('threshold-slider');
+            const thresholdVal = document.getElementById('threshold-val');
+            if (thresholdSlider) {
+                thresholdSlider.value = val;
+                thresholdSlider.disabled = false;
+            }
+            if (thresholdVal) thresholdVal.innerText = val;
+        } catch (threshError) {
+            console.warn("Schwellenwert-Charakteristik nicht verfügbar:", threshError);
+        }
         
         // 2. Get Battery Service (Optional)
         try {
@@ -367,6 +425,7 @@ function resetState() {
     bleDevice = null;
     sensorCharacteristic = null;
     configCharacteristic = null;
+    thresholdCharacteristic = null;
     batteryCharacteristic = null;
     lastStateByte = 0;
     
@@ -377,9 +436,13 @@ function resetState() {
     batteryValue.innerText = "--%";
     batteryTooltip.setAttribute('data-tooltip', 'Batteriestand unbekannt');
     
-    // Reset control switch and buttons
+    // Reset control switch, buttons, and slider
     const resetBtn = document.getElementById('reset-locks-btn');
     if (resetBtn) resetBtn.disabled = true;
+    const thresholdSlider = document.getElementById('threshold-slider');
+    const thresholdVal = document.getElementById('threshold-val');
+    if (thresholdSlider) thresholdSlider.disabled = true;
+    if (thresholdVal) thresholdVal.innerText = '--';
     
     // Set all cards to inactive
     for (let i = 0; i < 6; i++) {
