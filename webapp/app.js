@@ -116,22 +116,7 @@ function setupEventListeners() {
         }
     });
 
-    // Test-Vibrations-Button
-    const testVibroBtn = document.getElementById('test-vibro-btn');
-    if (testVibroBtn) {
-        testVibroBtn.addEventListener('click', () => {
-            if ('vibrate' in navigator) {
-                const success = navigator.vibrate(200);
-                if (success) {
-                    showToast("Test-Vibration ausgelöst.");
-                } else {
-                    showToast("Fehler: Vibration wurde vom System blockiert.");
-                }
-            } else {
-                showToast("Vibration API wird nicht vom Browser unterstützt.");
-            }
-        });
-    }
+
 
     // Clear Log Button
     clearLogBtn.addEventListener('click', () => {
@@ -176,7 +161,7 @@ function setupEventListeners() {
             if (configCharacteristic) {
                 try {
                     const val = lockSwitch.checked ? 0x01 : 0x00;
-                    await configCharacteristic.writeValue(new Uint8Array([val]));
+                    await writeConfigValue(configCharacteristic, val);
                     resetBtn.disabled = !lockSwitch.checked;
                     showToast(lockSwitch.checked ? "Sperre nach Auslösung aktiv." : "Mehrfach-Auslösung erlaubt.");
                 } catch (err) {
@@ -199,7 +184,7 @@ function setupEventListeners() {
         resetBtn.addEventListener('click', async () => {
             if (configCharacteristic) {
                 try {
-                    await configCharacteristic.writeValue(new Uint8Array([0x02]));
+                    await writeConfigValue(configCharacteristic, 0x02);
                     showToast("Sperrung aller Töpfe aufgehoben!");
                 } catch (err) {
                     console.error("Fehler beim Senden des Entsperr-Befehls:", err);
@@ -209,6 +194,16 @@ function setupEventListeners() {
                 showToast("Nicht mit dem Board verbunden.");
             }
         });
+    }
+}
+
+// Hilfsfunktion für robustes BLE-Schreiben mit Fallback
+async function writeConfigValue(characteristic, value) {
+    const data = new Uint8Array([value]);
+    if (typeof characteristic.writeValueWithResponse === 'function') {
+        await characteristic.writeValueWithResponse(data);
+    } else {
+        await characteristic.writeValue(data);
     }
 }
 
@@ -255,21 +250,6 @@ function playToneForPot(index) {
     osc.stop(audioCtx.currentTime + 0.5);
 }
 
-// Phone Haptic Feedback (Vibration API)
-function triggerVibration(index) {
-    if (!document.getElementById('vibro-feedback').checked) return;
-    if ('vibrate' in navigator) {
-        const potNumber = index + 1;
-        const pattern = [];
-        // Rhythmisches Vibrationsmuster: Z. B. 3-mal vibrieren für Topf 3
-        for (let i = 0; i < potNumber; i++) {
-            pattern.push(160); // 160ms Vibration
-            pattern.push(100); // 100ms Pause
-        }
-        pattern.pop(); // Letzte Pause entfernen
-        navigator.vibrate(pattern);
-    }
-}
 
 // Activity Event Logger
 function logEvent(potIndex, isActive) {
@@ -469,7 +449,6 @@ function parseStateByte(stateByte) {
                 
                 logEvent(i, true);
                 playToneForPot(i);
-                triggerVibration(i);
             } else {
                 // Ready
                 if (card) card.classList.remove('active');

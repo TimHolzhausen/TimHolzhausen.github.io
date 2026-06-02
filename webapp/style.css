@@ -321,31 +321,6 @@ header h1 {
     gap: 12px;
 }
 
-.test-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
-}
-
-.test-btn {
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: var(--text-primary);
-    padding: 6px 14px;
-    border-radius: var(--border-radius-sm);
-    font-size: 0.85rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-family: var(--font-main);
-}
-
-.test-btn:active {
-    background: rgba(255, 255, 255, 0.15);
-    transform: scale(0.97);
-}
-
 .switch-label {
     display: flex;
     justify-content: space-between;
