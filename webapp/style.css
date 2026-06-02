@@ -269,15 +269,28 @@ header h1 {
 /* Active Glow State */
 .pot-card.active {
     border-color: var(--accent-color);
-    box-shadow: 0 0 20px var(--glow-color), var(--shadow-premium);
-    transform: translateY(-2px);
-    background: rgba(25, 20, 48, 0.7);
+    box-shadow: 0 0 30px var(--glow-color), 0 0 10px var(--accent-color), var(--shadow-premium);
+    transform: translateY(-4px) scale(1.02);
+    background: linear-gradient(135deg, rgba(15, 12, 30, 0.95), var(--glow-color));
 }
 
 .pot-card.active .pot-status {
     color: var(--accent-color);
     font-weight: 700;
+    text-shadow: 0 0 8px var(--glow-color);
     animation: pulse-text 1.5s infinite alternate;
+}
+
+.pot-card.active .pot-name {
+    color: #fff;
+    text-shadow: 0 0 8px var(--glow-color);
+}
+
+.pot-card.active .pot-badge {
+    background-color: var(--accent-color);
+    color: #000;
+    font-weight: 800;
+    box-shadow: 0 0 10px var(--accent-color);
 }
 
 /* Switch Panel */
@@ -306,6 +319,31 @@ header h1 {
     display: flex;
     flex-direction: column;
     gap: 12px;
+}
+
+.test-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.test-btn {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+    padding: 6px 14px;
+    border-radius: var(--border-radius-sm);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: var(--font-main);
+}
+
+.test-btn:active {
+    background: rgba(255, 255, 255, 0.15);
+    transform: scale(0.97);
 }
 
 .switch-label {

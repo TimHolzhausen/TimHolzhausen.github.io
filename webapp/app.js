@@ -114,6 +114,23 @@ function setupEventListeners() {
         }
     });
 
+    // Test-Vibrations-Button
+    const testVibroBtn = document.getElementById('test-vibro-btn');
+    if (testVibroBtn) {
+        testVibroBtn.addEventListener('click', () => {
+            if ('vibrate' in navigator) {
+                const success = navigator.vibrate(200);
+                if (success) {
+                    showToast("Test-Vibration ausgelöst.");
+                } else {
+                    showToast("Fehler: Vibration wurde vom System blockiert.");
+                }
+            } else {
+                showToast("Vibration API wird nicht vom Browser unterstützt.");
+            }
+        });
+    }
+
     // Clear Log Button
     clearLogBtn.addEventListener('click', () => {
         logContainer.innerHTML = '<div class="log-placeholder">Protokoll gelöscht.</div>';
@@ -223,7 +240,7 @@ function logEvent(potIndex, isActive) {
     logItem.className = 'log-item';
     logItem.style.setProperty('--log-accent', config.color);
     
-    const actionText = isActive ? 'angehoben ⬆️' : 'abgestellt ⬇️';
+    const actionText = isActive ? 'benutzt 🟢' : 'wieder bereit ⚪';
     logItem.innerHTML = `
         <span><strong>${config.name}</strong> wurde ${actionText}</span>
         <span class="log-time">${time}</span>
@@ -323,7 +340,7 @@ function resetState() {
         const card = document.getElementById(`pot-${i}`);
         const statusText = document.getElementById(`pot-status-${i}`);
         if (card) card.classList.remove('active');
-        if (statusText) statusText.innerText = 'Inaktiv';
+        if (statusText) statusText.innerText = 'Bereit';
     }
 }
 
@@ -380,17 +397,17 @@ function parseStateByte(stateByte) {
         if (isActive !== wasActive) {
             // State changed
             if (isActive) {
-                // Lifted (Active)
+                // Used
                 if (card) card.classList.add('active');
-                if (statusText) statusText.innerText = 'Aktiv (Angehoben)';
+                if (statusText) statusText.innerText = 'Benutzt';
                 
                 logEvent(i, true);
                 playToneForPot(i);
                 triggerVibration(i);
             } else {
-                // Placed down (Inactive)
+                // Ready
                 if (card) card.classList.remove('active');
-                if (statusText) statusText.innerText = 'Inaktiv';
+                if (statusText) statusText.innerText = 'Bereit';
                 
                 logEvent(i, false);
             }
@@ -398,10 +415,10 @@ function parseStateByte(stateByte) {
             // Ensure UI is in sync on connection
             if (isActive) {
                 if (card) card.classList.add('active');
-                if (statusText) statusText.innerText = 'Aktiv (Angehoben)';
+                if (statusText) statusText.innerText = 'Benutzt';
             } else {
                 if (card) card.classList.remove('active');
-                if (statusText) statusText.innerText = 'Inaktiv';
+                if (statusText) statusText.innerText = 'Bereit';
             }
         }
     }
