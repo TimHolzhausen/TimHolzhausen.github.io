@@ -266,7 +266,7 @@ function setupEventListeners() {
 
 // Hilfsfunktion für robustes BLE-Schreiben mit Fallback
 async function writeConfigValue(characteristic, value) {
-    const data = new Uint8Array([value]);
+    const data = (value instanceof Uint8Array) ? value : new Uint8Array([value]);
     if (typeof characteristic.writeValueWithResponse === 'function') {
         await characteristic.writeValueWithResponse(data);
     } else {

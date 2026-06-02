@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -13,6 +14,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0a0915">
 </head>
+
 <body>
     <div class="app-container">
         <!-- Header Section -->
@@ -20,19 +22,21 @@
             <div class="logo-container">
                 <span class="logo-dot"></span>
                 <h1>Davinci Color</h1>
-                <span class="version-tag">v2.2</span>
+                <span class="version-tag">v2.3</span>
             </div>
-            
+
             <div class="connection-status-box">
                 <!-- Battery Circle Indicator -->
                 <div class="battery-wrapper tooltip" id="battery-tooltip" data-tooltip="Batteriestand unbekannt">
                     <svg class="battery-svg" viewBox="0 0 36 36">
-                        <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                        <path class="circle" id="battery-progress" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        <path class="circle-bg"
+                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        <path class="circle" id="battery-progress" stroke-dasharray="0, 100"
+                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
                     </svg>
                     <div class="battery-text" id="battery-value">--%</div>
                 </div>
-                
+
                 <!-- BLE Connect Button -->
                 <button id="connect-btn" class="connect-btn disconnected">
                     <span class="btn-icon">⚡</span>
@@ -48,7 +52,8 @@
                 <h2 class="section-title">Sensor Status</h2>
                 <div class="pots-grid" id="pots-grid">
                     <!-- Dynamic rendering in JS, but static template here for SEO and initial layout -->
-                    <div class="pot-card" id="pot-0" style="--accent-color: #ff3b30; --glow-color: rgba(255, 59, 48, 0.4)">
+                    <div class="pot-card" id="pot-0"
+                        style="--accent-color: #ff3b30; --glow-color: rgba(255, 59, 48, 0.4)">
                         <div class="pot-header">
                             <span class="pot-badge">1</span>
                             <button class="edit-pot-btn" onclick="openEditModal(0)">⚙️</button>
@@ -58,8 +63,9 @@
                             <p class="pot-status" id="pot-status-0">Bereit</p>
                         </div>
                     </div>
-                    
-                    <div class="pot-card" id="pot-1" style="--accent-color: #ffcc00; --glow-color: rgba(255, 204, 0, 0.4)">
+
+                    <div class="pot-card" id="pot-1"
+                        style="--accent-color: #ffcc00; --glow-color: rgba(255, 204, 0, 0.4)">
                         <div class="pot-header">
                             <span class="pot-badge">2</span>
                             <button class="edit-pot-btn" onclick="openEditModal(1)">⚙️</button>
@@ -70,7 +76,8 @@
                         </div>
                     </div>
 
-                    <div class="pot-card" id="pot-2" style="--accent-color: #007aff; --glow-color: rgba(0, 122, 255, 0.4)">
+                    <div class="pot-card" id="pot-2"
+                        style="--accent-color: #007aff; --glow-color: rgba(0, 122, 255, 0.4)">
                         <div class="pot-header">
                             <span class="pot-badge">3</span>
                             <button class="edit-pot-btn" onclick="openEditModal(2)">⚙️</button>
@@ -81,7 +88,8 @@
                         </div>
                     </div>
 
-                    <div class="pot-card" id="pot-3" style="--accent-color: #34c759; --glow-color: rgba(52, 199, 89, 0.4)">
+                    <div class="pot-card" id="pot-3"
+                        style="--accent-color: #34c759; --glow-color: rgba(52, 199, 89, 0.4)">
                         <div class="pot-header">
                             <span class="pot-badge">4</span>
                             <button class="edit-pot-btn" onclick="openEditModal(3)">⚙️</button>
@@ -92,7 +100,8 @@
                         </div>
                     </div>
 
-                    <div class="pot-card" id="pot-4" style="--accent-color: #ff9500; --glow-color: rgba(255, 149, 0, 0.4)">
+                    <div class="pot-card" id="pot-4"
+                        style="--accent-color: #ff9500; --glow-color: rgba(255, 149, 0, 0.4)">
                         <div class="pot-header">
                             <span class="pot-badge">5</span>
                             <button class="edit-pot-btn" onclick="openEditModal(4)">⚙️</button>
@@ -103,7 +112,8 @@
                         </div>
                     </div>
 
-                    <div class="pot-card" id="pot-5" style="--accent-color: #af52de; --glow-color: rgba(175, 82, 222, 0.4)">
+                    <div class="pot-card" id="pot-5"
+                        style="--accent-color: #af52de; --glow-color: rgba(175, 82, 222, 0.4)">
                         <div class="pot-header">
                             <span class="pot-badge">6</span>
                             <button class="edit-pot-btn" onclick="openEditModal(5)">⚙️</button>
@@ -143,13 +153,14 @@
                             </div>
                         </label>
                         <button id="reset-locks-btn" class="reset-locks-btn" disabled>Sperrung aufheben</button>
-                        
+
                         <div class="slider-row">
                             <div class="slider-header">
                                 <span class="setting-text">Empfindlichkeit (Threshold)</span>
                                 <span id="threshold-val" class="slider-val">--</span>
                             </div>
-                            <input type="range" id="threshold-slider" min="5" max="500" value="35" class="premium-slider" disabled>
+                            <input type="range" id="threshold-slider" min="5" max="500" value="35"
+                                class="premium-slider" disabled>
                         </div>
                     </div>
                 </div>
@@ -162,7 +173,8 @@
                     <button id="clear-log-btn" class="clear-btn">Löschen</button>
                 </div>
                 <div class="log-container" id="log-container">
-                    <div class="log-placeholder">Keine Ereignisse protokolliert. Verbinde dich mit dem Board, um Messwerte zu empfangen.</div>
+                    <div class="log-placeholder">Keine Ereignisse protokolliert. Verbinde dich mit dem Board, um
+                        Messwerte zu empfangen.</div>
                 </div>
             </section>
         </main>
@@ -179,14 +191,22 @@
                 <div class="form-group">
                     <label>Farbe wählen:</label>
                     <div class="color-palette">
-                        <button class="color-dot active" style="background-color: #ff3b30;" data-color="#ff3b30" data-glow="rgba(255, 59, 48, 0.4)"></button>
-                        <button class="color-dot" style="background-color: #ffcc00;" data-color="#ffcc00" data-glow="rgba(255, 204, 0, 0.4)"></button>
-                        <button class="color-dot" style="background-color: #34c759;" data-color="#34c759" data-glow="rgba(52, 199, 89, 0.4)"></button>
-                        <button class="color-dot" style="background-color: #007aff;" data-color="#007aff" data-glow="rgba(0, 122, 255, 0.4)"></button>
-                        <button class="color-dot" style="background-color: #af52de;" data-color="#af52de" data-glow="rgba(175, 82, 222, 0.4)"></button>
-                        <button class="color-dot" style="background-color: #ff9500;" data-color="#ff9500" data-glow="rgba(255, 149, 0, 0.4)"></button>
-                        <button class="color-dot" style="background-color: #ff2d55;" data-color="#ff2d55" data-glow="rgba(255, 45, 85, 0.4)"></button>
-                        <button class="color-dot" style="background-color: #5ac8fa;" data-color="#5ac8fa" data-glow="rgba(90, 200, 250, 0.4)"></button>
+                        <button class="color-dot active" style="background-color: #ff3b30;" data-color="#ff3b30"
+                            data-glow="rgba(255, 59, 48, 0.4)"></button>
+                        <button class="color-dot" style="background-color: #ffcc00;" data-color="#ffcc00"
+                            data-glow="rgba(255, 204, 0, 0.4)"></button>
+                        <button class="color-dot" style="background-color: #34c759;" data-color="#34c759"
+                            data-glow="rgba(52, 199, 89, 0.4)"></button>
+                        <button class="color-dot" style="background-color: #007aff;" data-color="#007aff"
+                            data-glow="rgba(0, 122, 255, 0.4)"></button>
+                        <button class="color-dot" style="background-color: #af52de;" data-color="#af52de"
+                            data-glow="rgba(175, 82, 222, 0.4)"></button>
+                        <button class="color-dot" style="background-color: #ff9500;" data-color="#ff9500"
+                            data-glow="rgba(255, 149, 0, 0.4)"></button>
+                        <button class="color-dot" style="background-color: #ff2d55;" data-color="#ff2d55"
+                            data-glow="rgba(255, 45, 85, 0.4)"></button>
+                        <button class="color-dot" style="background-color: #5ac8fa;" data-color="#5ac8fa"
+                            data-glow="rgba(90, 200, 250, 0.4)"></button>
                     </div>
                 </div>
                 <button id="save-modal-btn" class="save-btn">Speichern</button>
@@ -199,4 +219,5 @@
 
     <script src="app.js"></script>
 </body>
+
 </html>
