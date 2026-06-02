@@ -708,6 +708,37 @@ input:checked + .slider:before {
     }
 }
 
+.reset-locks-btn {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--text-primary);
+    padding: 12px;
+    border-radius: var(--border-radius-md);
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: var(--font-main);
+    box-shadow: var(--shadow-premium);
+    margin-top: 6px;
+}
+
+.reset-locks-btn:not(:disabled):hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.reset-locks-btn:not(:disabled):active {
+    transform: scale(0.98);
+}
+
+.reset-locks-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
 /* Desktop Styles */
 @media (min-width: 500px) {
     body {

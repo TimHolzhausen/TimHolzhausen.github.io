@@ -1,12 +1,14 @@
 // BLE UUID Constants (standard specifications support lowercase 16-bit UUID strings)
 const SENSOR_SERVICE_UUID = 0x181a;       // Environmental Sensing
 const SENSOR_CHAR_UUID = 0x2a58;          // Analog State
+const SENSOR_CONFIG_UUID = 0x2a59;        // Lock/Reset Config State
 const BATTERY_SERVICE_UUID = 0x180f;     // Battery Service
 const BATTERY_CHAR_UUID = 0x2a19;        // Battery Level
 
 // Global States
 let bleDevice = null;
 let sensorCharacteristic = null;
+let configCharacteristic = null;
 let batteryCharacteristic = null;
 let lastStateByte = 0;
 let isConnecting = false;
@@ -165,6 +167,49 @@ function setupEventListeners() {
         closeEditModal();
         showToast(`Einstellungen für Kanal ${currentEditingIndex + 1} gespeichert.`);
     });
+
+    // Lock-After-Trigger Switch & Reset Buttons
+    const lockSwitch = document.getElementById('lock-after-trigger-switch');
+    const resetBtn = document.getElementById('reset-locks-btn');
+    if (lockSwitch && resetBtn) {
+        lockSwitch.addEventListener('change', async () => {
+            if (configCharacteristic) {
+                try {
+                    const val = lockSwitch.checked ? 0x01 : 0x00;
+                    await configCharacteristic.writeValue(new Uint8Array([val]));
+                    resetBtn.disabled = !lockSwitch.checked;
+                    showToast(lockSwitch.checked ? "Sperre nach Auslösung aktiv." : "Mehrfach-Auslösung erlaubt.");
+                } catch (err) {
+                    console.error("Fehler beim Senden des Lock-Status:", err);
+                    showToast("Schreibfehler: " + err.message);
+                    // UI zurücksetzen
+                    try {
+                        const configVal = await configCharacteristic.readValue();
+                        lockSwitch.checked = configVal.getUint8(0) !== 0;
+                    } catch (readErr) {
+                        console.error(readErr);
+                    }
+                }
+            } else {
+                showToast("Nicht verbunden oder Konfiguration nicht unterstützt.");
+                lockSwitch.checked = !lockSwitch.checked;
+            }
+        });
+
+        resetBtn.addEventListener('click', async () => {
+            if (configCharacteristic) {
+                try {
+                    await configCharacteristic.writeValue(new Uint8Array([0x02]));
+                    showToast("Sperrung aller Töpfe aufgehoben!");
+                } catch (err) {
+                    console.error("Fehler beim Senden des Entsperr-Befehls:", err);
+                    showToast("Fehler beim Entsperren: " + err.message);
+                }
+            } else {
+                showToast("Nicht mit dem Board verbunden.");
+            }
+        });
+    }
 }
 
 // Toast Notification Helper
@@ -277,6 +322,22 @@ async function connectBLE() {
         await sensorCharacteristic.startNotifications();
         sensorCharacteristic.addEventListener('characteristicvaluechanged', handleSensorNotification);
         
+        // Get Configuration Characteristic
+        try {
+            console.log("Hole Konfigurations-Charakteristik...");
+            configCharacteristic = await sensorService.getCharacteristic(SENSOR_CONFIG_UUID);
+            
+            // Initialen Wert lesen
+            const configVal = await configCharacteristic.readValue();
+            const isLockActive = configVal.getUint8(0) !== 0;
+            const lockSwitch = document.getElementById('lock-after-trigger-switch');
+            const resetBtn = document.getElementById('reset-locks-btn');
+            if (lockSwitch) lockSwitch.checked = isLockActive;
+            if (resetBtn) resetBtn.disabled = !isLockActive;
+        } catch (configError) {
+            console.warn("Konfigurations-Charakteristik nicht verfügbar:", configError);
+        }
+        
         // 2. Get Battery Service (Optional)
         try {
             console.log("Hole Battery-Service...");
@@ -325,6 +386,7 @@ function onDisconnected() {
 function resetState() {
     bleDevice = null;
     sensorCharacteristic = null;
+    configCharacteristic = null;
     batteryCharacteristic = null;
     lastStateByte = 0;
     
@@ -334,6 +396,10 @@ function resetState() {
     batteryProgress.style.strokeDasharray = "0, 100";
     batteryValue.innerText = "--%";
     batteryTooltip.setAttribute('data-tooltip', 'Batteriestand unbekannt');
+    
+    // Reset control switch and buttons
+    const resetBtn = document.getElementById('reset-locks-btn');
+    if (resetBtn) resetBtn.disabled = true;
     
     // Set all cards to inactive
     for (let i = 0; i < 6; i++) {
