@@ -81,6 +81,19 @@ header h1 {
     letter-spacing: -0.5px;
 }
 
+.version-tag {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 2px 6px;
+    border-radius: 6px;
+    margin-left: 2px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
 .connection-status-box {
     display: flex;
     align-items: center;
