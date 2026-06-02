@@ -323,7 +323,7 @@ async function connectBLE() {
     try {
         console.log("Suche nach BLE-Geräten...");
         bleDevice = await navigator.bluetooth.requestDevice({
-            filters: [{ name: 'Davinci_Color' }],
+            filters: [{ name: 'Davinci_Color_V2' }],
             optionalServices: [SENSOR_SERVICE_UUID, BATTERY_SERVICE_UUID]
         });
 
