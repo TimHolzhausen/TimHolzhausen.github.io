@@ -118,7 +118,35 @@ function setupEventListeners() {
         }
     });
 
+    // Audio Feedback Mode Dropdown Selection
+    const audioSelect = document.getElementById('audio-feedback-mode');
+    if (audioSelect) {
+        // Load initial state
+        const savedMode = localStorage.getItem('davinci_audio_mode') || 'tones';
+        audioSelect.value = savedMode;
+        
+        audioSelect.addEventListener('change', () => {
+            const mode = audioSelect.value;
+            localStorage.setItem('davinci_audio_mode', mode);
+            
+            // Interaction trigger to enable audio / speech synthesis
+            if (mode === 'speech') {
+                speakText('Voice predictive active');
+            } else if (mode === 'tones') {
+                playToneForPot(2); // Play a test tone (channel 3)
+            }
+        });
+    }
 
+    if ('speechSynthesis' in window) {
+        // Pre-warm voices cache
+        window.speechSynthesis.getVoices();
+        if (window.speechSynthesis.onvoiceschanged !== undefined) {
+            window.speechSynthesis.onvoiceschanged = () => {
+                window.speechSynthesis.getVoices();
+            };
+        }
+    }
 
     // Clear Log Button
     clearLogBtn.addEventListener('click', () => {
@@ -266,7 +294,6 @@ function initAudioContext() {
 }
 
 function playToneForPot(index) {
-    if (!document.getElementById('audio-feedback').checked) return;
     initAudioContext();
     if (!audioCtx) return;
     
@@ -287,6 +314,58 @@ function playToneForPot(index) {
     
     osc.start();
     osc.stop(audioCtx.currentTime + 0.5);
+}
+
+function speakNumber(index) {
+    if (!('speechSynthesis' in window)) {
+        console.warn("Speech Synthesis is not supported in this browser");
+        return;
+    }
+    // Cancel previous speaking queue to speak instantly
+    window.speechSynthesis.cancel();
+    
+    const ENGLISH_NUMBERS = ["One", "Two", "Three", "Four", "Five", "Six"];
+    const text = ENGLISH_NUMBERS[index] || (index + 1).toString();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'en-US';
+    
+    // Choose en-US voice specifically if available, otherwise default
+    const voices = window.speechSynthesis.getVoices();
+    const enVoice = voices.find(voice => voice.lang.startsWith('en'));
+    if (enVoice) {
+        utterance.voice = enVoice;
+    }
+    
+    utterance.rate = 1.1; // Slightly faster to be instant
+    window.speechSynthesis.speak(utterance);
+}
+
+function speakText(text) {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'en-US';
+    
+    const voices = window.speechSynthesis.getVoices();
+    const enVoice = voices.find(voice => voice.lang.startsWith('en'));
+    if (enVoice) {
+        utterance.voice = enVoice;
+    }
+    
+    utterance.rate = 1.0;
+    window.speechSynthesis.speak(utterance);
+}
+
+function triggerAudioFeedback(index) {
+    const audioSelect = document.getElementById('audio-feedback-mode');
+    if (!audioSelect) return;
+    
+    const mode = audioSelect.value;
+    if (mode === 'tones') {
+        playToneForPot(index);
+    } else if (mode === 'speech') {
+        speakNumber(index);
+    }
 }
 
 
@@ -511,7 +590,7 @@ function parseStateByte(stateByte) {
                 if (statusText) statusText.innerText = 'Benutzt';
                 
                 logEvent(i, true);
-                playToneForPot(i);
+                triggerAudioFeedback(i);
             } else {
                 // Ready
                 if (card) card.classList.remove('active');

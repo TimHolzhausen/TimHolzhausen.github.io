@@ -120,12 +120,13 @@
                 <div class="control-card">
                     <h3>Feedback-Optionen</h3>
                     <div class="switches-container">
-                        <label class="switch-label">
-                            <span class="switch-text">Audio-Töne</span>
-                            <div class="switch">
-                                <input type="checkbox" id="audio-feedback">
-                                <span class="slider"></span>
-                            </div>
+                        <label class="select-label" for="audio-feedback-mode">
+                            <span class="switch-text">Audio-Feedback</span>
+                            <select id="audio-feedback-mode" class="premium-select">
+                                <option value="off">Aus</option>
+                                <option value="tones">Töne</option>
+                                <option value="speech">Sprachausgabe (1-6)</option>
+                            </select>
                         </label>
                     </div>
                 </div>
