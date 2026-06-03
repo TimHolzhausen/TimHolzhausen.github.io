@@ -3,6 +3,7 @@ const SENSOR_SERVICE_UUID = 0x181a;       // Environmental Sensing
 const SENSOR_CHAR_UUID = 0x2a58;          // Analog State
 const SENSOR_CONFIG_UUID = 0x2a59;        // Lock/Reset Config State
 const SENSOR_THRESHOLD_UUID = 0x2a5a;     // Threshold Config State
+const SENSOR_VALUES_CHAR_UUID = 0x2a5b;    // Live Sensor values (6 channels * 2 bytes)
 const BATTERY_SERVICE_UUID = 0x180f;     // Battery Service
 const BATTERY_CHAR_UUID = 0x2a19;        // Battery Level
 
@@ -11,6 +12,7 @@ let bleDevice = null;
 let sensorCharacteristic = null;
 let configCharacteristic = null;
 let thresholdCharacteristic = null;
+let sensorValuesCharacteristic = null;
 let batteryCharacteristic = null;
 let lastStateByte = 0;
 let isConnecting = false;
@@ -224,6 +226,25 @@ function setupEventListeners() {
                 showToast("Nicht mit dem Board verbunden.");
             }
         });
+
+        const deepSleepBtn = document.getElementById('deep-sleep-btn');
+        if (deepSleepBtn) {
+            deepSleepBtn.addEventListener('click', async () => {
+                if (configCharacteristic) {
+                    if (confirm("Möchtest du den Sender wirklich ausschalten? Aufwachen ist nur durch Anschließen der USB-Stromversorgung möglich.")) {
+                        try {
+                            await writeConfigValue(configCharacteristic, 0x03);
+                            showToast("Ausschalt-Befehl gesendet.");
+                        } catch (err) {
+                            console.error("Fehler beim Senden des Deep Sleep Befehls:", err);
+                            showToast("Fehler beim Ausschalten: " + err.message);
+                        }
+                    }
+                } else {
+                    showToast("Nicht mit dem Board verbunden.");
+                }
+            });
+        }
     }
 
     // Threshold-Slider
@@ -438,6 +459,9 @@ async function connectBLE() {
             const resetBtn = document.getElementById('reset-locks-btn');
             if (lockSwitch) lockSwitch.checked = isLockActive;
             if (resetBtn) resetBtn.disabled = !isLockActive;
+            
+            const deepSleepBtn = document.getElementById('deep-sleep-btn');
+            if (deepSleepBtn) deepSleepBtn.disabled = false;
         } catch (configError) {
             console.warn("Konfigurations-Charakteristik nicht verfügbar:", configError);
         }
@@ -459,6 +483,18 @@ async function connectBLE() {
             if (thresholdVal) thresholdVal.innerText = val;
         } catch (threshError) {
             console.warn("Schwellenwert-Charakteristik nicht verfügbar:", threshError);
+        }
+
+        // Get Live Sensor Values Characteristic
+        try {
+            console.log("Hole Live-Sensorwerte-Charakteristik...");
+            sensorValuesCharacteristic = await sensorService.getCharacteristic(SENSOR_VALUES_CHAR_UUID);
+            
+            // Start notifications for live sensor values
+            await sensorValuesCharacteristic.startNotifications();
+            sensorValuesCharacteristic.addEventListener('characteristicvaluechanged', handleValuesNotification);
+        } catch (valuesError) {
+            console.warn("Live-Sensorwerte-Charakteristik nicht verfügbar:", valuesError);
         }
         
         // 2. Get Battery Service (Optional)
@@ -511,6 +547,7 @@ function resetState() {
     sensorCharacteristic = null;
     configCharacteristic = null;
     thresholdCharacteristic = null;
+    sensorValuesCharacteristic = null;
     batteryCharacteristic = null;
     lastStateByte = 0;
     
@@ -524,17 +561,21 @@ function resetState() {
     // Reset control switch, buttons, and slider
     const resetBtn = document.getElementById('reset-locks-btn');
     if (resetBtn) resetBtn.disabled = true;
+    const deepSleepBtn = document.getElementById('deep-sleep-btn');
+    if (deepSleepBtn) deepSleepBtn.disabled = true;
     const thresholdSlider = document.getElementById('threshold-slider');
     const thresholdVal = document.getElementById('threshold-val');
     if (thresholdSlider) thresholdSlider.disabled = true;
     if (thresholdVal) thresholdVal.innerText = '--';
     
-    // Set all cards to inactive
+    // Set all cards to inactive and clear value labels
     for (let i = 0; i < 6; i++) {
         const card = document.getElementById(`pot-${i}`);
         const statusText = document.getElementById(`pot-status-${i}`);
+        const valueText = document.getElementById(`pot-value-${i}`);
         if (card) card.classList.remove('active');
         if (statusText) statusText.innerText = 'Bereit';
+        if (valueText) valueText.innerText = '--';
     }
 }
 
@@ -561,6 +602,20 @@ function handleSensorNotification(event) {
 function handleBatteryNotification(event) {
     const level = event.target.value.getUint8(0);
     updateBatteryUI(level);
+}
+
+function handleValuesNotification(event) {
+    const dataView = event.target.value;
+    if (dataView.byteLength >= 12) {
+        for (let i = 0; i < 6; i++) {
+            // Read 16-bit uint from byte stream (Little-Endian)
+            const val = dataView.getUint16(i * 2, true);
+            const valEl = document.getElementById(`pot-value-${i}`);
+            if (valEl) {
+                valEl.innerText = val;
+            }
+        }
+    }
 }
 
 function updateBatteryUI(level) {
