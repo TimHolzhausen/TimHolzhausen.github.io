@@ -780,6 +780,112 @@ input:checked + .slider:before {
     background: rgba(255, 255, 255, 0.05);
 }
 
+/* Sleep Dial Rotary Control Styling */
+.dial-row {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.dial-row .setting-text {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.dial-wrapper {
+    position: relative;
+    width: 140px;
+    height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dial-knob-outer {
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.01) 60%), rgba(25, 20, 48, 0.7);
+    border: 2px solid rgba(255, 255, 255, 0.06);
+    box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.1), 0 10px 25px rgba(0, 0, 0, 0.5), 0 0 10px rgba(135, 116, 255, 0.1);
+    position: relative;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    touch-action: none;
+    transition: border-color 0.3s, box-shadow 0.3s, opacity 0.3s;
+}
+
+.dial-knob-outer:not(.disabled):hover {
+    border-color: rgba(0, 230, 118, 0.4);
+    box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.15), 0 10px 25px rgba(0, 0, 0, 0.6), 0 0 20px rgba(0, 230, 118, 0.2);
+}
+
+.dial-knob-outer.disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.dial-knob-inner {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    background: rgba(10, 8, 20, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    box-shadow: inset 0 5px 15px rgba(0, 0, 0, 0.8);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.dial-marker {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background-color: var(--accent-connect);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--accent-connect);
+    top: 6px;
+    left: calc(50% - 3px);
+    transform-origin: 3px 42px; /* Centers rotation relative to knob center */
+    pointer-events: none;
+    transition: transform 0.1s ease-out;
+}
+
+.dial-value-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    pointer-events: none;
+    user-select: none;
+}
+
+.dial-value {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.1;
+    letter-spacing: -0.5px;
+}
+
+.dial-subtext {
+    font-size: 0.6rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-top: 2px;
+}
+
 /* Premium Slider Styling */
 .slider-row {
     display: flex;
@@ -888,6 +994,25 @@ input:checked + .slider:before {
     color: #fff;
     font-family: var(--font-main);
     padding: 10px;
+}
+
+/* Progress Bar for OTA */
+.progress-bar-container {
+    width: 100%;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+}
+.progress-bar {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, #007aff, #00e676);
+    border-radius: 4px;
+    transition: width 0.2s ease;
+    box-shadow: 0 0 10px rgba(0, 230, 118, 0.3);
 }
 
 /* Desktop Styles */

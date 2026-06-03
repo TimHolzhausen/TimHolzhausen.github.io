@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fflate/0.8.2/browser.js"></script>
     <link rel="stylesheet" href="style.css">
     <!-- Meta Tags for mobile app feeling -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -22,12 +23,12 @@
             <div class="logo-container">
                 <span class="logo-dot"></span>
                 <h1>Davinci Color</h1>
-                <span class="version-tag">v2.3</span>
+                <span class="version-tag">v2.4</span>
             </div>
 
             <div class="connection-status-box">
                 <!-- Battery Circle Indicator -->
-                <div class="battery-wrapper tooltip" id="battery-tooltip" data-tooltip="Batteriestand unbekannt">
+                <div class="battery-wrapper tooltip" id="battery-tooltip" data-tooltip="Battery status unknown">
                     <svg class="battery-svg" viewBox="0 0 36 36">
                         <path class="circle-bg"
                             d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
@@ -40,7 +41,7 @@
                 <!-- BLE Connect Button -->
                 <button id="connect-btn" class="connect-btn disconnected">
                     <span class="btn-icon">⚡</span>
-                    <span class="btn-text">Verbinden</span>
+                    <span class="btn-text">Connect</span>
                 </button>
             </div>
         </header>
@@ -60,8 +61,8 @@
                             <button class="edit-pot-btn" onclick="openEditModal(0)">⚙️</button>
                         </div>
                         <div class="pot-content">
-                            <h3 class="pot-name" id="pot-name-0">Topf 1</h3>
-                            <p class="pot-status" id="pot-status-0">Bereit</p>
+                            <h3 class="pot-name" id="pot-name-0">Pot 1</h3>
+                            <p class="pot-status" id="pot-status-0">Ready</p>
                         </div>
                     </div>
 
@@ -73,8 +74,8 @@
                             <button class="edit-pot-btn" onclick="openEditModal(1)">⚙️</button>
                         </div>
                         <div class="pot-content">
-                            <h3 class="pot-name" id="pot-name-1">Topf 2</h3>
-                            <p class="pot-status" id="pot-status-1">Bereit</p>
+                            <h3 class="pot-name" id="pot-name-1">Pot 2</h3>
+                            <p class="pot-status" id="pot-status-1">Ready</p>
                         </div>
                     </div>
 
@@ -86,8 +87,8 @@
                             <button class="edit-pot-btn" onclick="openEditModal(2)">⚙️</button>
                         </div>
                         <div class="pot-content">
-                            <h3 class="pot-name" id="pot-name-2">Topf 3</h3>
-                            <p class="pot-status" id="pot-status-2">Bereit</p>
+                            <h3 class="pot-name" id="pot-name-2">Pot 3</h3>
+                            <p class="pot-status" id="pot-status-2">Ready</p>
                         </div>
                     </div>
 
@@ -99,8 +100,8 @@
                             <button class="edit-pot-btn" onclick="openEditModal(3)">⚙️</button>
                         </div>
                         <div class="pot-content">
-                            <h3 class="pot-name" id="pot-name-3">Topf 4</h3>
-                            <p class="pot-status" id="pot-status-3">Bereit</p>
+                            <h3 class="pot-name" id="pot-name-3">Pot 4</h3>
+                            <p class="pot-status" id="pot-status-3">Ready</p>
                         </div>
                     </div>
 
@@ -112,8 +113,8 @@
                             <button class="edit-pot-btn" onclick="openEditModal(4)">⚙️</button>
                         </div>
                         <div class="pot-content">
-                            <h3 class="pot-name" id="pot-name-4">Topf 5</h3>
-                            <p class="pot-status" id="pot-status-4">Bereit</p>
+                            <h3 class="pot-name" id="pot-name-4">Pot 5</h3>
+                            <p class="pot-status" id="pot-status-4">Ready</p>
                         </div>
                     </div>
 
@@ -125,8 +126,8 @@
                             <button class="edit-pot-btn" onclick="openEditModal(5)">⚙️</button>
                         </div>
                         <div class="pot-content">
-                            <h3 class="pot-name" id="pot-name-5">Topf 6</h3>
-                            <p class="pot-status" id="pot-status-5">Bereit</p>
+                            <h3 class="pot-name" id="pot-name-5">Pot 6</h3>
+                            <p class="pot-status" id="pot-status-5">Ready</p>
                         </div>
                     </div>
                 </div>
@@ -135,39 +136,74 @@
             <!-- Feedback & Settings Section -->
             <section class="controls-section">
                 <div class="control-card">
-                    <h3>Feedback-Optionen</h3>
+                    <h3>Feedback Options</h3>
                     <div class="switches-container">
                         <label class="select-label" for="audio-feedback-mode">
-                            <span class="switch-text">Audio-Feedback</span>
+                            <span class="switch-text">Audio Feedback</span>
                             <select id="audio-feedback-mode" class="premium-select">
-                                <option value="off">Aus</option>
-                                <option value="tones">Töne</option>
-                                <option value="speech">Sprachausgabe (1-6)</option>
+                                <option value="off">Off</option>
+                                <option value="tones">Beeps</option>
+                                <option value="speech">Voice Output (1-6)</option>
                             </select>
                         </label>
                     </div>
                 </div>
 
                 <div class="control-card" style="margin-top: 12px;">
-                    <h3>Geräte-Einstellungen (XIAO)</h3>
+                    <h3>Device Settings (XIAO)</h3>
                     <div class="switches-container">
                         <label class="switch-label">
-                            <span class="switch-text">Nur einmal benutzen (Sperren)</span>
+                            <span class="switch-text">Lock After Trigger</span>
                             <div class="switch">
                                 <input type="checkbox" id="lock-after-trigger-switch" checked>
                                 <span class="slider"></span>
                             </div>
                         </label>
-                        <button id="reset-locks-btn" class="reset-locks-btn" disabled>Sperrung aufheben</button>
-                        <button id="deep-sleep-btn" class="deep-sleep-btn" disabled>Ausschalten (Deep Sleep)</button>
+                        <button id="reset-locks-btn" class="reset-locks-btn" disabled>Reset Locks</button>
+                        <button id="deep-sleep-btn" class="deep-sleep-btn" disabled>Turn Off (Deep Sleep)</button>
 
-                        <div class="slider-row">
+                        <div class="dial-row">
+                            <span class="setting-text">Auto Standby (Sleep)</span>
+                            <div class="dial-wrapper">
+                                <div class="dial-knob-outer disabled" id="sleep-dial-knob">
+                                    <div class="dial-knob-inner">
+                                        <div class="dial-marker" id="sleep-dial-marker"></div>
+                                        <div class="dial-value-container">
+                                            <span class="dial-value" id="dial-value-text">3h</span>
+                                            <span class="dial-subtext">standby</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="slider-row" style="margin-top: 12px; border-top: none; padding-top: 0;">
                             <div class="slider-header">
-                                <span class="setting-text">Empfindlichkeit (Threshold)</span>
+                                <span class="setting-text">Sensitivity (Threshold)</span>
                                 <span id="threshold-val" class="slider-val">--</span>
                             </div>
                             <input type="range" id="threshold-slider" min="5" max="500" value="35"
                                 class="premium-slider" disabled>
+                </div>
+
+                <div class="control-card" style="margin-top: 12px;">
+                    <h3>Firmware Update (OTA)</h3>
+                    <div class="switches-container">
+                        <span class="switch-text" style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4; display: block; margin-bottom: 4px;">
+                            Upload a compiled <strong>firmware.zip</strong> package to flash the sender board over-the-air.
+                        </span>
+                        <input type="file" id="ota-file-input" accept=".zip" style="display: none;">
+                        <button id="select-fw-btn" class="reset-locks-btn">Select firmware.zip</button>
+                        
+                        <div id="ota-status-area" style="display: none; margin-top: 8px; flex-direction: column; gap: 8px; width: 100%;">
+                            <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
+                                <span id="ota-status-text" class="switch-text" style="font-weight: 600;">Ready to update</span>
+                                <span id="ota-percent-text" class="slider-val" style="background: none; box-shadow: none; border: none; padding: 0; color: var(--accent-connect);">0%</span>
+                            </div>
+                            <div class="progress-bar-container">
+                                <div id="ota-progress-bar" class="progress-bar"></div>
+                            </div>
+                            <button id="start-ota-btn" class="save-btn" style="margin-top: 4px;">Upload & Flash</button>
                         </div>
                     </div>
                 </div>
@@ -176,12 +212,11 @@
             <!-- Event Log Section -->
             <section class="log-section">
                 <div class="log-header">
-                    <h2 class="section-title">Aktivitäts-Protokoll</h2>
-                    <button id="clear-log-btn" class="clear-btn">Löschen</button>
+                    <h2 class="section-title">Activity Log</h2>
+                    <button id="clear-log-btn" class="clear-btn">Clear</button>
                 </div>
                 <div class="log-container" id="log-container">
-                    <div class="log-placeholder">Keine Ereignisse protokolliert. Verbinde dich mit dem Board, um
-                        Messwerte zu empfangen.</div>
+                    <div class="log-placeholder">No events logged. Connect to the board to receive sensor readings.</div>
                 </div>
             </section>
         </main>
@@ -190,13 +225,13 @@
         <div id="edit-modal" class="modal">
             <div class="modal-content glass">
                 <span class="close-modal-btn" onclick="closeEditModal()">&times;</span>
-                <h3>Topf konfigurieren</h3>
+                <h3>Configure Pot</h3>
                 <div class="form-group">
-                    <label for="modal-pot-name">Name / Farbe des Topfes:</label>
-                    <input type="text" id="modal-pot-name" placeholder="z. B. Roter Topf">
+                    <label for="modal-pot-name">Name / Color of the Pot:</label>
+                    <input type="text" id="modal-pot-name" placeholder="e.g. Red Pot">
                 </div>
                 <div class="form-group">
-                    <label>Farbe wählen:</label>
+                    <label>Choose Color:</label>
                     <div class="color-palette">
                         <button class="color-dot active" style="background-color: #ff3b30;" data-color="#ff3b30"
                             data-glow="rgba(255, 59, 48, 0.4)"></button>
@@ -216,12 +251,12 @@
                             data-glow="rgba(90, 200, 250, 0.4)"></button>
                     </div>
                 </div>
-                <button id="save-modal-btn" class="save-btn">Speichern</button>
+                <button id="save-modal-btn" class="save-btn">Save</button>
             </div>
         </div>
 
         <!-- Notification Banner -->
-        <div id="notification-toast" class="toast">Nachricht</div>
+        <div id="notification-toast" class="toast">Notification</div>
     </div>
 
     <script src="app.js"></script>
