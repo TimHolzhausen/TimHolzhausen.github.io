@@ -278,6 +278,66 @@
             color: var(--text-muted);
             font-size: 0.8rem;
         }
+
+        /* Language switcher and translation visibility */
+        .lang-switch {
+            display: flex;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 30px;
+            padding: 2px;
+            margin-bottom: 10px;
+            width: fit-content;
+        }
+
+        .lang-switch-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            padding: 6px 16px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .lang-switch-btn.active {
+            background: var(--accent);
+            color: #06050e;
+        }
+        
+        .lang-switch-btn:hover:not(.active) {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .lang-de, .lang-en {
+            display: none !important;
+            width: 100%;
+        }
+        
+        html[lang="de"] .lang-de {
+            display: block !important;
+        }
+        
+        html[lang="en"] .lang-en {
+            display: block !important;
+        }
+
+        html[lang="de"] .hero-card .lang-de {
+            display: flex !important;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        html[lang="en"] .hero-card .lang-en {
+            display: flex !important;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
     </style>
 </head>
 <body>
@@ -287,32 +347,62 @@
             <div class="hero-card">
                 <img src="icon.svg" alt="Davinci Logo" class="logo-img">
                 <h1>Davinci v2</h1>
-                <p>Premium Mentalmagie Steuerzentrale für die kapazitive Farbpalette und den diskreten Vibrationsempfänger.</p>
-                <a href="app.html" class="launch-btn">
-                    <span>⚡</span> Control Panel starten
-                </a>
+                
+                <!-- Language Switcher -->
+                <div class="lang-switch">
+                    <button id="lang-btn-de" class="lang-switch-btn" onclick="setLanguage('de')">DE</button>
+                    <button id="lang-btn-en" class="lang-switch-btn" onclick="setLanguage('en')">EN</button>
+                </div>
+                
+                <div class="lang-de">
+                    <p>Premium Mentalmagie Steuerzentrale für die kapazitive Farbpalette und den diskreten Vibrationsempfänger.</p>
+                    <a href="app.html" class="launch-btn">
+                        <span>⚡</span> Control Panel starten
+                    </a>
+                </div>
+                
+                <div class="lang-en">
+                    <p>Premium mentalism control center for the capacitive paint palette and discrete vibration receiver.</p>
+                    <a href="app.html" class="launch-btn">
+                        <span>⚡</span> Launch Control Panel
+                    </a>
+                </div>
             </div>
             
-            <div class="pwa-badge">
+            <div class="pwa-badge lang-de">
                 💡 <strong>Tipp:</strong> Installiere diese Seite über das Teilen-Menü deines Browsers auf deinem Startbildschirm, um sie jederzeit 100% offline zu nutzen.
+            </div>
+            <div class="pwa-badge lang-en">
+                💡 <strong>Tip:</strong> Install this page on your home screen via your browser's share menu to use it 100% offline at any time.
             </div>
         </aside>
 
         <!-- Main Column -->
         <main class="content">
-            <!-- Section 1 -->
-            <section class="section-card">
+            <!-- Section 1 (DE) -->
+            <section class="section-card lang-de">
                 <h2><span>📖</span> 1. Systemübersicht</h2>
                 <p>Das Davinci Color Prediction System besteht aus aufeinander abgestimmten Komponenten, die über diese Webapp konfiguriert werden:</p>
                 <ul>
-                    <li><strong>Die Farbpalette (Sender):</strong> Erkennt, in welchen Topf der Pinsel eingetaucht wird.</li>
+                    <li><strong>Die Farbpalette (Sender):</strong> Erkennt, in welches Farbfeld der Pinsel eingetaucht wird.</li>
                     <li><strong>Der Empfänger (Receiver):</strong> Signalisiert diskret in deiner Tasche per Vibration, welche Farbe gewählt wurde.</li>
                     <li><strong>Das Web-Dashboard:</strong> Ermöglicht es, Einstellungen für beide Geräte in Echtzeit vorzunehmen und das Verhalten anzupassen.</li>
                 </ul>
             </section>
 
-            <!-- Section 2 -->
-            <section class="section-card">
+            <!-- Section 1 (EN) -->
+            <section class="section-card lang-en">
+                <h2><span>📖</span> 1. System Overview</h2>
+                <p>The Davinci Color Prediction System consists of matching components configured via this webapp:</p>
+                <ul>
+                    <li><strong>The Paint Palette (Sender):</strong> Detects which color field the brush is dipped into.</li>
+                    <li><strong>The Receiver (Receiver):</strong> Discreetly signals in your pocket via vibration which color was chosen.</li>
+                    <li><strong>The Web Dashboard:</strong> Allows you to configure settings for both devices in real-time and customize their behavior.</li>
+                </ul>
+            </section>
+
+            <!-- Section 2 (DE) -->
+            <section class="section-card lang-de">
                 <h2><span>🔌</span> 2. Erste Schritte & Verbindung</h2>
                 <p>Um Einstellungen vorzunehmen, müssen die Geräte mit der Webapp gekoppelt werden:</p>
                 
@@ -331,19 +421,39 @@
                 </ul>
             </section>
 
-            <!-- Section 3 -->
-            <section class="section-card">
+            <!-- Section 2 (EN) -->
+            <section class="section-card lang-en">
+                <h2><span>🔌</span> 2. Getting Started & Connection</h2>
+                <p>To adjust settings, the devices must be paired with the webapp:</p>
+                
+                <h3>Connect Paint Palette</h3>
+                <ul>
+                    <li>Turn on the paint palette (place briefly on the induction charging pad to wake it up).</li>
+                    <li>Open the dashboard and stay in the <strong>Palette</strong> tab.</li>
+                    <li>Click <strong>"Connect"</strong> in the top right and select <strong>`Davinci_Color_V2`</strong> in the browser popup.</li>
+                </ul>
+
+                <h3>Connect Vibration Receiver</h3>
+                <ul>
+                    <li>Turn on the receiver (power switch to position "1").</li>
+                    <li>Switch to the <strong>Receiver</strong> tab in the dashboard.</li>
+                    <li>Click <strong>"Connect Rx"</strong> in the top right and select <strong>`Davinci_Receiver`</strong> in the browser popup.</li>
+                </ul>
+            </section>
+
+            <!-- Section 3 (DE) -->
+            <section class="section-card lang-de">
                 <h2><span>🎨</span> 3. Palette einstellen (Sender)</h2>
                 <p>Im Tab <strong>Palette</strong> kannst du das Auslöseverhalten und die Anzeige personalisieren:</p>
                 
-                <h3>Farbtöpfe anpassen (Pots Grid)</h3>
-                <p>Klicke auf das kleine <strong>Zahnrad-Symbol (⚙️)</strong> auf den Kacheln der Farbtöpfe. Hier kannst du die Namen der Töpfe frei umbenennen (z. B. auf Gegenstände, Spielkarten oder Symbole deiner Show) und die Anzeigefarben ändern.</p>
+                <h3>Farbfelder anpassen (Pots Grid)</h3>
+                <p>Klicke auf das kleine <strong>Zahnrad-Symbol (⚙️)</strong> auf den Kacheln der Farbfelder. Da der Sender eine physische Künstler-Mischpalette aus der Malerei ist, stellst du hier die entsprechenden Farben ein. Es wird empfohlen, die vorgegebenen Standardfarben zu nutzen: <strong>Rot, Gelb, Blau, Grün, Weiß, Schwarz</strong>, da diese der physischen Belegung der Mischpalette entsprechen.</p>
                 
                 <h3>Rückmeldungen (Feedback Options)</h3>
                 <ul>
-                    <li><strong>Audio Feedback:</strong> Sagt dir gezogene Töpfe per Sprachausgabe (z. B. über einen kabellosen In-Ear-Ohrhörer) an. Du kannst entweder die Topf-Nummer oder den vergebenen Namen ansagen lassen.</li>
-                    <li><strong>Speech Voice:</strong> Wähle die Stimme und Sprache aus. Die Webapp übersetzt Standard-Farbnamen automatisch passend zur Sprachauswahl.</li>
-                    <li><strong>Full Screen Alert:</strong> Der gesamte Bildschirm leuchtet in der Farbe des betroffenen Topfs auf. Ein Tippen auf den Bildschirm schließt die Anzeige und entsperrt das System automatisch.</li>
+                    <li><strong>Audio Feedback:</strong> Sagt dir das aktive Farbfeld per Sprachausgabe (z. B. über einen kabellosen In-Ear-Ohrhörer) an. Du kannst entweder die Nummer des Feldes oder die eingestellte Farbe ansagen lassen.</li>
+                    <li><strong>Speech Voice:</strong> Wähle die Stimme und Sprache aus. Die Webapp übersetzt die Standard-Farbnamen automatisch passend zur Sprachauswahl (z. B. "Rot" zu "Red").</li>
+                    <li><strong>Full Screen Alert:</strong> Der gesamte Bildschirm leuchtet in der Farbe des betroffenen Feldes auf. Ein Tippen auf den Bildschirm schließt die Anzeige und entsperrt das System automatisch.</li>
                 </ul>
 
                 <h3>Palette-Einstellungen (Palette Settings)</h3>
@@ -360,23 +470,67 @@
                 </ul>
             </section>
 
-            <!-- Section 4 -->
-            <section class="section-card">
+            <!-- Section 3 (EN) -->
+            <section class="section-card lang-en">
+                <h2><span>🎨</span> 3. Configuring the Palette (Sender)</h2>
+                <p>In the <strong>Palette</strong> tab, you can personalize the trigger behavior and display:</p>
+                
+                <h3>Configure Color Fields (Pots Grid)</h3>
+                <p>Click the small <strong>gear icon (⚙️)</strong> on the tiles of the color fields. Since the sender is a physical painting mixing palette, you set the corresponding colors here. It is recommended to use the default standard colors: <strong>Red, Yellow, Blue, Green, White, Black</strong>, as they match the physical layout of your mixing palette.</p>
+                
+                <h3>Feedback Options</h3>
+                <ul>
+                    <li><strong>Audio Feedback:</strong> Announces the active color field via voice output (e.g., via a wireless in-ear earpiece). You can have either the field number or the configured color announced.</li>
+                    <li><strong>Speech Voice:</strong> Choose the voice and language. The webapp automatically translates the standard color names to match the selected language (e.g. "Rot" to "Red").</li>
+                    <li><strong>Full Screen Alert:</strong> The entire screen lights up in the color of the triggered field. Tapping the screen closes the alert and automatically unlocks the system.</li>
+                </ul>
+
+                <h3>Palette Settings</h3>
+                <ul>
+                    <li><strong>Lock After Trigger:</strong> Prevents multiple triggers. If enabled, the system locks after one activation. Click <strong>"Reset Locks"</strong> to make it ready for the next trigger.</li>
+                    <li><strong>Sensitivity (Sensitivity Slider):</strong> Slider from 2 to 100.
+                        <ul>
+                            <li><em>Spectator holds the palette in hand:</em> Threshold **20 to 25** (optimal grounding).</li>
+                            <li><em>Palette lies freely on a table:</em> Threshold **10 to 15** (no hand grounding).</li>
+                            <li><em>Palette on the charging pad:</em> Threshold **45 to 60** (to filter electrical noise).</li>
+                        </ul>
+                    </li>
+                    <li><strong>Auto Standby (Sleep Timer):</strong> Use the <strong>dial</strong> to set after how many minutes of inactivity the palette turns off completely to conserve battery.</li>
+                </ul>
+            </section>
+
+            <!-- Section 4 (DE) -->
+            <section class="section-card lang-de">
                 <h2><span>📳</span> 4. Receiver einstellen (Empfänger)</h2>
                 <p>Im Tab <strong>Receiver</strong> konfigurierst du das Vibrations-Verhalten deines Taschenempfängers:</p>
                 
                 <h3>Vibrations-Dauer & Pausen</h3>
                 <ul>
                     <li><strong>Vibration Duration (ON):</strong> Legt fest, wie lange der Motor bei jedem Puls vibriert (in Millisekunden). Ein niedrigerer Wert fühlt sich wie ein kurzes Klopfen an, ein höherer Wert wie ein langes Summen.</li>
-                    <li><strong>Pause Duration (OFF):</strong> Bestimmt die Pause zwischen den Vibrationspulsen, wenn der Empfänger mehrfach vibriert (z. B. 3 Pulse für Topf 3). Ein Wert von <strong>250 ms bis 350 ms</strong> ist ideal, um die Pulse sauber zählen zu können.</li>
+                    <li><strong>Pause Duration (OFF):</strong> Bestimmt die Pause zwischen den Vibrationspulsen, wenn der Empfänger mehrfach vibriert (z. B. 3 Pulse für Feld 3). Ein Wert von <strong>250 ms bis 350 ms</strong> ist ideal, um die Pulse sauber zählen zu können.</li>
                 </ul>
 
                 <h3>Vibration testen</h3>
                 <p>Klicke auf den Knopf <strong>"Test Vibration Pattern on Receiver"</strong>. Der Empfänger vibriert sofort 3-mal mit den eingestellten Zeiten, damit du das Muster direkt in der Tasche testen und anpassen kannst.</p>
             </section>
 
-            <!-- Section 5 -->
-            <section class="section-card">
+            <!-- Section 4 (EN) -->
+            <section class="section-card lang-en">
+                <h2><span>📳</span> 4. Configuring the Receiver</h2>
+                <p>In the <strong>Receiver</strong> tab, you configure the vibration behavior of your pocket receiver:</p>
+                
+                <h3>Vibration Duration & Pauses</h3>
+                <ul>
+                    <li><strong>Vibration Duration (ON):</strong> Determines how long the motor vibrates for each pulse (in milliseconds). A lower value feels like a short tap, a higher value like a long buzz.</li>
+                    <li><strong>Pause Duration (OFF):</strong> Determines the pause between vibration pulses when the receiver vibrates multiple times (e.g., 3 pulses for field 3). A value of <strong>250 ms to 350 ms</strong> is ideal for counting pulses clearly.</li>
+                </ul>
+
+                <h3>Test Vibration</h3>
+                <p>Click the button <strong>"Test Vibration Pattern on Receiver"</strong>. The receiver will immediately vibrate 3 times using the selected durations, allowing you to test and adjust the pattern directly in your pocket.</p>
+            </section>
+
+            <!-- Section 5 (DE) -->
+            <section class="section-card lang-de">
                 <h2><span>🔋</span> 5. Laden & Akku-Pflege</h2>
                 
                 <h3>Farbpalette aufladen</h3>
@@ -396,8 +550,29 @@
                 </div>
             </section>
 
-            <!-- Section 6 -->
-            <section class="section-card">
+            <!-- Section 5 (EN) -->
+            <section class="section-card lang-en">
+                <h2><span>🔋</span> 5. Charging & Battery Care</h2>
+                
+                <h3>Charging the Paint Palette</h3>
+                <p>The palette is charged wirelessly (inductively). Simply place it flat on the included induction charging pad.</p>
+
+                <h3>Charging the Receiver</h3>
+                <p>The receiver is charged using a standard USB-C cable.</p>
+
+                <div class="alert-box">
+                    <h4>⚠️ IMPORTANT CHARGING NOTE FOR THE RECEIVER</h4>
+                    <p>To charge the battery, the power switch on the receiver must be set to position <strong>"1" (ON)</strong>! If the switch is set to <strong>"0" (OFF)</strong>, the battery will <strong>not</strong> be charged.</p>
+                </div>
+
+                <div class="info-box">
+                    <h4>💡 Charging Indicator Light</h4>
+                    <p>When the cable is connected and the receiver is charging, a <strong>subtle green LED</strong> lights up to the left of the USB-C port. Once the battery is fully charged, this LED <strong>turns off</strong>.</p>
+                </div>
+            </section>
+
+            <!-- Section 6 (DE) -->
+            <section class="section-card lang-de">
                 <h2><span>📲</span> 6. App auf dem Startbildschirm installieren</h2>
                 <p>Dank modernster PWA-Technologie kannst du das Dashboard als vollwertige App auf deinem Smartphone installieren und 100% offline (ohne Internetverbindung) nutzen:</p>
                 
@@ -406,6 +581,18 @@
                 
                 <h3>Android</h3>
                 <p>Öffne die Webapp in <strong>Google Chrome</strong>, tippe auf die drei Punkte oben rechts und wähle <strong>"App installieren"</strong> oder <strong>"Zum Startbildschirm hinzufügen"</strong>.</p>
+            </section>
+
+            <!-- Section 6 (EN) -->
+            <section class="section-card lang-en">
+                <h2><span>📲</span> 6. Install App on Home Screen</h2>
+                <p>Thanks to state-of-the-art PWA technology, you can install the dashboard as a full app on your smartphone and use it 100% offline (no internet connection required):</p>
+                
+                <h3>Apple iOS (iPhone / iPad)</h3>
+                <p>Open the webapp in <strong>Safari</strong>, tap the <strong>Share icon</strong> (square with arrow pointing up) and select <strong>"Add to Home Screen"</strong>.</p>
+                
+                <h3>Android</h3>
+                <p>Open the webapp in <strong>Google Chrome</strong>, tap the three dots in the top right and select <strong>"Install app"</strong> or <strong>"Add to home screen"</strong>.</p>
             </section>
         </main>
     </div>
@@ -423,6 +610,36 @@
                     .catch(err => console.error('Service Worker registration failed:', err));
             });
         }
+
+        // Language Switching Logic
+        function setLanguage(lang) {
+            document.documentElement.setAttribute('lang', lang);
+            localStorage.setItem('davinci_manual_lang', lang);
+            
+            // Update title
+            const titles = {
+                de: "Davinci Dual Controller — Handbuch & Start",
+                en: "Davinci Dual Controller — Manual & Start"
+            };
+            document.title = titles[lang];
+            
+            // Update switch button states
+            document.querySelectorAll('.lang-switch-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            const activeBtn = document.getElementById(`lang-btn-${lang}`);
+            if (activeBtn) activeBtn.classList.add('active');
+        }
+
+        // Initialize language
+        (function() {
+            let savedLang = localStorage.getItem('davinci_manual_lang');
+            if (!savedLang) {
+                const userLang = navigator.language || navigator.userLanguage;
+                savedLang = userLang.startsWith('de') ? 'de' : 'en';
+            }
+            setLanguage(savedLang);
+        })();
     </script>
 </body>
 </html>

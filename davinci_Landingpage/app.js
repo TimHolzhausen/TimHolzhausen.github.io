@@ -528,7 +528,7 @@ function setupEventListeners() {
             if (senderConfigChar) {
                 try {
                     await writeConfigValue(senderConfigChar, 0x02);
-                    showToast("All pots unlocked!");
+                    showToast("All channels unlocked!");
                 } catch (err) {
                     console.error("Error sending unlock command:", err);
                     showToast("Unlock error: " + err.message);
@@ -810,7 +810,7 @@ function triggerAudioFeedback(index) {
     if (mode === 'speech') {
         speakNumber(index);
     } else if (mode === 'names') {
-        const potName = potSettings[index] ? potSettings[index].name : `Pot ${index + 1}`;
+        const potName = potSettings[index] ? potSettings[index].name : `Channel ${index + 1}`;
         speakText(potName);
     }
 }
