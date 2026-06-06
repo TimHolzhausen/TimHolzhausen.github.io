@@ -1,0 +1,30 @@
+{
+  "name": "Davinci Dual Controller",
+  "short_name": "Davinci v2",
+  "description": "Premium mentalism receiver dashboard for the Davinci Color palette & vibration receiver.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0a0915",
+  "theme_color": "#0a0915",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    },
+    {
+      "src": "./icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

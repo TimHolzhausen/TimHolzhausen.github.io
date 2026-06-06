@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <!-- Background -->
+  <rect width="512" height="512" rx="100" fill="url(#bgGrad)" />
+  
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#06050e" />
+      <stop offset="100%" stop-color="#1b153b" />
+    </linearGradient>
+    
+    <!-- Neon Glow Filters -->
+    <filter id="neonGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Stylized Palette -->
+  <path d="M 120 220 C 100 130, 200 90, 320 100 C 420 110, 430 220, 390 280 C 360 330, 390 400, 310 420 C 220 440, 140 310, 120 220 Z" 
+        fill="rgba(255, 255, 255, 0.03)" 
+        stroke="rgba(255, 255, 255, 0.12)" 
+        stroke-width="6" />
+        
+  <!-- Thumb Hole -->
+  <ellipse cx="320" cy="330" rx="20" ry="14" transform="rotate(-15 320 330)" fill="#06050e" stroke="rgba(255, 255, 255, 0.1)" stroke-width="3" />
+  
+  <!-- Glowing Paint Wells (Pots) -->
+  <!-- Pot 1: Red -->
+  <circle cx="180" cy="170" r="22" fill="#ff3b30" filter="url(#neonGlow)" />
+  <!-- Pot 2: Yellow -->
+  <circle cx="250" cy="150" r="22" fill="#ffcc00" filter="url(#neonGlow)" />
+  <!-- Pot 3: Blue -->
+  <circle cx="320" cy="160" r="22" fill="#007aff" filter="url(#neonGlow)" />
+  <!-- Pot 4: Green -->
+  <circle cx="370" cy="210" r="22" fill="#34c759" filter="url(#neonGlow)" />
+  <!-- Pot 5: Orange -->
+  <circle cx="210" cy="270" r="22" fill="#ff9500" filter="url(#neonGlow)" />
+  <!-- Pot 6: Purple -->
+  <circle cx="270" cy="270" r="22" fill="#af52de" filter="url(#neonGlow)" />
+  
+  <!-- Lightning Bolt overlay in center representing connectivity -->
+  <path d="M 256 190 L 226 260 L 256 260 L 246 320 L 286 240 L 256 240 Z" fill="#00e676" filter="url(#neonGlow)" opacity="0.9" />
+</svg>

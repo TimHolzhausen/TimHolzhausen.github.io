@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Davinci Dual Controller</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <!-- Meta Tags for mobile app feeling -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Davinci v2">
+    <link rel="apple-touch-icon" href="icon.svg">
+    <meta name="theme-color" content="#0a0915">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Header Section -->
+        <header>
+            <div class="logo-container">
+                <span class="logo-dot"></span>
+                <h1>Davinci v2</h1>
+            </div>
+
+            <!-- Tab Switcher -->
+            <div class="tabs-header">
+                <button id="tab-palette-btn" class="tab-btn active">Palette</button>
+                <button id="tab-receiver-btn" class="tab-btn">Receiver</button>
+            </div>
+
+            <!-- Palette Status Box -->
+            <div class="connection-status-box" id="palette-status-box">
+                <div class="battery-wrapper tooltip" id="battery-tooltip" data-tooltip="Palette battery unknown">
+                    <svg class="battery-svg" viewBox="0 0 36 36">
+                        <path class="circle-bg"
+                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        <path class="circle" id="battery-progress" stroke-dasharray="0, 100"
+                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    </svg>
+                    <div class="battery-text" id="battery-value">--%</div>
+                </div>
+
+                <button id="connect-btn" class="connect-btn disconnected">
+                    <span class="btn-icon">⚡</span>
+                    <span class="btn-text">Connect</span>
+                </button>
+            </div>
+
+            <!-- Receiver Status Box -->
+            <div class="connection-status-box" id="receiver-status-box" style="display: none;">
+                <div class="battery-wrapper tooltip" id="rx-battery-tooltip" data-tooltip="Receiver battery unknown">
+                    <svg class="battery-svg" viewBox="0 0 36 36">
+                        <path class="circle-bg"
+                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        <path class="circle" id="rx-battery-progress" stroke-dasharray="0, 100"
+                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    </svg>
+                    <div class="battery-text" id="rx-battery-value">--%</div>
+                </div>
+
+                <button id="connect-rx-btn" class="connect-btn disconnected">
+                    <span class="btn-icon">⚡</span>
+                    <span class="btn-text">Connect Rx</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Dashboard Content -->
+        <main>
+            <!-- PALETTE VIEW -->
+            <div id="palette-view" class="tab-content active">
+                <!-- Pots Grid (6 Channels) -->
+                <section class="pots-section">
+                    <h2 class="section-title">Sensor Status</h2>
+                    <div class="pots-grid" id="pots-grid">
+                        <div class="pot-card" id="pot-0"
+                            style="--accent-color: #ff3b30; --glow-color: rgba(255, 59, 48, 0.4)">
+                            <div class="pot-header">
+                                <span class="pot-badge">1</span>
+                                <span class="pot-value-val" id="pot-value-0">--</span>
+                                <button class="edit-pot-btn" onclick="openEditModal(0)">⚙️</button>
+                            </div>
+                            <div class="pot-content">
+                                <h3 class="pot-name" id="pot-name-0">Rot</h3>
+                                <p class="pot-status" id="pot-status-0">Ready</p>
+                            </div>
+                        </div>
+
+                        <div class="pot-card" id="pot-1"
+                            style="--accent-color: #ffcc00; --glow-color: rgba(255, 204, 0, 0.4)">
+                            <div class="pot-header">
+                                <span class="pot-badge">2</span>
+                                <span class="pot-value-val" id="pot-value-1">--</span>
+                                <button class="edit-pot-btn" onclick="openEditModal(1)">⚙️</button>
+                            </div>
+                            <div class="pot-content">
+                                <h3 class="pot-name" id="pot-name-1">Gelb</h3>
+                                <p class="pot-status" id="pot-status-1">Ready</p>
+                            </div>
+                        </div>
+
+                        <div class="pot-card" id="pot-2"
+                            style="--accent-color: #007aff; --glow-color: rgba(0, 122, 255, 0.4)">
+                            <div class="pot-header">
+                                <span class="pot-badge">3</span>
+                                <span class="pot-value-val" id="pot-value-2">--</span>
+                                <button class="edit-pot-btn" onclick="openEditModal(2)">⚙️</button>
+                            </div>
+                            <div class="pot-content">
+                                <h3 class="pot-name" id="pot-name-2">Blau</h3>
+                                <p class="pot-status" id="pot-status-2">Ready</p>
+                            </div>
+                        </div>
+
+                        <div class="pot-card" id="pot-3"
+                            style="--accent-color: #34c759; --glow-color: rgba(52, 199, 89, 0.4)">
+                            <div class="pot-header">
+                                <span class="pot-badge">4</span>
+                                <span class="pot-value-val" id="pot-value-3">--</span>
+                                <button class="edit-pot-btn" onclick="openEditModal(3)">⚙️</button>
+                            </div>
+                            <div class="pot-content">
+                                <h3 class="pot-name" id="pot-name-3">Grün</h3>
+                                <p class="pot-status" id="pot-status-3">Ready</p>
+                            </div>
+                        </div>
+
+                        <div class="pot-card" id="pot-4"
+                            style="--accent-color: #ffffff; --glow-color: rgba(255, 255, 255, 0.4)">
+                            <div class="pot-header">
+                                <span class="pot-badge">5</span>
+                                <span class="pot-value-val" id="pot-value-4">--</span>
+                                <button class="edit-pot-btn" onclick="openEditModal(4)">⚙️</button>
+                            </div>
+                            <div class="pot-content">
+                                <h3 class="pot-name" id="pot-name-4">Weiß</h3>
+                                <p class="pot-status" id="pot-status-4">Ready</p>
+                            </div>
+                        </div>
+
+                        <div class="pot-card" id="pot-5"
+                            style="--accent-color: #000000; --glow-color: rgba(255, 255, 255, 0.15)">
+                            <div class="pot-header">
+                                <span class="pot-badge">6</span>
+                                <span class="pot-value-val" id="pot-value-5">--</span>
+                                <button class="edit-pot-btn" onclick="openEditModal(5)">⚙️</button>
+                            </div>
+                            <div class="pot-content">
+                                <h3 class="pot-name" id="pot-name-5">Schwarz</h3>
+                                <p class="pot-status" id="pot-status-5">Ready</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Feedback & Settings Section -->
+                <section class="controls-section">
+                    <div class="control-card">
+                        <h3>Feedback Options</h3>
+                        <div class="switches-container">
+                            <label class="select-label" for="audio-feedback-mode">
+                                <span class="switch-text">Audio Feedback</span>
+                                <select id="audio-feedback-mode" class="premium-select">
+                                    <option value="off">Off</option>
+                                    <option value="speech">Voice: Numbers</option>
+                                    <option value="names">Voice: Pot Names</option>
+                                </select>
+                            </label>
+                            <label class="select-label" id="speech-voice-row" style="display: none; margin-top: 12px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 12px; width: 100%;">
+                                <span class="switch-text">Speech Voice</span>
+                                <select id="speech-voice-select" class="premium-select" style="max-width: 190px; text-overflow: ellipsis;"></select>
+                            </label>
+                            <label class="switch-label" style="margin-top: 12px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 12px; display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                                <span class="switch-text">Full Screen Alert</span>
+                                <div class="switch">
+                                    <input type="checkbox" id="fullscreen-alert-switch">
+                                    <span class="slider"></span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="control-card" style="margin-top: 12px;">
+                        <h3>Palette Settings</h3>
+                        <div class="switches-container">
+                            <label class="switch-label">
+                                <span class="switch-text">Lock After Trigger</span>
+                                <div class="switch">
+                                    <input type="checkbox" id="lock-after-trigger-switch" checked>
+                                    <span class="slider"></span>
+                                </div>
+                            </label>
+                            <button id="reset-locks-btn" class="reset-locks-btn" disabled>Reset Locks</button>
+                            <button id="deep-sleep-btn" class="deep-sleep-btn" disabled>Turn Off (Deep Sleep)</button>
+
+                            <div class="dial-row">
+                                <span class="setting-text">Auto Standby (Sleep)</span>
+                                <div class="dial-wrapper">
+                                    <div class="dial-knob-outer disabled" id="sleep-dial-knob">
+                                        <div class="dial-knob-inner">
+                                            <div class="dial-marker" id="sleep-dial-marker"></div>
+                                            <div class="dial-value-container">
+                                                <span class="dial-value" id="dial-value-text">3h</span>
+                                                <span class="dial-subtext">standby</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="slider-row" style="margin-top: 12px; border-top: none; padding-top: 0;">
+                                <div class="slider-header">
+                                    <span class="setting-text">Sensitivity (Threshold)</span>
+                                    <span id="threshold-val" class="slider-val">--</span>
+                                </div>
+                                <input type="range" id="threshold-slider" min="2" max="100" value="35"
+                                    class="premium-slider" disabled>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Event Log Section -->
+                <section class="log-section">
+                    <div class="log-header">
+                        <h2 class="section-title">Activity Log</h2>
+                        <button id="clear-log-btn" class="clear-btn">Clear</button>
+                    </div>
+                    <div class="log-container" id="log-container">
+                        <div class="log-placeholder">No events logged. Connect to the board to receive sensor readings.</div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- RECEIVER VIEW -->
+            <div id="receiver-view" class="tab-content">
+                <section class="controls-section">
+                    <!-- Vibration Config Card -->
+                    <div class="control-card">
+                        <h3>Vibration Profile</h3>
+                        <div class="switches-container">
+                            <div class="slider-row">
+                                <div class="slider-header">
+                                    <span class="setting-text">Vibration Duration (ON)</span>
+                                    <span id="vibro-on-val" class="slider-val">-- ms</span>
+                                </div>
+                                <input type="range" id="vibro-on-slider" min="50" max="1000" step="10" value="250"
+                                    class="premium-slider" disabled>
+                            </div>
+
+                            <div class="slider-row" style="margin-top: 16px; border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 16px;">
+                                <div class="slider-header">
+                                    <span class="setting-text">Pause Duration (OFF)</span>
+                                    <span id="vibro-off-val" class="slider-val">-- ms</span>
+                                </div>
+                                <input type="range" id="vibro-off-slider" min="50" max="1000" step="10" value="250"
+                                    class="premium-slider" disabled>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Local Testing Card (UX Feature) -->
+                    <div class="control-card" style="margin-top: 12px;">
+                        <h3>Test Vibration</h3>
+                        <div class="switches-container">
+                            <span class="switch-text" style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4; display: block; margin-bottom: 4px;">
+                                Test the vibration pattern directly on the receiver to verify the settings.
+                            </span>
+                            <button id="test-vibro-btn" class="reset-locks-btn" style="margin-top: 4px;">Test Vibration Pattern on Receiver</button>
+                        </div>
+                    </div>
+
+                    <!-- Receiver Status Info Card -->
+                    <div class="control-card" style="margin-top: 12px;">
+                        <h3>Connection Info</h3>
+                        <div class="switches-container" style="gap: 8px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; color: var(--text-secondary);">
+                                <span>Status:</span>
+                                <span id="rx-status-text" style="font-weight: 600; color: var(--accent-disconnect);">Disconnected</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; color: var(--text-secondary); margin-top: 6px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 6px;">
+                                <span>Battery Level:</span>
+                                <span id="rx-battery-text" style="font-weight: 600;">-- %</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <!-- Edit Pot Name / Color Modal -->
+        <div id="edit-modal" class="modal">
+            <div class="modal-content glass">
+                <span class="close-modal-btn" onclick="closeEditModal()">&times;</span>
+                <h3>Configure Pot</h3>
+                <div class="form-group">
+                    <label for="modal-pot-name">Name / Color of the Pot:</label>
+                    <input type="text" id="modal-pot-name" placeholder="e.g. Red Pot">
+                </div>
+                <div class="form-group">
+                    <label>Choose Color:</label>
+                    <div class="color-palette">
+                        <button class="color-dot active" style="background-color: #ff3b30;" data-color="#ff3b30"
+                            data-glow="rgba(255, 59, 48, 0.4)"></button>
+                        <button class="color-dot" style="background-color: #ffcc00;" data-color="#ffcc00"
+                            data-glow="rgba(255, 204, 0, 0.4)"></button>
+                        <button class="color-dot" style="background-color: #34c759;" data-color="#34c759"
+                            data-glow="rgba(52, 199, 89, 0.4)"></button>
+                        <button class="color-dot" style="background-color: #007aff;" data-color="#007aff"
+                            data-glow="rgba(0, 122, 255, 0.4)"></button>
+                        <button class="color-dot" style="background-color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.2);" data-color="#ffffff"
+                            data-glow="rgba(255, 255, 255, 0.4)"></button>
+                        <button class="color-dot" style="background-color: #000000; border: 1px solid rgba(255, 255, 255, 0.2);" data-color="#000000"
+                            data-glow="rgba(255, 255, 255, 0.15)"></button>
+                    </div>
+                </div>
+                <button id="save-modal-btn" class="save-btn">Save</button>
+            </div>
+        </div>
+
+        <!-- Notification Banner -->
+        <div id="notification-toast" class="toast">Notification</div>
+    </div>
+
+    <!-- Full Screen Alert Overlay -->
+    <div id="fullscreen-overlay" class="fullscreen-overlay">
+        <span id="fullscreen-name">Pot Name</span>
+        <span id="fullscreen-reset-hint">Tap to Reset</span>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Davinci Dual Controller — Handbuch & Start</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0a0915">
+    <link rel="apple-touch-icon" href="icon.svg">
+    
+    <style>
+        :root {
+            --bg-gradient-start: #06050e;
+            --bg-gradient-end: #120e24;
+            --panel-bg: rgba(25, 20, 48, 0.45);
+            --panel-border: rgba(255, 255, 255, 0.08);
+            --text-primary: #ffffff;
+            --text-secondary: #a29db8;
+            --text-muted: #645f78;
+            --accent: #00e676;
+            --accent-purple: #fc00ff;
+            --font-main: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+            --border-radius-lg: 24px;
+            --border-radius-md: 16px;
+            --border-radius-sm: 8px;
+            --shadow-premium: 0 20px 50px rgba(0, 0, 0, 0.4);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
+            background-attachment: fixed;
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* Container Layout */
+        .container {
+            width: 100%;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 40px;
+        }
+
+        @media (min-width: 900px) {
+            .container {
+                grid-template-columns: 380px 1fr;
+                align-items: start;
+            }
+        }
+
+        /* Sidebar (Hero Column) */
+        .sidebar {
+            position: sticky;
+            top: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        @media (max-width: 899px) {
+            .sidebar {
+                position: static;
+            }
+        }
+
+        .hero-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: var(--border-radius-lg);
+            padding: 32px;
+            text-align: center;
+            box-shadow: var(--shadow-premium);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .logo-img {
+            width: 120px;
+            height: 120px;
+            filter: drop-shadow(0 0 15px rgba(135, 116, 255, 0.3));
+            animation: float 4s ease-in-out infinite alternate;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            100% { transform: translateY(-10px); }
+        }
+
+        .hero-card h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #00dbde, #fc00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-card p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+
+        .launch-btn {
+            width: 100%;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #007aff, #00e676);
+            color: #fff;
+            text-decoration: none;
+            padding: 16px 24px;
+            border-radius: var(--border-radius-md);
+            font-weight: 600;
+            font-size: 1.1rem;
+            box-shadow: 0 10px 25px rgba(0, 230, 118, 0.3);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .launch-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(0, 230, 118, 0.4), 0 0 15px rgba(0, 122, 255, 0.3);
+        }
+
+        .launch-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Content Area (Manual Column) */
+        .content {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .section-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: var(--border-radius-lg);
+            padding: 32px;
+            box-shadow: var(--shadow-premium);
+        }
+
+        .section-card h2 {
+            font-size: 1.35rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-primary);
+        }
+
+        .section-card h3 {
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin: 20px 0 10px 0;
+            color: var(--accent-purple);
+        }
+
+        .section-card p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-bottom: 16px;
+        }
+
+        .section-card ul {
+            list-style: none;
+            margin-bottom: 16px;
+        }
+
+        .section-card li {
+            position: relative;
+            padding-left: 20px;
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+
+        .section-card li::before {
+            content: '•';
+            position: absolute;
+            left: 5px;
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        /* Alert / Tips style */
+        .alert-box {
+            background: rgba(255, 61, 0, 0.08);
+            border: 1px solid rgba(255, 61, 0, 0.2);
+            border-left: 4px solid #ff3d00;
+            border-radius: var(--border-radius-md);
+            padding: 18px;
+            margin-top: 20px;
+        }
+
+        .alert-box h4 {
+            color: #ff5252;
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .alert-box p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 0;
+        }
+
+        .info-box {
+            background: rgba(0, 230, 118, 0.04);
+            border: 1px solid rgba(0, 230, 118, 0.12);
+            border-left: 4px solid var(--accent);
+            border-radius: var(--border-radius-md);
+            padding: 18px;
+            margin-top: 20px;
+        }
+
+        .info-box h4 {
+            color: var(--accent);
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .info-box p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 0;
+        }
+
+        /* PWA Info Badge */
+        .pwa-badge {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: var(--border-radius-md);
+            padding: 16px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-align: center;
+            width: 100%;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 40px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar Column -->
+        <aside class="sidebar">
+            <div class="hero-card">
+                <img src="icon.svg" alt="Davinci Logo" class="logo-img">
+                <h1>Davinci v2</h1>
+                <p>Premium Mentalmagie Steuerzentrale für die kapazitive Farbpalette und den diskreten Vibrationsempfänger.</p>
+                <a href="app.html" class="launch-btn">
+                    <span>⚡</span> Control Panel starten
+                </a>
+            </div>
+            
+            <div class="pwa-badge">
+                💡 <strong>Tipp:</strong> Installiere diese Seite über das Teilen-Menü deines Browsers auf deinem Startbildschirm, um sie jederzeit 100% offline zu nutzen.
+            </div>
+        </aside>
+
+        <!-- Main Column -->
+        <main class="content">
+            <!-- Section 1 -->
+            <section class="section-card">
+                <h2><span>📖</span> 1. Systemübersicht</h2>
+                <p>Das Davinci Color Prediction System besteht aus aufeinander abgestimmten Komponenten, die über diese Webapp konfiguriert werden:</p>
+                <ul>
+                    <li><strong>Die Farbpalette (Sender):</strong> Erkennt, in welchen Topf der Pinsel eingetaucht wird.</li>
+                    <li><strong>Der Empfänger (Receiver):</strong> Signalisiert diskret in deiner Tasche per Vibration, welche Farbe gewählt wurde.</li>
+                    <li><strong>Das Web-Dashboard:</strong> Ermöglicht es, Einstellungen für beide Geräte in Echtzeit vorzunehmen und das Verhalten anzupassen.</li>
+                </ul>
+            </section>
+
+            <!-- Section 2 -->
+            <section class="section-card">
+                <h2><span>🔌</span> 2. Erste Schritte & Verbindung</h2>
+                <p>Um Einstellungen vorzunehmen, müssen die Geräte mit der Webapp gekoppelt werden:</p>
+                
+                <h3>Farbpalette verbinden</h3>
+                <ul>
+                    <li>Schalte die Farbpalette ein (kurz auf das Induktionsladepad legen, um sie aufzuwecken).</li>
+                    <li>Öffne das Dashboard und verbleibe im Tab <strong>Palette</strong>.</li>
+                    <li>Klicke oben rechts auf <strong>"Connect"</strong> und wähle im Browser-Popup <strong>`Davinci_Color_V2`</strong> aus.</li>
+                </ul>
+
+                <h3>Vibrationsempfänger verbinden</h3>
+                <ul>
+                    <li>Schalte den Empfänger ein (Powerschalter auf Position "1").</li>
+                    <li>Wechsle im Dashboard auf den Tab <strong>Receiver</strong>.</li>
+                    <li>Klicke oben rechts auf <strong>"Connect Rx"</strong> und wähle im Browser-Popup <strong>`Davinci_Receiver`</strong> aus.</li>
+                </ul>
+            </section>
+
+            <!-- Section 3 -->
+            <section class="section-card">
+                <h2><span>🎨</span> 3. Palette einstellen (Sender)</h2>
+                <p>Im Tab <strong>Palette</strong> kannst du das Auslöseverhalten und die Anzeige personalisieren:</p>
+                
+                <h3>Farbtöpfe anpassen (Pots Grid)</h3>
+                <p>Klicke auf das kleine <strong>Zahnrad-Symbol (⚙️)</strong> auf den Kacheln der Farbtöpfe. Hier kannst du die Namen der Töpfe frei umbenennen (z. B. auf Gegenstände, Spielkarten oder Symbole deiner Show) und die Anzeigefarben ändern.</p>
+                
+                <h3>Rückmeldungen (Feedback Options)</h3>
+                <ul>
+                    <li><strong>Audio Feedback:</strong> Sagt dir gezogene Töpfe per Sprachausgabe (z. B. über einen kabellosen In-Ear-Ohrhörer) an. Du kannst entweder die Topf-Nummer oder den vergebenen Namen ansagen lassen.</li>
+                    <li><strong>Speech Voice:</strong> Wähle die Stimme und Sprache aus. Die Webapp übersetzt Standard-Farbnamen automatisch passend zur Sprachauswahl.</li>
+                    <li><strong>Full Screen Alert:</strong> Der gesamte Bildschirm leuchtet in der Farbe des betroffenen Topfs auf. Ein Tippen auf den Bildschirm schließt die Anzeige und entsperrt das System automatisch.</li>
+                </ul>
+
+                <h3>Palette-Einstellungen (Palette Settings)</h3>
+                <ul>
+                    <li><strong>Lock After Trigger:</strong> Verhindert Mehrfach-Signale. Ist es aktiv, sperrt sich das System nach einer Auslösung. Klicke auf <strong>"Reset Locks"</strong>, um wieder empfangsbereit zu sein.</li>
+                    <li><strong>Sensitivity (Sensitivity-Regler):</strong> Schieberegler von 2 bis 100.
+                        <ul>
+                            <li><em>Zuschauer hält die Palette in der Hand:</em> Schwellenwert **20 bis 25** (optimale Erdung).</li>
+                            <li><em>Palette liegt frei auf einem Tisch:</em> Schwellenwert **10 bis 15** (fehlende Hand-Erdung).</li>
+                            <li><em>Palette auf dem Ladepad:</em> Schwellenwert **45 bis 60** (um Netzstörungen abzufangen).</li>
+                        </ul>
+                    </li>
+                    <li><strong>Auto Standby (Auto-Ausschalten):</strong> Stelle über das <strong>Drehrad</strong> ein, nach wie viel Minuten Inaktivität sich die Palette von selbst komplett abschaltet, um den Akku zu schonen.</li>
+                </ul>
+            </section>
+
+            <!-- Section 4 -->
+            <section class="section-card">
+                <h2><span>📳</span> 4. Receiver einstellen (Empfänger)</h2>
+                <p>Im Tab <strong>Receiver</strong> konfigurierst du das Vibrations-Verhalten deines Taschenempfängers:</p>
+                
+                <h3>Vibrations-Dauer & Pausen</h3>
+                <ul>
+                    <li><strong>Vibration Duration (ON):</strong> Legt fest, wie lange der Motor bei jedem Puls vibriert (in Millisekunden). Ein niedrigerer Wert fühlt sich wie ein kurzes Klopfen an, ein höherer Wert wie ein langes Summen.</li>
+                    <li><strong>Pause Duration (OFF):</strong> Bestimmt die Pause zwischen den Vibrationspulsen, wenn der Empfänger mehrfach vibriert (z. B. 3 Pulse für Topf 3). Ein Wert von <strong>250 ms bis 350 ms</strong> ist ideal, um die Pulse sauber zählen zu können.</li>
+                </ul>
+
+                <h3>Vibration testen</h3>
+                <p>Klicke auf den Knopf <strong>"Test Vibration Pattern on Receiver"</strong>. Der Empfänger vibriert sofort 3-mal mit den eingestellten Zeiten, damit du das Muster direkt in der Tasche testen und anpassen kannst.</p>
+            </section>
+
+            <!-- Section 5 -->
+            <section class="section-card">
+                <h2><span>🔋</span> 5. Laden & Akku-Pflege</h2>
+                
+                <h3>Farbpalette aufladen</h3>
+                <p>Die Palette wird kabellos (induktiv) geladen. Lege sie einfach flach auf das mitgelieferte Induktions-Ladepad.</p>
+
+                <h3>Empfänger aufladen</h3>
+                <p>Der Empfänger wird über ein standardmäßiges USB-C-Kabel aufgeladen.</p>
+
+                <div class="alert-box">
+                    <h4>⚠️ WICHTIGER LADEHINWEIS FÜR DEN EMPFÄNGER</h4>
+                    <p>Zum Aufladen der Batterie muss der Powerschalter am Empfänger zwingend auf der Position <strong>"1" (AN)</strong> stehen! Ist der Schalter auf <strong>"0" (AUS)</strong> gestellt, wird die Batterie <strong>nicht</strong> geladen.</p>
+                </div>
+
+                <div class="info-box">
+                    <h4>💡 Lade-Kontrollleuchte</h4>
+                    <p>Wenn das Kabel angeschlossen ist und der Empfänger lädt, leuchtet links neben der USB-C-Buchse eine <strong>leicht grüne LED</strong> auf. Sobald die Batterie vollständig geladen ist, <strong>erlischt</strong> diese LED.</p>
+                </div>
+            </section>
+
+            <!-- Section 6 -->
+            <section class="section-card">
+                <h2><span>📲</span> 6. App auf dem Startbildschirm installieren</h2>
+                <p>Dank modernster PWA-Technologie kannst du das Dashboard als vollwertige App auf deinem Smartphone installieren und 100% offline (ohne Internetverbindung) nutzen:</p>
+                
+                <h3>Apple iOS (iPhone / iPad)</h3>
+                <p>Öffne die Webapp in <strong>Safari</strong>, tippe auf das <strong>Teilen-Symbol</strong> (Viereck mit Pfeil nach oben) und wähle <strong>"Zum Home-Bildschirm"</strong>.</p>
+                
+                <h3>Android</h3>
+                <p>Öffne die Webapp in <strong>Google Chrome</strong>, tippe auf die drei Punkte oben rechts und wähle <strong>"App installieren"</strong> oder <strong>"Zum Startbildschirm hinzufügen"</strong>.</p>
+            </section>
+        </main>
+    </div>
+
+    <footer>
+        <p>Davinci Color Prediction System — Version 2.0.0 &copy; 2026</p>
+    </footer>
+
+    <script>
+        // Registriere den Service Worker, um Offline-Funktionalität zu sichern
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker registered successfully!', reg.scope))
+                    .catch(err => console.error('Service Worker registration failed:', err));
+            });
+        }
+    </script>
+</body>
+</html>
