@@ -1,4 +1,6 @@
 // GoDice Dashboard - Application Logic
+const APP_VERSION = '1.2.0';
+console.log(`GoDice Smart Dashboard Version: ${APP_VERSION}`);
 
 // Reactive State
 const state = {
