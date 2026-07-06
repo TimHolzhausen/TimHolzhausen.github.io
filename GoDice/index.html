@@ -6,7 +6,7 @@
   <meta name="description" content="GoDice Dashboard - Verbinde deine smarten Bluetooth-Würfel, verfolge deine Wurf-Statistiken in Echtzeit und steuere die LEDs.">
   <meta name="theme-color" content="#0a0e1a">
   <title>GoDice Smart Dashboard</title>
-  <link rel="stylesheet" href="style.css?v=2">
+  <link rel="stylesheet" href="style.css?v=3">
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icon-192.png">
 </head>
@@ -18,7 +18,7 @@
       <div class="brand">
         <div class="brand-icon">🎲</div>
         <div class="brand-info">
-          <h1>GoDice Dashboard <span class="app-version-badge">v1.2.0</span></h1>
+          <h1>GoDice Dashboard <span class="app-version-badge">v1.2.1</span></h1>
           <p>Echtzeit-Statistiken &amp; Steuerung für Bluetooth-Würfel</p>
         </div>
       </div>
@@ -27,6 +27,9 @@
         <div class="bluetooth-info-bar">
           <span>Web Bluetooth API</span>
         </div>
+        <button id="btn-connect-known" class="btn-connect-known" style="display: none;" title="Zuvor gekoppelte Würfel verbinden">
+          <span>⚡ Bekannte verbinden (0)</span>
+        </button>
         <button id="btn-connect" class="btn-connect" title="Bluetooth-Verbindung herstellen">
           <span>➕ Würfel verbinden</span>
         </button>
@@ -125,12 +128,12 @@
     <!-- Footer -->
     <footer>
       <p>Entwickelt für GoDice Smart Dice. Funktioniert auf Chrome, Edge und Opera via Web Bluetooth.</p>
-      <p>Sichere Verbindung (HTTPS / Localhost) ist erforderlich. | Version v1.2.0</p>
+      <p>Sichere Verbindung (HTTPS / Localhost) ist erforderlich. | Version v1.2.1</p>
     </footer>
   </div>
 
   <!-- Scripts -->
-  <script src="godice.js?v=2"></script>
-  <script src="app.js?v=2"></script>
+  <script src="godice.js?v=3"></script>
+  <script src="app.js?v=3"></script>
 </body>
 </html>

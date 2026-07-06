@@ -1,5 +1,5 @@
 // GoDice Dashboard - Application Logic
-const APP_VERSION = '1.2.0';
+const APP_VERSION = '1.2.1';
 console.log(`GoDice Smart Dashboard Version: ${APP_VERSION}`);
 
 // Reactive State
@@ -59,8 +59,8 @@ window.addEventListener('DOMContentLoaded', () => {
   renderHistoryUI();
   renderChartUI();
 
-  // Versuche, zuvor gekoppelte Würfel automatisch zu verbinden
-  tryAutoConnect();
+  // Prüfe auf zuvor gekoppelte Würfel
+  checkKnownDevices();
 
   // Mobile Tab-Umschaltung registrieren
   const tabButtons = document.querySelectorAll('.tab-btn');
@@ -136,54 +136,71 @@ function showUpdateToast(reg) {
 }
 
 // Automatische Verbindung mit bereits bekannten Geräten
-async function tryAutoConnect() {
+// Prüft auf bereits bekannte (zuvor gekoppelte) Würfel und blendet den Reconnect-Button ein
+async function checkKnownDevices() {
   if (navigator.bluetooth && navigator.bluetooth.getDevices) {
     try {
       const devices = await navigator.bluetooth.getDevices();
-      console.log(`Zuvor gekoppelte Geräte gefunden: ${devices.length}`);
+      const knownDice = devices.filter(device => device.name && device.name.startsWith('GoDice_'));
+      console.log(`Zuvor gekoppelte Geräte gefunden: ${knownDice.length}`);
       
-      for (const device of devices) {
-        if (device.name && device.name.startsWith('GoDice_')) {
-          console.log(`Versuche automatische Verbindung mit: ${device.name}`);
-          const newDice = new GoDice();
-          
-          // Füge den Würfel der Status-Liste hinzu mit Status "Verbindet..."
-          const diceId = device.id.toString();
-          
-          // Versuche, die Farbe aus dem Bluetooth-Gerätenamen zu lesen (als schneller Fallback)
-          let parsedColor = null;
-          const nameParts = device.name.split('_');
-          if (nameParts.length >= 3) {
-            const colorChar = nameParts[2].toUpperCase();
-            if (colorChar === 'R') parsedColor = 1;
-            else if (colorChar === 'G') parsedColor = 2;
-            else if (colorChar === 'B') parsedColor = 3;
-            else if (colorChar === 'Y') parsedColor = 4;
-            else if (colorChar === 'O') parsedColor = 5;
-            else if (colorChar === 'K' || colorChar === 'BLK') parsedColor = 0;
-          }
-
-          state.connectedDice[diceId] = {
-            instance: newDice,
-            battery: null,
-            color: parsedColor,
-            type: GoDice.diceTypes.D6,
-            status: 'Verbindet...',
-            value: 0
-          };
-          renderDiceGrid();
-
-          newDice.attachDevice(device).catch(err => {
-            console.warn(`Automatische Verbindung fehlgeschlagen für ${device.name}:`, err);
-            // Bei Fehler aus der Liste löschen
-            delete state.connectedDice[diceId];
-            renderDiceGrid();
-          });
-        }
+      const btnConnectKnown = document.getElementById('btn-connect-known');
+      if (btnConnectKnown && knownDice.length > 0) {
+        btnConnectKnown.querySelector('span').textContent = `⚡ Bekannte verbinden (${knownDice.length})`;
+        btnConnectKnown.style.display = 'flex';
+        btnConnectKnown.onclick = () => connectAllKnownDevices(knownDice);
       }
     } catch (err) {
-      console.error('Fehler bei automatischer Verbindung:', err);
+      console.warn('Fehler bei der Suche nach bekannten Bluetooth-Geräten:', err);
     }
+  }
+}
+
+// Verbindet alle bekannten Würfel parallel (wird durch Klick-Geste ausgelöst, daher erlaubt)
+async function connectAllKnownDevices(devices) {
+  const btnConnectKnown = document.getElementById('btn-connect-known');
+  if (btnConnectKnown) {
+    btnConnectKnown.style.display = 'none'; // Button ausblenden nach Klick
+  }
+  
+  for (const device of devices) {
+    const diceId = device.id.toString();
+    
+    // Verhindere doppeltes Verbinden, falls schon in Liste
+    if (state.connectedDice[diceId] && state.connectedDice[diceId].status !== 'Getrennt') {
+      continue;
+    }
+    
+    const newDice = new GoDice();
+    
+    // Versuche, die Farbe aus dem Bluetooth-Gerätenamen zu lesen (als schneller Fallback)
+    let parsedColor = null;
+    const nameParts = device.name.split('_');
+    if (nameParts.length >= 3) {
+      const colorChar = nameParts[2].toUpperCase();
+      if (colorChar === 'R') parsedColor = 1;
+      else if (colorChar === 'G') parsedColor = 2;
+      else if (colorChar === 'B') parsedColor = 3;
+      else if (colorChar === 'Y') parsedColor = 4;
+      else if (colorChar === 'O') parsedColor = 5;
+      else if (colorChar === 'K' || colorChar === 'BLK') parsedColor = 0;
+    }
+
+    state.connectedDice[diceId] = {
+      instance: newDice,
+      battery: null,
+      color: parsedColor,
+      type: GoDice.diceTypes.D6,
+      status: 'Verbindet...',
+      value: 0
+    };
+    renderDiceGrid();
+
+    newDice.attachDevice(device).catch(err => {
+      console.warn(`Verbindung fehlgeschlagen für ${device.name}:`, err);
+      delete state.connectedDice[diceId];
+      renderDiceGrid();
+    });
   }
 }
 

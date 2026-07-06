@@ -149,6 +149,33 @@ header {
   transform: translateY(0);
 }
 
+.btn-connect-known {
+  background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+  color: white;
+  border: none;
+  font-family: var(--font-title);
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 12px 24px;
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 20px rgba(168, 85, 247, 0.3);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-connect-known:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px rgba(168, 85, 247, 0.5);
+  filter: brightness(1.1);
+}
+
+.btn-connect-known:active {
+  transform: translateY(0);
+}
+
 /* Dashboard Grid Layout */
 .dashboard-grid {
   display: grid;
@@ -951,6 +978,10 @@ footer a:hover {
   }
 
   .btn-connect {
+    justify-content: center;
+  }
+
+  .btn-connect-known {
     justify-content: center;
   }
 
