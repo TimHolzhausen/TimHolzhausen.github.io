@@ -1,5 +1,5 @@
 // GoDice Dashboard - Application Logic
-const APP_VERSION = '1.2.4';
+const APP_VERSION = '1.2.6';
 
 // In-App Debug Console Interception (Must run first!)
 const originalLog = console.log;
@@ -248,17 +248,24 @@ async function checkKnownDevices() {
     try {
       const devices = await navigator.bluetooth.getDevices();
       const knownDice = devices.filter(device => device.name && device.name.startsWith('GoDice_'));
-      console.log(`Zuvor gekoppelte Geräte gefunden: ${knownDice.length}`);
+      console.log(`[Bluetooth] Gekoppelte Geräte im Browser-Speicher: ${devices.length} gesamt, davon ${knownDice.length} GoDice-Würfel.`);
       
       const btnConnectKnown = document.getElementById('btn-connect-known');
-      if (btnConnectKnown && knownDice.length > 0) {
-        btnConnectKnown.querySelector('span').textContent = `⚡ Bekannte verbinden (${knownDice.length})`;
-        btnConnectKnown.style.display = 'flex';
-        btnConnectKnown.onclick = () => connectAllKnownDevices(knownDice);
+      if (btnConnectKnown) {
+        if (knownDice.length > 0) {
+          btnConnectKnown.querySelector('span').textContent = `⚡ Bekannte verbinden (${knownDice.length})`;
+          btnConnectKnown.style.display = 'flex';
+          btnConnectKnown.onclick = () => connectAllKnownDevices(knownDice);
+        } else {
+          console.log("[Bluetooth] Kein Reconnect-Button eingeblendet, da keine bekannten Würfel im Speicher liegen.");
+          btnConnectKnown.style.display = 'none';
+        }
       }
     } catch (err) {
-      console.warn('Fehler bei der Suche nach bekannten Bluetooth-Geräten:', err);
+      console.warn('[Bluetooth] Fehler bei der Suche nach bekannten Bluetooth-Geräten:', err);
     }
+  } else {
+    console.log("[Bluetooth] navigator.bluetooth.getDevices wird von diesem Browser nicht unterstützt.");
   }
 }
 
@@ -448,6 +455,10 @@ GoDice.prototype.onDiceConnected = (diceId, diceInstance) => {
 GoDice.prototype.onDiceDisconnected = (diceId, diceInstance) => {
   console.log(`Dice disconnected: ${diceId}`);
   
+  // Wenn das SDK getrennt wird, setzt es `bluetoothDevice` auf null.
+  // Das ist ein eindeutiger Hinweis, dass der Benutzer auf "Trennen" geklickt hat.
+  const isExplicit = (diceInstance.bluetoothDevice === null);
+  
   if (state.connectedDice[diceId]) {
     state.connectedDice[diceId].status = 'Getrennt';
     renderDiceGrid();
@@ -455,8 +466,15 @@ GoDice.prototype.onDiceDisconnected = (diceId, diceInstance) => {
   
   updateGlobalStatsUI();
   
-  // Try reconnecting
-  diceInstance.attemptReconnect(diceId, diceInstance);
+  if (isExplicit) {
+    console.log(`Explizite Trennung durch Benutzer für ${diceId}. Lösche aus Liste.`);
+    delete state.connectedDice[diceId];
+    renderDiceGrid();
+  } else {
+    // Unbeabsichtigte Trennung -> versuche automatische Wiederverbindung
+    console.log(`Unerwartete Trennung für ${diceId}. Versuche automatische Wiederverbindung...`);
+    diceInstance.attemptReconnect(diceId, diceInstance);
+  }
 };
 
 GoDice.prototype.onBatteryLevel = (diceId, batteryLevel) => {
@@ -759,12 +777,9 @@ window.pulseDiceLED = (diceId) => {
 window.disconnectDice = (diceId) => {
   const die = state.connectedDice[diceId];
   if (!die) return;
-
-  die.instance.onDisconnectButtonClick();
-  delete state.connectedDice[diceId];
   
-  renderDiceGrid();
-  updateGlobalStatsUI();
+  console.log(`Benutzer trennt Verbindung zu Würfel: ${diceId}`);
+  die.instance.onDisconnectButtonClick();
 };
 
 // Render roll history list in sidebar
