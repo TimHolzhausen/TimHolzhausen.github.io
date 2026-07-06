@@ -1,5 +1,5 @@
 // GoDice Dashboard - Application Logic
-const APP_VERSION = '1.2.2';
+const APP_VERSION = '1.2.3';
 console.log(`GoDice Smart Dashboard Version: ${APP_VERSION}`);
 
 // Reactive State
@@ -202,14 +202,57 @@ function connectAllKnownDevices(devices) {
         console.log(`Erfolgreich verbunden mit ${device.name}`);
       })
       .catch(err => {
-        console.warn(`Verbindung fehlgeschlagen für ${device.name}:`, err);
-        delete state.connectedDice[diceId];
-        renderDiceGrid();
+        console.error(`Verbindung fehlgeschlagen für ${device.name}:`, err);
+        if (state.connectedDice[diceId]) {
+          state.connectedDice[diceId].status = `Fehler: ${err.message || 'Offline/Timeout'}`;
+          renderDiceGrid();
+        }
+        // Blende den globalen Reconnect-Button wieder ein
+        const btnConnectKnown = document.getElementById('btn-connect-known');
+        if (btnConnectKnown) {
+          btnConnectKnown.style.display = 'flex';
+        }
       });
   });
   
   renderDiceGrid();
 }
+
+// Einzelnen Würfel aus der Liste wiederverbinden (Benutzer-Geste)
+window.reconnectSingleDice = (diceId) => {
+  const die = state.connectedDice[diceId];
+  if (!die) return;
+  
+  die.status = 'Verbindet...';
+  renderDiceGrid();
+  
+  if (navigator.bluetooth && navigator.bluetooth.getDevices) {
+    navigator.bluetooth.getDevices()
+      .then(devices => {
+        const device = devices.find(d => d.id.toString() === diceId);
+        if (device) {
+          console.log(`Versuche manuelle Wiederverbindung mit: ${device.name}`);
+          die.instance.attachDevice(device)
+            .then(() => {
+              console.log(`Erfolgreich wiederverbunden mit ${device.name}`);
+            })
+            .catch(err => {
+              console.error(`Wiederverbindung fehlgeschlagen:`, err);
+              die.status = `Fehler: ${err.message || 'Offline'}`;
+              renderDiceGrid();
+            });
+        } else {
+          die.status = 'Gerät nicht gefunden';
+          renderDiceGrid();
+        }
+      })
+      .catch(err => {
+        console.error('Fehler bei getDevices:', err);
+        die.status = 'Fehler beim Abrufen';
+        renderDiceGrid();
+      });
+  }
+};
 
 // Trigger Web Bluetooth prompt
 function openConnectionDialog() {
@@ -486,9 +529,15 @@ function renderDiceGrid() {
       </div>
 
       <div class="card-footer">
-        <button class="btn-disconnect" onclick="disconnectDice('${diceId}')">
-          ❌ Verbindung trennen
-        </button>
+        ${(die.status.includes('Fehler') || die.status === 'Getrennt') ? `
+          <button class="btn-pulse" onclick="reconnectSingleDice('${diceId}')" style="background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue)); color: white; border: none; padding: 6px 14px; border-radius: 8px;">
+            ⚡ Erneut verbinden
+          </button>
+        ` : `
+          <button class="btn-disconnect" onclick="disconnectDice('${diceId}')">
+            ❌ Verbindung trennen
+          </button>
+        `}
       </div>
     `;
 
