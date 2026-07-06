@@ -1,5 +1,48 @@
 // GoDice Dashboard - Application Logic
-const APP_VERSION = '1.2.3';
+const APP_VERSION = '1.2.4';
+
+// In-App Debug Console Interception (Must run first!)
+const originalLog = console.log;
+const originalWarn = console.warn;
+const originalError = console.error;
+
+function addLogToUI(type, args) {
+  const message = Array.from(args).map(arg => {
+    if (typeof arg === 'object') {
+      try { return JSON.stringify(arg); } catch(e) { return String(arg); }
+    }
+    return String(arg);
+  }).join(' ');
+  
+  const consoleContainer = document.getElementById('debug-console-logs');
+  if (consoleContainer) {
+    const logLine = document.createElement('div');
+    logLine.className = `log-line log-${type}`;
+    const time = new Date().toLocaleTimeString('de-DE');
+    logLine.innerHTML = `<span class="log-time">[${time}]</span> <span class="log-message">${message}</span>`;
+    consoleContainer.appendChild(logLine);
+    
+    // Auto-scroll
+    const autoscroll = document.getElementById('debug-console-autoscroll');
+    if (!autoscroll || autoscroll.checked) {
+      consoleContainer.scrollTop = consoleContainer.scrollHeight;
+    }
+  }
+}
+
+console.log = function() {
+  originalLog.apply(console, arguments);
+  addLogToUI('info', arguments);
+};
+console.warn = function() {
+  originalWarn.apply(console, arguments);
+  addLogToUI('warn', arguments);
+};
+console.error = function() {
+  originalError.apply(console, arguments);
+  addLogToUI('error', arguments);
+};
+
 console.log(`GoDice Smart Dashboard Version: ${APP_VERSION}`);
 
 // Reactive State
@@ -115,6 +158,31 @@ window.addEventListener('DOMContentLoaded', () => {
         window.location.reload();
         refreshing = true;
       }
+    });
+  }
+
+  // Debug Konsole Handlers
+  const debugConsole = document.getElementById('debug-console');
+  const btnDebugToggle = document.getElementById('btn-debug-toggle');
+  const btnDebugClear = document.getElementById('btn-debug-clear');
+  const btnDebugClose = document.getElementById('btn-debug-close');
+  
+  if (btnDebugToggle && debugConsole) {
+    btnDebugToggle.addEventListener('click', () => {
+      debugConsole.classList.toggle('show');
+    });
+  }
+  
+  if (btnDebugClear) {
+    btnDebugClear.addEventListener('click', () => {
+      const logs = document.getElementById('debug-console-logs');
+      if (logs) logs.innerHTML = '';
+    });
+  }
+  
+  if (btnDebugClose && debugConsole) {
+    btnDebugClose.addEventListener('click', () => {
+      debugConsole.classList.remove('show');
     });
   }
 });

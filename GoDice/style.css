@@ -1110,3 +1110,146 @@ footer a:hover {
   box-shadow: 0 0 10px rgba(6, 182, 212, 0.1);
 }
 
+/* Floating Debug Toggle Button */
+.btn-debug-toggle {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: rgba(17, 24, 39, 0.85);
+  border: 1px solid var(--glass-border);
+  color: var(--text-secondary);
+  backdrop-filter: blur(10px);
+  padding: 8px 16px;
+  border-radius: 12px;
+  font-family: var(--font-title);
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  z-index: 9999;
+  box-shadow: var(--shadow-card);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-debug-toggle:hover {
+  border-color: var(--accent-cyan);
+  color: white;
+  transform: translateY(-2px);
+}
+
+/* Debug Console Panel */
+.debug-console {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 250px;
+  background: rgba(10, 14, 26, 0.96);
+  border-top: 2px solid var(--glass-border);
+  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(25px);
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.debug-console.show {
+  transform: translateY(0);
+}
+
+.debug-console-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px;
+  background: rgba(17, 24, 39, 0.9);
+  border-bottom: 1px solid var(--glass-border);
+  font-family: var(--font-title);
+  color: white;
+}
+
+.debug-console-header h4 {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--accent-cyan);
+}
+
+.debug-console-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.debug-console-actions label {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-debug-clear, .btn-debug-close {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-debug-clear:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.btn-debug-close {
+  border-color: rgba(239, 68, 68, 0.3);
+  color: rgba(239, 68, 68, 0.8);
+}
+
+.btn-debug-close:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: white;
+}
+
+.debug-console-logs {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  text-align: left;
+}
+
+.log-line {
+  margin-bottom: 6px;
+  word-break: break-all;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  padding-bottom: 4px;
+}
+
+.log-time {
+  color: #6b7280;
+  margin-right: 6px;
+}
+
+.log-info {
+  color: #a7f3d0; /* Soft Green */
+}
+
+.log-warn {
+  color: #fde047; /* Soft Yellow */
+}
+
+.log-error {
+  color: #fca5a5; /* Soft Red */
+}
+
+
