@@ -1,0 +1,861 @@
+/* GoDice Dashboard - Premium CSS System */
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --bg-primary: #0a0e1a;
+  --bg-secondary: #111827;
+  --glass-bg: rgba(17, 24, 39, 0.65);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-border-hover: rgba(255, 255, 255, 0.16);
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  
+  --accent-cyan: #06b6d4;
+  --accent-blue: #3b82f6;
+  --accent-purple: #a855f7;
+  --accent-green: #10b981;
+  --accent-yellow: #eab308;
+  --accent-orange: #f97316;
+  --accent-red: #ef4444;
+  
+  --shadow-neon: 0 0 20px rgba(6, 182, 212, 0.2);
+  --shadow-card: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  
+  --font-title: 'Outfit', sans-serif;
+  --font-body: 'Plus Jakarta Sans', sans-serif;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--bg-primary);
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(30, 58, 138, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(88, 28, 135, 0.15) 0px, transparent 50%),
+    radial-gradient(at 50% 50%, rgba(6, 182, 212, 0.05) 0px, transparent 50%);
+  background-attachment: fixed;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  min-height: 100vh;
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+
+/* Header & Layout Container */
+.app-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-icon {
+  width: 42px;
+  height: 42px;
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-title);
+  font-weight: 800;
+  font-size: 1.4rem;
+  color: white;
+  box-shadow: var(--shadow-neon);
+}
+
+.brand-info h1 {
+  font-family: var(--font-title);
+  font-weight: 700;
+  font-size: 1.8rem;
+  letter-spacing: -0.5px;
+  background: linear-gradient(to right, #ffffff, #94a3b8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.brand-info p {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+/* Web Bluetooth Warning Banner */
+.bluetooth-info-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid var(--glass-border);
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.bluetooth-info-bar i {
+  color: var(--accent-cyan);
+}
+
+/* Buttons */
+.btn-connect {
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+  color: white;
+  border: none;
+  font-family: var(--font-title);
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 12px 24px;
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 20px rgba(6, 182, 212, 0.3);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-connect:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px rgba(6, 182, 212, 0.5);
+  filter: brightness(1.1);
+}
+
+.btn-connect:active {
+  transform: translateY(0);
+}
+
+/* Dashboard Grid Layout */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 350px;
+  gap: 2rem;
+}
+
+@media (max-width: 1024px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Left side: Stats & Active Dice */
+.main-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* Global Stats Panel */
+.stats-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+}
+
+@media (max-width: 640px) {
+  .stats-strip {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.stat-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(12px);
+  border-radius: 16px;
+  padding: 1.25rem;
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  border-color: var(--glass-border-hover);
+  transform: translateY(-2px);
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+}
+
+.stat-value {
+  font-family: var(--font-title);
+  font-weight: 700;
+  font-size: 1.8rem;
+  color: white;
+}
+
+.stat-value.accent {
+  color: var(--accent-cyan);
+}
+
+/* Connected Dice Panel */
+.dice-container-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.dice-container-header h2 {
+  font-family: var(--font-title);
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.dice-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 1.5rem;
+}
+
+.empty-state {
+  grid-column: 1 / -1;
+  background: var(--glass-bg);
+  border: 2px dashed var(--glass-border);
+  backdrop-filter: blur(12px);
+  border-radius: 20px;
+  padding: 4rem 2rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.empty-state i {
+  font-size: 3rem;
+  color: var(--text-secondary);
+  opacity: 0.5;
+  animation: float 4s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.empty-state h3 {
+  font-family: var(--font-title);
+  font-size: 1.25rem;
+  color: white;
+}
+
+.empty-state p {
+  color: var(--text-secondary);
+  max-width: 400px;
+  font-size: 0.9rem;
+  margin-bottom: 10px;
+}
+
+/* Premium Glass Dice Card */
+.dice-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(12px);
+  border-radius: 24px;
+  padding: 1.5rem;
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dice-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, transparent, var(--accent-cyan), transparent);
+  transition: all 0.3s ease;
+}
+
+.dice-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.45);
+  border-color: var(--glass-border-hover);
+}
+
+/* Glowing outlines based on physical dice color class */
+.dice-card.color-black { border-left: 4px solid #4b5563; }
+.dice-card.color-red { border-left: 4px solid var(--accent-red); }
+.dice-card.color-green { border-left: 4px solid var(--accent-green); }
+.dice-card.color-blue { border-left: 4px solid var(--accent-blue); }
+.dice-card.color-yellow { border-left: 4px solid var(--accent-yellow); }
+.dice-card.color-orange { border-left: 4px solid var(--accent-orange); }
+
+/* Card Top Info Row */
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.dice-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dice-id-badge {
+  font-family: var(--font-title);
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dice-color-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+}
+
+/* Battery Indicator CSS */
+.battery-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.battery-text {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.battery-icon {
+  width: 28px;
+  height: 14px;
+  border: 1.5px solid var(--text-secondary);
+  border-radius: 4px;
+  padding: 1.5px;
+  position: relative;
+  display: flex;
+}
+
+.battery-icon::after {
+  content: '';
+  position: absolute;
+  right: -3px;
+  top: 3px;
+  width: 2px;
+  height: 6px;
+  background: var(--text-secondary);
+  border-radius: 0 1px 1px 0;
+}
+
+.battery-level-bar {
+  height: 100%;
+  border-radius: 1px;
+  background: var(--accent-green);
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.battery-level-bar.warning {
+  background: var(--accent-yellow);
+}
+
+.battery-level-bar.danger {
+  background: var(--accent-red);
+}
+
+/* Wurf-Ergebnis (Roll display) */
+.roll-display-area {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 140px;
+  position: relative;
+}
+
+.dice-visual {
+  width: 100px;
+  height: 100px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 2px solid var(--glass-border);
+  box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-title);
+  font-weight: 800;
+  font-size: 3.5rem;
+  color: white;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Dynamic styling for dice values based on physical colors */
+.color-red .dice-visual { border-color: rgba(239, 68, 68, 0.3); color: #ef4444; }
+.color-green .dice-visual { border-color: rgba(16, 185, 129, 0.3); color: #10b981; }
+.color-blue .dice-visual { border-color: rgba(59, 130, 246, 0.3); color: #3b82f6; }
+.color-yellow .dice-visual { border-color: rgba(234, 179, 8, 0.3); color: #eab308; }
+.color-orange .dice-visual { border-color: rgba(249, 115, 22, 0.3); color: #f97316; }
+.color-black .dice-visual { border-color: rgba(156, 163, 175, 0.3); color: #e2e8f0; }
+
+/* Rolling animation class */
+.dice-visual.rolling {
+  animation: roll-shake 0.3s linear infinite;
+  background: rgba(6, 182, 212, 0.05);
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 25px rgba(6, 182, 212, 0.3);
+  color: var(--accent-cyan);
+  font-size: 2.2rem;
+}
+
+@keyframes roll-shake {
+  0% { transform: translate(1px, 1px) rotate(0deg) scale(0.95); }
+  10% { transform: translate(-1px, -2px) rotate(-3deg); }
+  20% { transform: translate(-3px, 0px) rotate(3deg); }
+  30% { transform: translate(0px, 2px) rotate(0deg); }
+  40% { transform: translate(1px, -1px) rotate(1deg); }
+  50% { transform: translate(-1px, 2px) rotate(-1deg) scale(1.05); }
+  60% { transform: translate(-3px, 1px) rotate(0deg); }
+  70% { transform: translate(2px, 1px) rotate(-2deg); }
+  80% { transform: translate(-1px, -1px) rotate(4deg); }
+  90% { transform: translate(2px, 2px) rotate(-3deg); }
+  100% { transform: translate(1px, -2px) rotate(-1deg) scale(0.95); }
+}
+
+/* Stable state pop animation */
+.dice-visual.stable-pop {
+  animation: pop-bounce 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes pop-bounce {
+  0% { transform: scale(0.7); opacity: 0.5; }
+  50% { transform: scale(1.15); }
+  75% { transform: scale(0.95); }
+  100% { transform: scale(1); }
+}
+
+.dice-status-label {
+  position: absolute;
+  bottom: -5px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-secondary);
+  background: rgba(10, 14, 26, 0.8);
+  padding: 2px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--glass-border);
+}
+
+/* Shell / Type Selector Controls */
+.shell-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.shell-selector label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  letter-spacing: 0.5px;
+}
+
+.shell-buttons {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 3px;
+  border-radius: 8px;
+  border: 1px solid var(--glass-border);
+}
+
+.btn-shell {
+  background: transparent;
+  color: var(--text-secondary);
+  border: none;
+  border-radius: 6px;
+  font-family: var(--font-title);
+  font-weight: 700;
+  font-size: 0.7rem;
+  padding: 6px 0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-shell:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.btn-shell.active {
+  color: white;
+  background: var(--accent-cyan);
+  box-shadow: 0 2px 8px rgba(6, 182, 212, 0.3);
+}
+
+/* LED Control Panel */
+.led-control-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-top: 1px solid var(--glass-border);
+  padding-top: 1rem;
+}
+
+.led-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.led-header span {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  letter-spacing: 0.5px;
+}
+
+.led-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.color-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.dot-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.dot-btn:hover {
+  transform: scale(1.15);
+}
+
+.dot-btn.dot-red { background-color: var(--accent-red); }
+.dot-btn.dot-green { background-color: var(--accent-green); }
+.dot-btn.dot-blue { background-color: var(--accent-blue); }
+.dot-btn.dot-yellow { background-color: var(--accent-yellow); }
+.dot-btn.dot-off { 
+  background-color: transparent; 
+  border: 2px dashed var(--text-secondary); 
+}
+
+.dot-btn.dot-off::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 2px;
+  background: var(--text-secondary);
+  transform: rotate(45deg);
+  top: 9px;
+  left: 0;
+}
+
+.btn-pulse {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+}
+
+.btn-pulse:hover {
+  background: var(--accent-cyan);
+  border-color: var(--accent-cyan);
+  color: white;
+  box-shadow: 0 2px 8px rgba(6, 182, 212, 0.3);
+}
+
+/* Disconnect Card Link */
+.card-footer {
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid var(--glass-border);
+  padding-top: 0.75rem;
+}
+
+.btn-disconnect {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+}
+
+.btn-disconnect:hover {
+  color: var(--accent-red);
+}
+
+/* Sidebar: History and Stats */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Common Widget Panel */
+.panel-widget {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(12px);
+  border-radius: 20px;
+  padding: 1.5rem;
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.panel-widget h3 {
+  font-family: var(--font-title);
+  font-size: 1.15rem;
+  font-weight: 600;
+  border-bottom: 1px solid var(--glass-border);
+  padding-bottom: 0.75rem;
+  margin-bottom: 0.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.panel-widget h3 button {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  cursor: pointer;
+  font-family: var(--font-body);
+}
+
+.panel-widget h3 button:hover {
+  color: white;
+}
+
+/* Roll History Log */
+.history-list {
+  max-height: 250px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-right: 4px;
+}
+
+/* Custom Scrollbar for dark theme */
+.history-list::-webkit-scrollbar,
+.chart-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.history-list::-webkit-scrollbar-track,
+.chart-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.history-list::-webkit-scrollbar-thumb,
+.chart-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.history-list::-webkit-scrollbar-thumb:hover,
+.chart-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.history-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--glass-border);
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+  animation: slide-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.history-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+@keyframes slide-in {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.history-dice-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.history-dice-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.history-dice-dot.dot-black { background-color: #9ca3af; }
+.history-dice-dot.dot-red { background-color: var(--accent-red); }
+.history-dice-dot.dot-green { background-color: var(--accent-green); }
+.history-dice-dot.dot-blue { background-color: var(--accent-blue); }
+.history-dice-dot.dot-yellow { background-color: var(--accent-yellow); }
+.history-dice-dot.dot-orange { background-color: var(--accent-orange); }
+
+.history-dice-id {
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.history-dice-type {
+  font-size: 0.7rem;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-family: var(--font-title);
+  color: var(--text-secondary);
+}
+
+.history-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.history-value {
+  font-family: var(--font-title);
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: white;
+}
+
+.history-time {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+}
+
+/* Distribution Chart Panel */
+.chart-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.chart-bar-row {
+  display: grid;
+  grid-template-columns: 24px 1fr 32px;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+}
+
+.chart-bar-label {
+  font-family: var(--font-title);
+  font-weight: 700;
+  text-align: right;
+  color: var(--text-secondary);
+}
+
+.chart-bar-track {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--glass-border);
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.chart-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan));
+  width: 0%;
+  border-radius: 4px;
+  transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.chart-bar-value {
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-align: left;
+}
+
+/* Footer styling */
+footer {
+  margin-top: 3rem;
+  padding: 1.5rem 0;
+  border-top: 1px solid var(--glass-border);
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
+footer a {
+  color: var(--accent-cyan);
+  text-decoration: none;
+}
+
+footer a:hover {
+  text-decoration: underline;
+}

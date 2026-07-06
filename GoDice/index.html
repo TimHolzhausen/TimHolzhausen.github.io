@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="GoDice Dashboard - Verbinde deine smarten Bluetooth-Würfel, verfolge deine Wurf-Statistiken in Echtzeit und steuere die LEDs.">
+  <title>GoDice Smart Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- Header Area -->
+    <header>
+      <div class="brand">
+        <div class="brand-icon">🎲</div>
+        <div class="brand-info">
+          <h1>GoDice Dashboard</h1>
+          <p>Echtzeit-Statistiken &amp; Steuerung für Bluetooth-Würfel</p>
+        </div>
+      </div>
+      
+      <div class="header-actions">
+        <div class="bluetooth-info-bar">
+          <span>Web Bluetooth API</span>
+        </div>
+        <button id="btn-connect" class="btn-connect" title="Bluetooth-Verbindung herstellen">
+          <span>➕ Würfel verbinden</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Dashboard Body -->
+    <div class="dashboard-grid">
+      
+      <!-- Main Content Area -->
+      <div class="main-content">
+        
+        <!-- Global Stats Strip -->
+        <div class="stats-strip">
+          <div class="stat-card">
+            <span class="stat-label">Aktiv</span>
+            <span class="stat-value accent" id="stat-connected-dice">0</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Wurf-Anzahl</span>
+            <span class="stat-value" id="stat-total-rolls">0</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Durchschnitt</span>
+            <span class="stat-value" id="stat-avg-roll">0</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Letzter Wurf</span>
+            <span class="stat-value accent" id="stat-last-roll">-</span>
+          </div>
+        </div>
+
+        <!-- Connected Dice Section -->
+        <div class="dice-section">
+          <div class="dice-container-header">
+            <h2>Aktive Würfel</h2>
+          </div>
+          
+          <!-- Dynamic Grid Host -->
+          <div class="dice-grid" id="dice-grid">
+            <div class="empty-state">
+              <i class="brand-icon">🎲</i>
+              <h3>Keine Würfel verbunden</h3>
+              <p>Klicke oben auf "Würfel verbinden" und wähle deinen GoDice aus. Halte den Würfel bereit (ggf. kurz bewegen, um ihn aufzuwecken).</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Sidebar Area -->
+      <div class="sidebar">
+        
+        <!-- Stats Distribution Widget -->
+        <div class="panel-widget">
+          <h3>
+            <span>Häufigkeit (D6)</span>
+            <button id="btn-reset-stats" title="Zurücksetzen">Zurücksetzen</button>
+          </h3>
+          <div class="chart-container" id="chart-container">
+            <!-- Dynamic Chart Bars -->
+          </div>
+        </div>
+
+        <!-- History Widget -->
+        <div class="panel-widget">
+          <h3>Wurf-Historie</h3>
+          <div class="history-list" id="history-list">
+            <!-- Dynamic History Items -->
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <p>Entwickelt für GoDice Smart Dice. Funktioniert auf Chrome, Edge und Opera via Web Bluetooth.</p>
+      <p>Sichere Verbindung (HTTPS / Localhost) ist erforderlich.</p>
+    </footer>
+  </div>
+
+  <!-- Scripts -->
+  <script src="godice.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
