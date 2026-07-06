@@ -1,4 +1,4 @@
-const CACHE_NAME = 'godice-dashboard-v1';
+const CACHE_NAME = 'godice-dashboard-v2';
 const ASSETS = [
   './',
   './index.html',

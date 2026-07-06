@@ -859,3 +859,155 @@ footer a {
 footer a:hover {
   text-decoration: underline;
 }
+
+/* Mobile Navigation Tabs (Only visible on mobile) */
+.mobile-tabs {
+  display: none;
+  justify-content: space-around;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(12px);
+  border-radius: 16px;
+  padding: 6px;
+  margin-bottom: 1.5rem;
+  gap: 6px;
+}
+
+.tab-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-family: var(--font-title);
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 10px 0;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+}
+
+.tab-btn:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.tab-btn.active {
+  color: white;
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+  box-shadow: 0 4px 15px rgba(6, 182, 212, 0.2);
+}
+
+/* Default display for tab panes */
+.tab-pane {
+  display: block; /* Desktop shows all */
+}
+
+/* Responsive Media Queries */
+@media (max-width: 767px) {
+  .mobile-tabs {
+    display: flex; /* Mobile shows tabs */
+  }
+
+  .tab-pane {
+    display: none; /* Mobile hides by default */
+  }
+
+  .tab-pane.active {
+    display: block; /* Mobile shows active tab */
+  }
+
+  /* Adjust container padding for mobile */
+  .app-container {
+    padding: 1rem 0.75rem;
+  }
+
+  /* Stack header elements */
+  header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+    text-align: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.25rem;
+  }
+
+  .brand {
+    justify-content: center;
+  }
+
+  .header-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .bluetooth-info-bar {
+    justify-content: center;
+  }
+
+  .btn-connect {
+    justify-content: center;
+  }
+
+  /* Shrink dice card layout for mobile */
+  .dice-grid {
+    grid-template-columns: 1fr; /* Single column on mobile */
+    gap: 1rem;
+  }
+
+  .dice-card {
+    padding: 1rem;
+    border-radius: 20px;
+  }
+
+  .dice-visual {
+    width: 85px;
+    height: 85px;
+    font-size: 3rem;
+  }
+
+  /* Multi-column wrapping shell selector */
+  .shell-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    background: transparent;
+    padding: 0;
+    border: none;
+  }
+
+  .btn-shell {
+    flex: 1 1 calc(33.33% - 6px); /* 3 columns on small screens */
+    min-width: 60px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--glass-border);
+    padding: 6px 0;
+    font-size: 0.65rem;
+  }
+
+  /* Make LED panel scrollable or wrapping */
+  .color-dots {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  /* Global stats strip grid */
+  .stats-strip {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+
+  .stat-card {
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+  }
+
+  .stat-value {
+    font-size: 1.4rem;
+  }
+}

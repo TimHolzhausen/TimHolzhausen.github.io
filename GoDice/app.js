@@ -60,6 +60,25 @@ window.addEventListener('DOMContentLoaded', () => {
   // Versuche, zuvor gekoppelte Würfel automatisch zu verbinden
   tryAutoConnect();
 
+  // Mobile Tab-Umschaltung registrieren
+  const tabButtons = document.querySelectorAll('.tab-btn');
+  tabButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetTabId = btn.getAttribute('data-tab');
+      
+      tabButtons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      
+      const tabPanes = document.querySelectorAll('.tab-pane');
+      tabPanes.forEach(pane => pane.classList.remove('active'));
+      
+      const targetPane = document.getElementById(targetTabId);
+      if (targetPane) {
+        targetPane.classList.add('active');
+      }
+    });
+  });
+
   // Registriere Service Worker für PWA (Offline-Unterstützung)
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js')
