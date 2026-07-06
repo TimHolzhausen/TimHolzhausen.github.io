@@ -1,4 +1,4 @@
-const CACHE_NAME = 'godice-dashboard-v5';
+const CACHE_NAME = 'godice-dashboard-v6';
 const ASSETS = [
   './',
   './index.html',
@@ -16,7 +16,7 @@ self.addEventListener('install', (event) => {
     caches.open(CACHE_NAME).then((cache) => {
       console.log('[Service Worker] Caching all static assets...');
       return cache.addAll(ASSETS);
-    }).then(() => self.skipWaiting())
+    })
   );
 });
 

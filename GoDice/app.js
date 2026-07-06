@@ -1,5 +1,5 @@
 // GoDice Dashboard - Application Logic
-const APP_VERSION = '1.2.1';
+const APP_VERSION = '1.2.2';
 console.log(`GoDice Smart Dashboard Version: ${APP_VERSION}`);
 
 // Reactive State
@@ -157,18 +157,18 @@ async function checkKnownDevices() {
 }
 
 // Verbindet alle bekannten Würfel parallel (wird durch Klick-Geste ausgelöst, daher erlaubt)
-async function connectAllKnownDevices(devices) {
+function connectAllKnownDevices(devices) {
   const btnConnectKnown = document.getElementById('btn-connect-known');
   if (btnConnectKnown) {
     btnConnectKnown.style.display = 'none'; // Button ausblenden nach Klick
   }
   
-  for (const device of devices) {
+  devices.forEach(device => {
     const diceId = device.id.toString();
     
     // Verhindere doppeltes Verbinden, falls schon in Liste
     if (state.connectedDice[diceId] && state.connectedDice[diceId].status !== 'Getrennt') {
-      continue;
+      return;
     }
     
     const newDice = new GoDice();
@@ -194,14 +194,21 @@ async function connectAllKnownDevices(devices) {
       status: 'Verbindet...',
       value: 0
     };
-    renderDiceGrid();
 
-    newDice.attachDevice(device).catch(err => {
-      console.warn(`Verbindung fehlgeschlagen für ${device.name}:`, err);
-      delete state.connectedDice[diceId];
-      renderDiceGrid();
-    });
-  }
+    // WICHTIG: Aufruf direkt im synchronen Click-Callstack ausführen,
+    // um die User-Gesture-Berechtigung des Browsers für alle Geräte zu erhalten!
+    newDice.attachDevice(device)
+      .then(() => {
+        console.log(`Erfolgreich verbunden mit ${device.name}`);
+      })
+      .catch(err => {
+        console.warn(`Verbindung fehlgeschlagen für ${device.name}:`, err);
+        delete state.connectedDice[diceId];
+        renderDiceGrid();
+      });
+  });
+  
+  renderDiceGrid();
 }
 
 // Trigger Web Bluetooth prompt
