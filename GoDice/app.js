@@ -59,6 +59,13 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // Versuche, zuvor gekoppelte Würfel automatisch zu verbinden
   tryAutoConnect();
+
+  // Registriere Service Worker für PWA (Offline-Unterstützung)
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js')
+      .then((reg) => console.log('[Service Worker] erfolgreich registriert:', reg.scope))
+      .catch((err) => console.error('[Service Worker] Registrierung fehlgeschlagen:', err));
+  }
 });
 
 // Automatische Verbindung mit bereits bekannten Geräten

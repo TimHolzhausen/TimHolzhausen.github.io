@@ -1,0 +1,22 @@
+{
+  "name": "GoDice Smart Dashboard",
+  "short_name": "GoDice",
+  "description": "Premium Echtzeit-Dashboard & Steuerung für deine GoDice Würfel",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0a0e1a",
+  "theme_color": "#0a0e1a",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
+}
