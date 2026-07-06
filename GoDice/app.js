@@ -79,13 +79,59 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Registriere Service Worker für PWA (Offline-Unterstützung)
+  // Registriere Service Worker für PWA (Offline-Unterstützung) & Update-Erkennung
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js')
-      .then((reg) => console.log('[Service Worker] erfolgreich registriert:', reg.scope))
+      .then((reg) => {
+        console.log('[Service Worker] erfolgreich registriert:', reg.scope);
+        
+        // Suche nach Updates, während die App läuft
+        reg.addEventListener('updatefound', () => {
+          const newWorker = reg.installing;
+          if (newWorker) {
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                // Ein neues Update wurde im Hintergrund geladen und ist bereit
+                showUpdateToast(reg);
+              }
+            });
+          }
+        });
+
+        // Falls bereits ein Update wartet (z.B. vom vorherigen Laden)
+        if (reg.waiting && navigator.serviceWorker.controller) {
+          showUpdateToast(reg);
+        }
+      })
       .catch((err) => console.error('[Service Worker] Registrierung fehlgeschlagen:', err));
+
+    // Seite neu laden, sobald der neue Service Worker die Kontrolle übernimmt
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!refreshing) {
+        console.log('[Service Worker] Neue Version aktiv, lade Seite neu...');
+        window.location.reload();
+        refreshing = true;
+      }
+    });
   }
 });
+
+// Zeigt den Update-Hinweis (Toast) an
+function showUpdateToast(reg) {
+  const toast = document.getElementById('update-toast');
+  const btn = document.getElementById('btn-update-now');
+  if (!toast || !btn) return;
+  
+  toast.classList.add('show');
+  btn.onclick = () => {
+    if (reg.waiting) {
+      // Sende Signal an den Service-Worker, den alten Cache zu überschreiben
+      reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+    }
+    toast.classList.remove('show');
+  };
+}
 
 // Automatische Verbindung mit bereits bekannten Geräten
 async function tryAutoConnect() {

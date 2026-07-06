@@ -1,4 +1,4 @@
-const CACHE_NAME = 'godice-dashboard-v3';
+const CACHE_NAME = 'godice-dashboard-v4';
 const ASSETS = [
   './',
   './index.html',
@@ -62,4 +62,12 @@ self.addEventListener('fetch', (event) => {
       return fetch(event.request);
     })
   );
+});
+
+// Listen for skipWaiting messages from app.js to apply updates immediately
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    console.log('[Service Worker] skipWaiting empfangen, aktiviere neue Version...');
+    self.skipWaiting();
+  }
 });
