@@ -1,4 +1,4 @@
-const CACHE_NAME = 'godice-dashboard-v2';
+const CACHE_NAME = 'godice-dashboard-v3';
 const ASSETS = [
   './',
   './index.html',
@@ -44,7 +44,7 @@ self.addEventListener('fetch', (event) => {
   }
 
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
+    caches.match(event.request, { ignoreSearch: true }).then((cachedResponse) => {
       if (cachedResponse) {
         // Fetch background update to keep cache fresh
         fetch(event.request)
