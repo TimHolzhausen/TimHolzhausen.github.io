@@ -6,6 +6,62 @@ const originalLog = console.log;
 const originalWarn = console.warn;
 const originalError = console.error;
 
+function ensureDebugConsoleDOM() {
+  let debugConsole = document.getElementById('debug-console');
+  let btnDebugToggle = document.getElementById('btn-debug-toggle');
+  
+  if (!debugConsole && document.body) {
+    originalLog("[Debug] Erstelle Debug-Konsole dynamisch im DOM...");
+    
+    // Create button
+    btnDebugToggle = document.createElement('button');
+    btnDebugToggle.id = 'btn-debug-toggle';
+    btnDebugToggle.className = 'btn-debug-toggle';
+    btnDebugToggle.title = 'Debug-Konsole öffnen';
+    btnDebugToggle.innerHTML = '⚙️ Debug-Log';
+    document.body.appendChild(btnDebugToggle);
+    
+    // Create console panel
+    debugConsole = document.createElement('div');
+    debugConsole.id = 'debug-console';
+    debugConsole.className = 'debug-console';
+    debugConsole.innerHTML = `
+      <div class="debug-console-header">
+        <h4>🔍 In-App Debug Konsole</h4>
+        <div class="debug-console-actions">
+          <label><input type="checkbox" id="debug-console-autoscroll" checked> Auto-Scroll</label>
+          <button id="btn-debug-clear" class="btn-debug-clear">Löschen</button>
+          <button id="btn-debug-close" class="btn-debug-close">✖</button>
+        </div>
+      </div>
+      <div id="debug-console-logs" class="debug-console-logs"></div>
+    `;
+    document.body.appendChild(debugConsole);
+    
+    // Bind toggle
+    btnDebugToggle.addEventListener('click', () => {
+      debugConsole.classList.toggle('show');
+    });
+    
+    // Bind clear
+    const btnClear = debugConsole.querySelector('#btn-debug-clear');
+    if (btnClear) {
+      btnClear.addEventListener('click', () => {
+        const logs = debugConsole.querySelector('#debug-console-logs');
+        if (logs) logs.innerHTML = '';
+      });
+    }
+    
+    // Bind close
+    const btnClose = debugConsole.querySelector('#btn-debug-close');
+    if (btnClose) {
+      btnClose.addEventListener('click', () => {
+        debugConsole.classList.remove('show');
+      });
+    }
+  }
+}
+
 function addLogToUI(type, args) {
   const message = Array.from(args).map(arg => {
     if (typeof arg === 'object') {
@@ -13,6 +69,10 @@ function addLogToUI(type, args) {
     }
     return String(arg);
   }).join(' ');
+  
+  if (document.body) {
+    ensureDebugConsoleDOM();
+  }
   
   const consoleContainer = document.getElementById('debug-console-logs');
   if (consoleContainer) {
@@ -161,30 +221,8 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Debug Konsole Handlers
-  const debugConsole = document.getElementById('debug-console');
-  const btnDebugToggle = document.getElementById('btn-debug-toggle');
-  const btnDebugClear = document.getElementById('btn-debug-clear');
-  const btnDebugClose = document.getElementById('btn-debug-close');
-  
-  if (btnDebugToggle && debugConsole) {
-    btnDebugToggle.addEventListener('click', () => {
-      debugConsole.classList.toggle('show');
-    });
-  }
-  
-  if (btnDebugClear) {
-    btnDebugClear.addEventListener('click', () => {
-      const logs = document.getElementById('debug-console-logs');
-      if (logs) logs.innerHTML = '';
-    });
-  }
-  
-  if (btnDebugClose && debugConsole) {
-    btnDebugClose.addEventListener('click', () => {
-      debugConsole.classList.remove('show');
-    });
-  }
+  // Stelle sicher, dass die Debug-Konsole im DOM vorhanden und bereit ist
+  ensureDebugConsoleDOM();
 });
 
 // Zeigt den Update-Hinweis (Toast) an
@@ -222,6 +260,16 @@ async function checkKnownDevices() {
       console.warn('Fehler bei der Suche nach bekannten Bluetooth-Geräten:', err);
     }
   }
+}
+
+// Hilfsfunktion für verständliche Fehlermeldungen bei Web Bluetooth
+function getFriendlyErrorMessage(err) {
+  const msg = err.message || String(err);
+  if (msg.includes("no longer in range") || msg.includes("not in range") || msg.includes("User cancelled") || msg.includes("no longer available")) {
+    console.warn("💡 Info: Wenn der Würfel neben dir liegt, hat das Handy seine temporäre Bluetooth-Adresse verloren (Privacy-Rotation). Klicke oben auf '➕ Würfel verbinden' für eine frische Kopplung!");
+    return "Adresse rotiert (Neu koppeln!)";
+  }
+  return `Fehler: ${msg.substring(0, 30)}`;
 }
 
 // Verbindet alle bekannten Würfel parallel (wird durch Klick-Geste ausgelöst, daher erlaubt)
@@ -272,7 +320,7 @@ function connectAllKnownDevices(devices) {
       .catch(err => {
         console.error(`Verbindung fehlgeschlagen für ${device.name}:`, err);
         if (state.connectedDice[diceId]) {
-          state.connectedDice[diceId].status = `Fehler: ${err.message || 'Offline/Timeout'}`;
+          state.connectedDice[diceId].status = getFriendlyErrorMessage(err);
           renderDiceGrid();
         }
         // Blende den globalen Reconnect-Button wieder ein
@@ -306,7 +354,7 @@ window.reconnectSingleDice = (diceId) => {
             })
             .catch(err => {
               console.error(`Wiederverbindung fehlgeschlagen:`, err);
-              die.status = `Fehler: ${err.message || 'Offline'}`;
+              die.status = getFriendlyErrorMessage(err);
               renderDiceGrid();
             });
         } else {
