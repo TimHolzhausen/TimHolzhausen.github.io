@@ -816,7 +816,15 @@ function processRollBatch() {
   
   if (state.settings.notify) {
     if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification(notificationTitle, { body: notifText, icon: 'icon-192.png' });
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.ready.then(registration => {
+          registration.showNotification(notificationTitle, { body: notifText, icon: 'icon-192.png' });
+        }).catch(err => {
+          new Notification(notificationTitle, { body: notifText, icon: 'icon-192.png' });
+        });
+      } else {
+        new Notification(notificationTitle, { body: notifText, icon: 'icon-192.png' });
+      }
     }
   }
   
