@@ -115,6 +115,14 @@ const state = {
     average: 0,
     lastRoll: '-',
     distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 } // Default for D6, resets/adapts dynamically
+  },
+  settings: {
+    notify: false,
+    tts: false,
+    announceMode: 'sum', // 'sum' or 'individual'
+    singleRollMode: 'single', // 'single' or 'all'
+    debounceTime: 1500, // default wait time in ms
+    announceOldValue: false
   }
 };
 
@@ -164,6 +172,9 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // Prüfe auf zuvor gekoppelte Würfel
   checkKnownDevices();
+
+  // Settings initialisieren
+  setupSettingsUI();
 
   // Mobile Tab-Umschaltung registrieren
   const tabButtons = document.querySelectorAll('.tab-btn');
@@ -401,6 +412,109 @@ function resetStatistics() {
 }
 
 // ----------------------------------------------------
+// Settings & Notifications Logic
+// ----------------------------------------------------
+
+function loadSettings() {
+  try {
+    const saved = localStorage.getItem('godice_settings');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      state.settings = { ...state.settings, ...parsed };
+    }
+  } catch (e) {
+    console.error('Failed to load settings', e);
+  }
+}
+
+function saveSettings() {
+  localStorage.setItem('godice_settings', JSON.stringify(state.settings));
+}
+
+function setupSettingsUI() {
+  loadSettings();
+  
+  const notifyEl = document.getElementById('setting-notify');
+  const ttsEl = document.getElementById('setting-tts');
+  const radioEls = document.querySelectorAll('input[name="announceMode"]');
+  const singleRadioEls = document.querySelectorAll('input[name="singleRollMode"]');
+  const debounceEl = document.getElementById('setting-debounce');
+  const debounceDisplay = document.getElementById('debounce-value-display');
+  const announceOldEl = document.getElementById('setting-announce-old');
+  
+  if (debounceEl) {
+    debounceEl.value = (state.settings.debounceTime / 1000).toString();
+    if (debounceDisplay) debounceDisplay.textContent = `${debounceEl.value}s`;
+    
+    debounceEl.addEventListener('input', (e) => {
+      if (debounceDisplay) debounceDisplay.textContent = `${e.target.value}s`;
+    });
+    
+    debounceEl.addEventListener('change', (e) => {
+      state.settings.debounceTime = parseFloat(e.target.value) * 1000;
+      saveSettings();
+    });
+  }
+  
+  if (notifyEl) {
+    notifyEl.checked = state.settings.notify;
+    notifyEl.addEventListener('change', (e) => {
+      if (e.target.checked && ('Notification' in window) && Notification.permission !== 'granted') {
+        Notification.requestPermission().then(permission => {
+          if (permission === 'granted') {
+            state.settings.notify = true;
+          } else {
+            e.target.checked = false;
+            state.settings.notify = false;
+            alert('Benachrichtigungsberechtigung wurde verweigert.');
+          }
+          saveSettings();
+        });
+      } else {
+        state.settings.notify = e.target.checked;
+        saveSettings();
+      }
+    });
+  }
+  
+  if (ttsEl) {
+    ttsEl.checked = state.settings.tts;
+    ttsEl.addEventListener('change', (e) => {
+      state.settings.tts = e.target.checked;
+      saveSettings();
+    });
+  }
+  
+  if (announceOldEl) {
+    announceOldEl.checked = state.settings.announceOldValue;
+    announceOldEl.addEventListener('change', (e) => {
+      state.settings.announceOldValue = e.target.checked;
+      saveSettings();
+    });
+  }
+  
+  radioEls.forEach(el => {
+    if (el.value === state.settings.announceMode) el.checked = true;
+    el.addEventListener('change', (e) => {
+      if (e.target.checked) {
+        state.settings.announceMode = e.target.value;
+        saveSettings();
+      }
+    });
+  });
+
+  singleRadioEls.forEach(el => {
+    if (el.value === state.settings.singleRollMode) el.checked = true;
+    el.addEventListener('change', (e) => {
+      if (e.target.checked) {
+        state.settings.singleRollMode = e.target.value;
+        saveSettings();
+      }
+    });
+  });
+}
+
+// ----------------------------------------------------
 // GoDice SDK Event Listeners (registered on prototype)
 // ----------------------------------------------------
 
@@ -478,10 +592,16 @@ GoDice.prototype.onDiceDisconnected = (diceId, diceInstance) => {
 };
 
 GoDice.prototype.onBatteryLevel = (diceId, batteryLevel) => {
-  console.log(`Battery level for ${diceId}: ${batteryLevel}%`);
+  // Map 18-28 to 0-100%
+  let percentage = 0;
+  if (batteryLevel >= 28) percentage = 100;
+  else if (batteryLevel <= 18) percentage = 0;
+  else percentage = Math.round((batteryLevel - 18) * 10);
+  
+  console.log(`Battery level for ${diceId}: ${percentage}%`);
   if (state.connectedDice[diceId]) {
-    state.connectedDice[diceId].battery = batteryLevel;
-    updateDiceCardBattery(diceId, batteryLevel);
+    state.connectedDice[diceId].battery = percentage;
+    updateDiceCardBattery(diceId, percentage);
   }
 };
 
@@ -497,6 +617,7 @@ GoDice.prototype.onRollStart = (diceId) => {
   console.log(`Roll start for ${diceId}`);
   if (state.connectedDice[diceId]) {
     state.connectedDice[diceId].status = 'Rollt...';
+    state.connectedDice[diceId].isRolling = true;
     updateDiceCardStatus(diceId, 'Rollt...', true);
   }
 };
@@ -525,10 +646,17 @@ GoDice.prototype.onMoveStable = (diceId, value, xyzArray) => {
 // UI Logic & Rendering Helpers
 // ----------------------------------------------------
 
+let rollDebounceTimer = null;
+let currentRollBatch = [];
+
 function handleStableRoll(diceId, value, typeStr) {
   const dieState = state.connectedDice[diceId];
   if (!dieState) return;
 
+  const previousValue = dieState.value;
+  const isThrow = dieState.isRolling === true;
+  dieState.isRolling = false;
+  
   dieState.status = 'Bereit';
   dieState.value = value;
   
@@ -568,6 +696,139 @@ function handleStableRoll(diceId, value, typeStr) {
   updateGlobalStatsUI();
   renderHistoryUI();
   renderChartUI();
+
+  // Notification & TTS Logic
+  if (state.settings.notify || state.settings.tts) {
+    const colorName = DICE_COLOR_NAMES_DE[dieState.color] || 'Unbekannt';
+    currentRollBatch.push({ diceId, value, colorName, color: dieState.color, typeStr, dieType: dieState.type, previousValue, isThrow });
+    
+    if (rollDebounceTimer) clearTimeout(rollDebounceTimer);
+    const debounceMs = state.settings.debounceTime || 1500;
+    rollDebounceTimer = setTimeout(processRollBatch, debounceMs);
+  }
+}
+
+function processRollBatch() {
+  if (currentRollBatch.length === 0) return;
+  
+  // Deduplicate by diceId, keeping the last event per die
+  const uniqueRollsMap = new Map();
+  currentRollBatch.forEach(r => {
+    if (!uniqueRollsMap.has(r.diceId)) {
+      uniqueRollsMap.set(r.diceId, r);
+    } else {
+      // Preserve the true previousValue from the first event of this batch
+      const firstEvent = uniqueRollsMap.get(r.diceId);
+      r.previousValue = firstEvent.previousValue;
+      r.isThrow = r.isThrow || firstEvent.isThrow;
+      uniqueRollsMap.set(r.diceId, r);
+    }
+  });
+  const uniqueRollBatch = Array.from(uniqueRollsMap.values());
+  
+  let ttsText = '';
+  let notifText = '';
+  let notificationTitle = '🎲 GoDice';
+  
+  const isMove = (r) => {
+    if (r.isThrow) return false; // Definitely a roll, not a bump
+    if (r.dieType !== 0) {
+      return r.typeStr.includes('Move'); // In a shell (D20 etc.), Tilt is normal.
+    }
+    return r.typeStr.includes('Move') || r.typeStr.includes('Tilt'); // Normal D6
+  };
+  
+  const wasMoved = uniqueRollBatch.some(r => isMove(r));
+  const EMOJI_MAP = { 0: '⬛', 1: '🔴', 2: '🟢', 3: '🔵', 4: '🟡', 5: '🟠' };
+  const getDieIcon = (r) => {
+    let icon = EMOJI_MAP[r.color] || '';
+    if (r.dieType !== 0 && DICE_TYPE_NAMES[r.dieType]) {
+      icon += `[${DICE_TYPE_NAMES[r.dieType]}]`;
+    }
+    return icon;
+  };
+  
+  if (uniqueRollBatch.length === 1 && state.settings.singleRollMode === 'all') {
+    const sumAll = Object.values(state.connectedDice)
+                     .filter(d => d.status !== 'Getrennt' && d.value !== undefined)
+                     .reduce((acc, curr) => acc + parseInt(curr.value, 10), 0);
+                     
+    if (wasMoved) {
+        ttsText = `${uniqueRollBatch[0].colorName} bewegt. Gesamtsumme: ${sumAll}`;
+        notifText = `↔️ ${getDieIcon(uniqueRollBatch[0])} ➡️ ∑ ${sumAll}`;
+    } else {
+        ttsText = `Gesamtsumme: ${sumAll}`;
+        notifText = `∑ ${sumAll}`;
+    }
+  }
+  else if (state.settings.announceMode === 'sum') {
+    const sum = uniqueRollBatch.reduce((acc, curr) => acc + parseInt(curr.value, 10), 0);
+    
+    if (uniqueRollBatch.length === 1 && wasMoved) {
+       let oldValStr = '';
+       let oldValNotif = '';
+       const r = uniqueRollBatch[0];
+       if (state.settings.announceOldValue && r.previousValue > 0 && r.previousValue !== r.value) {
+          oldValStr = ` (war ${r.previousValue})`;
+          oldValNotif = ` (⬅️${r.previousValue})`;
+       }
+       ttsText = `${r.colorName} bewegt auf ${sum}${oldValStr}`;
+       notifText = `↔️ ${getDieIcon(r)} ${sum}${oldValNotif}`;
+    } else if (uniqueRollBatch.length === 1 && !wasMoved) {
+       ttsText = `${sum}`;
+       notifText = `${getDieIcon(uniqueRollBatch[0])} ${sum}`;
+    } else {
+       ttsText = wasMoved ? `Bewegt, Summe: ${sum}` : `Summe: ${sum}`;
+       notifText = wasMoved ? `↔️ ∑ ${sum}` : `∑ ${sum}`;
+    }
+  } else {
+    // Individual
+    if (uniqueRollBatch.length === 1) {
+      const moved = isMove(uniqueRollBatch[0]);
+      const r = uniqueRollBatch[0];
+      let oldValStr = '';
+      let oldValNotif = '';
+      if (moved && state.settings.announceOldValue && r.previousValue > 0 && r.previousValue !== r.value) {
+         oldValStr = ` (war ${r.previousValue})`;
+         oldValNotif = ` (⬅️${r.previousValue})`;
+      }
+      ttsText = `${r.colorName} ${moved ? 'bewegt auf' : 'rollt'} ${r.value}${oldValStr}`;
+      notifText = `${moved ? '↔️ ' : ''}${getDieIcon(r)} ${r.value}${oldValNotif}`;
+    } else {
+      ttsText = uniqueRollBatch.map(r => {
+        const moved = isMove(r);
+        let oldValStr = '';
+        if (moved && state.settings.announceOldValue && r.previousValue > 0 && r.previousValue !== r.value) {
+           oldValStr = ` (war ${r.previousValue})`;
+        }
+        return `${r.colorName} ${moved ? 'bewegt auf' : 'rollt'} ${r.value}${oldValStr}`;
+      }).join(', ');
+      notifText = uniqueRollBatch.map(r => {
+        const moved = isMove(r);
+        let oldValNotif = '';
+        if (moved && state.settings.announceOldValue && r.previousValue > 0 && r.previousValue !== r.value) {
+           oldValNotif = ` (⬅️${r.previousValue})`;
+        }
+        return `${moved ? '↔️ ' : ''}${getDieIcon(r)} ${r.value}${oldValNotif}`;
+      }).join(' | ');
+    }
+  }
+  
+  if (state.settings.notify) {
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification(notificationTitle, { body: notifText, icon: 'icon-192.png' });
+    }
+  }
+  
+  if (state.settings.tts) {
+    if ('speechSynthesis' in window) {
+      const utterance = new SpeechSynthesisUtterance(ttsText);
+      utterance.lang = 'de-DE';
+      window.speechSynthesis.speak(utterance);
+    }
+  }
+  
+  currentRollBatch = [];
 }
 
 function updateGlobalStatsUI() {

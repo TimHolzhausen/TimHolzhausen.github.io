@@ -41,6 +41,7 @@
       <button class="tab-btn active" data-tab="tab-dice">🎲 Würfel</button>
       <button class="tab-btn" data-tab="tab-stats">📊 Statistik</button>
       <button class="tab-btn" data-tab="tab-history">📜 Verlauf</button>
+      <button class="tab-btn" data-tab="tab-settings">⚙️ Settings</button>
     </div>
 
     <!-- Main Dashboard Body -->
@@ -111,6 +112,54 @@
             <h3>Wurf-Historie</h3>
             <div class="history-list" id="history-list">
               <!-- Dynamic History Items -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Settings Widget (Tab 4) -->
+        <div id="tab-settings" class="tab-pane">
+          <div class="panel-widget">
+            <h3>⚙️ Einstellungen</h3>
+            <div class="settings-list" id="settings-list">
+              <div class="setting-item">
+                <label>
+                  <input type="checkbox" id="setting-notify">
+                  System-Benachrichtigungen (Smartwatch)
+                </label>
+              </div>
+              <div class="setting-item">
+                <label>
+                  <input type="checkbox" id="setting-tts">
+                  Sprachausgabe (Ansage)
+                </label>
+              </div>
+              <div class="setting-item">
+                <label>
+                  <input type="checkbox" id="setting-announce-old">
+                  Alten Wert bei Bewegung ansagen
+                </label>
+              </div>
+              <div class="setting-item" style="margin-top: 10px;">
+                <label>Ansagemodus:</label>
+                <div class="setting-radio-group" style="margin-top: 5px; display: flex; gap: 15px;">
+                  <label><input type="radio" name="announceMode" value="sum" checked> Summe</label>
+                  <label><input type="radio" name="announceMode" value="individual"> Einzelwerte</label>
+                </div>
+              </div>
+              <div class="setting-item" style="margin-top: 10px;">
+                <label>Bei Einzelwurf:</label>
+                <div class="setting-radio-group" style="margin-top: 5px; display: flex; gap: 15px;">
+                  <label><input type="radio" name="singleRollMode" value="single" checked> Nur dieser Würfel</label>
+                  <label><input type="radio" name="singleRollMode" value="all"> Summe aller Würfel</label>
+                </div>
+              </div>
+              <div class="setting-item" style="margin-top: 15px;">
+                <label>
+                  Auswertungs-Wartezeit: <span id="debounce-value-display">1.5s</span>
+                </label>
+                <input type="range" id="setting-debounce" min="0.5" max="5.0" step="0.5" value="1.5" style="width: 100%; margin-top: 8px;">
+                <small style="color: var(--text-secondary); display: block; margin-top: 4px;">Zeit, die gewartet wird, falls noch Würfel nachrollen oder bewegt werden.</small>
+              </div>
             </div>
           </div>
         </div>
