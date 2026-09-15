@@ -1,5 +1,5 @@
 // GoDice Dashboard - Application Logic
-const APP_VERSION = '1.2.6';
+const APP_VERSION = '1.3.0';
 
 // In-App Debug Console Interception (Must run first!)
 const originalLog = console.log;
@@ -834,6 +834,18 @@ function processRollBatch() {
       utterance.lang = 'de-DE';
       window.speechSynthesis.speak(utterance);
     }
+  }
+  
+  // Update UI Banner
+  const banner = document.getElementById('result-banner');
+  const bannerText = document.getElementById('result-banner-text');
+  if (banner && bannerText) {
+    bannerText.textContent = notifText;
+    banner.style.display = 'flex';
+    // Restart animation
+    banner.style.animation = 'none';
+    banner.offsetHeight; // trigger reflow
+    banner.style.animation = null;
   }
   
   currentRollBatch = [];

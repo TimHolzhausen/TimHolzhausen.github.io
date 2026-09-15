@@ -121,6 +121,51 @@ header {
   color: var(--accent-cyan);
 }
 
+/* Result Banner */
+.result-banner {
+  background: linear-gradient(135deg, var(--bg-secondary), var(--glass-bg));
+  border: 1px solid var(--glass-border);
+  border-left: 5px solid var(--accent-cyan);
+  border-radius: 16px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  box-shadow: var(--shadow-neon);
+  animation: slideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.result-banner-icon {
+  font-size: 2.5rem;
+}
+
+.result-banner-content {
+  flex: 1;
+}
+
+.result-banner-title {
+  font-family: var(--font-title);
+  font-size: 0.85rem;
+  color: var(--accent-cyan);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.result-banner-text {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: white;
+  line-height: 1.2;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(-15px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
 /* Buttons */
 .btn-connect {
   background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
