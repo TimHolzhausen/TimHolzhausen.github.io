@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Jarvis – Datenschutzerklärung</title>
+  <style>
+    :root { --bg: #0b1020; --panel: #121a2e; --text: #e3e9f5; --muted: #93a1bb; --accent: #4fd1ff; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; }
+    main { max-width: 760px; margin: 0 auto; padding: 48px 20px 64px; }
+    h1 { font-size: 30px; margin: 0 0 6px; }
+    h2 { font-size: 19px; margin: 32px 0 8px; color: var(--accent); }
+    .lead { color: var(--muted); margin: 0 0 24px; }
+    table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 15px; }
+    th, td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid #23304d; }
+    th { color: var(--muted); font-weight: 600; }
+    code { background: var(--panel); padding: 1px 6px; border-radius: 4px; font-size: 13px; }
+    a { color: var(--accent); }
+    footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid #23304d; color: var(--muted); font-size: 14px; }
+    footer a { margin-right: 16px; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Datenschutzerklärung für Jarvis</h1>
+  <p class="lead">Stand: 4. Oktober 2026</p>
+
+  <h2>1. Verantwortlicher und Nutzerkreis</h2>
+  <p>Jarvis ist eine private Anwendung von Tim Holzhausen (Kontakt:
+    <a href="mailto:kontakt@tim-holzhausen.com">kontakt@tim-holzhausen.com</a>). Sie läuft auf einem eigenen Rechner
+    und wird ausschließlich von ihm selbst genutzt. Daten anderer Personen werden nur verarbeitet, soweit sie in seinem
+    eigenen Postfach, Kalender oder seinen Notizen vorkommen.</p>
+
+  <h2>2. Welche Google-Daten Jarvis nutzt und wofür</h2>
+  <p>Jarvis greift über die offiziellen Google-Schnittstellen mit diesen Berechtigungen auf das Google-Konto seines
+    Nutzers zu:</p>
+  <table>
+    <tr><th>Berechtigung</th><th>Zweck</th></tr>
+    <tr><td><code>gmail.modify</code></td><td>Mails lesen, zusammenfassen und vorlesen; Entwürfe erstellen; Mails nach
+      ausdrücklicher Bestätigung des Nutzers senden; Mails mit Labels sortieren, archivieren und als gelesen markieren.
+      Es werden keine Mails endgültig gelöscht.</td></tr>
+    <tr><td><code>calendar</code></td><td>Termine anzeigen, anlegen, ändern und löschen (Löschen nur nach Rückfrage);
+      an bevorstehende Termine erinnern.</td></tr>
+    <tr><td><code>tasks</code></td><td>Aufgaben anzeigen, anlegen und als erledigt markieren.</td></tr>
+    <tr><td><code>drive.file</code></td><td>Nur Dateien, die Jarvis selbst angelegt hat (ein Ordner mit Notizen) –
+      kein Zugriff auf andere Dateien in Google Drive.</td></tr>
+    <tr><td><code>spreadsheets.readonly</code></td><td>Eine eigene Tabelle (Künstlerliste einer Veranstaltungsreihe)
+      lesen, um rechtzeitig an anstehende Termine zu erinnern. Nur lesen, keine Änderungen.</td></tr>
+    <tr><td>Grundlegende Profilinformationen (<code>openid</code>, E-Mail-Adresse)</td><td>Erkennen, mit welchem Konto
+      Jarvis verbunden ist.</td></tr>
+  </table>
+
+  <h2>3. Wo die Daten verarbeitet werden</h2>
+  <ul>
+    <li><strong>Lokal:</strong> Jarvis läuft auf einem privaten Rechner. Zugangsdaten, Einstellungen und Zwischenstände
+      werden dort gespeichert. Ein Zugriff aus dem Internet ist nicht möglich; die Handy-Nutzung erfolgt über ein
+      privates, verschlüsseltes Netz zwischen den eigenen Geräten.</li>
+    <li><strong>KI-Verarbeitung:</strong> Um Anfragen zu beantworten, werden die dafür nötigen Inhalte (z. B. eine
+      Mail, die zusammengefasst werden soll) an die Claude-Schnittstelle von Anthropic übermittelt und dort verarbeitet.
+      Anthropic nutzt über die Schnittstelle übermittelte Daten nicht zum Training seiner Modelle.</li>
+    <li><strong>Sprachausgabe:</strong> Texte, die vorgelesen werden, werden zur Umwandlung in Sprache an den
+      Sprachdienst von Microsoft (Edge-Sprachausgabe) übermittelt.</li>
+    <li><strong>Push-Nachrichten:</strong> Benachrichtigungen an das eigene Handy laufen Ende-zu-Ende-verschlüsselt über
+      den Push-Dienst des Browsers (Google Firebase Cloud Messaging).</li>
+  </ul>
+
+  <h2>4. Keine Weitergabe, keine Werbung</h2>
+  <p>Daten aus dem Google-Konto werden nicht verkauft, nicht für Werbung genutzt, nicht zur Profilbildung verwendet
+    und nicht an Dritte weitergegeben – außer an die in Abschnitt 3 genannten Dienste, und nur soweit es für die
+    jeweilige Funktion nötig ist. Menschen lesen die Daten nicht mit, außer dem Nutzer selbst.</p>
+  <p>Die Nutzung und Übertragung von Informationen, die Jarvis über Google-Schnittstellen erhält, entspricht der
+    <a href="https://developers.google.com/terms/api-services-user-data-policy">Google API Services User Data Policy</a>,
+    einschließlich der Anforderungen zur eingeschränkten Nutzung (Limited Use).</p>
+
+  <h2>5. Speicherdauer und Löschung</h2>
+  <p>Jarvis speichert Google-Inhalte nicht dauerhaft, sondern ruft sie bei Bedarf ab. Lokal gespeichert werden nur
+    Zugangsdaten, Einstellungen, vom Nutzer gewünschte Gedächtnis-Einträge und kurze Zwischenstände von Routinen.
+    Der Zugriff kann jederzeit unter
+    <a href="https://myaccount.google.com/permissions">myaccount.google.com/permissions</a> widerrufen werden; die lokal
+    gespeicherten Daten werden dann gelöscht.</p>
+
+  <h2>6. Kontakt</h2>
+  <p>Fragen zum Datenschutz: <a href="mailto:kontakt@tim-holzhausen.com">kontakt@tim-holzhausen.com</a></p>
+
+  <footer>
+    <a href="index.html">Jarvis</a>
+    <a href="nutzungsbedingungen.html">Nutzungsbedingungen</a>
+  </footer>
+</main>
+</body>
+</html>
