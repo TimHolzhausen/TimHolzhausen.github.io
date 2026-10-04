@@ -1,0 +1,658 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>nCode Business Cards</title>
+<meta name="description" content="Print your own Ncode business cards: upload a front image, pick a dot strength, download a print-ready A4 PDF with bleed and crop marks.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,750&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: controls on the left, a cutting mat on the right with the card and both A4 pages */
+:root {
+  --paper: #f5f6f2;
+  --panel: #ffffff;
+  --ink: #18211c;
+  --muted: #5b6860;
+  --line: #d6dcd5;
+  --mat: #2c5a45;
+  --mat-ink: #e9f1ec;
+  --mat-grid: rgba(255, 255, 255, .09);
+  --accent: #2c5a45;
+  --accent-ink: #ffffff;
+  --mark: #e0457b;
+  --warn: #9a5b00;
+  --font-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", Consolas, "Courier New", monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #111613; --panel: #18201b; --ink: #e6ece7; --muted: #97a59c; --line: #2b352f;
+    --mat: #1d4031; --mat-ink: #dfeae3; --mat-grid: rgba(255, 255, 255, .07);
+    --accent: #6fbf97; --accent-ink: #0d1a13; --mark: #ff6b9a; --warn: #e2a64a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #111613; --panel: #18201b; --ink: #e6ece7; --muted: #97a59c; --line: #2b352f;
+  --mat: #1d4031; --mat-ink: #dfeae3; --mat-grid: rgba(255, 255, 255, .07);
+  --accent: #6fbf97; --accent-ink: #0d1a13; --mark: #ff6b9a; --warn: #e2a64a;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--paper); color: var(--ink);
+  font: 15px/1.5 var(--font-body);
+  padding-inline: 16px; padding-block: 24px 48px;
+}
+.wrap { max-width: 1240px; margin: 0 auto; display: grid; gap: 24px; }
+header h1 {
+  font-family: var(--font-display); font-weight: 750; font-size: clamp(1.7rem, 3.2vw, 2.4rem);
+  line-height: 1.1; margin: 0; letter-spacing: -.01em; text-wrap: balance;
+}
+header p { margin: 6px 0 0; color: var(--muted); max-width: 65ch; }
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+.app { display: grid; grid-template-columns: minmax(0, 360px) minmax(0, 1fr); gap: 24px; align-items: start; }
+@media (max-width: 880px) { .app { grid-template-columns: minmax(0, 1fr); } }
+
+.controls { display: grid; gap: 14px; }
+.group {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+  padding: 16px; display: grid; gap: 12px; min-width: 0;
+}
+.group h2 {
+  margin: 0; font: 600 .74rem/1 var(--font-body); text-transform: uppercase; letter-spacing: .09em; color: var(--muted);
+  display: flex; justify-content: space-between; gap: 8px;
+}
+.group h2 span { font-family: var(--font-mono); text-transform: none; letter-spacing: 0; }
+
+.drop {
+  border: 1.5px dashed var(--line); border-radius: 8px; padding: 14px; text-align: center;
+  cursor: pointer; display: grid; gap: 2px; transition: border-color .15s, background .15s;
+}
+.drop:hover, .drop.over { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 7%, transparent); }
+.drop strong { font-weight: 600; }
+.drop small { color: var(--muted); }
+.drop input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.filename { font-size: .85rem; color: var(--muted); overflow-wrap: anywhere; }
+
+.seg { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg label { position: relative; }
+.seg input { position: absolute; opacity: 0; }
+.seg span { display: block; padding: 8px 10px; font-size: .86rem; line-height: 1.3; cursor: pointer; height: 100%; }
+.seg span small { display: block; color: var(--muted); font-family: var(--font-mono); font-size: .74rem; }
+.seg label + label span { border-left: 1px solid var(--line); }
+.seg input:checked + span { background: var(--accent); color: var(--accent-ink); }
+.seg input:checked + span small { color: inherit; opacity: .8; }
+.seg input:focus-visible + span { outline: 2px solid var(--mark); outline-offset: -2px; }
+
+.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.row label { font-size: .88rem; }
+input[type="range"] { flex: 1; min-width: 120px; accent-color: var(--accent); }
+button, select {
+  font: inherit; font-size: .88rem; color: var(--ink); background: var(--panel);
+  border: 1px solid var(--line); border-radius: 7px; padding: 6px 11px; cursor: pointer;
+}
+button:hover, select:hover { border-color: var(--muted); }
+button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--mark); outline-offset: 2px; }
+
+.strengths { display: grid; gap: 8px; }
+.strength { position: relative; }
+.strength input { position: absolute; opacity: 0; }
+.strength > span {
+  display: grid; grid-template-columns: 64px 1fr auto; gap: 12px; align-items: center;
+  border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; cursor: pointer;
+}
+.strength input:checked + span { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.strength input:focus-visible + span { outline: 2px solid var(--mark); outline-offset: 2px; }
+.strength canvas { width: 64px; height: 64px; image-rendering: pixelated; border-radius: 4px; background: #fff; border: 1px solid var(--line); }
+.strength b { font-weight: 600; display: block; }
+.strength small { color: var(--muted); font-size: .8rem; line-height: 1.35; display: block; }
+.strength .toner { font-family: var(--font-mono); font-size: .8rem; color: var(--muted); }
+.tag { font: 500 .66rem/1 var(--font-body); text-transform: uppercase; letter-spacing: .08em; color: var(--warn); margin-left: 6px; }
+
+.layouts { display: grid; gap: 6px; }
+.layout { position: relative; }
+.layout input { position: absolute; opacity: 0; }
+.layout > span { display: block; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; cursor: pointer; }
+.layout b { font-weight: 600; font-size: .9rem; display: block; }
+.layout small { color: var(--muted); font-size: .8rem; line-height: 1.35; display: block; }
+.layout input:checked + span { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.layout input:focus-visible + span { outline: 2px solid var(--mark); outline-offset: 2px; }
+.primary {
+  background: var(--accent); color: var(--accent-ink); border-color: var(--accent);
+  font-weight: 600; font-size: 1rem; padding: 12px 16px; width: 100%;
+}
+.primary:hover { filter: brightness(1.08); border-color: var(--accent); }
+.primary:disabled { opacity: .55; cursor: progress; }
+.status { font-size: .85rem; color: var(--muted); min-height: 1.3em; }
+.status.err { color: var(--mark); }
+
+details.hints { font-size: .88rem; }
+details.hints summary { cursor: pointer; font-weight: 600; }
+details.hints ul { margin: 8px 0 0; padding-left: 18px; display: grid; gap: 6px; }
+details.hints li { color: var(--muted); }
+details.hints li b { color: var(--ink); font-weight: 600; }
+
+/* Cutting mat */
+.mat {
+  background-color: var(--mat); color: var(--mat-ink); border-radius: 12px; padding: 20px;
+  background-image:
+    linear-gradient(var(--mat-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--mat-grid) 1px, transparent 1px);
+  background-size: 24px 24px; display: grid; gap: 20px; min-width: 0;
+}
+.mat h3 {
+  margin: 0 0 8px; font: 600 .72rem/1 var(--font-body); text-transform: uppercase; letter-spacing: .1em; opacity: .85;
+  display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap;
+}
+.mat h3 span { font-family: var(--font-mono); text-transform: none; letter-spacing: 0; opacity: .8; }
+.cardview { display: grid; gap: 10px; justify-items: center; }
+#cardCanvas {
+  width: 100%; max-width: 620px; height: auto; aspect-ratio: 91 / 60; touch-action: none; cursor: grab;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .35); background: #fff;
+}
+#cardCanvas.dragging { cursor: grabbing; }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: .8rem; justify-content: center; opacity: .9; }
+.legend i { display: inline-block; width: 18px; height: 0; vertical-align: middle; margin-right: 6px; border-top: 2px solid; }
+.legend .l1 i { border-color: rgba(255, 255, 255, .55); border-top-width: 8px; opacity: .6; }
+.legend .l2 i { border-color: var(--mark); }
+.legend .l3 i { border-color: #8fd3ff; border-top-style: dashed; }
+.sheets { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media (max-width: 520px) { .sheets { grid-template-columns: 1fr; } }
+.sheet canvas { width: 100%; height: auto; aspect-ratio: 210 / 297; background: #fff; display: block; box-shadow: 0 8px 24px rgba(0, 0, 0, .3); }
+.note { font-size: .8rem; opacity: .85; margin: 0; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header>
+    <h1>nCode Business Cards</h1>
+    <p>Upload a front image, pick a dot strength, download the PDF. Eight to ten 85 × 54 mm cards on A4: front with bleed, Ncode on the back, crop marks on the outside for your paper cutter.</p>
+  </header>
+
+  <div class="app">
+    <div class="controls">
+      <section class="group" aria-labelledby="h-front">
+        <h2 id="h-front">Front <span>85 × 54 mm</span></h2>
+        <label class="drop" id="drop" for="file">
+          <strong>Choose an image or drop it here</strong>
+          <small>JPG, PNG or WebP. Ideal: 91 × 60 mm at 300–600 dpi</small>
+          <input type="file" id="file" accept="image/*">
+        </label>
+        <div class="filename" id="filename">Sample design loaded. Replace it with your own image.</div>
+        <div class="seg" role="radiogroup" aria-label="How was the image designed?">
+          <label><input type="radio" name="fit" id="fit-bleed" value="bleed" checked><span>Designed with bleed<small>fills 91 × 60 mm</small></span></label>
+          <label><input type="radio" name="fit" id="fit-trim" value="trim"><span>Designed at trim size<small>85 × 54, edges mirrored</small></span></label>
+        </div>
+        <div class="row">
+          <label for="zoom">Zoom</label>
+          <input type="range" id="zoom" min="100" max="300" value="100" step="1">
+          <span class="mono" id="zoomVal" style="width:3.2em;text-align:right">100 %</span>
+        </div>
+        <div class="row">
+          <button type="button" id="rotate">Rotate 90°</button>
+          <button type="button" id="center">Center</button>
+        </div>
+      </section>
+
+      <section class="group" aria-labelledby="h-back">
+        <h2 id="h-back">Back: Ncode <span>1:1 zoom at 600 dpi</span></h2>
+        <div class="strengths" role="radiogroup" aria-labelledby="h-back">
+          <label class="strength"><input type="radio" name="strength" id="s-normal" value="normal"><span>
+            <canvas width="32" height="32" data-swatch="normal"></canvas>
+            <span><b>Normal</b><small>Original dot size. Most robust, visibly grey.</small></span>
+            <span class="toner">100 %</span></span></label>
+          <label class="strength"><input type="radio" name="strength" id="s-light" value="light" checked><span>
+            <canvas width="32" height="32" data-swatch="light"></canvas>
+            <span><b>Light</b><small>Half the dot area. Tested and working.</small></span>
+            <span class="toner">50 %</span></span></label>
+          <label class="strength"><input type="radio" name="strength" id="s-extralight" value="extralight"><span>
+            <canvas width="32" height="32" data-swatch="extralight"></canvas>
+            <span><b>Extra light<span class="tag">experimental</span></b><small>Barely visible. Test it on your printer first.</small></span>
+            <span class="toner">33 %</span></span></label>
+        </div>
+      </section>
+
+      <section class="group" aria-labelledby="h-out">
+        <h2 id="h-out">Print sheet <span>A4 · 2 pages</span></h2>
+        <div class="layouts" role="radiogroup" aria-label="Sheet layout">
+          <label class="layout"><input type="radio" name="layout" id="l-bleed9" value="bleed9" checked><span>
+            <b>9 cards · bleed all around</b><small>3 × 3, upright on the sheet. Two cuts between cards.</small></span></label>
+          <label class="layout"><input type="radio" name="layout" id="l-bleed8" value="bleed8"><span>
+            <b>8 cards · bleed all around</b><small>2 × 4, landscape. Two cuts between cards.</small></span></label>
+          <label class="layout"><input type="radio" name="layout" id="l-butt10" value="butt10"><span>
+            <b>10 cards · edge to edge</b><small>2 × 5, landscape. One cut between cards, bleed on the outer edges only.</small></span></label>
+        </div>
+        <div class="row">
+          <label for="bleed">Bleed</label>
+          <select id="bleed">
+            <option value="3" selected>3 mm</option>
+            <option value="2">2 mm</option>
+            <option value="1">1 mm</option>
+            <option value="0">none</option>
+          </select>
+        </div>
+        <button type="button" class="primary" id="download">Download PDF</button>
+        <div class="status" id="status" role="status"></div>
+        <details class="hints">
+          <summary>Printing and cutting</summary>
+          <ul>
+            <li><b>100 % / Actual size.</b> Never “Fit to page”, no borderless printing.</li>
+            <li><b>Double-sided</b> flipping on the long or short edge, both work: the layout is symmetric. Without duplex, print page 1, turn the paper over, then print page 2.</li>
+            <li><b>Laser printer, black as K.</b> The pen only sees carbon black. A PostScript driver passes the dots through most cleanly.</li>
+            <li><b>Cutting, step 1:</b> Front side up. Cut all horizontal lines at the side marks, working from the bottom up. That way the marks stay on the remaining piece until the last strip is off.</li>
+            <li><b>Step 2:</b> Stack the strips with the top strip (the one with marks along its top edge) on top. Put the left paper edge flush against the guide, then cut vertically at the top marks.</li>
+            <li><b>Every sheet carries the same codes.</b> If you print several sheets, each code appears more than once.</li>
+          </ul>
+        </details>
+      </section>
+    </div>
+
+    <div class="mat">
+      <div class="cardview">
+        <h3 style="width:100%;max-width:620px">Card <span id="cardDims">Bleed box 91 × 60 mm · drag the image to move it</span></h3>
+        <canvas id="cardCanvas" width="910" height="600" aria-label="Front preview"></canvas>
+        <div class="legend">
+          <span class="l1"><i></i>Bleed, gets cut off</span>
+          <span class="l2"><i></i>Trim line 85 × 54 mm</span>
+          <span class="l3"><i></i>Safe margin 3 mm</span>
+        </div>
+      </div>
+      <div class="sheets">
+        <div class="sheet"><h3>Page 1 · Front <span>210 × 297 mm</span></h3><canvas id="sheetFront" width="525" height="743"></canvas></div>
+        <div class="sheet"><h3>Page 2 · Back <span id="backLabel">Ncode light</span></h3><canvas id="sheetBack" width="525" height="743"></canvas></div>
+      </div>
+      <p class="note" id="layoutNote"></p>
+    </div>
+  </div>
+</div>
+
+<script src="ncode_data.js"></script>
+<script>
+"use strict";
+// ---------- Geometry (all in mm, y from the top) ----------
+const PAGE = { w: 210, h: 297 };
+const CARD = { w: 85, h: 54 };
+const BOX = 3;                           // bleed box of the images: card + 3 mm all around
+const PT = 72 / 25.4;
+const FRONT_DPI = 600;
+const MARK_END = 3;                      // marks run to 3 mm from the paper edge
+
+// rot: card rotated 90° on the sheet. gutter: every card has its own bleed (two cuts per gap).
+const LAYOUTS = {
+  bleed9:  { cols: 3, rows: 3, rot: true,  gutter: true,  short: "9-up",
+             note: "Every card has bleed all around. Two cut lines run between neighbouring cards and the strip in between is waste. The cards stand upright on the sheet; front and back rotate together." },
+  bleed8:  { cols: 2, rows: 4, rot: false, gutter: true,  short: "8-up",
+             note: "Every card has bleed all around. Two cut lines run between neighbouring cards and the strip in between is waste." },
+  butt10:  { cols: 2, rows: 5, rot: false, gutter: false, short: "10-up",
+             note: "Inside the block the cards sit edge to edge, so one cut separates two cards. Bleed exists on the outer edges only: ten cards with bleed gaps do not fit the height of A4." },
+};
+
+// All sheet dimensions for a layout and bleed b
+function geometry(key, b) {
+  const L = LAYOUTS[key];
+  const fw = L.rot ? CARD.h : CARD.w, fh = L.rot ? CARD.w : CARD.h;   // card footprint on the sheet
+  const gap = L.gutter ? 2 * b : 0;
+  const bw = L.cols * fw + (L.cols - 1) * gap, bh = L.rows * fh + (L.rows - 1) * gap;
+  const ox = (PAGE.w - bw) / 2, oy = (PAGE.h - bh) / 2;
+  const cells = [], xs = new Map(), ys = new Map();
+  for (let r = 0; r < L.rows; r++) for (let c = 0; c < L.cols; c++) {
+    const t = { x: ox + c * (fw + gap), y: oy + r * (fh + gap), w: fw, h: fh };
+    const e = L.gutter ? [b, b, b, b] : [c === 0 ? b : 0, r === 0 ? b : 0, c === L.cols - 1 ? b : 0, r === L.rows - 1 ? b : 0];
+    const clip = { x: t.x - e[0], y: t.y - e[1], w: t.w + e[0] + e[2], h: t.h + e[1] + e[3] };
+    cells.push({ c, r, t, clip });
+    for (const x of [t.x, t.x + fw]) xs.set(x.toFixed(4), x);
+    for (const y of [t.y, t.y + fh]) ys.set(y.toFixed(4), y);
+  }
+  const sort = (m) => [...m.values()].sort((a, z) => a - z);
+  const at = (c, r) => cells[r * L.cols + c];
+  return { ...L, b, n: cells.length, ox, oy, bw, bh, cells, at, cutX: sort(xs), cutY: sort(ys) };
+}
+let G = null;
+
+// Card coordinates (mm, card landscape, origin at the top-left trim corner) -> sheet (mm, y from the top).
+// rot 1: clockwise (front), -1: counter-clockwise (back; seen from behind it is the same rotation).
+function cardToSheet(t, rot, cx, cy) {
+  if (rot === 1) return [t.x + t.w - cy, t.y + cx];
+  if (rot === -1) return [t.x + cy, t.y + t.h - cx];
+  return [t.x + cx, t.y + cy];
+}
+// Image covering card coordinates (-o,-o)..(-o+iw,-o+ih): f(u, v), u, v in 0..1 (v downwards) -> sheet mm
+const imageMap = (t, rot, o, iw, ih) => (u, v) => cardToSheet(t, rot, -o + u * iw, -o + v * ih);
+function marks(g) {
+  const gap = g.b + 1.5, out = [];
+  const top = g.oy - gap, bot = g.oy + g.bh + gap, left = g.ox - gap, right = g.ox + g.bw + gap;
+  for (const x of g.cutX) { out.push([x, top, x, MARK_END]); out.push([x, bot, x, PAGE.h - MARK_END]); }
+  for (const y of g.cutY) { out.push([left, y, MARK_END, y]); out.push([right, y, PAGE.w - MARK_END, y]); }
+  return out;
+}
+
+// ---------- State ----------
+const S = { img: null, isSample: true, rot: 0, fit: "bleed", zoom: 1, panX: 0, panY: 0, strength: "light", bleed: 3, layout: "bleed9", name: "" };
+const $ = (id) => document.getElementById(id);
+
+// ---------- Ncode data ----------
+const b64 = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+const zlib = {};                          // strength -> [compressed Uint8Array]
+for (const k in NCODE.codes) zlib[k] = NCODE.codes[k].map(b64);
+const NW = NCODE.width, NH = NCODE.height, STRIDE = Math.ceil(NW / 8);
+async function inflate(bytes) {
+  const s = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("deflate"));
+  return new Uint8Array(await new Response(s).arrayBuffer());
+}
+const previewCache = {};                  // strength -> [canvas] greyscale preview per card
+const PV = 3;                             // preview resolution px/mm
+async function backPreviews(strength) {
+  if (previewCache[strength]) return previewCache[strength];
+  const pxmm = NCODE.dpi / 25.4, w = Math.round(NW / pxmm * PV), h = Math.round(NH / pxmm * PV);
+  const list = [];
+  for (const z of zlib[strength]) {
+    const bits = await inflate(z);
+    const sum = new Float32Array(w * h), cnt = new Float32Array(w * h);
+    const colBin = Uint16Array.from({ length: NW }, (_, x) => Math.min(w - 1, Math.floor(x * w / NW)));
+    for (let y = 0; y < NH; y++) {
+      const by = Math.min(h - 1, Math.floor(y * h / NH)), row = y * STRIDE;
+      for (let x = 0; x < NW; x++) {
+        const i = by * w + colBin[x];
+        sum[i] += (bits[row + (x >> 3)] >> (7 - (x & 7))) & 1; cnt[i]++;
+      }
+    }
+    const cv = document.createElement("canvas"); cv.width = w; cv.height = h;
+    const ctx = cv.getContext("2d"), id = ctx.createImageData(w, h);
+    for (let i = 0; i < w * h; i++) {
+      const v = 255 - Math.min(255, (sum[i] / cnt[i]) * 255 * 1.6);
+      id.data[i * 4] = id.data[i * 4 + 1] = id.data[i * 4 + 2] = v; id.data[i * 4 + 3] = 255;
+    }
+    ctx.putImageData(id, 0, 0); list.push(cv);
+  }
+  return (previewCache[strength] = list);
+}
+async function drawSwatches() {
+  for (const cv of document.querySelectorAll("canvas[data-swatch]")) {
+    const bits = await inflate(zlib[cv.dataset.swatch][0]);
+    const ctx = cv.getContext("2d"), id = ctx.createImageData(cv.width, cv.height);
+    const ox = 400, oy = 400;               // patch from the middle of the card
+    for (let y = 0; y < cv.height; y++) for (let x = 0; x < cv.width; x++) {
+      const X = ox + x, Y = oy + y, on = (bits[Y * STRIDE + (X >> 3)] >> (7 - (X & 7))) & 1;
+      const i = (y * cv.width + x) * 4, v = on ? 20 : 255;
+      id.data[i] = id.data[i + 1] = id.data[i + 2] = v; id.data[i + 3] = 255;
+    }
+    ctx.putImageData(id, 0, 0);
+  }
+}
+
+// ---------- Front rendering ----------
+function sampleImage() {
+  const c = document.createElement("canvas"); c.width = 1820; c.height = 1200;
+  const g = c.getContext("2d"), k = c.width / 91;
+  const grad = g.createLinearGradient(0, 0, c.width, c.height);
+  grad.addColorStop(0, "#14213d"); grad.addColorStop(1, "#3a1c4a");
+  g.fillStyle = grad; g.fillRect(0, 0, c.width, c.height);
+  g.strokeStyle = "rgba(255,255,255,.08)"; g.lineWidth = 2;
+  for (let i = -c.height; i < c.width; i += 40) { g.beginPath(); g.moveTo(i, 0); g.lineTo(i + c.height, c.height); g.stroke(); }
+  g.fillStyle = "#f4d58d"; g.font = `700 ${7.5 * k}px Georgia, serif`; g.textBaseline = "alphabetic";
+  g.fillText("Sample design", 9 * k, 28 * k);
+  g.fillStyle = "rgba(255,255,255,.85)"; g.font = `${3.6 * k}px "Segoe UI", sans-serif`;
+  g.fillText("Replace me with your own image", 9 * k, 35 * k);
+  g.fillText("Keep text 3 mm inside the trim line", 9 * k, 50 * k);
+  return c;
+}
+const natSize = (img) => [img.width, img.height];
+// Draws the design onto ctx, whose coordinates are scaled to mm (bleed box 0..91 x 0..60).
+function drawImageInto(ctx, box) {
+  const [nw, nh] = natSize(S.img), odd = S.rot % 2 === 1;
+  const rw = odd ? nh : nw, rh = odd ? nw : nh;
+  const s = Math.max(box.w / rw, box.h / rh) * S.zoom;
+  const maxX = Math.max(0, (rw * s - box.w) / 2), maxY = Math.max(0, (rh * s - box.h) / 2);
+  S.panX = Math.max(-maxX, Math.min(maxX, S.panX)); S.panY = Math.max(-maxY, Math.min(maxY, S.panY));
+  ctx.save();
+  ctx.beginPath(); ctx.rect(box.x, box.y, box.w, box.h); ctx.clip();
+  ctx.translate(box.x + box.w / 2 + S.panX, box.y + box.h / 2 + S.panY);
+  ctx.rotate(S.rot * Math.PI / 2);
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(S.img, -nw * s / 2, -nh * s / 2, nw * s, nh * s);
+  ctx.restore();
+}
+// Returns a canvas of the bleed box (91 x 60 mm) at pxPerMm resolution.
+function renderFront(pxPerMm) {
+  const W = Math.round((CARD.w + 2 * BOX) * pxPerMm), H = Math.round((CARD.h + 2 * BOX) * pxPerMm);
+  const c = document.createElement("canvas"); c.width = W; c.height = H;
+  const g = c.getContext("2d");
+  g.fillStyle = "#fff"; g.fillRect(0, 0, W, H);
+  if (S.fit === "bleed") {
+    g.scale(W / (CARD.w + 2 * BOX), H / (CARD.h + 2 * BOX));
+    drawImageInto(g, { x: 0, y: 0, w: CARD.w + 2 * BOX, h: CARD.h + 2 * BOX });
+    return c;
+  }
+  // Trim size: design on 85 x 54 mm, bleed filled by mirroring the edges
+  const tw = Math.round(CARD.w * pxPerMm), th = Math.round(CARD.h * pxPerMm), o = Math.round(BOX * pxPerMm);
+  const t = document.createElement("canvas"); t.width = tw; t.height = th;
+  const tg = t.getContext("2d"); tg.fillStyle = "#fff"; tg.fillRect(0, 0, tw, th);
+  tg.scale(tw / CARD.w, th / CARD.h);
+  drawImageInto(tg, { x: 0, y: 0, w: CARD.w, h: CARD.h });
+  for (const dx of [-1, 0, 1]) for (const dy of [-1, 0, 1]) {
+    g.save();
+    g.translate(dx === 0 ? o : dx < 0 ? o : o + 2 * tw, dy === 0 ? o : dy < 0 ? o : o + 2 * th);
+    g.scale(dx ? -1 : 1, dy ? -1 : 1);
+    g.drawImage(t, 0, 0);
+    g.restore();
+  }
+  return c;
+}
+
+// ---------- Preview ----------
+const cardCanvas = $("cardCanvas");
+function drawCardPreview() {
+  const k = cardCanvas.width / (CARD.w + 2 * BOX);
+  const g = cardCanvas.getContext("2d");
+  g.clearRect(0, 0, cardCanvas.width, cardCanvas.height);
+  g.drawImage(renderFront(k), 0, 0);
+  // darken the bleed
+  g.save(); g.fillStyle = "rgba(20,30,25,.45)";
+  g.beginPath(); g.rect(0, 0, cardCanvas.width, cardCanvas.height);
+  g.rect(BOX * k, BOX * k, CARD.w * k, CARD.h * k); g.fill("evenodd"); g.restore();
+  const css = getComputedStyle(document.documentElement);
+  g.strokeStyle = css.getPropertyValue("--mark").trim() || "#e0457b"; g.lineWidth = 2;
+  g.strokeRect(BOX * k, BOX * k, CARD.w * k, CARD.h * k);
+  g.strokeStyle = "#8fd3ff"; g.setLineDash([8, 6]); g.lineWidth = 1.5;
+  g.strokeRect(2 * BOX * k, 2 * BOX * k, (CARD.w - 2 * BOX) * k, (CARD.h - 2 * BOX) * k);
+  g.setLineDash([]);
+}
+function drawMarks(g, k) {
+  g.strokeStyle = "#000"; g.lineWidth = Math.max(1, 0.25 * k);
+  for (const [x0, y0, x1, y1] of marks(G)) { g.beginPath(); g.moveTo(x0 * k, y0 * k); g.lineTo(x1 * k, y1 * k); g.stroke(); }
+}
+// Draw an image (canvas) into the sheet canvas through an imageMap, clipped to clip
+function placeImage(g, k, img, map, clip) {
+  const [x0, y0] = map(0, 0), [x1, y1] = map(1, 0), [x2, y2] = map(0, 1);
+  g.save();
+  g.beginPath(); g.rect(clip.x * k, clip.y * k, clip.w * k, clip.h * k); g.clip();
+  g.setTransform((x1 - x0) * k / img.width, (y1 - y0) * k / img.width, (x2 - x0) * k / img.height, (y2 - y0) * k / img.height, x0 * k, y0 * k);
+  g.drawImage(img, 0, 0);
+  g.restore();
+}
+function drawSheetFront() {
+  const cv = $("sheetFront"), g = cv.getContext("2d"), k = cv.width / PAGE.w;
+  g.fillStyle = "#fff"; g.fillRect(0, 0, cv.width, cv.height);
+  const card = renderFront(k * 2);
+  for (const cell of G.cells)
+    placeImage(g, k, card, imageMap(cell.t, G.rot ? 1 : 0, BOX, CARD.w + 2 * BOX, CARD.h + 2 * BOX), cell.clip);
+  drawMarks(g, k);
+}
+let backToken = 0;
+async function drawSheetBack() {
+  const token = ++backToken, list = await backPreviews(S.strength);
+  if (token !== backToken) return;
+  const cv = $("sheetBack"), g = cv.getContext("2d"), k = cv.width / PAGE.w;
+  g.fillStyle = "#fff"; g.fillRect(0, 0, cv.width, cv.height);
+  const pxmm = NCODE.dpi / 25.4, iw = NW / pxmm, ih = NH / pxmm;
+  for (const cell of G.cells) {
+    const bc = G.at(G.cols - 1 - cell.c, cell.r), i = cell.r * G.cols + cell.c;
+    placeImage(g, k, list[i], imageMap(bc.t, G.rot ? -1 : 0, NCODE.bleedMm, iw, ih), bc.clip);
+    g.fillStyle = "rgba(0,0,0,.45)"; g.font = `600 ${4 * k}px "Instrument Sans", sans-serif`;
+    g.fillText(String(i + 1), (bc.t.x + 3) * k, (bc.t.y + 7) * k);
+  }
+  g.strokeStyle = "rgba(0,0,0,.18)"; g.lineWidth = 1;
+  for (const cell of G.cells) g.strokeRect(cell.t.x * k, cell.t.y * k, cell.t.w * k, cell.t.h * k);
+}
+let raf = 0;
+function refresh(all = true) {
+  cancelAnimationFrame(raf);
+  raf = requestAnimationFrame(() => {
+    G = geometry(S.layout, S.bleed);
+    $("layoutNote").textContent = G.note;
+    drawCardPreview();
+    drawSheetFront();
+    if (all) drawSheetBack();
+  });
+}
+
+// ---------- PDF ----------
+const NAMES = { normal: "normal", light: "light", extralight: "extra light" };
+function latin1(s) { const a = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) { const c = s.charCodeAt(i); a[i] = c < 256 ? c : 63; } return a; }
+const n = (v) => (+v.toFixed(4)).toString();
+const pdfStr = (s) => "(" + s.replace(/[\\()]/g, "\\$&") + ")";
+// mm rectangle (y from the top) -> PDF coordinates in pt
+const R = (x, y, w, h) => [x * PT, (PAGE.h - y - h) * PT, w * PT, h * PT];
+
+async function buildPdf() {
+  const canvas = renderFront(FRONT_DPI / 25.4);
+  const jpg = new Uint8Array(await (await new Promise((res) => canvas.toBlob(res, "image/jpeg", 0.93))).arrayBuffer());
+  const g = geometry(S.layout, S.bleed), b = g.b;
+  const masks = zlib[S.strength].slice(0, g.n);
+  const P = ([x, y]) => [x * PT, (PAGE.h - y) * PT];
+  // cm matrix: image unit square (v upwards, v = 1 is the top image row) -> page
+  const cm = (map) => {
+    const [ex, ey] = P(map(0, 1)), [ax, ay] = P(map(1, 1)), [cx, cy] = P(map(0, 0));
+    return [ax - ex, ay - ey, cx - ex, cy - ey, ex, ey].map(n).join(" ") + " cm";
+  };
+  const clipOp = (cl) => R(cl.x, cl.y, cl.w, cl.h).map(n).join(" ") + " re W n";
+
+  // Front
+  let front = "";
+  for (const cell of g.cells)
+    front += `q ${clipOp(cell.clip)} ${cm(imageMap(cell.t, g.rot ? 1 : 0, BOX, CARD.w + 2 * BOX, CARD.h + 2 * BOX))} /Front Do Q\n`;
+  front += "q 0 G 0.3 w 0 J\n";
+  for (const [x0, y0, x1, y1] of marks(g)) front += `${n(x0 * PT)} ${n((PAGE.h - y0) * PT)} m ${n(x1 * PT)} ${n((PAGE.h - y1) * PT)} l S\n`;
+  front += "Q\n";
+  const label = (x, y, s) => `BT /Hv 6 Tf ${n(x * PT)} ${n((PAGE.h - y) * PT)} Td ${pdfStr(s)} Tj ET\n`;
+  const ly = Math.min(8, g.oy - b - 3);
+  front += "q 0.35 g\n" + label(g.cutX[0] + 3, ly, `Back: Ncode ${NAMES[S.strength]} \xB7 bleed ${b} mm`)
+         + label(g.cutX[g.cutX.length - 2] + 3, ly, "Print at 100 % / actual size") + "Q\n";
+
+  // Back: card k sits behind card k of the front (columns mirrored, rotation reversed)
+  const iw = NW / NCODE.dpi * 25.4, ih = NH / NCODE.dpi * 25.4;
+  let back = "0 g\n";
+  for (const cell of g.cells) {
+    const bc = g.at(g.cols - 1 - cell.c, cell.r);
+    back += `q ${clipOp(bc.clip)} ${cm(imageMap(bc.t, g.rot ? -1 : 0, NCODE.bleedMm, iw, ih))} /N${cell.r * g.cols + cell.c} Do Q\n`;
+  }
+
+  // Assemble the objects
+  const parts = [], offs = [];
+  let len = 0;
+  const push = (u) => { if (typeof u === "string") u = latin1(u); parts.push(u); len += u.length; };
+  const obj = (num, body) => { offs[num] = len; push(`${num} 0 obj\n${body}\nendobj\n`); };
+  const sobj = (num, dict, data) => {
+    offs[num] = len; push(`${num} 0 obj\n<< ${dict} /Length ${data.length} >>\nstream\n`); push(data); push("\nendstream\nendobj\n");
+  };
+  const media = `[0 0 ${n(PAGE.w * PT)} ${n(PAGE.h * PT)}]`;
+  const nx = masks.map((_, i) => `/N${i} ${9 + i} 0 R`).join(" ");
+  push("%PDF-1.4\n%\xE2\xE3\xCF\xD3\n");
+  obj(1, "<< /Type /Catalog /Pages 2 0 R >>");
+  obj(2, "<< /Type /Pages /Kids [3 0 R 4 0 R] /Count 2 >>");
+  obj(3, `<< /Type /Page /Parent 2 0 R /MediaBox ${media} /Resources << /XObject << /Front 8 0 R >> /Font << /Hv 7 0 R >> >> /Contents 5 0 R >>`);
+  obj(4, `<< /Type /Page /Parent 2 0 R /MediaBox ${media} /Resources << /XObject << ${nx} >> >> /Contents 6 0 R >>`);
+  sobj(5, "", latin1(front));
+  sobj(6, "", latin1(back));
+  obj(7, "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>");
+  sobj(8, `/Type /XObject /Subtype /Image /Width ${canvas.width} /Height ${canvas.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode`, jpg);
+  masks.forEach((m, i) => sobj(9 + i, `/Type /XObject /Subtype /Image /Width ${NW} /Height ${NH} /ImageMask true /BitsPerComponent 1 /Decode [1 0] /Interpolate false /Filter /FlateDecode`, m));
+  const count = 9 + masks.length;
+  const xref = len;
+  let x = `xref\n0 ${count}\n0000000000 65535 f \n`;
+  for (let i = 1; i < count; i++) x += String(offs[i]).padStart(10, "0") + " 00000 n \n";
+  push(x + `trailer\n<< /Size ${count} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`);
+  return new Blob(parts, { type: "application/pdf" });
+}
+
+// ---------- UI ----------
+async function loadFile(file) {
+  if (!file || !file.type.startsWith("image/")) { setStatus("That is not an image file. Please choose a JPG, PNG or WebP.", true); return; }
+  try {
+    const bmp = await createImageBitmap(file, { imageOrientation: "from-image" });
+    S.img = bmp; S.isSample = false; S.zoom = 1; S.panX = S.panY = 0;
+    S.rot = bmp.height > bmp.width ? 1 : 0;   // turn portrait images to landscape
+    S.name = file.name.replace(/\.[^.]+$/, "");
+    $("zoom").value = 100; $("zoomVal").textContent = "100 %";
+    const dpi = Math.round(Math.max(bmp.width, bmp.height) / ((S.fit === "bleed" ? 91 : 85) / 25.4));
+    $("filename").textContent = `${file.name} · ${bmp.width} × ${bmp.height} px · approx. ${dpi} dpi on the card`
+      + (dpi < 250 ? " · rather coarse, 300 dpi would be better" : "")
+      + (S.rot ? " · portrait, rotated by 90°" : "");
+    setStatus("");
+    refresh(false);
+  } catch (e) { setStatus("The image could not be opened. Try saving it as JPG or PNG.", true); }
+}
+function setStatus(t, err = false) { const s = $("status"); s.textContent = t; s.classList.toggle("err", err); }
+
+$("file").addEventListener("change", (e) => loadFile(e.target.files[0]));
+const drop = $("drop");
+["dragenter", "dragover"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", (e) => loadFile(e.dataTransfer.files[0]));
+document.addEventListener("dragover", (e) => e.preventDefault());
+document.addEventListener("drop", (e) => { e.preventDefault(); if (e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]); });
+
+document.querySelectorAll('input[name="fit"]').forEach((el) => el.addEventListener("change", () => { S.fit = el.value; refresh(false); }));
+$("zoom").addEventListener("input", (e) => { S.zoom = e.target.value / 100; $("zoomVal").textContent = e.target.value + " %"; refresh(false); });
+$("rotate").addEventListener("click", () => { S.rot = (S.rot + 1) % 4; S.panX = S.panY = 0; refresh(false); });
+$("center").addEventListener("click", () => { S.panX = S.panY = 0; refresh(false); });
+$("bleed").addEventListener("change", (e) => { S.bleed = +e.target.value; refresh(); });
+document.querySelectorAll('input[name="layout"]').forEach((el) => el.addEventListener("change", () => { S.layout = el.value; refresh(); }));
+document.querySelectorAll('input[name="strength"]').forEach((el) => el.addEventListener("change", () => {
+  S.strength = el.value; $("backLabel").textContent = "Ncode " + NAMES[S.strength]; drawSheetBack();
+}));
+
+// drag the image in the card preview
+let drag = null;
+cardCanvas.addEventListener("pointerdown", (e) => { drag = { x: e.clientX, y: e.clientY }; cardCanvas.setPointerCapture(e.pointerId); cardCanvas.classList.add("dragging"); });
+cardCanvas.addEventListener("pointermove", (e) => {
+  if (!drag) return;
+  const mmPerCss = (CARD.w + 2 * BOX) / cardCanvas.getBoundingClientRect().width;
+  S.panX += (e.clientX - drag.x) * mmPerCss; S.panY += (e.clientY - drag.y) * mmPerCss;
+  drag = { x: e.clientX, y: e.clientY }; refresh(false);
+});
+const endDrag = () => { drag = null; cardCanvas.classList.remove("dragging"); };
+cardCanvas.addEventListener("pointerup", endDrag);
+cardCanvas.addEventListener("pointercancel", endDrag);
+
+$("download").addEventListener("click", async () => {
+  const btn = $("download"); btn.disabled = true; setStatus("Creating PDF …");
+  try {
+    const blob = await buildPdf();
+    const name = `nCode business cards ${G.short} ${NAMES[S.strength]}${S.isSample ? " - sample" : S.name ? " - " + S.name : ""}.pdf`;
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+    setStatus(`Done: ${name} (${(blob.size / 1e6).toFixed(1)} MB). Print at 100 %.`);
+  } catch (e) { console.error(e); setStatus("The PDF could not be created: " + e.message, true); }
+  btn.disabled = false;
+});
+
+// Start
+S.img = sampleImage();
+$("s-light").checked = true;
+$("l-bleed9").checked = true;
+refresh();
+drawSwatches();
+</script>
+</body>
+</html>
