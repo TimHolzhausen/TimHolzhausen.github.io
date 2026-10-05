@@ -1,0 +1,679 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ultra Sharpie Custom Sheets</title>
+<meta name="description" content="Printable Ncode paper and business cards that work with the Ultra Sharpie app: blank, lined, grid and letter paper, small cards and business cards in three dot strengths.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&family=Caveat:wght@600&display=swap">
+<style>
+/* Layout: a stationery catalogue. Hero with a fanned stack of real sheets, a sheet finder
+   with a sticky result, the full catalogue as a grid, the printing guide in tabs. */
+:root {
+  --paper: #f4f5f7;
+  --sheet: #ffffff;
+  --ink: #16181d;
+  --muted: #5d6470;
+  --rule: #dde0e6;
+  --pen: #2346c8;
+  --pen-ink: #ffffff;
+  --hi: #ffe45c;
+  --ok: #17734a;
+  --warn: #9a5400;
+  --shadow: 0 1px 2px rgba(20, 24, 33, .06), 0 8px 24px rgba(20, 24, 33, .08);
+  --font-ui: "Schibsted Grotesk", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", Consolas, monospace;
+  --font-hand: "Caveat", "Segoe Print", cursive;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #111318; --sheet: #1a1d24; --ink: #e8eaee; --muted: #9aa2ae; --rule: #2b3039;
+    --pen: #8ea6ff; --pen-ink: #0d1330; --hi: rgba(255, 220, 70, .38); --ok: #5fd39c; --warn: #f0ad55;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 10px 30px rgba(0, 0, 0, .35);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #111318; --sheet: #1a1d24; --ink: #e8eaee; --muted: #9aa2ae; --rule: #2b3039;
+  --pen: #8ea6ff; --pen-ink: #0d1330; --hi: rgba(255, 220, 70, .38); --ok: #5fd39c; --warn: #f0ad55;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 10px 30px rgba(0, 0, 0, .35);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0; background: var(--paper); color: var(--ink);
+  font: 16px/1.55 var(--font-ui);
+  padding-inline: 20px; padding-block: 0 64px;
+}
+img { max-width: 100%; height: auto; display: block; }
+a { color: var(--pen); text-underline-offset: 3px; }
+.wrap { max-width: 1160px; margin: 0 auto; }
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.hl { background: linear-gradient(transparent 58%, var(--hi) 58%, var(--hi) 92%, transparent 92%); padding: 0 .08em; }
+h1, h2, h3 { text-wrap: balance; margin: 0; }
+h2 { font-size: clamp(1.5rem, 2.6vw, 2rem); font-weight: 800; letter-spacing: -.02em; line-height: 1.15; }
+.eyebrow { font-size: .75rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+section { padding-block: 72px 0; }
+.section-head { display: grid; gap: 8px; margin-bottom: 28px; max-width: 62ch; }
+.section-head p { margin: 0; color: var(--muted); }
+:focus-visible { outline: 2px solid var(--pen); outline-offset: 3px; border-radius: 4px; }
+
+/* Top bar */
+.top { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-block: 18px; flex-wrap: wrap; }
+.brand { font-weight: 800; letter-spacing: -.01em; text-decoration: none; color: var(--ink); display: flex; gap: 10px; align-items: center; }
+.brand-dot { width: 22px; height: 22px; border-radius: 50%; background: radial-gradient(circle, var(--ink) 1.2px, transparent 1.6px) 0 0 / 5px 5px; border: 1.5px solid var(--ink); }
+.top nav { display: flex; gap: 20px; flex-wrap: wrap; font-size: .92rem; }
+.top nav a { color: var(--muted); text-decoration: none; }
+.top nav a:hover { color: var(--ink); }
+
+/* Hero */
+.hero { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); gap: 40px; align-items: center; padding-block: 40px 20px; }
+@media (max-width: 860px) { .hero { grid-template-columns: minmax(0, 1fr); } }
+.hero h1 { font-size: clamp(2.3rem, 5.4vw, 4rem); font-weight: 800; letter-spacing: -.035em; line-height: 1.02; }
+.hero p.lead { font-size: 1.15rem; color: var(--muted); max-width: 46ch; margin: 18px 0 26px; }
+.hero .ctas { display: flex; gap: 12px; flex-wrap: wrap; }
+.btn {
+  display: inline-flex; align-items: center; gap: 8px; font: 600 .98rem var(--font-ui); text-decoration: none; cursor: pointer;
+  padding: 12px 18px; border-radius: 10px; border: 1.5px solid var(--ink); color: var(--ink); background: transparent;
+}
+.btn.primary { background: var(--pen); border-color: var(--pen); color: var(--pen-ink); }
+.btn:hover { transform: translateY(-1px); }
+.btn small { font: 400 .78rem var(--font-mono); opacity: .8; }
+.unofficial { margin-top: 22px; font-size: .85rem; color: var(--muted); max-width: 52ch; }
+
+.fan { position: relative; aspect-ratio: 6 / 5; max-width: 500px; width: 100%; justify-self: center; }
+@media (max-width: 860px) { .fan { max-width: 360px; } }
+.fan img {
+  position: absolute; width: 44%; top: 4%; left: 28%; box-shadow: var(--shadow); border-radius: 2px; background: #fff;
+  transition: transform .35s ease;
+}
+.fan img:nth-child(1) { transform: rotate(-9deg) translate(-26%, 4%); }
+.fan img:nth-child(2) { transform: rotate(4deg) translate(24%, 2%); }
+.fan img:nth-child(3) { transform: rotate(-1.5deg) translate(0, -2%); }
+.fan:hover img:nth-child(1) { transform: rotate(-12deg) translate(-32%, 4%); }
+.fan:hover img:nth-child(2) { transform: rotate(7deg) translate(30%, 2%); }
+.loupe {
+  position: absolute; right: 2%; bottom: 4%; width: 34%; aspect-ratio: 1; border-radius: 50%;
+  border: 6px solid var(--ink); background: #fff url("img/dots-normal.png") center / 160% auto; image-rendering: pixelated;
+  box-shadow: var(--shadow);
+}
+.loupe::after {
+  content: ""; position: absolute; width: 38%; height: 9%; background: var(--ink); border-radius: 6px;
+  right: -30%; bottom: -6%; transform: rotate(45deg);
+}
+.note-hand { position: absolute; right: 30%; bottom: 0; font: 600 1.35rem/1 var(--font-hand); color: var(--pen); transform: rotate(-4deg); }
+
+/* Three steps */
+.steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 36px; }
+@media (max-width: 860px) { .steps { grid-template-columns: minmax(0, 1fr); } }
+.step { display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: start; padding: 18px; border-top: 2px solid var(--ink); }
+.step .num { font: 500 .9rem var(--font-mono); width: 30px; height: 30px; border: 1.5px solid var(--ink); border-radius: 50%; display: grid; place-items: center; }
+.step h3 { font-size: 1.05rem; font-weight: 700; }
+.step p { margin: 4px 0 0; color: var(--muted); font-size: .94rem; }
+
+/* Finder */
+.finder { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 400px); gap: 28px; align-items: start; }
+@media (max-width: 900px) { .finder { grid-template-columns: minmax(0, 1fr); } }
+.q { background: var(--sheet); border: 1px solid var(--rule); border-radius: 14px; padding: 20px; margin-bottom: 12px; }
+.q[hidden] { display: none; }
+.q h3 { font-size: 1.08rem; font-weight: 700; display: flex; gap: 10px; align-items: baseline; }
+.q h3 .mono { font-size: .8rem; color: var(--muted); font-weight: 400; }
+.q .hint { color: var(--muted); font-size: .9rem; margin: 4px 0 0; }
+.opts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 14px; }
+.opts.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 620px) { .opts, .opts.three { grid-template-columns: minmax(0, 1fr); } }
+.opt { position: relative; }
+.opt input { position: absolute; opacity: 0; pointer-events: none; }
+.opt > span {
+  display: grid; gap: 4px; height: 100%; cursor: pointer; padding: 12px 14px; border-radius: 10px;
+  border: 1.5px solid var(--rule); transition: border-color .15s, background .15s;
+}
+.opt > span:hover { border-color: var(--muted); }
+.opt b { font-weight: 600; }
+.opt small { color: var(--muted); font-size: .84rem; line-height: 1.35; }
+.opt input:checked + span { border-color: var(--pen); background: color-mix(in srgb, var(--pen) 8%, transparent); }
+.opt input:focus-visible + span { outline: 2px solid var(--pen); outline-offset: 2px; }
+.opt img.dots { width: 100%; height: 56px; object-fit: cover; image-rendering: pixelated; border-radius: 6px; border: 1px solid var(--rule); background: #fff; }
+.tag { font: 600 .66rem var(--font-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--warn); }
+
+.result {
+  position: sticky; top: 16px; background: var(--sheet); border: 1px solid var(--rule); border-radius: 16px;
+  padding: 20px; box-shadow: var(--shadow); display: grid; gap: 14px;
+}
+.result .preview { background: var(--paper); border-radius: 10px; padding: 18px; display: grid; place-items: center; cursor: zoom-in; }
+.result .preview img { max-height: 300px; width: auto; box-shadow: var(--shadow); background: #fff; }
+.result h3 { font-size: 1.2rem; font-weight: 800; letter-spacing: -.01em; }
+.result .file { font: .8rem var(--font-mono); color: var(--muted); overflow-wrap: anywhere; }
+.result ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: .92rem; }
+.result .extra { display: grid; gap: 6px; font-size: .9rem; }
+.result .empty { color: var(--muted); font-size: .95rem; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { font-size: .78rem; padding: 3px 9px; border-radius: 99px; background: var(--paper); border: 1px solid var(--rule); }
+
+/* Strengths */
+.strengths { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 760px) { .strengths { grid-template-columns: minmax(0, 1fr); } }
+.strength figure { margin: 0; background: #fff; border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; }
+.strength figure img { width: 100%; height: 170px; object-fit: cover; image-rendering: pixelated; }
+.strength figcaption { font: .75rem var(--font-mono); color: #5d6470; padding: 8px 12px; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-between; }
+.strength h3 { font-size: 1.1rem; margin-top: 14px; display: flex; gap: 10px; align-items: baseline; }
+.strength p { margin: 6px 0 0; color: var(--muted); font-size: .94rem; }
+
+/* Catalogue */
+.callout {
+  display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: start; padding: 16px 18px; border-radius: 12px;
+  background: color-mix(in srgb, var(--hi) 30%, var(--sheet)); border: 1px solid color-mix(in srgb, var(--warn) 30%, var(--rule));
+  margin-bottom: 26px; font-size: .94rem;
+}
+.callout b { display: block; }
+.callout .icon { font: 700 1.2rem var(--font-mono); color: var(--warn); line-height: 1.2; }
+.group-title { font-size: .8rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 34px 0 14px; display: flex; gap: 12px; align-items: center; }
+.group-title::after { content: ""; flex: 1; border-top: 1px solid var(--rule); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 18px; }
+.item { background: var(--sheet); border: 1px solid var(--rule); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; }
+.item .thumb { background: var(--paper); padding: 20px 20px 0; cursor: zoom-in; border: 0; display: block; width: 100%; height: 210px; overflow: hidden; }
+.item .thumb img { margin: 0 auto; width: 70%; box-shadow: var(--shadow); background: #fff; transition: transform .25s ease; transform: translateY(6px); }
+.item .thumb:hover img { transform: translateY(0); }
+.item .body { padding: 16px; display: grid; gap: 10px; flex: 1; align-content: start; }
+.item h3 { font-size: 1.05rem; font-weight: 700; }
+.item .spec { font: .78rem var(--font-mono); color: var(--muted); }
+.item .desc { font-size: .9rem; color: var(--muted); margin: 0; }
+.dl { display: flex; gap: 6px; flex-wrap: wrap; margin-top: auto; }
+.dl a {
+  font-size: .84rem; font-weight: 600; text-decoration: none; color: var(--ink); border: 1px solid var(--rule);
+  padding: 6px 10px; border-radius: 8px; display: inline-flex; gap: 6px; align-items: baseline;
+}
+.dl a:hover { border-color: var(--pen); color: var(--pen); }
+.dl a small { font: .72rem var(--font-mono); color: var(--muted); font-weight: 400; }
+.dl-label { font-size: .75rem; color: var(--muted); }
+.flaw { font-size: .82rem; color: var(--warn); }
+
+/* Guide */
+.tabs { display: flex; gap: 4px; flex-wrap: wrap; border-bottom: 1px solid var(--rule); margin-bottom: 26px; }
+.tabs button {
+  font: 600 .92rem var(--font-ui); background: none; border: 0; color: var(--muted); padding: 10px 14px; cursor: pointer;
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+}
+.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--ink); }
+.panel { max-width: 72ch; }
+.panel p { margin: 0 0 14px; }
+.panel h3 { font-size: 1.05rem; font-weight: 700; margin: 24px 0 8px; }
+.settings { display: grid; grid-template-columns: max-content 1fr; gap: 8px 22px; margin: 0 0 16px; font-size: .95rem; }
+.settings dt { font-weight: 600; }
+.settings dd { margin: 0; color: var(--muted); }
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; font-size: .92rem; min-width: 420px; }
+th, td { text-align: left; padding: 8px 14px 8px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-weight: 600; }
+.ok { color: var(--ok); font-weight: 600; }
+
+/* Business card app teaser */
+.teaser { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: center; background: var(--ink); color: var(--paper); border-radius: 18px; padding: 28px; }
+.teaser h2 { font-size: 1.5rem; }
+.teaser p { margin: 8px 0 0; opacity: .8; max-width: 56ch; }
+.teaser .btn { border-color: var(--paper); color: var(--paper); }
+@media (max-width: 700px) { .teaser { grid-template-columns: minmax(0, 1fr); } }
+
+footer { margin-top: 80px; padding-top: 24px; border-top: 1px solid var(--rule); color: var(--muted); font-size: .86rem; display: grid; gap: 6px; }
+
+/* Lightbox */
+dialog { border: 0; padding: 0; background: transparent; max-width: min(92vw, 900px); max-height: 92vh; }
+dialog::backdrop { background: rgba(10, 12, 16, .78); }
+dialog img { max-height: 86vh; width: auto; background: #fff; }
+dialog form { text-align: right; }
+dialog button { font: 600 .9rem var(--font-ui); background: var(--sheet); color: var(--ink); border: 0; border-radius: 8px; padding: 6px 12px; margin-bottom: 8px; cursor: pointer; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } html { scroll-behavior: auto; } }
+</style>
+<script data-goatcounter="https://ncodesheets.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <a class="brand" href="#"><span class="brand-dot" aria-hidden="true"></span>Custom Sheets</a>
+  <nav aria-label="Sections">
+    <a href="#finder">Find your sheet</a>
+    <a href="#strengths">Dot strengths</a>
+    <a href="#all">All files</a>
+    <a href="../ncodeBusinessCardCreator/">Business cards</a>
+    <a href="#guide">Printing guide</a>
+  </nav>
+</header>
+
+<div class="hero">
+  <div>
+    <p class="eyebrow">For the Ultra Sharpie app</p>
+    <h1>Print your own paper for the <span class="hl">Ultra&nbsp;Sharpie</span>.</h1>
+    <p class="lead">Blank, lined, grid and letter paper, small cards and business cards. Every sheet carries the same code as the sheets that came with the trick, so the app knows exactly where each page begins and ends.</p>
+    <div class="ctas">
+      <a class="btn primary" href="#finder">Find the right sheet</a>
+      <a class="btn" href="#" data-file="test">Print test sheet <small>0.6 MB</small></a>
+    </div>
+    <p class="unofficial">A free community project, not an official product. All files are PDFs for printing at home or at a print shop.</p>
+  </div>
+  <div class="fan" aria-hidden="true">
+    <img src="img/grid-s.webp" alt="" width="520" height="674">
+    <img src="img/letter-s.webp" alt="" width="520" height="674">
+    <img src="img/lined-s.webp" alt="" width="520" height="674">
+    <div class="loupe"></div>
+    <span class="note-hand">the real dots, 3× zoom</span>
+  </div>
+</div>
+
+<div class="steps">
+  <div class="step"><span class="num">1</span><div><h3>Print the test sheet</h3><p>Measure two lines with a ruler and write in the box. It tells you whether your printer keeps the scale and whether the app reads the sheet.</p></div></div>
+  <div class="step"><span class="num">2</span><div><h3>Pick a dot strength</h3><p>Optional. The strength test puts normal, light and extra light on one sheet. Use the lightest one the app reads reliably.</p></div></div>
+  <div class="step"><span class="num">3</span><div><h3>Print your paper</h3><p>Always at 100 % / actual size. Never let the printer fit the page.</p></div></div>
+</div>
+
+<section id="finder">
+  <div class="section-head">
+    <p class="eyebrow">Sheet finder</p>
+    <h2>What would you like to print?</h2>
+    <p>Answer a few questions and you get the one file you need, with the printing tips that matter for it.</p>
+  </div>
+  <div class="finder">
+    <div id="questions">
+      <div class="q" id="q-kind">
+        <h3><span class="mono">1</span>What do you need?</h3>
+        <div class="opts">
+          <label class="opt"><input type="radio" name="kind" value="paper"><span><b>Paper to write on</b><small>Full sheets: blank, lined, grid or letter paper</small></span></label>
+          <label class="opt"><input type="radio" name="kind" value="cards"><span><b>Small cards</b><small>The A6 and A7 cards from the trick, to cut yourself</small></span></label>
+          <label class="opt"><input type="radio" name="kind" value="business"><span><b>Business cards</b><small>Ncode on the back, 85 × 54 or 85 × 55 mm</small></span></label>
+          <label class="opt"><input type="radio" name="kind" value="test"><span><b>Test my printer</b><small>First time here? Start with this</small></span></label>
+        </div>
+      </div>
+
+      <div class="q" id="q-paper" hidden>
+        <h3><span class="mono">2</span>Which kind of paper?</h3>
+        <div class="opts">
+          <label class="opt"><input type="radio" name="paper" value="blank-a4"><span><b>Blank</b><small>Plain, one page per sheet</small></span></label>
+          <label class="opt"><input type="radio" name="paper" value="lined"><span><b>Lined</b><small>8 mm ruling</small></span></label>
+          <label class="opt"><input type="radio" name="paper" value="grid"><span><b>Grid</b><small>5 mm squares</small></span></label>
+          <label class="opt"><input type="radio" name="paper" value="letter"><span><b>Letter paper</b><small>Decorated, needs colour printing</small></span></label>
+        </div>
+      </div>
+
+      <div class="q" id="q-cards" hidden>
+        <h3><span class="mono">2</span>Which card size?</h3>
+        <div class="opts">
+          <label class="opt"><input type="radio" name="cards" value="blank-a6"><span><b>A6 cut</b><small>4 cards per sheet, 108 × 140 mm each</small></span></label>
+          <label class="opt"><input type="radio" name="cards" value="blank-a7"><span><b>A7 cut</b><small>8 cards per sheet, 108 × 70 mm each</small></span></label>
+        </div>
+      </div>
+
+      <div class="q" id="q-business" hidden>
+        <h3><span class="mono">2</span>How do you make your cards?</h3>
+        <div class="opts three">
+          <label class="opt"><input type="radio" name="business" value="cards-avery"><span><b>Perforated stock 85 × 54</b><small>Avery Zweckform C32011, C32026 and compatibles</small></span></label>
+          <label class="opt"><input type="radio" name="business" value="cards-sigel"><span><b>Perforated stock 85 × 55</b><small>Sigel and others. Check the size on your pack</small></span></label>
+          <label class="opt"><input type="radio" name="business" value="creator"><span><b>My own design</b><small>Upload a front image, cut with a paper cutter</small></span></label>
+        </div>
+      </div>
+
+      <div class="q" id="q-strength" hidden>
+        <h3><span class="mono">3</span>How visible may the dots be?</h3>
+        <p class="hint">All three carry the same code. Lighter dots are easier on the eye but depend more on your printer.</p>
+        <div class="opts three">
+          <label class="opt"><input type="radio" name="strength" value="normal"><span><img class="dots" src="img/dots-normal.png" alt=""><b>Normal</b><small>Same as the trick's sheets. The safe default</small></span></label>
+          <label class="opt"><input type="radio" name="strength" value="light"><span><img class="dots" src="img/dots-light.png" alt=""><b>Light</b><small>Half the toner. Tested on a colour laser</small></span></label>
+          <label class="opt"><input type="radio" name="strength" value="extralight"><span><img class="dots" src="img/dots-extralight.png" alt=""><b>Extra light <span class="tag">experimental</span></b><small>A third of the toner. Test first</small></span></label>
+        </div>
+      </div>
+
+      <div class="q" id="q-size" hidden>
+        <h3><span class="mono">4</span>Which paper is in your printer?</h3>
+        <div class="opts">
+          <label class="opt"><input type="radio" name="size" value="letter"><span><b>US Letter</b><small>216 × 279 mm. A near perfect fit</small></span></label>
+          <label class="opt"><input type="radio" name="size" value="a4"><span><b>A4</b><small>210 × 297 mm. Works too, with one setting to watch</small></span></label>
+        </div>
+      </div>
+    </div>
+
+    <aside class="result" id="result" aria-live="polite">
+      <p class="empty">Your file will show up here. Start with the first question.</p>
+    </aside>
+  </div>
+</section>
+
+<section id="strengths">
+  <div class="section-head">
+    <p class="eyebrow">Dot strengths</p>
+    <h2>Normal, light or extra light</h2>
+    <p>Every dot stays exactly where it is, only its size changes. The pen reads all three, as long as your printer puts the small dots down cleanly. Below: 6 × 6 mm of each, at 600 dpi.</p>
+  </div>
+  <div class="strengths">
+    <div class="strength">
+      <figure><img src="img/dots-normal.png" alt="Normal dots, magnified" width="429" height="429"><figcaption><span>normal</span><span>9.3 % toner</span></figcaption></figure>
+      <h3>Normal</h3>
+      <p>Identical to the sheets that came with the trick. Use it unless you have a reason not to.</p>
+    </div>
+    <div class="strength">
+      <figure><img src="img/dots-light.png" alt="Light dots, magnified" width="429" height="429"><figcaption><span>light</span><span>4.7 % toner</span></figcaption></figure>
+      <h3>Light</h3>
+      <p>Half the ink, the same way NeoLab makes its own lighter paper. Good when the pattern distracts or prints too dark.</p>
+    </div>
+    <div class="strength">
+      <figure><img src="img/dots-extralight.png" alt="Extra light dots, magnified" width="429" height="429"><figcaption><span>extra light</span><span>3.1 % toner</span></figcaption></figure>
+      <h3>Extra light <span class="tag">experimental</span></h3>
+      <p>The least visible pattern. Works on a colour laser, untested on other printers. Run the strength test first.</p>
+    </div>
+  </div>
+</section>
+
+<section id="all">
+  <div class="section-head">
+    <p class="eyebrow">All files</p>
+    <h2>Everything to download</h2>
+    <p>216 × 280 mm sheets, ten per file, unless stated otherwise. Click a preview to see the full page.</p>
+  </div>
+  <div class="callout" role="note">
+    <span class="icon" aria-hidden="true">!</span>
+    <div><b>These replace your sheets, they do not add to them.</b>
+      Print test, blank A4, lined, grid and letter paper carry the same ten codes as the A4 sheets from the trick. Sheet 3 of the lined paper and sheet 3 of the grid paper are the same page for the app. Use one kind at a time. The same goes for A6, A7 and the business cards.</div>
+  </div>
+  <div id="catalogue"></div>
+</section>
+
+<section>
+  <div class="teaser">
+    <div>
+      <p class="eyebrow" style="color:inherit;opacity:.7">Also here</p>
+      <h2>Business cards with your own front</h2>
+      <p>Upload an image, pick the dot strength, and get a print-ready sheet with bleed and crop marks for a paper cutter.</p>
+    </div>
+    <a class="btn" href="../ncodeBusinessCardCreator/">Open the card creator</a>
+  </div>
+</section>
+
+<section id="guide">
+  <div class="section-head">
+    <p class="eyebrow">Printing guide</p>
+    <h2>Get the dots onto the paper</h2>
+    <p>The pen reads a pattern of tiny dots. Most printing problems come from the printer changing them on the way. These settings prevent that.</p>
+  </div>
+  <div class="tabs" role="tablist">
+    <button role="tab" aria-selected="true" aria-controls="p-home" id="t-home">At home</button>
+    <button role="tab" aria-selected="false" aria-controls="p-a4" id="t-a4">Printing on A4</button>
+    <button role="tab" aria-selected="false" aria-controls="p-printer" id="t-printer">Which printer</button>
+    <button role="tab" aria-selected="false" aria-controls="p-black" id="t-black">Why the black matters</button>
+    <button role="tab" aria-selected="false" aria-controls="p-shop" id="t-shop">Print shops</button>
+    <button role="tab" aria-selected="false" aria-controls="p-tested" id="t-tested">What has been tested</button>
+  </div>
+
+  <div class="panel" role="tabpanel" id="p-home" aria-labelledby="t-home">
+    <h3>In the PDF viewer</h3>
+    <dl class="settings">
+      <dt>Size</dt><dd>“Actual size” / 100 %</dd>
+      <dt>Paper</dt><dd>US Letter, or A4 (see Printing on A4). Business cards: A4.</dd>
+      <dt>Never</dt><dd>Fit to page, shrink oversized pages, borderless, several pages per sheet, booklet</dd>
+    </dl>
+    <h3>In the printer settings</h3>
+    <dl class="settings">
+      <dt>Driver</dt><dd>The PostScript one if there is a choice (“PS”, “PS3”, “KPDL”)</dd>
+      <dt>Colour</dt><dd>“Black ink only” or “Grayscale”. Not “High quality grayscale”, which mixes grey from all colours.</dd>
+      <dt>Quality</dt><dd>The highest setting. 600 or 1200 dpi if you can choose.</dd>
+      <dt>Toner saving</dt><dd>Off. It prints the dots too pale or with gaps.</dd>
+      <dt>Enhancements</dt><dd>Off. Smoothing, photo optimising and sharpening all change the dots.</dd>
+      <dt>Paper type</dt><dd>Plain paper, as smooth and white as you have.</dd>
+    </dl>
+    <p>Letter paper has a colour design and needs colour mode. If your colour laser has an option like “Print black as K only” or “Pure black”, switch it on. With inkjet, let the sheet dry before writing on it.</p>
+  </div>
+
+  <div class="panel" role="tabpanel" id="p-a4" aria-labelledby="t-a4" hidden>
+    <p>The sheets are US Letter size, 216 × 280 mm. A4 is a little narrower and a little taller. You can print on A4 as long as nothing gets scaled.</p>
+    <h3>Steps</h3>
+    <p>1. Put A4 paper in the printer and choose A4 as the paper size.<br>
+       2. Set the size to “Actual size” / 100 %. In Adobe Reader untick “Choose paper source by PDF page size”. In Chrome or Edge set Scale to Custom, 100. In Mac Preview set 100 % and untick “Scale to fit”.<br>
+       3. If the printer reports a paper size mismatch, let it continue with A4.<br>
+       4. Print the test sheet and measure: 150 mm across, 178 to 182 mm down.</p>
+    <h3>What you get</h3>
+    <p>The page sits in the middle of the A4 sheet. About 3 mm of dots are cut off on the left and right; no design is lost. At the top and bottom you get a white strip of about 8 mm. The app does not see the paper, only the dots, so this is fine. Just don't write right at the edge.</p>
+    <p><b>Never let the printer “fit” the page onto A4.</b> That shrinks it by about 3 % and the pen can no longer read the dots.</p>
+  </div>
+
+  <div class="panel" role="tabpanel" id="p-printer" aria-labelledby="t-printer" hidden>
+    <p>The dots have to reach the paper exactly as they are in the file. A PostScript driver hands the page over as it is in the PDF and the printer works it out itself. Simple drivers on many cheap printers (“GDI”, “host-based”) turn the page into a picture first and may resize, smooth or toner-save it on the way.</p>
+    <div class="table-wrap"><table>
+      <tr><th>Printer</th><th>Verdict</th></tr>
+      <tr><td>Laser with PostScript</td><td class="ok">Best choice</td></tr>
+      <tr><td>Laser without PostScript</td><td>May work. Check with the test sheet</td></tr>
+      <tr><td>Inkjet</td><td>Least reliable. Test before printing a stack</td></tr>
+    </table></div>
+    <p style="margin-top:14px">Plenty of office and home lasers speak PostScript. Look for a driver called “PS”, “PS3”, “PostScript” or, on Kyocera, “KPDL”.</p>
+  </div>
+
+  <div class="panel" role="tabpanel" id="p-black" aria-labelledby="t-black" hidden>
+    <p>The pen lights the paper with infrared light, and its camera only sees what swallows that light. Black toner or ink (the K in CMYK) does. Cyan, magenta and yellow let infrared through.</p>
+    <p>Many colour printers build black out of cyan, magenta and yellow. It looks just as black to you, but to the pen the page is empty. So the dots must come out of the black cartridge. The files store them as pure greyscale black, which printers normally print with black only.</p>
+  </div>
+
+  <div class="panel" role="tabpanel" id="p-shop" aria-labelledby="t-shop" hidden>
+    <p>Having the sheets printed professionally? Pass this on.</p>
+    <dl class="settings">
+      <dt>Dot pattern</dt><dd>600 dpi, pure black and white, no grey levels, no anti-aliasing</dd>
+      <dt>Workflow</dt><dd>PostScript / PDF workflow, not an office driver that rasterises on the computer</dd>
+      <dt>Page size</dt><dd>216 × 280 mm, business cards on A4</dd>
+      <dt>Ink</dt><dd>Carbon black only (K), never rich or four-colour black. Do not convert to CMYK process black.</dd>
+      <dt>Resolution</dt><dd>600 or 1200 dpi on the machine</dd>
+      <dt>Don'ts</dt><dd>No scaling, no added bleed, no re-screening or image optimising</dd>
+    </dl>
+    <p>Ask for one proof of the test sheet before a full run and check it with the pen and the app.</p>
+  </div>
+
+  <div class="panel" role="tabpanel" id="p-tested" aria-labelledby="t-tested" hidden>
+    <div class="table-wrap"><table>
+      <tr><th>File</th><th>Status</th></tr>
+      <tr><td>Print test</td><td class="ok">Works</td></tr>
+      <tr><td>Light sheets</td><td class="ok">Works</td></tr>
+      <tr><td>Light business cards, Avery 85 × 54</td><td class="ok">Works</td></tr>
+      <tr><td>Extra light (strength test)</td><td class="ok">Works</td></tr>
+      <tr><td>Normal sheets and cards</td><td>Not tested yet. Same dots as the trick's sheets</td></tr>
+      <tr><td>Sigel cards 85 × 55</td><td>Not tested yet</td></tr>
+      <tr><td>Extra light on other printers</td><td>Not tested yet</td></tr>
+    </table></div>
+    <p style="margin-top:14px">All tests on a colour laser (Kyocera ECOSYS M5521cdw); the app showed the writing on one page every time. Tried them on your printer? Please share how it went and which printer you used.</p>
+    <p>On some printers a thin line shows across the pattern. About every 70 mm the pattern has one slightly different row; it is on the original sheets too and does not stop the pen.</p>
+  </div>
+</section>
+
+<footer>
+  <span>The dot pattern and the letter paper design are NeoLab Convergence's work. The sheet layout follows the templates that came with the trick.</span>
+  <span>Community project by Tim Holzhausen. Not affiliated with the makers of the trick or with NeoLab.</span>
+  <span>Visits and downloads are counted anonymously with <a href="https://www.goatcounter.com">GoatCounter</a>: no cookies, no personal data, nothing shared with third parties.</span>
+</footer>
+</div>
+
+<dialog id="lightbox">
+  <form method="dialog"><button>Close</button></form>
+  <img alt="" id="lightboxImg">
+</dialog>
+
+<script>
+"use strict";
+// ---------- Files ----------
+const BASE = "files/";
+const S = "normal", L = "light", X = "extralight";
+const STRENGTH_NAME = { normal: "Normal", light: "Light", extralight: "Extra light" };
+const ITEMS = {
+  "test": { title: "Print Test", group: "Start here", img: "print-test", spec: "1 sheet · 216 × 280 mm",
+    desc: "Two lines to measure and a box to write in. Print this first.",
+    files: { [S]: ["Ncode Print Test - 216x280mm.pdf", 0.6] } },
+  "strength-test": { title: "Dot Strength Test", group: "Start here", img: "strength-test", spec: "1 sheet · 216 × 280 mm",
+    desc: "Normal, light and extra light on one sheet. Write in each field and check the app.",
+    files: { [S]: ["Dot Strength Test - 216x280mm.pdf", 2.4] } },
+  "blank-a4": { title: "Blank A4", group: "Paper", img: "blank-a4", spec: "10 sheets · 216 × 280 mm · one page each",
+    desc: "Plain paper. “A4” names the cut of the original sheets, not the paper size. Normal is the original file from the trick.",
+    files: { [S]: ["Ultra Pen Sheets/10 Sheets A4 - 210 mm x 297 mm.pdf", 5.7], [L]: ["Blank A4 - 216x280mm - 10 sheets - light.pdf", 10.9], [X]: ["Blank A4 - 216x280mm - 10 sheets - extra light.pdf", 6.5] } },
+  "lined": { title: "Lined", group: "Paper", img: "lined", spec: "10 sheets · 216 × 280 mm · 8 mm ruling",
+    desc: "Ruled paper for longer writing.",
+    files: { [S]: ["Lined - 216x280mm - 10 sheets.pdf", 5.7], [L]: ["Lined - 216x280mm - 10 sheets - light.pdf", 10.9], [X]: ["Lined - 216x280mm - 10 sheets - extra light.pdf", 6.5] } },
+  "grid": { title: "Grid", group: "Paper", img: "grid", spec: "10 sheets · 216 × 280 mm · 5 mm squares",
+    desc: "Squared paper for drawings and numbers.",
+    files: { [S]: ["Grid - 216x280mm - 10 sheets.pdf", 5.7], [L]: ["Grid - 216x280mm - 10 sheets - light.pdf", 11.0], [X]: ["Grid - 216x280mm - 10 sheets - extra light.pdf", 6.5] } },
+  "letter": { title: "Letter Paper", group: "Paper", img: "letter", spec: "10 sheets · 216 × 280 mm · colour",
+    desc: "Decorated writing paper. Needs colour printing; test one sheet first.",
+    files: { [S]: ["Letter Paper - 216x280mm - 10 sheets.pdf", 19.7], [L]: ["Letter Paper - 216x280mm - 10 sheets - light.pdf", 26.9], [X]: ["Letter Paper - 216x280mm - 10 sheets - extra light.pdf", 3.2] } },
+  "blank-a6": { title: "Blank A6 cards", group: "Small cards", img: "blank-a6", spec: "10 sheets · 4 cards each · 108 × 140 mm",
+    desc: "Cut along the printed lines. Normal is the original file from the trick.",
+    files: { [S]: ["Ultra Pen Sheets/10 Sheets A6 - 105 mm x 148 mm.pdf", 5.9], [L]: ["Blank A6 - 216x280mm - 10 sheets - light.pdf", 11.3], [X]: ["Blank A6 - 216x280mm - 10 sheets - extra light.pdf", 6.7] } },
+  "blank-a7": { title: "Blank A7 cards", group: "Small cards", img: "blank-a7", spec: "10 sheets · 8 cards each · 108 × 70 mm",
+    desc: "Cut along the printed lines. Normal is the original file from the trick.",
+    flaw: "Sheets 4 and 5 carry the same code, so you get 36 distinct cards, not 40. Never have both in play at once.",
+    files: { [S]: ["Ultra Pen Sheets/10 Sheets A7 - 74 mm x 105 mm.pdf", 6.3], [L]: ["Blank A7 - 216x280mm - 10 sheets - light.pdf", 10.9], [X]: ["Blank A7 - 216x280mm - 10 sheets - extra light.pdf", 6.3] } },
+  "cards-avery": { title: "Business cards 85 × 54", group: "Business cards", img: "cards-avery", spec: "10 cards on A4 · Avery Zweckform C32011",
+    desc: "For perforated stock. Every card is its own page for the app.",
+    guides: { [S]: ["Business Cards 85x54mm Avery C32011 - 10up A4 - with guides.pdf", 3.4], [L]: ["Business Cards 85x54mm Avery C32011 - 10up A4 - with guides - light.pdf", 3.3], [X]: ["Business Cards 85x54mm Avery C32011 - 10up A4 - with guides - extra light.pdf", 2.5] },
+    files: { [S]: ["Business Cards 85x54mm Avery C32011 - 10up A4.pdf", 3.4], [L]: ["Business Cards 85x54mm Avery C32011 - 10up A4 - light.pdf", 3.3], [X]: ["Business Cards 85x54mm Avery C32011 - 10up A4 - extra light.pdf", 2.5] } },
+  "cards-sigel": { title: "Business cards 85 × 55", group: "Business cards", img: "cards-sigel", spec: "10 cards on A4 · Sigel and others",
+    desc: "For perforated stock. Check the size on your pack, 85 × 54 and 85 × 55 are not interchangeable.",
+    guides: { [S]: ["Business Cards 85x55mm Sigel - 10up A4 - with guides.pdf", 3.4], [L]: ["Business Cards 85x55mm Sigel - 10up A4 - with guides - light.pdf", 3.3], [X]: ["Business Cards 85x55mm Sigel - 10up A4 - with guides - extra light.pdf", 2.5] },
+    files: { [S]: ["Business Cards 85x55mm Sigel - 10up A4.pdf", 3.4], [L]: ["Business Cards 85x55mm Sigel - 10up A4 - light.pdf", 3.3], [X]: ["Business Cards 85x55mm Sigel - 10up A4 - extra light.pdf", 2.5] } },
+};
+const href = (path) => BASE + path.split("/").map(encodeURIComponent).join("/");
+const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const $ = (s, el = document) => el.querySelector(s);
+
+// ---------- Catalogue ----------
+function renderCatalogue() {
+  const groups = {};
+  for (const [key, it] of Object.entries(ITEMS)) (groups[it.group] ||= []).push([key, it]);
+  let html = "";
+  for (const [g, list] of Object.entries(groups)) {
+    html += `<h3 class="group-title">${g}</h3><div class="grid">`;
+    for (const [key, it] of list) {
+      const links = Object.entries(it.files).map(([s, [f, mb]]) =>
+        `<a href="${href(f)}" download>${Object.keys(it.files).length > 1 ? STRENGTH_NAME[s] : "Download PDF"} <small>${mb.toFixed(1)} MB</small></a>`).join("");
+      const guides = it.guides ? `<span class="dl-label">With grey card outlines, to check alignment on plain paper:</span><div class="dl">${
+        Object.entries(it.guides).map(([s, [f, mb]]) => `<a href="${href(f)}" download>${STRENGTH_NAME[s]} <small>${mb.toFixed(1)} MB</small></a>`).join("")}</div>` : "";
+      html += `<article class="item">
+        <button class="thumb" type="button" data-zoom="${it.img}" aria-label="Show ${esc(it.title)} full size"><img src="img/${it.img}-s.webp" alt="" loading="lazy" width="520" height="674"></button>
+        <div class="body"><h3>${esc(it.title)}</h3><span class="spec">${esc(it.spec)}</span><p class="desc">${esc(it.desc)}</p>
+        ${it.flaw ? `<span class="flaw">${esc(it.flaw)}</span>` : ""}<div class="dl">${links}</div>${guides}</div></article>`;
+    }
+    html += "</div>";
+  }
+  $("#catalogue").innerHTML = html;
+}
+
+// ---------- Finder ----------
+const ans = {};
+const show = (id, on) => { $(id).hidden = !on; };
+function flow() {
+  const k = ans.kind;
+  show("#q-paper", k === "paper");
+  show("#q-cards", k === "cards");
+  show("#q-business", k === "business");
+  const item = k === "paper" ? ans.paper : k === "cards" ? ans.cards : k === "business" ? ans.business : k === "test" ? "test" : null;
+  const needsStrength = item && item !== "test" && item !== "creator";
+  show("#q-strength", !!needsStrength);
+  show("#q-size", !!needsStrength && ans.strength && (k === "paper" || k === "cards"));
+  renderResult(item);
+}
+function renderResult(item) {
+  const r = $("#result");
+  if (!item) { r.innerHTML = `<p class="empty">Your file will show up here. ${ans.kind ? "Keep going on the left." : "Start with the first question."}</p>`; return; }
+  if (item === "creator") {
+    r.innerHTML = `<p class="eyebrow">Your tool</p><h3>Business Card Creator</h3>
+      <p style="margin:0;color:var(--muted)">Upload your front design, choose the dot strength and the layout, and download a print-ready A4 sheet with bleed and crop marks.</p>
+      <a class="btn primary" href="../ncodeBusinessCardCreator/">Open the card creator</a>`;
+    return;
+  }
+  if (item === "test") {
+    const t = ITEMS.test, st = ITEMS["strength-test"];
+    r.innerHTML = `<p class="eyebrow">Your files</p>
+      <div class="preview" data-zoom="print-test"><img src="img/print-test-s.webp" alt="Print test preview" width="520" height="674"></div>
+      <h3>Print Test</h3>
+      <a class="btn primary" href="${href(t.files.normal[0])}" download>Download print test <small>0.6 MB</small></a>
+      <ul><li>Across: exactly <b>150 mm</b> means your print is to scale.</li>
+      <li>Down: <b>178 to 182 mm</b> is normal paper feed tolerance.</li>
+      <li>Write in the box. One page in the app means the app accepts the sheets.</li></ul>
+      <div class="extra"><span>Then, if you want lighter dots:</span><a href="${href(st.files.normal[0])}" download>Dot Strength Test <small class="mono">2.4 MB</small></a></div>`;
+    return;
+  }
+  const it = ITEMS[item];
+  const s = ans.strength;
+  const chips = [s && STRENGTH_NAME[s], ans.kind !== "business" && ans.size && (ans.size === "a4" ? "A4 paper" : "US Letter")].filter(Boolean);
+  let html = `<p class="eyebrow">Your file</p>
+    <div class="preview" data-zoom="${it.img}"><img src="img/${it.img}-s.webp" alt="${esc(it.title)} preview" width="520" height="674"></div>
+    <h3>${esc(it.title)}</h3><div class="chips">${chips.map((c) => `<span class="chip">${esc(c)}</span>`).join("")}</div>`;
+  if (!s) { r.innerHTML = html + `<p class="empty">Now pick a dot strength.</p>`; return; }
+  const [file, mb] = it.files[s];
+  html += `<span class="file">${esc(file.split("/").pop())}</span>
+    <a class="btn primary" href="${href(file)}" download>Download PDF <small>${mb.toFixed(1)} MB</small></a>`;
+  const tips = ["Print at <b>100 % / actual size</b>. Never fit to page."];
+  if (it.group === "Business cards") {
+    tips.push("Print on <b>A4</b>, on your perforated stock.");
+    tips.push(`Not sure about the alignment? Print the <a href="${href(it.guides[s][0])}" download>version with card outlines</a> on plain paper first and hold it against your stock.`);
+    tips.push("Printing both sides? Flipping on the long edge swaps the two columns.");
+  } else if (ans.size === "a4") {
+    tips.push("Choose <b>A4</b> as paper size and keep 100 %. If the printer reports a size mismatch, continue anyway.");
+    tips.push("About 3 mm of dots are lost left and right, and there is a white strip top and bottom. Don't write right at the edge.");
+  } else if (ans.size === "letter") {
+    tips.push("Choose <b>US Letter</b> as paper size. The sheet fits almost exactly.");
+  }
+  if (item === "letter") tips.push("Letter paper needs colour mode. Turn on “Print black as K only” or “Pure black” if your printer has it.");
+  else tips.push("Use <b>black only</b> or grayscale mode, toner saving off.");
+  if (s !== "normal") tips.push("Lighter dots depend on your printer. Print one sheet and check the app before printing a stack.");
+  if (it.flaw) tips.push(it.flaw);
+  html += `<ul>${tips.map((t) => `<li>${t}</li>`).join("")}</ul>
+    <div class="extra"><span>First time? Check your printer with the <a href="${href(ITEMS.test.files.normal[0])}" download>print test</a>.</span></div>`;
+  r.innerHTML = html;
+}
+document.querySelectorAll("#questions input[type=radio]").forEach((el) => el.addEventListener("change", () => {
+  ans[el.name] = el.value;
+  if (el.name === "kind") { delete ans.paper; delete ans.cards; delete ans.business; document.querySelectorAll('input[name="paper"],input[name="cards"],input[name="business"]').forEach((i) => (i.checked = false)); }
+  flow();
+  // gently bring the next open question into view on small screens
+  const next = [...document.querySelectorAll("#questions .q")].find((q) => !q.hidden && !q.querySelector("input:checked"));
+  if (next && window.innerWidth < 900) next.scrollIntoView({ behavior: "smooth", block: "center" });
+}));
+
+// ---------- Tabs ----------
+const tabs = [...document.querySelectorAll('[role="tab"]')];
+tabs.forEach((t) => t.addEventListener("click", () => {
+  tabs.forEach((o) => { o.setAttribute("aria-selected", String(o === t)); $("#" + o.getAttribute("aria-controls")).hidden = o !== t; });
+}));
+
+// ---------- Lightbox ----------
+const lb = $("#lightbox");
+document.addEventListener("click", (e) => {
+  const z = e.target.closest("[data-zoom]");
+  if (!z) return;
+  $("#lightboxImg").src = `img/${z.dataset.zoom}-l.webp`;
+  lb.showModal();
+});
+lb.addEventListener("click", (e) => { if (e.target === lb) lb.close(); });
+
+// hero test-sheet link
+document.querySelector('[data-file="test"]').href = href(ITEMS.test.files.normal[0]);
+document.querySelector('[data-file="test"]').setAttribute("download", "");
+
+// ---------- Anonymous counting (GoatCounter, no cookies) ----------
+// Every download becomes an event "dl/<item>/<strength>[/guides]", every finder answer "finder/<question>/<answer>".
+function track(path, title) {
+  try { if (window.goatcounter && window.goatcounter.count) window.goatcounter.count({ path, title, event: true }); } catch (e) { /* counting must never break the page */ }
+}
+const FILE_EVENT = {};
+for (const [key, it] of Object.entries(ITEMS)) {
+  for (const [s, [f]] of Object.entries(it.files)) FILE_EVENT[href(f)] = [`dl/${key}/${s}`, `${it.title} · ${STRENGTH_NAME[s]}`];
+  if (it.guides) for (const [s, [f]] of Object.entries(it.guides)) FILE_EVENT[href(f)] = [`dl/${key}/${s}/guides`, `${it.title} · ${STRENGTH_NAME[s]} · with outlines`];
+}
+document.addEventListener("click", (e) => {
+  const a = e.target.closest("a[download]");
+  const ev = a && FILE_EVENT[a.getAttribute("href")];
+  if (ev) track(...ev);
+});
+document.querySelectorAll("#questions input[type=radio]").forEach((el) =>
+  el.addEventListener("change", () => track(`finder/${el.name}/${el.value}`, `Finder: ${el.name} = ${el.value}`)));
+
+renderCatalogue();
+flow();
+</script>
+</body>
+</html>

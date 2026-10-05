@@ -3,180 +3,196 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>nCode Business Cards</title>
+<title>Business Card Creator</title>
 <meta name="description" content="Print your own Ncode business cards: upload a front image, pick a dot strength, download a print-ready A4 PDF with bleed and crop marks.">
+<link rel="icon" href="../ncodeSheets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,750&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: controls on the left, a cutting mat on the right with the card and both A4 pages */
+/* Layout: same system as the Custom Sheets page. Controls on the left as question cards,
+   a work surface on the right with the card and both A4 pages. */
 :root {
-  --paper: #f5f6f2;
-  --panel: #ffffff;
-  --ink: #18211c;
-  --muted: #5b6860;
-  --line: #d6dcd5;
-  --mat: #2c5a45;
-  --mat-ink: #e9f1ec;
-  --mat-grid: rgba(255, 255, 255, .09);
-  --accent: #2c5a45;
-  --accent-ink: #ffffff;
+  --paper: #f4f5f7;
+  --sheet: #ffffff;
+  --ink: #16181d;
+  --muted: #5d6470;
+  --rule: #dde0e6;
+  --pen: #2346c8;
+  --pen-ink: #ffffff;
+  --hi: #ffe45c;
   --mark: #e0457b;
-  --warn: #9a5b00;
-  --font-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
-  --font-body: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", Consolas, "Courier New", monospace;
+  --warn: #9a5400;
+  --shadow: 0 1px 2px rgba(20, 24, 33, .06), 0 8px 24px rgba(20, 24, 33, .08);
+  --font-ui: "Schibsted Grotesk", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", Consolas, monospace;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --paper: #111613; --panel: #18201b; --ink: #e6ece7; --muted: #97a59c; --line: #2b352f;
-    --mat: #1d4031; --mat-ink: #dfeae3; --mat-grid: rgba(255, 255, 255, .07);
-    --accent: #6fbf97; --accent-ink: #0d1a13; --mark: #ff6b9a; --warn: #e2a64a;
+    --paper: #111318; --sheet: #1a1d24; --ink: #e8eaee; --muted: #9aa2ae; --rule: #2b3039;
+    --pen: #8ea6ff; --pen-ink: #0d1330; --hi: rgba(255, 220, 70, .38); --mark: #ff6b9a; --warn: #f0ad55;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 10px 30px rgba(0, 0, 0, .35);
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --paper: #111613; --panel: #18201b; --ink: #e6ece7; --muted: #97a59c; --line: #2b352f;
-  --mat: #1d4031; --mat-ink: #dfeae3; --mat-grid: rgba(255, 255, 255, .07);
-  --accent: #6fbf97; --accent-ink: #0d1a13; --mark: #ff6b9a; --warn: #e2a64a;
+  --paper: #111318; --sheet: #1a1d24; --ink: #e8eaee; --muted: #9aa2ae; --rule: #2b3039;
+  --pen: #8ea6ff; --pen-ink: #0d1330; --hi: rgba(255, 220, 70, .38); --mark: #ff6b9a; --warn: #f0ad55;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 10px 30px rgba(0, 0, 0, .35);
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 html, body { margin: 0; }
 body {
   background: var(--paper); color: var(--ink);
-  font: 15px/1.5 var(--font-body);
-  padding-inline: 16px; padding-block: 24px 48px;
+  font: 16px/1.55 var(--font-ui);
+  padding-inline: 20px; padding-block: 0 64px;
 }
-.wrap { max-width: 1240px; margin: 0 auto; display: grid; gap: 24px; }
-header h1 {
-  font-family: var(--font-display); font-weight: 750; font-size: clamp(1.7rem, 3.2vw, 2.4rem);
-  line-height: 1.1; margin: 0; letter-spacing: -.01em; text-wrap: balance;
-}
-header p { margin: 6px 0 0; color: var(--muted); max-width: 65ch; }
+a { color: var(--pen); text-underline-offset: 3px; }
+.wrap { max-width: 1160px; margin: 0 auto; }
 .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.hl { background: linear-gradient(transparent 58%, var(--hi) 58%, var(--hi) 92%, transparent 92%); padding: 0 .08em; }
+.eyebrow { font-size: .75rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 0; }
+:focus-visible { outline: 2px solid var(--pen); outline-offset: 3px; border-radius: 4px; }
 
-.app { display: grid; grid-template-columns: minmax(0, 360px) minmax(0, 1fr); gap: 24px; align-items: start; }
-@media (max-width: 880px) { .app { grid-template-columns: minmax(0, 1fr); } }
+/* Top bar, identical to the Custom Sheets page */
+.top { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-block: 18px; flex-wrap: wrap; }
+.brand { font-weight: 800; letter-spacing: -.01em; text-decoration: none; color: var(--ink); display: flex; gap: 10px; align-items: center; }
+.brand-dot { width: 22px; height: 22px; border-radius: 50%; background: radial-gradient(circle, var(--ink) 1.2px, transparent 1.6px) 0 0 / 5px 5px; border: 1.5px solid var(--ink); }
+.top nav { display: flex; gap: 20px; flex-wrap: wrap; font-size: .92rem; }
+.top nav a { color: var(--muted); text-decoration: none; }
+.top nav a:hover, .top nav a[aria-current] { color: var(--ink); }
 
-.controls { display: grid; gap: 14px; }
+.intro { padding-block: 28px 30px; display: grid; gap: 12px; max-width: 70ch; }
+.intro h1 { font-size: clamp(2rem, 4.4vw, 3.2rem); font-weight: 800; letter-spacing: -.035em; line-height: 1.05; margin: 0; text-wrap: balance; }
+.intro p:not(.eyebrow) { margin: 0; font-size: 1.08rem; color: var(--muted); }
+
+.app { display: grid; grid-template-columns: minmax(0, 380px) minmax(0, 1fr); gap: 28px; align-items: start; }
+@media (max-width: 900px) { .app { grid-template-columns: minmax(0, 1fr); } }
+
+/* Question cards, like the sheet finder */
+.controls { display: grid; gap: 12px; }
 .group {
-  background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
-  padding: 16px; display: grid; gap: 12px; min-width: 0;
+  background: var(--sheet); border: 1px solid var(--rule); border-radius: 14px;
+  padding: 20px; display: grid; gap: 14px; min-width: 0;
 }
-.group h2 {
-  margin: 0; font: 600 .74rem/1 var(--font-body); text-transform: uppercase; letter-spacing: .09em; color: var(--muted);
-  display: flex; justify-content: space-between; gap: 8px;
-}
-.group h2 span { font-family: var(--font-mono); text-transform: none; letter-spacing: 0; }
+.group h2 { margin: 0; font-size: 1.08rem; font-weight: 700; display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+.group h2 span { font: 400 .8rem var(--font-mono); color: var(--muted); }
 
 .drop {
-  border: 1.5px dashed var(--line); border-radius: 8px; padding: 14px; text-align: center;
-  cursor: pointer; display: grid; gap: 2px; transition: border-color .15s, background .15s;
+  border: 1.5px dashed var(--rule); border-radius: 10px; padding: 16px; text-align: center;
+  cursor: pointer; display: grid; gap: 2px; transition: border-color .15s, background .15s; position: relative;
 }
-.drop:hover, .drop.over { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 7%, transparent); }
+.drop:hover, .drop.over { border-color: var(--pen); background: color-mix(in srgb, var(--pen) 7%, transparent); }
 .drop strong { font-weight: 600; }
-.drop small { color: var(--muted); }
+.drop small { color: var(--muted); font-size: .84rem; }
 .drop input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
 .filename { font-size: .85rem; color: var(--muted); overflow-wrap: anywhere; }
 
-.seg { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .seg label { position: relative; }
 .seg input { position: absolute; opacity: 0; }
-.seg span { display: block; padding: 8px 10px; font-size: .86rem; line-height: 1.3; cursor: pointer; height: 100%; }
-.seg span small { display: block; color: var(--muted); font-family: var(--font-mono); font-size: .74rem; }
-.seg label + label span { border-left: 1px solid var(--line); }
-.seg input:checked + span { background: var(--accent); color: var(--accent-ink); }
-.seg input:checked + span small { color: inherit; opacity: .8; }
-.seg input:focus-visible + span { outline: 2px solid var(--mark); outline-offset: -2px; }
+.seg span { display: block; padding: 10px 12px; font-size: .9rem; font-weight: 600; line-height: 1.3; cursor: pointer; height: 100%; border: 1.5px solid var(--rule); border-radius: 10px; }
+.seg span:hover { border-color: var(--muted); }
+.seg span small { display: block; color: var(--muted); font: 400 .78rem var(--font-mono); margin-top: 2px; }
+.seg input:checked + span { border-color: var(--pen); background: color-mix(in srgb, var(--pen) 8%, transparent); }
+.seg input:focus-visible + span { outline: 2px solid var(--pen); outline-offset: 2px; }
 
 .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-.row label { font-size: .88rem; }
-input[type="range"] { flex: 1; min-width: 120px; accent-color: var(--accent); }
+.row label { font-size: .9rem; }
+input[type="range"] { flex: 1; min-width: 120px; accent-color: var(--pen); }
 button, select {
-  font: inherit; font-size: .88rem; color: var(--ink); background: var(--panel);
-  border: 1px solid var(--line); border-radius: 7px; padding: 6px 11px; cursor: pointer;
+  font: 600 .9rem var(--font-ui); color: var(--ink); background: transparent;
+  border: 1.5px solid var(--rule); border-radius: 10px; padding: 7px 13px; cursor: pointer;
 }
+select { background: var(--sheet); }
 button:hover, select:hover { border-color: var(--muted); }
-button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--mark); outline-offset: 2px; }
 
-.strengths { display: grid; gap: 8px; }
-.strength { position: relative; }
-.strength input { position: absolute; opacity: 0; }
-.strength > span {
-  display: grid; grid-template-columns: 64px 1fr auto; gap: 12px; align-items: center;
-  border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; cursor: pointer;
+.strengths, .layouts { display: grid; gap: 8px; }
+.strength, .layout { position: relative; }
+.strength input, .layout input { position: absolute; opacity: 0; }
+.strength > span, .layout > span {
+  display: grid; gap: 4px 12px; border: 1.5px solid var(--rule); border-radius: 10px; padding: 10px 12px; cursor: pointer;
+  transition: border-color .15s, background .15s;
 }
-.strength input:checked + span { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
-.strength input:focus-visible + span { outline: 2px solid var(--mark); outline-offset: 2px; }
-.strength canvas { width: 64px; height: 64px; image-rendering: pixelated; border-radius: 4px; background: #fff; border: 1px solid var(--line); }
-.strength b { font-weight: 600; display: block; }
-.strength small { color: var(--muted); font-size: .8rem; line-height: 1.35; display: block; }
-.strength .toner { font-family: var(--font-mono); font-size: .8rem; color: var(--muted); }
-.tag { font: 500 .66rem/1 var(--font-body); text-transform: uppercase; letter-spacing: .08em; color: var(--warn); margin-left: 6px; }
+.strength > span { grid-template-columns: 56px 1fr auto; align-items: center; }
+.strength > span:hover, .layout > span:hover { border-color: var(--muted); }
+.strength input:checked + span, .layout input:checked + span { border-color: var(--pen); background: color-mix(in srgb, var(--pen) 8%, transparent); }
+.strength input:focus-visible + span, .layout input:focus-visible + span { outline: 2px solid var(--pen); outline-offset: 2px; }
+.strength canvas { width: 56px; height: 56px; image-rendering: pixelated; border-radius: 6px; background: #fff; border: 1px solid var(--rule); }
+.strength b, .layout b { font-weight: 600; display: block; }
+.strength small, .layout small { color: var(--muted); font-size: .84rem; line-height: 1.35; display: block; }
+.strength .toner { font: .8rem var(--font-mono); color: var(--muted); }
+.tag { font: 600 .66rem var(--font-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--warn); margin-left: 6px; }
 
-.layouts { display: grid; gap: 6px; }
-.layout { position: relative; }
-.layout input { position: absolute; opacity: 0; }
-.layout > span { display: block; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; cursor: pointer; }
-.layout b { font-weight: 600; font-size: .9rem; display: block; }
-.layout small { color: var(--muted); font-size: .8rem; line-height: 1.35; display: block; }
-.layout input:checked + span { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
-.layout input:focus-visible + span { outline: 2px solid var(--mark); outline-offset: 2px; }
 .primary {
-  background: var(--accent); color: var(--accent-ink); border-color: var(--accent);
-  font-weight: 600; font-size: 1rem; padding: 12px 16px; width: 100%;
+  background: var(--pen); color: var(--pen-ink); border-color: var(--pen);
+  font-size: 1rem; padding: 12px 18px; width: 100%;
 }
-.primary:hover { filter: brightness(1.08); border-color: var(--accent); }
-.primary:disabled { opacity: .55; cursor: progress; }
-.status { font-size: .85rem; color: var(--muted); min-height: 1.3em; }
+.primary:hover { transform: translateY(-1px); border-color: var(--pen); }
+.primary:disabled { opacity: .55; cursor: progress; transform: none; }
+.status { font-size: .86rem; color: var(--muted); min-height: 1.3em; }
 .status.err { color: var(--mark); }
 
-details.hints { font-size: .88rem; }
+details.hints { font-size: .9rem; }
 details.hints summary { cursor: pointer; font-weight: 600; }
 details.hints ul { margin: 8px 0 0; padding-left: 18px; display: grid; gap: 6px; }
 details.hints li { color: var(--muted); }
 details.hints li b { color: var(--ink); font-weight: 600; }
 
-/* Cutting mat */
+/* Work surface, like the result box of the sheet finder */
 .mat {
-  background-color: var(--mat); color: var(--mat-ink); border-radius: 12px; padding: 20px;
-  background-image:
-    linear-gradient(var(--mat-grid) 1px, transparent 1px),
-    linear-gradient(90deg, var(--mat-grid) 1px, transparent 1px);
-  background-size: 24px 24px; display: grid; gap: 20px; min-width: 0;
+  position: sticky; top: 16px; background: var(--sheet); border: 1px solid var(--rule); border-radius: 16px;
+  padding: 20px; box-shadow: var(--shadow); display: grid; gap: 22px; min-width: 0;
 }
+@media (max-width: 900px) { .mat { position: static; } }
 .mat h3 {
-  margin: 0 0 8px; font: 600 .72rem/1 var(--font-body); text-transform: uppercase; letter-spacing: .1em; opacity: .85;
+  margin: 0 0 10px; font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .1em; color: var(--muted);
   display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap;
 }
-.mat h3 span { font-family: var(--font-mono); text-transform: none; letter-spacing: 0; opacity: .8; }
-.cardview { display: grid; gap: 10px; justify-items: center; }
+.mat h3 span { font-family: var(--font-mono); text-transform: none; letter-spacing: 0; }
+.cardview { display: grid; gap: 12px; justify-items: center; background: var(--paper); border-radius: 12px; padding: 18px; }
 #cardCanvas {
   width: 100%; max-width: 620px; height: auto; aspect-ratio: 91 / 60; touch-action: none; cursor: grab;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, .35); background: #fff;
+  box-shadow: var(--shadow); background: #fff;
 }
 #cardCanvas.dragging { cursor: grabbing; }
-.legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: .8rem; justify-content: center; opacity: .9; }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: .82rem; justify-content: center; color: var(--muted); }
 .legend i { display: inline-block; width: 18px; height: 0; vertical-align: middle; margin-right: 6px; border-top: 2px solid; }
-.legend .l1 i { border-color: rgba(255, 255, 255, .55); border-top-width: 8px; opacity: .6; }
+.legend .l1 i { border-color: var(--muted); border-top-width: 8px; opacity: .55; }
 .legend .l2 i { border-color: var(--mark); }
 .legend .l3 i { border-color: #8fd3ff; border-top-style: dashed; }
 .sheets { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 @media (max-width: 520px) { .sheets { grid-template-columns: 1fr; } }
-.sheet canvas { width: 100%; height: auto; aspect-ratio: 210 / 297; background: #fff; display: block; box-shadow: 0 8px 24px rgba(0, 0, 0, .3); }
-.note { font-size: .8rem; opacity: .85; margin: 0; }
+.sheet { background: var(--paper); border-radius: 12px; padding: 14px; }
+.sheet canvas { width: 100%; height: auto; aspect-ratio: 210 / 297; background: #fff; display: block; box-shadow: var(--shadow); }
+.note { font-size: .86rem; color: var(--muted); margin: 0; }
+
+footer { margin-top: 80px; padding-top: 24px; border-top: 1px solid var(--rule); color: var(--muted); font-size: .86rem; display: grid; gap: 6px; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
+<script data-goatcounter="https://ncodesheets.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 </head>
 <body>
-
-
 <div class="wrap">
-  <header>
-    <h1>nCode Business Cards</h1>
-    <p>Upload a front image, pick a dot strength, download the PDF. Eight to ten 85 × 54 mm cards on A4: front with bleed, Ncode on the back, crop marks on the outside for your paper cutter.</p>
-  </header>
+
+<header class="top">
+  <a class="brand" href="../ncodeSheets/"><span class="brand-dot" aria-hidden="true"></span>Custom Sheets</a>
+  <nav aria-label="Sections">
+    <a href="../ncodeSheets/#finder">Find your sheet</a>
+    <a href="../ncodeSheets/#all">All files</a>
+    <a href="./" aria-current="page">Business cards</a>
+    <a href="../ncodeSheets/#guide">Printing guide</a>
+  </nav>
+</header>
+
+<div class="intro">
+  <p class="eyebrow">Business Card Creator</p>
+  <h1>Business cards with <span class="hl">your own front</span>.</h1>
+  <p>Upload an image, pick the dot strength for the back, and download a print-ready A4 sheet: front with bleed, Ncode on the back, crop marks on the outside for your paper cutter.</p>
+</div>
 
   <div class="app">
     <div class="controls">
@@ -273,6 +289,12 @@ details.hints li b { color: var(--ink); font-weight: 600; }
       <p class="note" id="layoutNote"></p>
     </div>
   </div>
+
+<footer>
+  <span>Your image never leaves your browser: the PDF is built right here on your device.</span>
+  <span>Community project by Tim Holzhausen. Not affiliated with the makers of the trick or with NeoLab.</span>
+  <span>Visits and created PDFs are counted anonymously with <a href="https://www.goatcounter.com">GoatCounter</a>: no cookies, no personal data.</span>
+</footer>
 </div>
 
 <script src="ncode_data.js"></script>
@@ -497,7 +519,7 @@ async function drawSheetBack() {
   for (const cell of G.cells) {
     const bc = G.at(G.cols - 1 - cell.c, cell.r), i = cell.r * G.cols + cell.c;
     placeImage(g, k, list[i], imageMap(bc.t, G.rot ? -1 : 0, NCODE.bleedMm, iw, ih), bc.clip);
-    g.fillStyle = "rgba(0,0,0,.45)"; g.font = `600 ${4 * k}px "Instrument Sans", sans-serif`;
+    g.fillStyle = "rgba(0,0,0,.45)"; g.font = `600 ${4 * k}px "Schibsted Grotesk", sans-serif`;
     g.fillText(String(i + 1), (bc.t.x + 3) * k, (bc.t.y + 7) * k);
   }
   g.strokeStyle = "rgba(0,0,0,.18)"; g.lineWidth = 1;
@@ -585,6 +607,9 @@ async function buildPdf() {
 }
 
 // ---------- UI ----------
+function track(path, title) {
+  try { if (window.goatcounter && window.goatcounter.count) window.goatcounter.count({ path, title, event: true }); } catch (e) { /* counting must never break the page */ }
+}
 async function loadFile(file) {
   if (!file || !file.type.startsWith("image/")) { setStatus("That is not an image file. Please choose a JPG, PNG or WebP.", true); return; }
   try {
@@ -643,6 +668,7 @@ $("download").addEventListener("click", async () => {
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 60000);
     setStatus(`Done: ${name} (${(blob.size / 1e6).toFixed(1)} MB). Print at 100 %.`);
+    track(`creator/pdf/${S.layout}/${S.strength}`, `Card creator: ${G.short} ${NAMES[S.strength]}${S.isSample ? " (sample)" : ""}`);
   } catch (e) { console.error(e); setStatus("The PDF could not be created: " + e.message, true); }
   btn.disabled = false;
 });

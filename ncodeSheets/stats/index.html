@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Custom Sheets Statistics</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one column dashboard. Summary tiles, two time charts, then ranked lists in a two-column grid. */
+:root {
+  --paper: #f4f5f7;
+  --sheet: #ffffff;
+  --ink: #16181d;
+  --muted: #5d6470;
+  --faint: #8a909b;
+  --rule: #e3e6eb;
+  --pen: #2346c8;
+  --pen-soft: rgba(35, 70, 200, .12);
+  --pen-ink: #ffffff;
+  --hi: #ffe45c;
+  --warn: #9a5400;
+  --font-ui: "Schibsted Grotesk", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #111318; --sheet: #1a1d24; --ink: #e8eaee; --muted: #9aa2ae; --faint: #6b7280; --rule: #2b3039;
+    --pen: #8ea6ff; --pen-soft: rgba(142, 166, 255, .16); --pen-ink: #0d1330; --hi: rgba(255, 220, 70, .38); --warn: #f0ad55;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #111318; --sheet: #1a1d24; --ink: #e8eaee; --muted: #9aa2ae; --faint: #6b7280; --rule: #2b3039;
+  --pen: #8ea6ff; --pen-soft: rgba(142, 166, 255, .16); --pen-ink: #0d1330; --hi: rgba(255, 220, 70, .38); --warn: #f0ad55;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.5 var(--font-ui); padding-inline: 20px; padding-block: 0 60px; }
+.wrap { max-width: 1160px; margin: 0 auto; position: relative; }
+.mono, .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+h1, h2, h3 { margin: 0; text-wrap: balance; }
+a { color: var(--pen); }
+:focus-visible { outline: 2px solid var(--pen); outline-offset: 2px; border-radius: 4px; }
+button, input, select { font: inherit; color: inherit; }
+.btn { font-weight: 600; font-size: .9rem; padding: 8px 14px; border-radius: 9px; border: 1.5px solid var(--rule); background: var(--sheet); cursor: pointer; }
+.btn:hover { border-color: var(--muted); }
+.btn.primary { background: var(--pen); color: var(--pen-ink); border-color: var(--pen); }
+.eyebrow { font-size: .72rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+
+/* Top */
+.top { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-block: 18px; flex-wrap: wrap; }
+.brand { font-weight: 800; display: flex; gap: 10px; align-items: center; text-decoration: none; color: var(--ink); }
+.brand-dot { width: 22px; height: 22px; border-radius: 50%; background: radial-gradient(circle, var(--ink) 1.2px, transparent 1.6px) 0 0 / 5px 5px; border: 1.5px solid var(--ink); }
+.controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.range { display: inline-flex; border: 1.5px solid var(--rule); border-radius: 10px; overflow: hidden; background: var(--sheet); }
+.range button { border: 0; background: none; padding: 7px 12px; font-size: .86rem; font-weight: 600; color: var(--muted); cursor: pointer; }
+.range button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+
+/* Login */
+.login { max-width: 460px; margin: 10vh auto 0; background: var(--sheet); border: 1px solid var(--rule); border-radius: 16px; padding: 28px; display: grid; gap: 16px; }
+.login h1 { font-size: 1.6rem; font-weight: 800; letter-spacing: -.02em; }
+.login p { margin: 0; color: var(--muted); font-size: .92rem; }
+.field { display: grid; gap: 6px; }
+.field label { font-weight: 600; font-size: .86rem; }
+.field input[type=text], .field input[type=password] { padding: 10px 12px; border: 1.5px solid var(--rule); border-radius: 9px; background: var(--paper); }
+.check { display: flex; gap: 8px; align-items: center; font-size: .9rem; }
+.err { color: #c0392b; font-size: .9rem; min-height: 1.2em; }
+:root[data-theme="dark"] .err { color: #ff8a7a; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .err { color: #ff8a7a; } }
+.login .row { display: flex; gap: 10px; flex-wrap: wrap; }
+details.howto { font-size: .88rem; color: var(--muted); }
+details.howto summary { cursor: pointer; color: var(--ink); font-weight: 600; }
+details.howto ol { padding-left: 18px; margin: 8px 0 0; display: grid; gap: 4px; }
+
+/* Dashboard */
+.banner { background: color-mix(in srgb, var(--hi) 35%, var(--sheet)); border: 1px solid var(--rule); border-radius: 10px; padding: 10px 14px; font-size: .9rem; margin-bottom: 16px; }
+.head { display: flex; justify-content: space-between; align-items: end; gap: 12px; flex-wrap: wrap; margin: 10px 0 18px; }
+.head h1 { font-size: clamp(1.6rem, 3vw, 2.2rem); font-weight: 800; letter-spacing: -.025em; }
+.head .when { color: var(--muted); font-size: .9rem; }
+.tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px; }
+@media (max-width: 820px) { .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.tile { background: var(--sheet); border: 1px solid var(--rule); border-radius: 14px; padding: 16px; display: grid; gap: 2px; }
+.tile .label { font-size: .82rem; color: var(--muted); font-weight: 500; }
+.tile .value { font: 600 2rem/1.15 var(--font-mono); font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.tile .sub { font-size: .8rem; color: var(--faint); }
+.card { background: var(--sheet); border: 1px solid var(--rule); border-radius: 14px; padding: 18px; min-width: 0; }
+.card h2 { font-size: 1.02rem; font-weight: 700; }
+.card .desc { color: var(--muted); font-size: .85rem; margin: 2px 0 14px; }
+.card-head { display: flex; justify-content: space-between; gap: 10px; align-items: start; flex-wrap: wrap; }
+.charts { display: grid; gap: 12px; margin-bottom: 12px; }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-bottom: 12px; }
+@media (max-width: 820px) { .grid2 { grid-template-columns: minmax(0, 1fr); } }
+.section-label { margin: 28px 0 10px; display: flex; gap: 12px; align-items: center; }
+.section-label::after { content: ""; flex: 1; border-top: 1px solid var(--rule); }
+.chart { position: relative; }
+.chart svg { display: block; width: 100%; overflow: visible; }
+.chart text { fill: var(--faint); font: 11px var(--font-mono); }
+.tip {
+  position: absolute; pointer-events: none; background: var(--ink); color: var(--paper); font-size: .8rem; padding: 6px 9px;
+  border-radius: 7px; white-space: nowrap; transform: translate(-50%, -100%); margin-top: -10px; z-index: 2;
+}
+.tip b { font-family: var(--font-mono); }
+.seg { display: inline-flex; border: 1px solid var(--rule); border-radius: 8px; overflow: hidden; }
+.seg button { border: 0; background: none; padding: 5px 10px; font-size: .8rem; font-weight: 600; color: var(--muted); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--pen-soft); color: var(--ink); }
+
+/* Ranked lists */
+.rank { display: grid; gap: 2px; }
+.rank .r { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; padding: 6px 6px; border-radius: 7px; align-items: center; }
+.rank .r.click { cursor: pointer; }
+.rank .r:hover { background: color-mix(in srgb, var(--pen-soft) 60%, transparent); }
+.rank .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .9rem; }
+.rank .cc { display: inline-block; width: 2.4em; font: 500 .72rem var(--font-mono); color: var(--muted); }
+.rank .name small { color: var(--faint); margin-left: 6px; }
+.rank .val { font: 500 .88rem var(--font-mono); font-variant-numeric: tabular-nums; text-align: right; }
+.rank .val small { color: var(--faint); font-weight: 400; margin-left: 6px; }
+.rank .bar { grid-column: 1 / -1; height: 6px; background: var(--rule); border-radius: 3px; overflow: hidden; }
+.rank .bar i { display: block; height: 100%; background: var(--pen); border-radius: 0 3px 3px 0; }
+.rank .sub { grid-column: 1 / -1; padding: 4px 0 6px 14px; border-left: 2px solid var(--rule); margin: 4px 0 4px 4px; }
+.empty { color: var(--faint); font-size: .88rem; padding: 6px; }
+.more { margin-top: 8px; font-size: .84rem; }
+.loading { color: var(--muted); padding: 40px 0; text-align: center; }
+footer { margin-top: 40px; color: var(--faint); font-size: .82rem; display: grid; gap: 4px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="../"><span class="brand-dot" aria-hidden="true"></span>Custom Sheets · Statistics</a>
+    <div class="controls" id="controls" hidden>
+      <div class="range" role="group" aria-label="Time range">
+        <button type="button" data-days="7">7 days</button>
+        <button type="button" data-days="30" aria-pressed="true">30 days</button>
+        <button type="button" data-days="90">90 days</button>
+        <button type="button" data-days="365">12 months</button>
+      </div>
+      <button class="btn" type="button" id="reload">Refresh</button>
+      <button class="btn" type="button" id="logout">Sign out</button>
+    </div>
+  </header>
+
+  <form class="login" id="login" autocomplete="on">
+    <div>
+      <p class="eyebrow">Private</p>
+      <h1>Statistics</h1>
+    </div>
+    <p>Visits and downloads of the Custom Sheets page and the Business Card Creator. The numbers live at GoatCounter; this page only shows them to someone who has the API key.</p>
+    <div class="field">
+      <label for="code">GoatCounter site code</label>
+      <input type="text" id="code" value="ncodesheets" autocomplete="username" spellcheck="false" required>
+    </div>
+    <div class="field">
+      <label for="key">API key</label>
+      <input type="password" id="key" autocomplete="current-password" spellcheck="false" required>
+    </div>
+    <label class="check"><input type="checkbox" id="remember" checked> Stay signed in on this device</label>
+    <div class="err" id="loginErr" role="alert"></div>
+    <div class="row">
+      <button class="btn primary" type="submit">Show statistics</button>
+      <button class="btn" type="button" id="demo">Show demo data</button>
+    </div>
+    <details class="howto">
+      <summary>Where do I get the API key?</summary>
+      <ol>
+        <li>Sign in at <span class="mono">ncodesheets.goatcounter.com</span>.</li>
+        <li>Open <b>User → API</b> and create a new key.</li>
+        <li>Tick only <b>Read statistics</b>. Paste the key here.</li>
+      </ol>
+      <p style="margin-top:8px">The key is stored only in this browser. It is never part of the website itself.</p>
+    </details>
+  </form>
+
+  <main id="dash" hidden></main>
+  <div class="tip" id="tip" hidden></div>
+</div>
+
+<script>
+"use strict";
+// ---------- Labels ----------
+const ITEM = {
+  "test": "Print Test", "strength-test": "Dot Strength Test", "blank-a4": "Blank A4", "lined": "Lined", "grid": "Grid",
+  "letter": "Letter Paper", "blank-a6": "Blank A6 cards", "blank-a7": "Blank A7 cards",
+  "cards-avery": "Business cards 85 × 54", "cards-sigel": "Business cards 85 × 55",
+};
+const STRENGTH = { normal: "Normal", light: "Light", extralight: "Extra light" };
+const LAYOUT = { bleed9: "9 cards, bleed all around", bleed8: "8 cards, bleed all around", butt10: "10 cards, edge to edge" };
+const QUESTION = { kind: "What do you need?", paper: "Which paper?", cards: "Which card size?", business: "How do you make cards?", strength: "Dot strength", size: "Paper in the printer" };
+const ANSWER = {
+  paper: "Paper to write on", cards: "Small cards", business: "Business cards", test: "Test my printer",
+  "blank-a4": "Blank", lined: "Lined", grid: "Grid", letter: "Letter paper", "blank-a6": "A6 cut", "blank-a7": "A7 cut",
+  "cards-avery": "Perforated 85 × 54", "cards-sigel": "Perforated 85 × 55", creator: "My own design",
+  normal: "Normal", light: "Light", extralight: "Extra light", a4: "A4",
+};
+const fmt = (n) => n.toLocaleString("en-US");
+const pct = (a, b) => (b ? Math.round((a / b) * 100) : 0) + " %";
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const flag = (cc) => /^[A-Z]{2}$/.test(cc || "") ? `<span class="cc">${cc}</span>` : `<span class="cc">··</span>`;
+const $ = (id) => document.getElementById(id);
+
+// ---------- Storage (per device only) ----------
+const store = {
+  get() { try { return JSON.parse(localStorage.getItem("gc") || sessionStorage.getItem("gc") || "null"); } catch (e) { return null; } },
+  set(v, remember) { try { (remember ? localStorage : sessionStorage).setItem("gc", JSON.stringify(v)); } catch (e) {} },
+  clear() { try { localStorage.removeItem("gc"); sessionStorage.removeItem("gc"); } catch (e) {} },
+};
+
+// ---------- GoatCounter API (max. 4 requests per second) ----------
+let cred = null, last = 0;
+async function api(path, params = {}) {
+  const wait = Math.max(0, last + 270 - Date.now()); last = Date.now() + wait;
+  if (wait) await new Promise((r) => setTimeout(r, wait));
+  const q = new URLSearchParams();
+  for (const [k, v] of Object.entries(params)) if (v !== undefined && v !== null && v !== "") q.set(k, Array.isArray(v) ? v.join(",") : v);
+  const res = await fetch(`https://${cred.code}.goatcounter.com/api/v0/${path}?${q}`, { headers: { Authorization: "Bearer " + cred.key } });
+  if (res.status === 401 || res.status === 403) throw new Error("The API key was not accepted. Check that it has the “Read statistics” permission.");
+  if (res.status === 429) { await new Promise((r) => setTimeout(r, 1200)); return api(path, params); }
+  if (!res.ok) throw new Error(`GoatCounter answered ${res.status} for ${path}.`);
+  return res.json();
+}
+function rangeParams(days) {
+  const end = new Date(); end.setUTCMinutes(0, 0, 0); end.setUTCHours(end.getUTCHours() + 1);
+  const start = new Date(end.getTime() - days * 864e5);
+  return { start: start.toISOString().replace(".000", ""), end: end.toISOString().replace(".000", "") };
+}
+async function fetchAll(days) {
+  const R = rangeParams(days);
+  const hits = []; let more = true, exclude = [];
+  while (more && hits.length < 1000) {
+    const r = await api("stats/hits", { ...R, limit: 100, exclude_paths: exclude });
+    hits.push(...(r.hits || [])); more = r.more; exclude = hits.map((h) => h.path_id);
+  }
+  const total = await api("stats/total", R);
+  const page = async (name, extra = {}) => (await api(`stats/${name}`, { ...R, limit: 100, ...extra })).stats || [];
+  const dlIds = hits.filter((h) => h.event && h.path.startsWith("dl/")).map((h) => h.path_id);
+  const [locations, refs, browsers, systems, sizes, languages] = [await page("locations"), await page("toprefs"), await page("browsers"), await page("systems"), await page("sizes"), await page("languages")];
+  const dlLocations = dlIds.length ? await page("locations", { include_paths: dlIds }) : [];
+  const regions = async (cc, onlyDownloads) => (await api(`stats/locations/${cc}`, { ...R, limit: 100, ...(onlyDownloads && dlIds.length ? { include_paths: dlIds } : {}) })).stats || [];
+  return model({ days, hits, total, locations, dlLocations, refs, browsers, systems, sizes, languages, regions });
+}
+
+// ---------- Model ----------
+function model(raw) {
+  const daysList = [];
+  const end = new Date(); end.setUTCHours(0, 0, 0, 0);
+  for (let i = raw.days - 1; i >= 0; i--) daysList.push(new Date(end.getTime() - i * 864e5).toISOString().slice(0, 10));
+  const perDay = (stats) => { const m = {}; for (const s of stats || []) m[s.day] = (m[s.day] || 0) + (s.daily || 0); return daysList.map((d) => ({ day: d, v: m[d] || 0 })); };
+  const pages = [], downloads = [], finder = [], creator = [];
+  for (const h of raw.hits) {
+    const p = h.path;
+    if (!h.event) { pages.push(h); continue; }
+    const parts = p.split("/");
+    if (parts[0] === "dl") downloads.push({ ...h, item: parts[1], strength: parts[2], guides: parts[3] === "guides" });
+    else if (parts[0] === "finder") finder.push({ ...h, q: parts[1], a: parts[2] });
+    else if (parts[0] === "creator") creator.push({ ...h, layout: parts[2], strength: parts[3] });
+  }
+  const dlDaily = daysList.map((d) => ({ day: d, v: 0 }));
+  for (const h of downloads) perDay(h.stats).forEach((x, i) => (dlDaily[i].v += x.v));
+  const visitors = (raw.total.total || 0) - (raw.total.total_events || 0);
+  return { ...raw, daysList, visitorsDaily: perDay(raw.total.stats), dlDaily, pages, downloads, finder, creator, visitors,
+           dlTotal: downloads.reduce((a, h) => a + h.count, 0), pdfTotal: creator.reduce((a, h) => a + h.count, 0) };
+}
+
+// ---------- Demo data (clearly marked) ----------
+function demo(days) {
+  let seed = 7; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+  const end = new Date(); end.setUTCHours(0, 0, 0, 0);
+  const day = (i) => new Date(end.getTime() - i * 864e5).toISOString().slice(0, 10);
+  const series = (base, spike) => Array.from({ length: days }, (_, k) => {
+    const i = days - 1 - k, boost = i === 12 || i === 11 ? spike : 1;
+    return { day: day(i), daily: Math.round(base * boost * (0.6 + rnd() * 0.8) * (new Date(day(i)).getUTCDay() % 6 === 0 ? 1.4 : 1)) };
+  });
+  const hit = (path, title, base, event = true) => { const stats = series(base, 3); return { path, title, event, path_id: Math.round(rnd() * 1e6), stats, count: stats.reduce((a, s) => a + s.daily, 0) }; };
+  const hits = [
+    hit("/ncodeSheets/", "Ultra Sharpie Custom Sheets", 14, false), hit("/ncodeBusinessCardCreator/", "nCode Business Cards", 4, false),
+    hit("dl/test/normal", "Print Test · Normal", 3.2), hit("dl/strength-test/normal", "Dot Strength Test · Normal", 1.4),
+    hit("dl/lined/light", "Lined · Light", 1.6), hit("dl/lined/normal", "Lined · Normal", .9), hit("dl/grid/light", "Grid · Light", .8),
+    hit("dl/letter/normal", "Letter Paper · Normal", .7), hit("dl/blank-a7/normal", "Blank A7 cards · Normal", 1.1), hit("dl/blank-a6/light", "Blank A6 cards · Light", .5),
+    hit("dl/blank-a4/extralight", "Blank A4 · Extra light", .4), hit("dl/cards-avery/light", "Business cards 85 × 54 · Light", .6),
+    hit("dl/cards-avery/light/guides", "Business cards 85 × 54 · Light · with outlines", .3),
+    hit("finder/kind/paper", "", 2.1), hit("finder/kind/test", "", 1.3), hit("finder/kind/cards", "", 1.0), hit("finder/kind/business", "", .8),
+    hit("finder/strength/light", "", 1.5), hit("finder/strength/normal", "", 1.1), hit("finder/strength/extralight", "", .4),
+    hit("finder/size/a4", "", 1.3), hit("finder/size/letter", "", .9),
+    hit("creator/pdf/bleed9/light", "", .9), hit("creator/pdf/butt10/normal", "", .4), hit("creator/pdf/bleed8/light", "", .2),
+  ];
+  const tStats = series(18, 3);
+  const L = (list) => list.map(([id, name, count]) => ({ id, name, count }));
+  const regionsDemo = { DE: L([["DE-BY", "Bavaria", 41], ["DE-NW", "North Rhine-Westphalia", 33], ["DE-BE", "Berlin", 20], ["DE-HH", "Hamburg", 9]]),
+                        US: L([["US-CA", "California", 30], ["US-NY", "New York", 21], ["US-TX", "Texas", 14], ["US-NV", "Nevada", 11]]) };
+  return model({
+    days, hits, total: { total: tStats.reduce((a, s) => a + s.daily, 0) + 140, total_events: 140, stats: tStats },
+    locations: L([["US", "United States", 162], ["DE", "Germany", 118], ["GB", "United Kingdom", 64], ["ES", "Spain", 41], ["JP", "Japan", 30], ["FR", "France", 22], ["NL", "Netherlands", 15], ["AU", "Australia", 12], ["", "(unknown)", 6]]),
+    dlLocations: L([["US", "United States", 58], ["DE", "Germany", 47], ["GB", "United Kingdom", 21], ["ES", "Spain", 16], ["JP", "Japan", 9], ["FR", "France", 6]]),
+    refs: L([["facebook.com", "facebook.com", 214], ["", "(no referrer)", 120], ["google.com", "google.com", 38], ["drive.google.com", "drive.google.com", 21], ["instagram.com", "instagram.com", 12]]),
+    browsers: L([["Chrome", "Chrome", 210], ["Safari", "Safari", 141], ["Firefox", "Firefox", 31], ["Edge", "Edge", 28], ["Samsung Internet", "Samsung Internet", 12]]),
+    systems: L([["iOS", "iOS", 132], ["Windows", "Windows", 118], ["Android", "Android", 81], ["macOS", "macOS", 74], ["Linux", "Linux", 6]]),
+    sizes: L([["phone", "Phones", 201], ["largephone", "Large phones, small tablets", 30], ["tablet", "Tablets and small laptops", 41], ["desktop", "Computer monitors", 138], ["desktophd", "Computer monitors larger than HD", 12]]),
+    languages: L([["en", "English", 251], ["de", "German", 119], ["es", "Spanish", 33], ["ja", "Japanese", 18], ["fr", "French", 11]]),
+    regions: async (cc) => regionsDemo[cc] || [],
+  });
+}
+
+// ---------- Charts ----------
+const tip = $("tip");
+function showTip(host, x, y, html) {
+  const r = host.getBoundingClientRect(), w = document.querySelector(".wrap").getBoundingClientRect();
+  tip.innerHTML = html; tip.hidden = false;
+  tip.style.left = (r.left - w.left + x) + "px"; tip.style.top = (r.top - w.top + y) + "px";
+}
+const hideTip = () => (tip.hidden = true);
+function niceMax(v) { if (v <= 4) return 4; const p = 10 ** Math.floor(Math.log10(v)); for (const m of [1, 2, 4, 8, 10]) if (m * p >= v) return m * p;  // quarters stay whole numbers return 10 * p; }
+const dayLabel = (d) => new Date(d + "T00:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" });
+
+// kind: "area" (visitors) or "bar" (downloads). One series, one axis.
+function timeChart(host, data, kind, unit) {
+  const W = host.clientWidth || 600, H = 210, L = 34, Rr = 8, T = 10, B = 24;
+  const iw = W - L - Rr, ih = H - T - B, max = niceMax(Math.max(...data.map((d) => d.v), 1));
+  const x = (i) => L + (data.length === 1 ? iw / 2 : (i * iw) / (data.length - 1));
+  const y = (v) => T + ih - (v / max) * ih;
+  let g = "";
+  for (let k = 0; k <= 4; k++) {
+    const v = (max / 4) * k;
+    g += `<line x1="${L}" x2="${W - Rr}" y1="${y(v)}" y2="${y(v)}" stroke="var(--rule)" stroke-width="1"/>`;
+    g += `<text x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${fmt(Math.round(v))}</text>`;
+  }
+  const ticks = [0, Math.floor((data.length - 1) / 2), data.length - 1];
+  for (const i of ticks) g += `<text x="${x(i)}" y="${H - 6}" text-anchor="${i === 0 ? "start" : i === data.length - 1 ? "end" : "middle"}">${dayLabel(data[i].day)}</text>`;
+  let marks = "";
+  if (kind === "area") {
+    const line = data.map((d, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(d.v).toFixed(1)}`).join("");
+    marks = `<path d="${line}L${x(data.length - 1)},${y(0)}L${x(0)},${y(0)}Z" fill="var(--pen-soft)"/>
+             <path d="${line}" fill="none" stroke="var(--pen)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+    const lastI = data.length - 1;
+    marks += `<circle cx="${x(lastI)}" cy="${y(data[lastI].v)}" r="4" fill="var(--pen)" stroke="var(--sheet)" stroke-width="2"/>`;
+  } else {
+    const step = iw / data.length, bw = Math.max(2, Math.min(18, step - 2));
+    data.forEach((d, i) => {
+      if (!d.v) return;
+      const cx = L + step * (i + .5), top = y(d.v), h = y(0) - top, r = Math.min(2, h / 2, bw / 2);
+      marks += `<path d="M${cx - bw / 2},${y(0)}V${top + r}Q${cx - bw / 2},${top} ${cx - bw / 2 + r},${top}H${cx + bw / 2 - r}Q${cx + bw / 2},${top} ${cx + bw / 2},${top + r}V${y(0)}Z" fill="var(--pen)"/>`;
+    });
+  }
+  host.innerHTML = `<svg width="${W}" height="${H}" role="img" aria-label="${esc(unit)} per day">${g}${marks}
+    <line class="cross" x1="0" x2="0" y1="${T}" y2="${T + ih}" stroke="var(--muted)" stroke-width="1" stroke-dasharray="3 3" visibility="hidden"/>
+    <rect x="${L}" y="${T}" width="${iw}" height="${ih}" fill="transparent"/></svg>`;
+  const svg = host.querySelector("svg"), cross = svg.querySelector(".cross");
+  svg.addEventListener("pointermove", (e) => {
+    const px = e.clientX - svg.getBoundingClientRect().left;
+    const i = kind === "area" ? Math.round(((px - L) / iw) * (data.length - 1)) : Math.floor(((px - L) / iw) * data.length);
+    if (i < 0 || i >= data.length) { cross.setAttribute("visibility", "hidden"); hideTip(); return; }
+    const cx = kind === "area" ? x(i) : L + (iw / data.length) * (i + .5);
+    cross.setAttribute("x1", cx); cross.setAttribute("x2", cx); cross.setAttribute("visibility", "visible");
+    showTip(host, cx, y(data[i].v), `${dayLabel(data[i].day)} · <b>${fmt(data[i].v)}</b> ${unit}`);
+  });
+  svg.addEventListener("pointerleave", () => { cross.setAttribute("visibility", "hidden"); hideTip(); });
+}
+
+// Ranked list with bars. rows: {name, count, note?, key?}
+function rank(host, rows, { total, limit = 8, onOpen } = {}) {
+  rows = rows.filter((r) => r.count > 0).sort((a, b) => b.count - a.count);
+  if (!rows.length) { host.innerHTML = `<div class="empty">Nothing yet in this time range.</div>`; return; }
+  const max = rows[0].count, sum = total || rows.reduce((a, r) => a + r.count, 0);
+  let open = false;
+  const draw = () => {
+    const shown = open ? rows : rows.slice(0, limit);
+    host.innerHTML = `<div class="rank">${shown.map((r, i) => `
+      <div class="r${onOpen ? " click" : ""}" data-i="${i}" ${onOpen ? 'tabindex="0" role="button"' : ""}>
+        <span class="name" title="${esc(r.name.replace(/<[^>]+>/g, ""))}">${r.name}${r.note ? `<small>${esc(r.note)}</small>` : ""}</span>
+        <span class="val">${fmt(r.count)}<small>${pct(r.count, sum)}</small></span>
+        <span class="bar"><i style="width:${(r.count / max) * 100}%"></i></span>
+      </div>`).join("")}</div>${rows.length > limit ? `<button class="btn more" type="button">${open ? "Show less" : `Show all ${rows.length}`}</button>` : ""}`;
+    host.querySelector(".more")?.addEventListener("click", () => { open = !open; draw(); });
+    if (onOpen) host.querySelectorAll(".r").forEach((el) => {
+      const go = async () => {
+        const next = el.nextElementSibling;
+        if (next && next.classList.contains("sub")) { next.remove(); return; }
+        const sub = document.createElement("div"); sub.className = "sub"; sub.innerHTML = `<div class="empty">Loading…</div>`;
+        el.after(sub); onOpen(shown[+el.dataset.i], sub);
+      };
+      el.addEventListener("click", go); el.addEventListener("keydown", (e) => { if (e.key === "Enter") go(); });
+    });
+  };
+  draw();
+}
+const sumBy = (list, key, label) => {
+  const m = {};
+  for (const h of list) { const k = h[key] ?? "?"; m[k] = (m[k] || 0) + h.count; }
+  return Object.entries(m).map(([k, count]) => ({ name: esc(label(k)), count }));
+};
+
+// ---------- Dashboard ----------
+let D = null, isDemo = false, days = 30;
+function render() {
+  const top = D.locations.find((l) => l.id);
+  const dash = $("dash");
+  dash.innerHTML = `
+    ${isDemo ? `<div class="banner"><b>Demo data.</b> These numbers are made up to show the layout. Sign in with your API key to see the real ones.</div>` : ""}
+    <div class="head"><div><p class="eyebrow">Custom Sheets + Business Card Creator</p><h1>Last ${days === 365 ? "12 months" : days + " days"}</h1></div>
+      <span class="when">Updated ${new Date().toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}</span></div>
+    <div class="tiles">
+      <div class="tile"><span class="label">Visitors</span><span class="value">${fmt(D.visitors)}</span><span class="sub">unique per day and page</span></div>
+      <div class="tile"><span class="label">Downloads</span><span class="value">${fmt(D.dlTotal)}</span><span class="sub">${pct(D.dlTotal, D.visitors)} of visitors</span></div>
+      <div class="tile"><span class="label">Card PDFs created</span><span class="value">${fmt(D.pdfTotal)}</span><span class="sub">in the Business Card Creator</span></div>
+      <div class="tile"><span class="label">Countries</span><span class="value">${fmt(D.locations.filter((l) => l.id).length)}</span><span class="sub">${top ? "most from " + esc(top.name) : "no visits yet"}</span></div>
+    </div>
+    <div class="charts">
+      <div class="card"><h2>Visitors per day</h2><p class="desc">All pages together. Hover for the exact number.</p><div class="chart" id="cVisitors"></div></div>
+      <div class="card"><h2>Downloads per day</h2><p class="desc">Every PDF download from the Custom Sheets page.</p><div class="chart" id="cDownloads"></div></div>
+    </div>
+
+    <h3 class="section-label eyebrow">Downloads</h3>
+    <div class="grid2">
+      <div class="card"><div class="card-head"><div><h2>What was downloaded</h2><p class="desc">Counted once per visitor and file.</p></div>
+        <div class="seg" role="group" aria-label="Group downloads"><button type="button" data-g="item" aria-pressed="true">Sheet</button><button type="button" data-g="strength">Strength</button><button type="button" data-g="file">File</button></div></div>
+        <div id="rDownloads"></div></div>
+      <div class="card"><h2>Where downloaders come from</h2><p class="desc">Countries of visitors who downloaded something. Click a country for regions.</p><div id="rDlLoc"></div></div>
+    </div>
+
+    <h3 class="section-label eyebrow">Visitors</h3>
+    <div class="grid2">
+      <div class="card"><h2>Countries</h2><p class="desc">All visitors. Click a country for regions.</p><div id="rLoc"></div></div>
+      <div class="card"><h2>Came from</h2><p class="desc">The page that linked to the site.</p><div id="rRefs"></div></div>
+      <div class="card"><h2>Pages</h2><p class="desc">Visitors per page.</p><div id="rPages"></div></div>
+      <div class="card"><h2>Languages</h2><p class="desc">Browser language.</p><div id="rLang"></div></div>
+    </div>
+
+    <h3 class="section-label eyebrow">What people look for</h3>
+    <div class="grid2">
+      <div class="card"><div class="card-head"><div><h2>Sheet finder answers</h2><p class="desc">How visitors answered each question.</p></div>
+        <select id="qSel" aria-label="Question">${Object.entries(QUESTION).map(([k, v]) => `<option value="${k}">${v}</option>`).join("")}</select></div>
+        <div id="rFinder"></div></div>
+      <div class="card"><div class="card-head"><div><h2>Business Card Creator</h2><p class="desc">PDFs created, by layout or dot strength.</p></div>
+        <div class="seg" role="group" aria-label="Group PDFs"><button type="button" data-c="layout" aria-pressed="true">Layout</button><button type="button" data-c="strength">Strength</button></div></div>
+        <div id="rCreator"></div></div>
+    </div>
+
+    <h3 class="section-label eyebrow">Devices</h3>
+    <div class="grid2">
+      <div class="card"><h2>Screen size</h2><p class="desc">Phones versus computers.</p><div id="rSizes"></div></div>
+      <div class="card"><h2>Operating system</h2><p class="desc"></p><div id="rSystems"></div></div>
+      <div class="card"><h2>Browser</h2><p class="desc"></p><div id="rBrowsers"></div></div>
+    </div>
+    <footer><span>Data: GoatCounter. Visitors are counted without cookies, so one person on two devices counts twice. Ad blockers can hide visits, so the real numbers are somewhat higher.</span>
+      <span>Locations come from the IP address and go down to country and region, not city.</span></footer>`;
+
+  timeChart($("cVisitors"), D.visitorsDaily, "area", "visitors");
+  timeChart($("cDownloads"), D.dlDaily, "bar", "downloads");
+
+  const dlRows = (g) => g === "item" ? sumBy(D.downloads, "item", (k) => ITEM[k] || k)
+    : g === "strength" ? sumBy(D.downloads, "strength", (k) => STRENGTH[k] || k)
+    : D.downloads.map((h) => ({ name: esc(h.title || h.path), count: h.count }));
+  const segs = (attr, fn) => document.querySelectorAll(`[data-${attr}]`).forEach((b) => b.addEventListener("click", () => {
+    document.querySelectorAll(`[data-${attr}]`).forEach((o) => o.setAttribute("aria-pressed", String(o === b))); fn(b.dataset[attr]);
+  }));
+  rank($("rDownloads"), dlRows("item")); segs("g", (g) => rank($("rDownloads"), dlRows(g)));
+
+  const loc = (list, onlyDl) => list.map((l) => ({ name: flag(l.id) + esc(l.name || "(unknown)"), count: l.count, id: l.id }));
+  const openRegions = (onlyDl) => async (row, sub) => {
+    if (!row.id) { sub.innerHTML = `<div class="empty">No region data.</div>`; return; }
+    try { rank(sub, (await D.regions(row.id, onlyDl)).map((r) => ({ name: esc(r.name || "(unknown region)"), count: r.count })), { limit: 6 }); }
+    catch (e) { sub.innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
+  };
+  rank($("rDlLoc"), loc(D.dlLocations), { onOpen: openRegions(true) });
+  rank($("rLoc"), loc(D.locations), { onOpen: openRegions(false) });
+  rank($("rRefs"), D.refs.map((r) => ({ name: esc(r.name || "(no referrer)"), count: r.count })));
+  rank($("rPages"), D.pages.map((h) => ({ name: esc(h.title || h.path), note: h.path, count: h.count })));
+  rank($("rLang"), D.languages.map((r) => ({ name: esc(r.name), count: r.count })));
+  const finder = (q) => rank($("rFinder"), D.finder.filter((h) => h.q === q).map((h) => ({ name: esc(ANSWER[h.a] || h.a), count: h.count })));
+  finder("kind"); $("qSel").addEventListener("change", (e) => finder(e.target.value));
+  const creator = (c) => rank($("rCreator"), sumBy(D.creator, c, (k) => (c === "layout" ? LAYOUT : STRENGTH)[k] || k));
+  creator("layout"); segs("c", creator);
+  rank($("rSizes"), D.sizes.map((r) => ({ name: esc(r.name), count: r.count })));
+  rank($("rSystems"), D.systems.map((r) => ({ name: esc(r.name), count: r.count })));
+  rank($("rBrowsers"), D.browsers.map((r) => ({ name: esc(r.name), count: r.count })));
+}
+
+async function load() {
+  $("dash").innerHTML = `<div class="loading">Loading statistics…</div>`;
+  try { D = isDemo ? demo(days) : await fetchAll(days); render(); }
+  catch (e) { $("dash").innerHTML = `<div class="loading">${esc(e.message)}</div>`; }
+}
+function enter() { $("login").hidden = true; $("dash").hidden = false; $("controls").hidden = false; load(); }
+
+$("login").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  cred = { code: $("code").value.trim().toLowerCase(), key: $("key").value.trim() };
+  $("loginErr").textContent = "";
+  try { await api("me"); store.set(cred, $("remember").checked); isDemo = false; enter(); }
+  catch (err) { $("loginErr").textContent = err.message.startsWith("The API key") ? err.message : "Could not reach GoatCounter. Check the site code and your connection."; }
+});
+$("demo").addEventListener("click", () => { isDemo = true; enter(); });
+$("logout").addEventListener("click", () => { store.clear(); cred = null; isDemo = false; $("dash").hidden = true; $("controls").hidden = true; $("login").hidden = false; $("key").value = ""; });
+$("reload").addEventListener("click", load);
+document.querySelectorAll("[data-days]").forEach((b) => b.addEventListener("click", () => {
+  days = +b.dataset.days; document.querySelectorAll("[data-days]").forEach((o) => o.setAttribute("aria-pressed", String(o === b))); load();
+}));
+let rt = 0;
+window.addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => D && render(), 200); });
+
+const saved = store.get();
+if (saved && saved.key) { cred = saved; $("code").value = saved.code; enter(); }
+</script>
+</body>
+</html>
