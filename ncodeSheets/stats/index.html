@@ -218,11 +218,20 @@ async function api(path, params = {}) {
   if (wait) await new Promise((r) => setTimeout(r, wait));
   const q = new URLSearchParams();
   for (const [k, v] of Object.entries(params)) if (v !== undefined && v !== null && v !== "") q.set(k, Array.isArray(v) ? v.join(",") : v);
-  const res = await fetch(`https://${cred.code}.goatcounter.com/api/v0/${path}?${q}`, { headers: { Authorization: "Bearer " + cred.key } });
-  if (res.status === 401 || res.status === 403) throw new Error("The API key was not accepted. Check that it has the “Read statistics” permission.");
+  let res;
+  try {
+    // GoatCounter requires the JSON content type on every API request, GET included
+    res = await fetch(`https://${cred.code}.goatcounter.com/api/v0/${path}?${q}`,
+      { headers: { Authorization: "Bearer " + cred.key, "Content-Type": "application/json", Accept: "application/json" } });
+  } catch (e) { throw new Error(`Could not reach ${cred.code}.goatcounter.com. Check the site code and your connection.`); }
+  if (res.status === 401) throw new Error("The API key is unknown for this site. Copy it again from User → API.");
+  if (res.status === 403) throw new Error("The API key lacks a permission. Tick “Read statistics” for it under User → API.");
   if (res.status === 429) { await new Promise((r) => setTimeout(r, 1200)); return api(path, params); }
-  if (!res.ok) throw new Error(`GoatCounter answered ${res.status} for ${path}.`);
-  return res.json();
+  const text = await res.text();
+  let data;
+  try { data = JSON.parse(text); } catch (e) { throw new Error(`GoatCounter sent an unexpected answer (${res.status}) for ${path}.`); }
+  if (!res.ok) throw new Error(`GoatCounter answered ${res.status} for ${path}: ${data.error || JSON.stringify(data.errors || data)}`);
+  return data;
 }
 function rangeParams(days) {
   const end = new Date(); end.setUTCMinutes(0, 0, 0); end.setUTCHours(end.getUTCHours() + 1);
@@ -314,7 +323,7 @@ function showTip(host, x, y, html) {
   tip.style.left = (r.left - w.left + x) + "px"; tip.style.top = (r.top - w.top + y) + "px";
 }
 const hideTip = () => (tip.hidden = true);
-function niceMax(v) { if (v <= 4) return 4; const p = 10 ** Math.floor(Math.log10(v)); for (const m of [1, 2, 4, 8, 10]) if (m * p >= v) return m * p;  // quarters stay whole numbers return 10 * p; }
+function niceMax(v) { if (v <= 4) return 4; const p = 10 ** Math.floor(Math.log10(v)); for (const m of [1, 2, 4, 8, 10]) if (m * p >= v) return m * p; return 10 * p; }
 const dayLabel = (d) => new Date(d + "T00:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" });
 
 // kind: "area" (visitors) or "bar" (downloads). One series, one axis.
@@ -491,8 +500,12 @@ $("login").addEventListener("submit", async (e) => {
   e.preventDefault();
   cred = { code: $("code").value.trim().toLowerCase(), key: $("key").value.trim() };
   $("loginErr").textContent = "";
-  try { await api("me"); store.set(cred, $("remember").checked); isDemo = false; enter(); }
-  catch (err) { $("loginErr").textContent = err.message.startsWith("The API key") ? err.message : "Could not reach GoatCounter. Check the site code and your connection."; }
+  const btn = e.submitter; if (btn) btn.disabled = true;
+  $("loginErr").textContent = "Checking the key…";
+  // validate with a statistics request: that is exactly the permission the key needs
+  try { await api("stats/total", rangeParams(1)); store.set(cred, $("remember").checked); isDemo = false; $("loginErr").textContent = ""; enter(); }
+  catch (err) { $("loginErr").textContent = err.message; }
+  if (btn) btn.disabled = false;
 });
 $("demo").addEventListener("click", () => { isDemo = true; enter(); });
 $("logout").addEventListener("click", () => { store.clear(); cred = null; isDemo = false; $("dash").hidden = true; $("controls").hidden = true; $("login").hidden = false; $("key").value = ""; });
