@@ -223,7 +223,9 @@ async function api(path, params = {}) {
     // GoatCounter requires the JSON content type on every API request, GET included
     res = await fetch(`https://${cred.code}.goatcounter.com/api/v0/${path}?${q}`,
       { headers: { Authorization: "Bearer " + cred.key, "Content-Type": "application/json", Accept: "application/json" } });
-  } catch (e) { throw new Error(`Could not reach ${cred.code}.goatcounter.com. Check the site code and your connection.`); }
+  } catch (e) {
+    throw new Error(`Could not reach ${cred.code}.goatcounter.com. Most often an ad blocker or Brave Shields blocks goatcounter.com: switch it off for this page and reload. Otherwise check the site code and your connection.`);
+  }
   if (res.status === 401) throw new Error("The API key is unknown for this site. Copy it again from User → API.");
   if (res.status === 403) throw new Error("The API key lacks a permission. Tick “Read statistics” for it under User → API.");
   if (res.status === 429) { await new Promise((r) => setTimeout(r, 1200)); return api(path, params); }
