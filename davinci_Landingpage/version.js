@@ -1,7 +1,7 @@
 // Einzige Stelle für die Versionsnummer von Landingpage und WebApp.
 // Bei jeder Veröffentlichung APP_VERSION erhöhen: sw.js liest diese Datei,
 // dadurch holen sich installierte Apps automatisch die neuen Dateien.
-var APP_VERSION = '2.5.0';
+var APP_VERSION = '2.6.1';
 var APP_DATE = '2026-10-27';
 
 // Ab hier nur im Browserfenster (nicht im Service Worker)

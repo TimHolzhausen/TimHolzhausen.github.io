@@ -45,9 +45,10 @@ let receiverIsConnecting = false;
 const CONNECTED_BAT_CHAR_UUID = "e695d734-802c-4740-97eb-30f1d07c08d1";
 const CONNECTED_NAME_CHAR_UUID = "e695d735-802c-4740-97eb-30f1d07c08d1";
 const DIE_TYPE_CHAR_UUID = "e695d736-802c-4740-97eb-30f1d07c08d1";
-const LAST_ROLL_CHAR_UUID = "e695d737-802c-4740-97eb-30f1d07c08d1";      // Wert, Typ, Nr., Status, RSSI
-const DICE_SETTINGS_CHAR_UUID = "e695d738-802c-4740-97eb-30f1d07c08d1";  // RSSI-Schwelle, D20-Code, Kippen, Bindung
-const DICE_INFO_CHAR_UUID = "e695d739-802c-4740-97eb-30f1d07c08d1";      // Lesen: Würfelfarbe, Schreiben 1: blinken
+const LAST_ROLL_CHAR_UUID = "e695d737-802c-4740-97eb-30f1d07c08d1";      // Summe, Typ, Nr., Status, RSSI, je Würfel Wert/Typ/Info
+const DICE_SETTINGS_CHAR_UUID = "e695d738-802c-4740-97eb-30f1d07c08d1";  // GoDice-Einstellungen (14 Byte, siehe writeDiceSettings)
+const DICE_INFO_CHAR_UUID = "e695d739-802c-4740-97eb-30f1d07c08d1";      // Lesen: Würfelfarbe, Schreiben 1 (+ Platz): blinken
+const DICE_LIST_CHAR_UUID = "e695d73a-802c-4740-97eb-30f1d07c08d1";      // verbundene Würfel: Platz, Farbe, Akku, RSSI
 
 // GoDice on Receiver state variables
 let connectedBatChar = null;
@@ -58,6 +59,9 @@ let rxSensorStateChar = null;
 let lastRollChar = null;
 let diceSettingsChar = null;
 let diceInfoChar = null;
+let diceListChar = null;
+// Verbundene Würfel am Empfänger (je Platz): { slot, color, battery, rssi, value, type, moved, counted, rolling }
+let rxDice = [];
 let rxDieColor = 0xFF;
 let rxDieName = '';
 // GoDice-Farbcodes laut Hersteller-SDK
@@ -74,7 +78,13 @@ let rxCentralKind = 'none';
 let paletteDirectActive = false; // WebApp selbst mit der Palette verbunden
 let rxDieMode = 0;               // 0 = Auto, 6 = D6, 20 = D20
 // move: D6 bewegt statt gewürfelt -> 0 ignorieren, 1 zählen, 2 zählen + Bewegungssignal
-let diceSettings = { rssi: -65, d20Code: 1, move: 0, bind: 0, pulses: 3, pulseMs: 60 };
+// bundle: ein langer Impuls steht für so viele Augen (0 = nur zählen). sumMode: 0 gewürfelte, 1 alle Würfel.
+// roundWait in 1/10 s. singleD6: 0 = einzelner D6 wird gezählt, 1 = wie eine Summe gebündelt.
+let diceSettings = {
+    rssi: -65, bundle: 5, move: 0, bind: 0, pulses: 3, pulseMs: 60,
+    maxDice: 4, sumMode: 0, roundWait: 8, singleD6: 0, longMs: 600, groupPauseMs: 700,
+};
+let diceSettingsExtended = false; // Empfänger kennt mehrere Würfel (14-Byte-Einstellungen)
 let diceHistory = [];
 let lastRollSeq = -1;
 const DICE_HISTORY_LENGTH = 10;
@@ -197,8 +207,25 @@ const diceRssiText = document.getElementById('dice-rssi-text');
 const diceBatteryChip = document.getElementById('dice-battery-chip');
 const dicePatternEl = document.getElementById('dice-pattern');
 const diceHistoryEl = document.getElementById('dice-history');
+const diceTilesEl = document.getElementById('dice-tiles');
 const dieTypeSeg = document.getElementById('die-type-seg');
-const d20CodeSeg = document.getElementById('d20-code-seg');
+const bundleSeg = document.getElementById('bundle-seg');
+const singleD6Seg = document.getElementById('single-d6-seg');
+const bundleHint = document.getElementById('bundle-hint');
+const bundleSettings = document.getElementById('bundle-settings');
+const longMsSlider = document.getElementById('long-ms-slider');
+const longMsVal = document.getElementById('long-ms-val');
+const groupPauseSlider = document.getElementById('group-pause-slider');
+const groupPauseVal = document.getElementById('group-pause-val');
+const codeTestSlider = document.getElementById('code-test-slider');
+const codeTestVal = document.getElementById('code-test-val');
+const codeTestBtn = document.getElementById('code-test-btn');
+const codeTestPattern = document.getElementById('code-test-pattern');
+const maxDiceSeg = document.getElementById('max-dice-seg');
+const sumModeSeg = document.getElementById('sum-mode-seg');
+const sumModeHint = document.getElementById('sum-mode-hint');
+const roundWaitSlider = document.getElementById('round-wait-slider');
+const roundWaitVal = document.getElementById('round-wait-val');
 const diceRssiSlider = document.getElementById('dice-rssi-slider');
 const diceRssiVal = document.getElementById('dice-rssi-val');
 const diceMoveSeg = document.getElementById('dice-move-seg');
@@ -1486,6 +1513,15 @@ async function connectReceiverBLE() {
         }
 
         try {
+            diceListChar = await rxConfigService.getCharacteristic(DICE_LIST_CHAR_UUID);
+            applyDiceList(await diceListChar.readValue());
+            await diceListChar.startNotifications();
+            diceListChar.addEventListener('characteristicvaluechanged', (event) => applyDiceList(event.target.value));
+        } catch (err) {
+            console.warn("Dice list characteristic not available (older receiver firmware, one die only):", err);
+        }
+
+        try {
             lastRollChar = await rxConfigService.getCharacteristic(LAST_ROLL_CHAR_UUID);
             const val = await lastRollChar.readValue();
             lastRollSeq = val.byteLength >= 3 ? val.getUint8(2) : -1; // alten Wurf nicht erneut melden
@@ -1568,6 +1604,10 @@ function resetRxState() {
     lastRollChar = null;
     diceSettingsChar = null;
     diceInfoChar = null;
+    diceListChar = null;
+    rxDice = [];
+    rssiSmooth = {};
+    renderDiceTiles();
     rxDieColor = 0xFF;
     setSegEnabled(dieTypeSeg, false);
     setDiceSettingsEnabled(false);
@@ -1596,7 +1636,7 @@ function updateSubBatteryUI(level) {
     // Gilt für das Gerät, das der Empfänger verbunden hat; angezeigt wird es nur beim Würfel
     if (diceBatteryChip) {
         diceBatteryChip.innerText = t('dice.battery', { level });
-        diceBatteryChip.hidden = !(rxCentralKind === 'dice' && level > 0);
+        diceBatteryChip.hidden = !(rxCentralKind === 'dice' && level > 0 && rxDice.length <= 1);
     }
 }
 
@@ -1615,7 +1655,11 @@ function updateConnectedDeviceName(name) {
         rxCentralKind = 'palette';
     }
     rxDieName = clean;
-    if (rxCentralKind !== 'dice') rxDieColor = 0xFF;
+    if (rxCentralKind !== 'dice') {
+        rxDieColor = 0xFF;
+        rxDice = [];
+    }
+    renderDiceTiles();
     renderDieIdentity();
     updateDiceSectionVisibility();
     if (diceBatteryChip && rxCentralKind !== 'dice') diceBatteryChip.hidden = true;
@@ -1645,8 +1689,13 @@ function updateDiceSectionVisibility() {
 // Farbe und Kennung des verbundenen Würfels, damit man sieht, welcher es ist
 function renderDieIdentity() {
     const isDice = rxCentralKind === 'dice';
-    if (diceNameChip) diceNameChip.hidden = !isDice;
-    if (diceBlinkBtn) diceBlinkBtn.hidden = !(isDice && diceInfoChar);
+    const multi = rxDice.length > 1;
+    if (diceNameChip) diceNameChip.hidden = !isDice || multi;
+    if (diceBatteryChip && multi) diceBatteryChip.hidden = true;
+    if (diceBlinkBtn) {
+        diceBlinkBtn.hidden = !(isDice && diceInfoChar);
+        diceBlinkBtn.innerText = multi ? t('dice.blinkAll') : t('dice.blink');
+    }
     if (!isDice) return;
     const color = GODICE_COLORS[rxDieColor];
     // GoDice_<ID>_<Farbe>_v<Version>: die ID unterscheidet Würfel gleicher Farbe
@@ -1712,15 +1761,19 @@ function refreshLanguageTexts() {
     if (diceHistory.length > 0) {
         const last = diceHistory[0];
         if (diceStatusEl && diceCard && diceCard.dataset.state === 'connected') {
-            diceStatusEl.innerText = rollStatusText(last.value, last.type, last.moved);
+            diceStatusEl.innerText = rollStatusText(last.value, last.type, last.moved, last.dice);
         }
+        const multi = last.dice && last.dice.length > 1;
         if (diceTypeChip && !diceTypeChip.hidden) {
-            diceTypeChip.innerText = rxDieMode === 0 ? t('dice.typeAuto', { type: last.type }) : `D${last.type}`;
+            diceTypeChip.innerText = multi ? t('dice.count', { n: last.dice.length })
+                : rxDieMode === 0 ? t('dice.typeAuto', { type: last.type }) : `D${last.type}`;
         }
-        renderVibrationPattern(last.value, last.type, last.moved);
+        renderVibrationPattern(last.value, last.type, last.moved, multi ? last.dice.length : 1);
         renderDiceHistory();
     }
     renderMoveSettings();
+    renderCodeSettings();
+    renderDiceTiles();
     updateBindHint();
     renderDieIdentity();
 
@@ -1744,51 +1797,113 @@ function renderDieFace(value, type) {
     }
 }
 
-// Gleiche Regeln wie die Firmware: D20 mit Zehnercode = pro Zehner lang, dann die Einer kurz
-function renderVibrationPattern(value, type, moved = false) {
-    if (!dicePatternEl) return;
-    const tensCode = type === 20 && diceSettings.d20Code === 1;
-    let html = '';
-    let label;
-    if (tensCode && value >= 10) {
-        const tens = Math.floor(value / 10);
-        const ones = value % 10;
-        html += '<i class="long"></i>'.repeat(tens);
-        if (ones > 0) html += '<i class="gap"></i>' + '<i class="short"></i>'.repeat(ones);
-        label = ones > 0 ? t('dice.pattern.longShort', { tens, ones }) : t('dice.pattern.long', { n: tens });
-    } else {
-        html += '<i class="short"></i>'.repeat(value);
-        label = t('dice.pattern.short', { n: value });
+// Gleiche Regeln wie die Firmware: ein langer Impuls steht für 'bundle' Augen, der Rest folgt kurz.
+// Ein einzelner D6 wird je nach Einstellung einfach gezählt. Ältere Empfänger bündeln nur den D20 (Zehner).
+function effectiveBundle(type, count) {
+    if (!diceSettingsExtended) return type === 20 && diceSettings.bundle ? 10 : 0;
+    if (count === 1 && type === 6 && diceSettings.singleD6 === 0) return 0;
+    return diceSettings.bundle;
+}
+
+function patternParts(value, bundle) {
+    if (bundle >= 2 && value >= bundle) {
+        return { longs: Math.floor(value / bundle), shorts: value % bundle };
     }
+    return { longs: 0, shorts: value };
+}
+
+function patternHtml(value, bundle, moved) {
+    const { longs, shorts } = patternParts(value, bundle);
+    let html = '<i class="long"></i>'.repeat(longs);
+    if (longs > 0 && shorts > 0) html += '<i class="gap"></i>';
+    html += '<i class="short"></i>'.repeat(shorts);
+    let label;
+    if (longs > 0 && shorts > 0) label = t('dice.pattern.longShort', { tens: longs, ones: shorts });
+    else if (longs > 0) label = t('dice.pattern.long', { n: longs });
+    else label = t('dice.pattern.short', { n: shorts });
     if (moved && diceSettings.move === 2) {
         html += '<i class="gap"></i>' + '<i class="signal"></i>'.repeat(diceSettings.pulses);
         label += t('dice.pattern.fast', { n: diceSettings.pulses });
     }
-    dicePatternEl.innerHTML = html + `<small>${label}</small>`;
+    return html + `<small>${label}</small>`;
+}
+
+function renderVibrationPattern(value, type, moved = false, count = 1) {
+    if (!dicePatternEl) return;
+    dicePatternEl.innerHTML = patternHtml(value, effectiveBundle(type, count), moved);
+}
+
+// Vorschau für die Test-Zahl in den Einstellungen (wie eine Summe)
+function renderCodeTestPattern() {
+    if (!codeTestPattern || !codeTestSlider) return;
+    const value = parseInt(codeTestSlider.value);
+    if (codeTestVal) codeTestVal.innerText = String(value);
+    codeTestPattern.innerHTML = patternHtml(value, diceSettingsExtended ? diceSettings.bundle : 10, false);
 }
 
 function renderDiceHistory() {
     if (!diceHistoryEl) return;
-    diceHistoryEl.innerHTML = diceHistory.map(r =>
-        `<span class="${r.moved ? 'moved' : ''}" title="D${r.type}${r.moved ? t('dice.historyMoved') : ''}">${r.value}</span>`
-    ).join('');
+    diceHistoryEl.innerHTML = diceHistory.map(r => {
+        const parts = r.dice && r.dice.length > 1 ? r.dice.map(d => d.value).join(' + ') + ' = ' : '';
+        const title = `${parts}${r.value}${r.dice && r.dice.length > 1 ? '' : ' · D' + r.type}${r.moved ? t('dice.historyMoved') : ''}`;
+        return `<span class="${r.moved ? 'moved' : ''}" title="${title}">${r.value}</span>`;
+    }).join('');
+}
+
+// Die Signalstärke schwankt stark mit der Lage des Würfels, der Hand und Reflexionen.
+// Deshalb gleitend über etwa 15 s mitteln und nur als Balken zeigen (dBm im Tooltip).
+const RSSI_SMOOTH_MS = 15000;
+let rssiSmooth = {};
+
+function smoothRssi(key, raw) {
+    const prev = rssiSmooth[key];
+    if (!raw || raw >= 0) return prev ? Math.round(prev.v) : 0;
+    const now = Date.now();
+    if (!prev) {
+        rssiSmooth[key] = { v: raw, t: now };
+        return raw;
+    }
+    const weight = Math.max(1 - Math.exp(-(now - prev.t) / RSSI_SMOOTH_MS), 0.1);
+    prev.v += (raw - prev.v) * weight;
+    prev.t = now;
+    return Math.round(prev.v);
+}
+
+// Für die Einzel-Anzeige: geglätteter Wert aus der Würfelliste, sonst den Wurf-Wert selbst glätten (ältere Firmware)
+function singleDieRssi(raw) {
+    return rxDice.length === 1 ? rxDice[0].rssi : smoothRssi('single', raw);
 }
 
 function updateRssiChip(rssi) {
     if (!diceRssiChip) return;
-    if (!rssi || rssi >= 0 || rxCentralKind !== 'dice') {
+    if (!rssi || rssi >= 0 || rxCentralKind !== 'dice' || rxDice.length > 1) {
         diceRssiChip.hidden = true;
         return;
     }
     diceRssiChip.hidden = false;
-    if (diceRssiText) diceRssiText.innerText = `${rssi} dBm`;
-    const level = rssi >= -55 ? 4 : rssi >= -65 ? 3 : rssi >= -75 ? 2 : 1;
-    diceRssiChip.querySelectorAll('.rssi-bars i').forEach((bar, i) => bar.classList.toggle('on', i < level));
+    if (diceRssiText) diceRssiText.hidden = true;
+    diceRssiChip.title = t('dice.rssiTitle', { rssi });
+    diceRssiChip.querySelectorAll('.rssi-bars i').forEach((bar, i) => bar.classList.toggle('on', i < rssiLevel(rssi)));
 }
 
-function showDiceRoll(value, type, rssi, moved = false) {
+function rssiLevel(rssi) {
+    return rssi >= -55 ? 4 : rssi >= -65 ? 3 : rssi >= -75 ? 2 : 1;
+}
+
+function rollStatusText(value, type, moved, dice = []) {
+    if (dice.length > 1) {
+        const text = t('dice.sumStatus', { parts: dice.map(d => d.value).join(' + '), value });
+        return moved ? text + t('dice.historyMoved') : text;
+    }
+    return moved ? t('dice.movedStatus', { value }) : t('dice.rolled', { value, type });
+}
+
+// Ergebnis einer Runde. dice: die Würfel, die zur Summe zählen ([{ value, type, color, moved }])
+function showDiceRoll(value, type, rssi, moved = false, dice = []) {
     if (!value) return;
-    renderDieFace(value, type);
+    const multi = dice.length > 1;
+    if (diceVisual) diceVisual.hidden = multi;
+    if (!multi) renderDieFace(value, type);
     if (diceValueEl) {
         diceValueEl.innerText = String(value);
         diceValueEl.classList.remove('pop');
@@ -1796,46 +1911,60 @@ function showDiceRoll(value, type, rssi, moved = false) {
         diceValueEl.classList.add('pop');
     }
     if (diceTypeChip) {
-        diceTypeChip.innerText = rxDieMode === 0 ? t('dice.typeAuto', { type }) : `D${type}`;
+        diceTypeChip.innerText = multi ? t('dice.count', { n: dice.length })
+            : rxDieMode === 0 ? t('dice.typeAuto', { type }) : `D${type}`;
         diceTypeChip.hidden = false;
     }
     updateRssiChip(rssi);
-    renderVibrationPattern(value, type, moved);
-    diceHistory.unshift({ value, type, moved });
+    renderVibrationPattern(value, type, moved, Math.max(dice.length, 1));
+    diceHistory.unshift({ value, type, moved, dice });
     diceHistory = diceHistory.slice(0, DICE_HISTORY_LENGTH);
     renderDiceHistory();
     setDiceCardState('connected');
     if (diceStatusEl) {
-        diceStatusEl.innerText = rollStatusText(value, type, moved);
+        diceStatusEl.innerText = rollStatusText(value, type, moved, dice);
     }
 
     // Hinweis auf die Bewegung nur im Modus "Signal", passend zum Vibrationssignal
     const signalMove = moved && diceSettings.move === 2;
     if (diceMovedBadge) diceMovedBadge.hidden = !signalMove;
-    triggerDiceAudio(value, signalMove);
-    if (fullscreenAlertEnabled) showDiceFullscreen(value, signalMove);
+    triggerDiceAudio(value, signalMove, dice);
+    if (fullscreenAlertEnabled) showDiceFullscreen(value, signalMove, dice);
 }
 
-// "Bewegt" in der Sprache der gewählten Stimme
+// Wörter in der Sprache der gewählten Stimme
 const MOVED_WORDS = {
     de: 'bewegt', en: 'moved', fr: 'déplacé', es: 'movido', it: 'spostato', nl: 'verplaatst',
     pt: 'movido', pl: 'przesunięty', sv: 'flyttad', tr: 'oynatıldı', ru: 'сдвинут',
 };
+const PLUS_WORDS = {
+    de: 'plus', en: 'plus', fr: 'plus', es: 'más', it: 'più', nl: 'plus',
+    pt: 'mais', pl: 'plus', sv: 'plus', tr: 'artı', ru: 'плюс',
+};
+const EQUALS_WORDS = {
+    de: 'gleich', en: 'equals', fr: 'égale', es: 'igual a', it: 'uguale', nl: 'is',
+    pt: 'igual a', pl: 'równa się', sv: 'blir', tr: 'eşittir', ru: 'равно',
+};
 
-function triggerDiceAudio(value, signalMove = false) {
+function triggerDiceAudio(value, signalMove = false, dice = []) {
     const audioSelect = document.getElementById('audio-feedback-mode');
     if (!audioSelect || audioSelect.value === 'off') return;
+    const voice = getChosenVoice();
+    const lang = voice ? voice.lang.split('-')[0].toLowerCase() : 'en';
+    const word = (table) => table[lang] || table.en;
     let text = String(value);
+    if (dice.length > 1) {
+        // "3 plus 5 plus 2, gleich 10"
+        text = dice.map(d => d.value).join(` ${word(PLUS_WORDS)} `) + `, ${word(EQUALS_WORDS)} ${value}`;
+    }
     if (signalMove) {
-        const voice = getChosenVoice();
-        const lang = voice ? voice.lang.split('-')[0].toLowerCase() : 'en';
         // Komma statt Punkt: "6." liest die deutsche Stimme als Ordnungszahl ("sechste")
-        text += ', ' + (MOVED_WORDS[lang] || MOVED_WORDS.en);
+        text += ', ' + word(MOVED_WORDS);
     }
     speakText(text);
 }
 
-function showDiceFullscreen(value, signalMove = false) {
+function showDiceFullscreen(value, signalMove = false, dice = []) {
     const fsOverlay = document.getElementById('fullscreen-overlay');
     const fsName = document.getElementById('fullscreen-name');
     const fsResetHint = document.getElementById('fullscreen-reset-hint');
@@ -1846,13 +1975,86 @@ function showDiceFullscreen(value, signalMove = false) {
     fsOverlay.classList.add('dice-alert');
     fsName.innerText = String(value);
     fsName.style.color = '#dfc070';
-    fsResetHint.innerText = t('fs.tapClose');
+    fsResetHint.innerText = dice.length > 1
+        ? `${dice.map(d => d.value).join(' + ')} · ${t('fs.tapClose')}`
+        : t('fs.tapClose');
     fsResetHint.style.color = 'rgba(255, 255, 255, 0.6)';
     fsResetHint.style.borderColor = 'rgba(255, 255, 255, 0.15)';
     fsResetHint.style.background = 'rgba(0, 0, 0, 0.3)';
     fsOverlay.classList.add('active');
 }
 
+// ---------- Mehrere Würfel ----------
+function diceSlot(slot) {
+    let d = rxDice.find(x => x.slot === slot);
+    if (!d) {
+        d = { slot, color: 0xFF, battery: 0, rssi: 0, value: 0, type: 6, moved: false, counted: false, rolling: false };
+        rxDice.push(d);
+        rxDice.sort((a, b) => a.slot - b.slot);
+    }
+    return d;
+}
+
+// [0] Anzahl, dann je Würfel: Platz, Farbe, Akku, RSSI
+function applyDiceList(dataView) {
+    if (!dataView || dataView.byteLength < 1) return;
+    const n = dataView.getUint8(0);
+    const slots = [];
+    for (let i = 0; i < n && 1 + i * 4 + 3 < dataView.byteLength; i++) {
+        const base = 1 + i * 4;
+        const d = diceSlot(dataView.getUint8(base));
+        d.color = dataView.getUint8(base + 1);
+        d.battery = dataView.getUint8(base + 2);
+        d.rssi = smoothRssi(d.slot, dataView.getInt8(base + 3));
+        slots.push(d.slot);
+    }
+    rxDice = rxDice.filter(d => slots.includes(d.slot));
+    Object.keys(rssiSmooth).forEach(key => {
+        if (key !== 'single' && !slots.includes(Number(key))) delete rssiSmooth[key];
+    });
+    renderDiceTiles();
+    renderDieIdentity();
+    updateBindHint();
+    if (rxDice.length === 1) updateRssiChip(rxDice[0].rssi);
+}
+
+function miniDieHtml(d) {
+    if (!d.value) return '<span class="tile-face empty">?</span>';
+    if (d.type === 20) return `<span class="tile-face d20">${d.value}</span>`;
+    return `<span class="tile-face die-d6 mini" data-face="${d.value}">${'<i></i>'.repeat(9)}</span>`;
+}
+
+// Eine Kachel je verbundenem Würfel: Farbe, letzter Wert, Akku, Signal. Antippen lässt ihn blinken.
+function renderDiceTiles() {
+    if (!diceTilesEl) return;
+    const show = rxCentralKind === 'dice' && rxDice.length > 1;
+    diceTilesEl.hidden = !show;
+    if (!show) {
+        diceTilesEl.innerHTML = '';
+        if (diceVisual) diceVisual.hidden = false;
+        return;
+    }
+    diceTilesEl.innerHTML = rxDice.map(d => {
+        const color = GODICE_COLORS[d.color];
+        const classes = ['dice-tile'];
+        if (d.rolling) classes.push('rolling');
+        if (d.value && !d.counted && !d.rolling) classes.push('not-counted');
+        if (d.moved && d.counted) classes.push('moved');
+        const name = color ? t('color.' + d.color) : t('dice.dieN', { n: d.slot + 1 });
+        const bars = d.rssi < 0
+            ? `<span class="rssi-bars" title="${t('dice.rssiTitle', { rssi: d.rssi })}">${[0, 1, 2, 3].map(i => `<i class="${i < rssiLevel(d.rssi) ? 'on' : ''}"></i>`).join('')}</span>` : '';
+        return `<button type="button" class="${classes.join(' ')}" data-slot="${d.slot}" title="${t('dice.tileBlink')}">
+            ${miniDieHtml(d)}
+            <span class="tile-meta">
+                <span class="tile-name"><i class="die-color-dot ${color ? 'known' : ''}" style="background:${color ? color.css : 'transparent'}"></i>${name}</span>
+                <span class="tile-sub">${bars}${d.battery ? t('dice.battery', { level: d.battery }) : ''}</span>
+            </span>
+        </button>`;
+    }).join('');
+}
+
+// [0] Summe, [1] Typ, [2] Nr., [3] Status, [4] RSSI, [5] Anzahl, dann je Würfel Wert, Typ, Info
+// Info: Bit 0-1 Platz, Bit 2 bewegt, Bit 3 zählt zur Summe, Bit 4 rollt gerade
 function handleLastRollNotification(event) {
     const data = event.target.value;
     if (data.byteLength < 4) return;
@@ -1862,14 +2064,37 @@ function handleLastRollNotification(event) {
     const status = data.getUint8(3);
     const rssi = data.byteLength >= 5 ? data.getInt8(4) : 0;
 
+    let counted = [];
+    if (data.byteLength >= 6) {
+        const n = data.getUint8(5);
+        rxDice.forEach(d => { d.rolling = false; });
+        for (let i = 0; i < n && 6 + i * 3 + 2 < data.byteLength; i++) {
+            const base = 6 + i * 3;
+            const info = data.getUint8(base + 2);
+            const d = diceSlot(info & 0x03);
+            d.value = data.getUint8(base);
+            d.type = data.getUint8(base + 1) === 20 ? 20 : 6;
+            d.moved = (info & 0x04) !== 0;
+            d.counted = (info & 0x08) !== 0;
+            d.rolling = (info & 0x10) !== 0;
+        }
+        counted = rxDice.filter(d => d.counted && d.value)
+            .map(d => ({ value: d.value, type: d.type, color: d.color, moved: d.moved }));
+        renderDiceTiles();
+    }
+
     if (status === 1) {
         setDiceCardState('rolling');
-        updateRssiChip(rssi);
+        updateRssiChip(singleDieRssi(rssi));
+        return;
+    }
+    if (status === 0) {
+        if (diceCard && diceCard.dataset.state === 'rolling') setDiceCardState('connected');
         return;
     }
     if ((status === 2 || status === 3) && seq !== lastRollSeq) {
         lastRollSeq = seq;
-        showDiceRoll(value, type, rssi, status === 3);
+        showDiceRoll(value, type, singleDieRssi(rssi), status === 3, counted);
     }
 }
 
@@ -1887,31 +2112,55 @@ function setSegEnabled(seg, enabled) {
 }
 
 function setDiceSettingsEnabled(enabled) {
-    setSegEnabled(d20CodeSeg, enabled);
+    // Mehrwürfel-Einstellungen nur mit passender Empfänger-Firmware
+    const ext = enabled && diceSettingsExtended;
+    setSegEnabled(bundleSeg, enabled);
     setSegEnabled(diceMoveSeg, enabled);
+    setSegEnabled(singleD6Seg, ext);
+    setSegEnabled(maxDiceSeg, ext);
+    setSegEnabled(sumModeSeg, ext);
     if (diceRssiSlider) diceRssiSlider.disabled = !enabled;
     if (movePulsesSlider) movePulsesSlider.disabled = !enabled;
     if (moveMsSlider) moveMsSlider.disabled = !enabled;
+    [roundWaitSlider, longMsSlider, groupPauseSlider].forEach(s => { if (s) s.disabled = !ext; });
+    if (codeTestBtn) codeTestBtn.disabled = !(enabled && rxVibroTestChar);
     if (!enabled && diceRssiVal) diceRssiVal.innerText = '-- dBm';
     updateBindHint();
 }
 
 function applyDiceSettings(dataView) {
     if (!dataView || dataView.byteLength < 4) return;
+    diceSettingsExtended = dataView.byteLength >= 14;
+    const raw = dataView.getUint8(1);
     diceSettings = {
+        ...diceSettings,
         rssi: dataView.getInt8(0),
-        d20Code: dataView.getUint8(1),
+        // Ältere Firmware: 1 = Zehnercode für den D20
+        bundle: diceSettingsExtended ? raw : (raw ? 10 : 0),
         move: Math.min(dataView.getUint8(2), 2),
         bind: dataView.getUint8(3),
         pulses: dataView.byteLength >= 6 ? dataView.getUint8(4) : 3,
         pulseMs: dataView.byteLength >= 6 ? dataView.getUint8(5) : 60,
     };
-    setSegValue(d20CodeSeg, diceSettings.d20Code);
+    if (diceSettingsExtended) {
+        Object.assign(diceSettings, {
+            maxDice: dataView.getUint8(6),
+            sumMode: dataView.getUint8(7),
+            roundWait: dataView.getUint8(8),
+            singleD6: dataView.getUint8(9),
+            longMs: dataView.getUint16(10, true),
+            groupPauseMs: dataView.getUint16(12, true),
+        });
+    }
     if (diceRssiSlider) diceRssiSlider.value = diceSettings.rssi;
     if (diceRssiVal) diceRssiVal.innerText = `${diceSettings.rssi} dBm`;
     if (movePulsesSlider) movePulsesSlider.value = diceSettings.pulses;
     if (moveMsSlider) moveMsSlider.value = diceSettings.pulseMs;
+    if (roundWaitSlider) roundWaitSlider.value = diceSettings.roundWait;
+    if (longMsSlider) longMsSlider.value = diceSettings.longMs;
+    if (groupPauseSlider) groupPauseSlider.value = diceSettings.groupPauseMs;
     renderMoveSettings();
+    renderCodeSettings();
     if (diceBindSwitch) diceBindSwitch.checked = diceSettings.bind === 1;
     updateBindHint();
 }
@@ -1924,6 +2173,26 @@ function renderMoveSettings() {
     if (moveMsVal) moveMsVal.innerText = `${diceSettings.pulseMs} ms`;
 }
 
+function renderCodeSettings() {
+    setSegValue(bundleSeg, diceSettings.bundle);
+    setSegValue(singleD6Seg, diceSettings.singleD6);
+    setSegValue(maxDiceSeg, diceSettings.maxDice);
+    setSegValue(sumModeSeg, diceSettings.sumMode);
+    if (bundleSettings) bundleSettings.hidden = diceSettings.bundle === 0;
+    if (bundleHint) {
+        const ex = diceSettings.bundle === 10 ? 23 : 17;
+        const { longs, shorts } = patternParts(ex, diceSettings.bundle);
+        bundleHint.innerText = !diceSettingsExtended && diceSettingsChar ? t('code.hint.old')
+            : diceSettings.bundle === 0 ? t('code.hint.count')
+            : t('code.hint.bundle', { ex, longs, shorts, n: diceSettings.bundle });
+    }
+    if (sumModeHint) sumModeHint.innerText = t(`sum.hint.${diceSettings.sumMode}`);
+    if (roundWaitVal) roundWaitVal.innerText = `${(diceSettings.roundWait / 10).toFixed(1)} s`;
+    if (longMsVal) longMsVal.innerText = `${diceSettings.longMs} ms`;
+    if (groupPauseVal) groupPauseVal.innerText = `${diceSettings.groupPauseMs} ms`;
+    renderCodeTestPattern();
+}
+
 function updateBindHint() {
     if (!diceBindSwitch || !diceBindHint) return;
     const canBind = !!diceSettingsChar && (diceSettings.bind === 1 || rxCentralKind === 'dice');
@@ -1933,7 +2202,7 @@ function updateBindHint() {
     } else if (diceSettings.bind === 1) {
         diceBindHint.innerText = t('bind.hint.bound');
     } else if (rxCentralKind === 'dice') {
-        diceBindHint.innerText = t('bind.hint.canBind');
+        diceBindHint.innerText = rxDice.length > 1 ? t('bind.hint.canBindN', { n: rxDice.length }) : t('bind.hint.canBind');
     } else {
         diceBindHint.innerText = t('bind.hint.noDie');
     }
@@ -1941,14 +2210,15 @@ function updateBindHint() {
 
 async function writeDiceSettings() {
     if (!diceSettingsChar) return;
-    const data = new Uint8Array([
-        diceSettings.rssi & 0xff,
-        diceSettings.d20Code,
-        diceSettings.move,
-        diceSettings.bind,
-        diceSettings.pulses,
-        diceSettings.pulseMs,
-    ]);
+    const s = diceSettings;
+    // Ältere Firmware kennt nur 6 Byte und im Byte 1 nur 0/1 (Zehnercode für den D20)
+    const data = diceSettingsExtended
+        ? new Uint8Array([
+            s.rssi & 0xff, s.bundle, s.move, s.bind, s.pulses, s.pulseMs,
+            s.maxDice, s.sumMode, s.roundWait, s.singleD6,
+            s.longMs & 0xff, (s.longMs >> 8) & 0xff, s.groupPauseMs & 0xff, (s.groupPauseMs >> 8) & 0xff,
+        ])
+        : new Uint8Array([s.rssi & 0xff, s.bundle ? 1 : 0, s.move, s.bind, s.pulses, s.pulseMs]);
     try {
         await writeConfigValue(diceSettingsChar, data);
         applyDiceSettings(await diceSettingsChar.readValue());
@@ -2096,13 +2366,65 @@ function initReceiverControls() {
         });
     }
 
-    if (d20CodeSeg) {
-        d20CodeSeg.addEventListener('click', (e) => {
+    // Segmentschalter der Würfel-Einstellungen: Wert setzen, anzeigen, an den Empfänger schicken
+    const bindSeg = (seg, key) => {
+        if (!seg) return;
+        seg.addEventListener('click', (e) => {
             const btn = e.target.closest('button');
             if (!btn || btn.disabled) return;
-            diceSettings.d20Code = parseInt(btn.dataset.value);
-            setSegValue(d20CodeSeg, diceSettings.d20Code);
+            diceSettings[key] = parseInt(btn.dataset.value);
+            renderCodeSettings();
             writeDiceSettings();
+        });
+    };
+    bindSeg(bundleSeg, 'bundle');
+    bindSeg(singleD6Seg, 'singleD6');
+    bindSeg(maxDiceSeg, 'maxDice');
+    bindSeg(sumModeSeg, 'sumMode');
+
+    const bindSlider = (slider, key) => {
+        if (!slider) return;
+        slider.addEventListener('input', () => {
+            diceSettings[key] = parseInt(slider.value);
+            renderCodeSettings();
+        });
+        slider.addEventListener('change', () => writeDiceSettings());
+    };
+    bindSlider(roundWaitSlider, 'roundWait');
+    bindSlider(longMsSlider, 'longMs');
+    bindSlider(groupPauseSlider, 'groupPauseMs');
+
+    if (codeTestSlider) codeTestSlider.addEventListener('input', renderCodeTestPattern);
+    if (codeTestBtn) {
+        codeTestBtn.addEventListener('click', async () => {
+            if (!rxVibroTestChar) {
+                showToast(t('toast.receiverNotConnected'));
+                return;
+            }
+            const value = parseInt(codeTestSlider.value);
+            try {
+                // [Zahl, 1] = mit dem Würfel-Code vibrieren
+                await writeConfigValue(rxVibroTestChar, new Uint8Array([value, 1]));
+                showToast(t('toast.codeTest', { value }));
+            } catch (err) {
+                console.error("Error writing code test:", err);
+                showToast(t('toast.sendFailed') + errorText(err));
+            }
+        });
+    }
+    renderCodeSettings();
+
+    if (diceTilesEl) {
+        diceTilesEl.addEventListener('click', async (e) => {
+            const tile = e.target.closest('.dice-tile');
+            if (!tile || !diceInfoChar) return;
+            try {
+                await writeConfigValue(diceInfoChar, new Uint8Array([1, parseInt(tile.dataset.slot)]));
+                showToast(t('toast.dieBlinkingOne'));
+            } catch (err) {
+                console.error("Error sending blink command:", err);
+                showToast(t('toast.writeError') + errorText(err));
+            }
         });
     }
 
@@ -2159,7 +2481,7 @@ function initReceiverControls() {
             if (!diceInfoChar) return;
             try {
                 await writeConfigValue(diceInfoChar, new Uint8Array([1]));
-                showToast(t('toast.dieBlinking'));
+                showToast(rxDice.length > 1 ? t('toast.diceBlinking') : t('toast.dieBlinking'));
             } catch (err) {
                 console.error("Error sending blink command:", err);
                 showToast(t('toast.writeError') + errorText(err));

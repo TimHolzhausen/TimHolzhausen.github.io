@@ -267,6 +267,7 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="dice-tiles" id="dice-tiles" hidden aria-label="Connected dice" data-i18n-aria="dice.tilesAria"></div>
                         <button type="button" class="dice-blink-btn" id="dice-blink-btn" hidden data-i18n="dice.blink">Blink Connected Die</button>
                         <div class="dice-pattern" id="dice-pattern" aria-label="Vibration pattern" data-i18n-aria="dice.patternAria"></div>
                         <div class="dice-history" id="dice-history" aria-label="Recent rolls" data-i18n-aria="dice.historyAria"></div>
@@ -284,13 +285,6 @@
                                     <button type="button" data-value="20" disabled>D20</button>
                                 </div>
                             </div>
-                            <div class="seg-row">
-                                <span class="switch-text" data-i18n="diceSettings.d20Pattern">D20 Pattern</span>
-                                <div class="seg-control" id="d20-code-seg" role="group" aria-label="D20 vibration pattern" data-i18n-aria="diceSettings.d20PatternAria">
-                                    <button type="button" data-value="1" disabled data-i18n="diceSettings.tensOnes">Tens + Ones</button>
-                                    <button type="button" data-value="0" disabled data-i18n="diceSettings.count">Count</button>
-                                </div>
-                            </div>
                             <div class="slider-row" style="margin-top: 4px;">
                                 <div class="slider-header">
                                     <span class="setting-text" data-i18n="diceSettings.proximity">Proximity</span>
@@ -300,6 +294,85 @@
                                     class="premium-slider" disabled>
                                 <div class="slider-hint"><span data-i18n="diceSettings.far">far</span><span data-i18n="diceSettings.veryClose">only very close</span></div>
                             </div>
+
+                            <!-- Mehrere Würfel -->
+                            <span class="settings-subhead" data-i18n="diceSettings.multiHead">Several Dice</span>
+                            <div class="seg-row">
+                                <span class="switch-text" data-i18n="diceSettings.maxDice">Dice at Most</span>
+                                <div class="seg-control" id="max-dice-seg" role="group" aria-label="Maximum number of dice" data-i18n-aria="diceSettings.maxDiceAria">
+                                    <button type="button" data-value="1" disabled>1</button>
+                                    <button type="button" data-value="2" disabled>2</button>
+                                    <button type="button" data-value="3" disabled>3</button>
+                                    <button type="button" data-value="4" disabled>4</button>
+                                </div>
+                            </div>
+                            <div class="seg-row">
+                                <span class="switch-text" data-i18n="diceSettings.sumFrom">Sum Of</span>
+                                <div class="seg-control" id="sum-mode-seg" role="group" aria-label="Which dice count towards the sum" data-i18n-aria="diceSettings.sumFromAria">
+                                    <button type="button" data-value="0" disabled data-i18n="diceSettings.sumRolled">Rolled Dice</button>
+                                    <button type="button" data-value="1" disabled data-i18n="diceSettings.sumAll">All Dice</button>
+                                </div>
+                            </div>
+                            <span class="setting-hint" id="sum-mode-hint">Only dice rolled in this round count.</span>
+                            <div class="slider-row" style="margin-top: 0;">
+                                <div class="slider-header">
+                                    <span class="setting-text" data-i18n="diceSettings.roundWait">Wait After Last Die</span>
+                                    <span id="round-wait-val" class="slider-val">0.8 s</span>
+                                </div>
+                                <input type="range" id="round-wait-slider" min="3" max="30" step="1" value="8"
+                                    class="premium-slider" disabled>
+                                <div class="slider-hint"><span data-i18n="diceSettings.faster">faster</span><span data-i18n="diceSettings.safer">waits for late dice</span></div>
+                            </div>
+
+                            <!-- Vibrations-Code -->
+                            <span class="settings-subhead" data-i18n="diceSettings.codeHead">Vibration Code</span>
+                            <div class="seg-row">
+                                <span class="switch-text" data-i18n="diceSettings.bundle">One Long Pulse =</span>
+                                <div class="seg-control" id="bundle-seg" role="group" aria-label="How many pips one long pulse stands for" data-i18n-aria="diceSettings.bundleAria">
+                                    <button type="button" data-value="5" disabled>5</button>
+                                    <button type="button" data-value="10" disabled>10</button>
+                                    <button type="button" data-value="0" disabled data-i18n="diceSettings.bundleOff">Off</button>
+                                </div>
+                            </div>
+                            <div class="seg-row">
+                                <span class="switch-text" data-i18n="diceSettings.singleD6">Single D6</span>
+                                <div class="seg-control" id="single-d6-seg" role="group" aria-label="How a single D6 vibrates" data-i18n-aria="diceSettings.singleD6Aria">
+                                    <button type="button" data-value="0" disabled data-i18n="diceSettings.count">Count</button>
+                                    <button type="button" data-value="1" disabled data-i18n="diceSettings.likeSum">Like Sum</button>
+                                </div>
+                            </div>
+                            <span class="setting-hint" id="bundle-hint">Example 17: 3 long, pause, 2 short.</span>
+                            <div class="bundle-settings" id="bundle-settings">
+                                <div class="slider-row" style="margin-top: 0;">
+                                    <div class="slider-header">
+                                        <span class="setting-text" data-i18n="diceSettings.longMs">Long Pulse</span>
+                                        <span id="long-ms-val" class="slider-val">600 ms</span>
+                                    </div>
+                                    <input type="range" id="long-ms-slider" min="300" max="1500" step="50" value="600"
+                                        class="premium-slider" disabled>
+                                </div>
+                                <div class="slider-row">
+                                    <div class="slider-header">
+                                        <span class="setting-text" data-i18n="diceSettings.groupPause">Pause Long → Short</span>
+                                        <span id="group-pause-val" class="slider-val">700 ms</span>
+                                    </div>
+                                    <input type="range" id="group-pause-slider" min="200" max="1500" step="50" value="700"
+                                        class="premium-slider" disabled>
+                                </div>
+                            </div>
+                            <span class="setting-hint" data-i18n="diceSettings.shortHint">Short pulse and pause between pulses: see Vibration Profile.</span>
+                            <div class="code-test-row">
+                                <div class="slider-row" style="margin-top: 0; flex: 1;">
+                                    <div class="slider-header">
+                                        <span class="setting-text" data-i18n="diceSettings.testNumber">Test Number</span>
+                                        <span id="code-test-val" class="slider-val">17</span>
+                                    </div>
+                                    <input type="range" id="code-test-slider" min="1" max="40" step="1" value="17"
+                                        class="premium-slider">
+                                </div>
+                                <button type="button" class="dice-blink-btn code-test-btn" id="code-test-btn" disabled data-i18n="diceSettings.testBtn">Test</button>
+                            </div>
+                            <div class="dice-pattern" id="code-test-pattern" aria-hidden="true"></div>
                             <div class="seg-row seg-divider">
                                 <span class="switch-text" data-i18n="diceSettings.moved">D6 Moved, Not Rolled</span>
                                 <div class="seg-control" id="dice-move-seg" role="group" aria-label="What to do when the D6 is moved instead of rolled" data-i18n-aria="diceSettings.movedAria">
@@ -329,7 +402,7 @@
                                 </div>
                             </div>
                             <label class="switch-label">
-                                <span class="switch-text" data-i18n="diceSettings.onlyThis">Only This Die</span>
+                                <span class="switch-text" data-i18n="diceSettings.onlyThese">Only These Dice</span>
                                 <div class="switch">
                                     <input type="checkbox" id="dice-bind-switch" disabled>
                                     <span class="slider"></span>

@@ -480,7 +480,7 @@
                     <li><strong>Die Farbpalette (Sender):</strong> Erkennt, in welches Farbfeld der Pinsel eingetaucht wird.</li>
                     <li><strong>Der Empfänger (Receiver):</strong> Signalisiert diskret in deiner Tasche per Vibration, welche Farbe gewählt wurde.</li>
                     <li><strong>Die Companion App:</strong> Kann die gewählte Farbe zusätzlich als Fullscreen-Anzeige auf dem Bildschirm darstellen oder per Sprachausgabe über einen kabellosen In-Ear-Ohrhörer ansagen.</li>
-                    <li><strong>GoDice (optional):</strong> Ist die Palette ausgeschaltet, verbindet sich der Empfänger mit einem GoDice in der Nähe (D6 oder D20) und vibriert die gewürfelte Zahl.</li>
+                    <li><strong>GoDice (optional):</strong> Ist die Palette ausgeschaltet, verbindet sich der Empfänger mit bis zu 4 GoDice in der Nähe (D6 oder D20) und vibriert die Summe eines Wurfs.</li>
                     <li><strong>Das Web-Dashboard:</strong> Ermöglicht es, Einstellungen für beide Geräte in Echtzeit vorzunehmen und das Verhalten anzupassen.</li>
                 </ul>
             </section>
@@ -493,7 +493,7 @@
                     <li><strong>The Paint Palette (Sender):</strong> Detects which color field the brush is dipped into.</li>
                     <li><strong>The Receiver (Receiver):</strong> Discreetly signals in your pocket via vibration which color was chosen.</li>
                     <li><strong>The Companion App:</strong> Can additionally display the chosen color as a fullscreen alert on your screen or announce it via voice output through a wireless in-ear earpiece.</li>
-                    <li><strong>GoDice (optional):</strong> When the palette is switched off, the receiver connects to a nearby GoDice (D6 or D20) and vibrates the rolled number.</li>
+                    <li><strong>GoDice (optional):</strong> When the palette is switched off, the receiver connects to up to 4 nearby GoDice (D6 or D20) and vibrates the sum of a roll.</li>
                     <li><strong>The Web Dashboard:</strong> Allows you to configure settings for both devices in real-time and customize their behavior.</li>
                 </ul>
             </section>
@@ -609,15 +609,17 @@
                 <p>Klicke auf den Knopf <strong>"Test Vibration Pattern on Receiver"</strong>. Der Empfänger vibriert sofort 3-mal mit den eingestellten Zeiten, damit du das Muster direkt in der Tasche testen und anpassen kannst.</p>
 
                 <h3>GoDice</h3>
-                <p>Die Karte <strong>GoDice</strong> oben im Tab zeigt den verbundenen Würfel, den letzten Wurf, das Vibrationsmuster und die letzten Würfe.</p>
+                <p>Der Empfänger verbindet bis zu 4 GoDice. Die Karte <strong>GoDice</strong> oben im Tab zeigt die Summe des letzten Wurfs, je Würfel eine Kachel mit Farbe, Augenzahl und Akku, das Vibrationsmuster und die letzten Würfe.</p>
                 <ul>
-                    <li><strong>Palette hat Vorrang:</strong> Ist die Palette eingeschaltet, verbindet sich der Empfänger nur mit ihr. Erst wenn du sie ausschaltest, sucht er nach einem GoDice. Schaltest du die Palette wieder ein, wechselt er zurück und meldet das mit einem Doppel-Vibrieren.</li>
-                    <li><strong>Die Type:</strong> <em>Auto</em> erkennt bei jedem Wurf, ob der Würfel als D6 oder in der D20-Hülle liegt. Klappt das bei dir nicht zuverlässig, stelle den Typ fest ein.</li>
-                    <li><strong>D20 Pattern:</strong> Bei <em>Tens + Ones</em> kommt pro Zehner ein langer Impuls, danach die Einer kurz (17 = 1 lang + 7 kurz). <em>Count</em> vibriert die Zahl einfach durch.</li>
-                    <li><strong>Proximity:</strong> Nur Würfel mit stärkerem Signal werden verbunden. Weiter rechts heißt: Der Würfel muss näher am Empfänger sein.</li>
-                    <li><strong>D6 Moved, Not Rolled:</strong> <em>Ignore</em> zählt nur echte Würfe. <em>Count</em> wertet Kippen oder Schieben wie einen Wurf. <em>Signal</em> vibriert die neue Zahl und danach schnelle Impulse, damit du weißt, dass der Würfel nur bewegt wurde. Anzahl und Tempo der Impulse sind einstellbar. Die WebApp zeigt dann „MOVED“ an, und die Sprachausgabe sagt nach der Zahl „bewegt“. Beim D20 zählt jede Ruhelage als Wurf.</li>
-                    <li><strong>Welcher Würfel?</strong> Beim Verbinden leuchtet der Würfel kurz dreimal orange auf. Die Karte zeigt seine Farbe und Kennung, <strong>Blink Connected Die</strong> lässt ihn erneut blinken.</li>
-                    <li><strong>Only This Die:</strong> Merkt sich den gerade verbundenen Würfel. Danach ignoriert der Empfänger alle anderen GoDice. Ausschalten vergisst ihn wieder.</li>
+                    <li><strong>Palette hat Vorrang:</strong> Ist die Palette eingeschaltet, verbindet sich der Empfänger nur mit ihr. Erst wenn du sie ausschaltest, sucht er nach GoDice. Schaltest du die Palette wieder ein, trennt er alle Würfel und meldet das mit einem Doppel-Vibrieren.</li>
+                    <li><strong>Würfel aufwecken:</strong> Ein GoDice schläft nach einer Weile ohne Verbindung ein. Kurz schütteln oder in die Ladestation legen weckt ihn auf.</li>
+                    <li><strong>Wurfrunde und Summe:</strong> Wenn alle gerollten Würfel liegen, wartet der Empfänger kurz und vibriert die Summe. <em>Summe aus</em> legt fest, ob nur die gewürfelten oder alle verbundenen Würfel zählen. <em>Max. Würfel</em> begrenzt die Anzahl auf 1 bis 4.</li>
+                    <li><strong>Vibrations-Code:</strong> Ein langer Impuls steht für 5 Augen (einstellbar: 5, 10 oder nur zählen), der Rest kommt kurz. Beispiel: 17 = 3 lang + 2 kurz. Ein einzelner D6 wird standardmäßig einfach gezählt. Dauer des langen Impulses und der Pause sind einstellbar, <em>Testen</em> spielt eine Beispielzahl ab.</li>
+                    <li><strong>Würfeltyp:</strong> <em>Auto</em> erkennt bei jedem Wurf, ob der Würfel als D6 oder in der D20-Hülle liegt. Klappt das bei dir nicht zuverlässig, stelle den Typ fest ein.</li>
+                    <li><strong>Nähe:</strong> Nur Würfel mit stärkerem Signal werden verbunden. Weiter rechts heißt: Der Würfel muss näher am Empfänger sein.</li>
+                    <li><strong>D6 bewegt statt gewürfelt:</strong> <em>Ignorieren</em> zählt nur echte Würfe. <em>Zählen</em> wertet Kippen oder Schieben wie einen Wurf. <em>Signal</em> vibriert die Summe und danach schnelle Impulse, damit du weißt, dass ein Würfel nur bewegt wurde. Anzahl und Tempo der Impulse sind einstellbar. Die WebApp zeigt dann „BEWEGT“ an, und die Sprachausgabe sagt am Ende „bewegt“. Beim D20 zählt jede Ruhelage als Wurf.</li>
+                    <li><strong>Welcher Würfel?</strong> Beim Verbinden leuchtet jeder Würfel kurz dreimal orange auf. Antippen einer Kachel lässt genau diesen Würfel blinken.</li>
+                    <li><strong>Nur diese Würfel:</strong> Merkt sich alle gerade verbundenen Würfel. Danach ignoriert der Empfänger alle anderen GoDice. Ausschalten vergisst sie wieder.</li>
                 </ul>
             </section>
 
@@ -636,15 +638,17 @@
                 <p>Click the button <strong>"Test Vibration Pattern on Receiver"</strong>. The receiver will immediately vibrate 3 times using the selected durations, allowing you to test and adjust the pattern directly in your pocket.</p>
 
                 <h3>GoDice</h3>
-                <p>The <strong>GoDice</strong> card at the top of the tab shows the connected die, the last roll, the vibration pattern and recent rolls.</p>
+                <p>The receiver connects up to 4 GoDice. The <strong>GoDice</strong> card at the top of the tab shows the sum of the last roll, one tile per die with color, number and battery, the vibration pattern and recent rolls.</p>
                 <ul>
-                    <li><strong>The palette has priority:</strong> While the palette is on, the receiver only connects to it. It looks for a GoDice only after you switch the palette off. When you switch the palette back on, the receiver changes back and signals this with a double buzz.</li>
+                    <li><strong>The palette has priority:</strong> While the palette is on, the receiver only connects to it. It looks for GoDice only after you switch the palette off. When you switch the palette back on, the receiver drops all dice and signals this with a double buzz.</li>
+                    <li><strong>Waking a die:</strong> A GoDice falls asleep after a while without a connection. Shake it briefly or put it in the charger to wake it.</li>
+                    <li><strong>Rounds and sum:</strong> Once all rolled dice lie still, the receiver waits briefly and buzzes the sum. <em>Sum Of</em> sets whether only the rolled dice or all connected dice count. <em>Dice at Most</em> limits the number to 1 to 4.</li>
+                    <li><strong>Vibration code:</strong> One long pulse stands for 5 pips (adjustable: 5, 10 or count only), the rest follows as short pulses. Example: 17 = 3 long + 2 short. A single D6 is simply counted by default. The length of the long pulse and the pause are adjustable, and <em>Test</em> plays a sample number.</li>
                     <li><strong>Die Type:</strong> <em>Auto</em> detects on every roll whether the die is a D6 or sits in the D20 shell. If that is not reliable for you, set the type manually.</li>
-                    <li><strong>D20 Pattern:</strong> With <em>Tens + Ones</em>, each ten is one long pulse, followed by the ones as short pulses (17 = 1 long + 7 short). <em>Count</em> simply buzzes the number.</li>
                     <li><strong>Proximity:</strong> Only dice with a stronger signal are connected. Further right means the die has to be closer to the receiver.</li>
-                    <li><strong>D6 Moved, Not Rolled:</strong> <em>Ignore</em> counts only real rolls. <em>Count</em> treats tilting or sliding like a roll. <em>Signal</em> buzzes the new number followed by fast pulses, so you know the die was only moved. Number and speed of the pulses are adjustable. The webapp then shows “MOVED”, and the voice says “moved” after the number. On the D20, every resting position counts as a roll.</li>
-                    <li><strong>Which die?</strong> On connect, the die blinks orange three times. The card shows its color and ID, and <strong>Blink Connected Die</strong> makes it blink again.</li>
-                    <li><strong>Only This Die:</strong> Remembers the connected die. After that the receiver ignores every other GoDice. Turn it off to forget the die.</li>
+                    <li><strong>D6 Moved, Not Rolled:</strong> <em>Ignore</em> counts only real rolls. <em>Count</em> treats tilting or sliding like a roll. <em>Signal</em> buzzes the sum followed by fast pulses, so you know a die was only moved. Number and speed of the pulses are adjustable. The webapp then shows “MOVED”, and the voice says “moved” at the end. On the D20, every resting position counts as a roll.</li>
+                    <li><strong>Which die?</strong> On connect, each die blinks orange three times. Tap a tile to make exactly that die blink.</li>
+                    <li><strong>Only These Dice:</strong> Remembers all currently connected dice. After that the receiver ignores every other GoDice. Turn it off to forget them.</li>
                 </ul>
             </section>
 
