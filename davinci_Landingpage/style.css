@@ -1216,6 +1216,27 @@ input:checked + .slider:before {
 }
 
 /* App Footer */
+.app-version {
+    font-size: 0.75rem;
+    letter-spacing: 1px;
+    opacity: 0.7;
+    font-variant-numeric: tabular-nums;
+}
+.app-update-btn {
+    margin-top: 8px;
+    font-family: var(--font-heading);
+    font-size: 0.7rem;
+    letter-spacing: 1px;
+    padding: 7px 14px;
+    background: var(--gold);
+    color: #1a1205;
+    border: 0;
+    border-radius: var(--border-radius-md);
+    cursor: pointer;
+}
+.app-update-btn[hidden] {
+    display: none;
+}
 .app-footer {
     text-align: center;
     padding: 16px 0 8px;

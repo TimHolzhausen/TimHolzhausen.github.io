@@ -1,4 +1,7 @@
-const CACHE_NAME = 'davinci-v2-cache-v22';
+// Versionsnummer kommt aus version.js: Ändert sie sich, lädt der Browser diesen Service Worker neu
+// und holt alle Dateien frisch vom Server.
+importScripts('./version.js');
+const CACHE_NAME = 'davinci-v' + APP_VERSION;
 const ASSETS = [
   './',
   './index.html',
@@ -6,6 +9,7 @@ const ASSETS = [
   './style.css',
   './app.js',
   './i18n.js',
+  './version.js',
   './godice.js',
   './manifest.json',
   './icon.svg',

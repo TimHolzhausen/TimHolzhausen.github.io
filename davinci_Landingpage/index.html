@@ -324,6 +324,27 @@
             letter-spacing: 1px;
         }
 
+        .app-version {
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+            opacity: 0.7;
+            font-variant-numeric: tabular-nums;
+        }
+        .app-update-btn {
+            margin-top: 10px;
+            font-family: 'Cinzel', Georgia, serif;
+            font-size: 0.7rem;
+            letter-spacing: 1px;
+            padding: 7px 14px;
+            background: var(--gold, #c9a84c);
+            color: #1a1205;
+            border: 0;
+            border-radius: 2px;
+            cursor: pointer;
+        }
+        .app-update-btn[hidden] {
+            display: none;
+        }
         .footer-creators {
             font-family: var(--font-main);
             font-size: 0.9rem;
@@ -334,7 +355,7 @@
         }
 
         /* Ornamental divider */
-        footer p:last-child::before {
+        footer p.footer-title::before {
             content: '\2014\2009\269C\2009\2014';
             display: block;
             color: rgba(201, 168, 76, 0.3);
@@ -729,8 +750,12 @@
 
     <footer>
         <p class="footer-creators">Created by Channing Moos &amp; Tim Holzhausen</p>
-        <p>Davinci Color Prediction &mdash; MMXXVI</p>
+        <p class="footer-title">Davinci Color Prediction &mdash; MMXXVI</p>
+        <p class="app-version" data-app-version></p>
+        <button type="button" class="app-update-btn" data-app-update hidden></button>
     </footer>
+
+    <script src="version.js"></script>
 
     <script>
         // Registriere den Service Worker, um Offline-Funktionalität zu sichern
