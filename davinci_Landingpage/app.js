@@ -303,11 +303,18 @@ function handleSleepDialDrag(clientX, clientY) {
 
 // Initial setup
 document.addEventListener('DOMContentLoaded', () => {
+    applyStaticTranslations();
+    document.querySelectorAll('.lang-switch-btn').forEach(btn => {
+        btn.addEventListener('click', () => setUiLanguage(btn.dataset.lang));
+    });
+    window.addEventListener('davinci-lang-changed', refreshLanguageTexts);
+
     loadSettings();
     applySettingsToUI();
     initTabs();
     setupEventListeners();
     initReceiverControls();
+    refreshLanguageTexts();
 
     // Register Service Worker for offline PWA capabilities
     if ('serviceWorker' in navigator) {
@@ -497,13 +504,13 @@ function setupEventListeners() {
             fsOverlay.classList.remove('active');
             fsOverlay.classList.remove('dice-alert');
             const fsResetHint = document.getElementById('fullscreen-reset-hint');
-            if (fsResetHint) fsResetHint.innerText = 'Tap to Reset';
+            if (fsResetHint) fsResetHint.innerText = t('fs.tapReset');
 
             // Automatically reset locks when dismissed!
             if (senderConfigChar) {
                 try {
                     await writeConfigValue(senderConfigChar, 0x02);
-                    showToast("All pots unlocked!");
+                    showToast(t('toast.allPotsUnlocked'));
                 } catch (err) {
                     console.error("Error sending unlock command:", err);
                 }
@@ -524,7 +531,7 @@ function setupEventListeners() {
 
     // Clear Log Button
     clearLogBtn.addEventListener('click', () => {
-        logContainer.innerHTML = '<div class="log-placeholder">Log cleared.</div>';
+        logContainer.innerHTML = '<div class="log-placeholder">' + t('log.cleared') + '</div>';
     });
 
     // Color dot picker in modal
@@ -575,7 +582,7 @@ function setupEventListeners() {
         saveSettings();
         applySettingsToUI();
         closeEditModal();
-        showToast(`Settings for Channel ${currentEditingIndex + 1} saved.`);
+        showToast(t('toast.channelSaved', { n: currentEditingIndex + 1 }));
     });
 
     // Lock-After-Trigger Switch & Reset Buttons
@@ -588,10 +595,10 @@ function setupEventListeners() {
                     const val = lockSwitch.checked ? 0x01 : 0x00;
                     await writeConfigValue(senderConfigChar, val);
                     resetBtn.disabled = !lockSwitch.checked;
-                    showToast(lockSwitch.checked ? "Lock active after trigger." : "Multiple triggers allowed.");
+                    showToast(lockSwitch.checked ? t('toast.lockOn') : t('toast.lockOff'));
                 } catch (err) {
                     console.error("Error sending lock status:", err);
-                    showToast("Write error: " + err.message);
+                    showToast(t('toast.writeError') + err.message);
                     // Reset UI checkbox
                     try {
                         const configVal = await senderConfigChar.readValue();
@@ -601,7 +608,7 @@ function setupEventListeners() {
                     }
                 }
             } else {
-                showToast("Not connected or configuration not supported.");
+                showToast(t('toast.notSupported'));
                 lockSwitch.checked = !lockSwitch.checked;
             }
         });
@@ -610,13 +617,13 @@ function setupEventListeners() {
             if (senderConfigChar) {
                 try {
                     await writeConfigValue(senderConfigChar, 0x02);
-                    showToast("All channels unlocked!");
+                    showToast(t('toast.allChannelsUnlocked'));
                 } catch (err) {
                     console.error("Error sending unlock command:", err);
-                    showToast("Unlock error: " + err.message);
+                    showToast(t('toast.unlockError') + err.message);
                 }
             } else {
-                showToast("Not connected to the board.");
+                showToast(t('toast.notConnected'));
             }
         });
 
@@ -627,14 +634,14 @@ function setupEventListeners() {
                     if (confirm("Are you sure you want to turn off the sender? It can only be woken up by connecting USB power.")) {
                         try {
                             await writeConfigValue(senderConfigChar, 0x03);
-                            showToast("Power-off command sent.");
+                            showToast(t('toast.powerOffSent'));
                         } catch (err) {
                             console.error("Error sending deep sleep command:", err);
-                            showToast("Power-off error: " + err.message);
+                            showToast(t('toast.powerOffError') + err.message);
                         }
                     }
                 } else {
-                    showToast("Not connected to the board.");
+                    showToast(t('toast.notConnected'));
                 }
             });
         }
@@ -680,10 +687,10 @@ function setupEventListeners() {
                             await writeConfigValue(senderTimeoutChar, data);
                             const labelIdx = SLEEP_TIMEOUT_STEPS.indexOf(minutes);
                             const label = SLEEP_TIMEOUT_LABELS[labelIdx] || `${minutes}m`;
-                            showToast(`Standby timeout set to ${label}`);
+                            showToast(t('toast.standbySet', { label }));
                         } catch (err) {
                             console.error("Error writing standby timeout:", err);
-                            showToast("Write error: " + err.message);
+                            showToast(t('toast.writeError') + err.message);
                             // Reset to actual board value
                             try {
                                 const valData = await senderTimeoutChar.readValue();
@@ -723,10 +730,10 @@ function setupEventListeners() {
                     const val = parseInt(thresholdSlider.value);
                     const data = new Uint8Array([val & 0xff, (val >> 8) & 0xff]);
                     await writeConfigValue(senderThresholdChar, data);
-                    showToast(`Threshold changed to ${val}.`);
+                    showToast(t('toast.thresholdSet', { val }));
                 } catch (err) {
                     console.error("Error sending threshold:", err);
-                    showToast("Write error: " + err.message);
+                    showToast(t('toast.writeError') + err.message);
                     // Reset slider
                     try {
                         const valData = await senderThresholdChar.readValue();
@@ -738,7 +745,7 @@ function setupEventListeners() {
                     }
                 }
             } else {
-                showToast("Not connected to the board.");
+                showToast(t('toast.notConnected'));
             }
         });
     }
@@ -783,7 +790,7 @@ function populateVoiceList() {
     });
 
     const savedVoiceURI = localStorage.getItem('davinci_speech_voice');
-    let selectedIdx = 0;
+    let selectedIdx = Math.max(0, speechVoices.findIndex(v => v.lang.toLowerCase().startsWith(uiLang)));
 
     speechVoices.forEach((voice, idx) => {
         const option = document.createElement('option');
@@ -812,9 +819,10 @@ function getChosenVoice() {
         const voice = speechVoices.find(v => v.voiceURI === savedVoiceURI);
         if (voice) return voice;
     }
-    // Fallback: try to find an English voice or the first available voice
+    // Ohne gespeicherte Auswahl: Stimme in der Sprache der Oberfläche, sonst Englisch, sonst die erste
     const voices = window.speechSynthesis.getVoices();
-    return voices.find(v => v.lang.startsWith('en')) || voices[0] || null;
+    return voices.find(v => v.lang.toLowerCase().startsWith(uiLang))
+        || voices.find(v => v.lang.startsWith('en')) || voices[0] || null;
 }
 
 function speakNumber(index) {
@@ -892,7 +900,7 @@ function triggerAudioFeedback(index) {
     if (mode === 'speech') {
         speakNumber(index);
     } else if (mode === 'names') {
-        const potName = potSettings[index] ? potSettings[index].name : `Channel ${index + 1}`;
+        const potName = potSettings[index] ? potSettings[index].name : t('pot.channel', { n: index + 1 });
         speakText(potName);
     }
 }
@@ -904,15 +912,15 @@ function logEvent(potIndex, isActive) {
         placeholder.remove();
     }
 
-    const time = new Date().toLocaleTimeString('en-US');
+    const time = new Date().toLocaleTimeString(uiLang === 'de' ? 'de-DE' : 'en-US');
     const config = potSettings[potIndex];
     const logItem = document.createElement('div');
     logItem.className = 'log-item';
     logItem.style.setProperty('--log-accent', config.color);
 
-    const actionText = isActive ? 'used 🟢' : 'ready again ⚪';
+    const actionHtml = t(isActive ? 'log.used' : 'log.ready', { name: config.name });
     logItem.innerHTML = `
-        <span><strong>${config.name}</strong> is now ${actionText}</span>
+        <span>${actionHtml}</span>
         <span class="log-time">${time}</span>
     `;
 
@@ -953,7 +961,7 @@ async function connectSenderBLE() {
 
             directGoDice.onDiceConnected = (diceId, diceInstance) => {
                 console.log("GoDice connected directly:", diceId);
-                showToast("Connected directly to: " + senderDevice.name);
+                showToast(t('toast.connectedDirect') + senderDevice.name);
                 updateConnectButtonState('connected', 'Connected');
                 senderIsConnecting = false;
 
@@ -981,7 +989,7 @@ async function connectSenderBLE() {
             directGoDice.onFakeStable = (diceId, value, xyz) => { handleDirectRoll(xyz, true); };
 
             directGoDice.onDiceDisconnected = () => {
-                showToast("Direct GoDice disconnected!");
+                showToast(t('toast.directDiceLost'));
                 resetSenderState();
             };
 
@@ -1080,14 +1088,14 @@ async function connectSenderBLE() {
 
         console.log("Successfully connected!");
         updateConnectButtonState('connected', 'Connected');
-        showToast("Connected to Davinci Color!");
+        showToast(t('toast.connectedPalette'));
 
         const initialVal = await senderSensorChar.readValue();
         parseStateByte(initialVal.getUint8(0));
 
     } catch (error) {
         console.error("BLE connection error:", error);
-        showToast("Connection error: " + error.message);
+        showToast(t('toast.connectionError') + error.message);
         resetSenderState();
     } finally {
         senderIsConnecting = false;
@@ -1105,7 +1113,7 @@ function disconnectSenderBLE() {
 }
 
 function onSenderDisconnected() {
-    showToast("Connection to sender lost!");
+    showToast(t('toast.senderLost'));
     resetSenderState();
 }
 
@@ -1127,7 +1135,7 @@ function resetSenderState() {
     // Reset battery values
     batteryProgress.style.strokeDasharray = "0, 100";
     batteryValue.innerText = "--%";
-    batteryTooltip.setAttribute('data-tooltip', 'Battery status unknown');
+    batteryTooltip.setAttribute('data-tooltip', t('tooltip.paletteBatteryUnknown'));
 
     // Reset control switch, buttons, and sliders
     const resetBtn = document.getElementById('reset-locks-btn');
@@ -1155,7 +1163,7 @@ function resetSenderState() {
         const statusText = document.getElementById(`pot-status-${i}`);
         const valueText = document.getElementById(`pot-value-${i}`);
         if (card) card.classList.remove('active');
-        if (statusText) statusText.innerText = 'Ready';
+        if (statusText) statusText.innerText = t('pot.ready');
         if (valueText) valueText.innerText = '--';
     }
 }
@@ -1194,7 +1202,8 @@ function updateConnectButtonState(state, text) {
     paletteDirectActive = state === 'connected' && !directGoDice;
     updateDiceSectionVisibility();
     connectBtn.className = `connect-btn ${state}`;
-    connectBtn.querySelector('.btn-text').innerText = text;
+    connectBtn.querySelector('.btn-text').innerText =
+        state === 'connected' ? t('btn.connected') : state === 'connecting' ? t('btn.connecting') : t('btn.connect');
 
     const icon = connectBtn.querySelector('.btn-icon');
     if (state === 'connected') {
@@ -1233,7 +1242,7 @@ function handleValuesNotification(event) {
 function updateBatteryUI(level) {
     batteryProgress.style.strokeDasharray = `${level}, 100`;
     batteryValue.innerText = `${level}%`;
-    batteryTooltip.setAttribute('data-tooltip', `Battery level: ${level}%`);
+    batteryTooltip.setAttribute('data-tooltip', t('tooltip.batteryLevel', { level }));
 
     if (level > 50) {
         batteryProgress.style.stroke = '#00e676';
@@ -1255,7 +1264,7 @@ function parseStateByte(stateByte) {
         if (isActive !== wasActive) {
             if (isActive) {
                 if (card) card.classList.add('active');
-                if (statusText) statusText.innerText = 'Used';
+                if (statusText) statusText.innerText = t('pot.used');
 
                 logEvent(i, true);
                 triggerAudioFeedback(i);
@@ -1265,17 +1274,17 @@ function parseStateByte(stateByte) {
                 }
             } else {
                 if (card) card.classList.remove('active');
-                if (statusText) statusText.innerText = 'Ready';
+                if (statusText) statusText.innerText = t('pot.ready');
 
                 logEvent(i, false);
             }
         } else {
             if (isActive) {
                 if (card) card.classList.add('active');
-                if (statusText) statusText.innerText = 'Used';
+                if (statusText) statusText.innerText = t('pot.used');
             } else {
                 if (card) card.classList.remove('active');
-                if (statusText) statusText.innerText = 'Ready';
+                if (statusText) statusText.innerText = t('pot.ready');
             }
         }
     }
@@ -1300,7 +1309,7 @@ function showFullscreenAlert(index) {
         fsOverlay.classList.remove('dice-alert');
         const fsMoved = document.getElementById('fullscreen-moved');
         if (fsMoved) fsMoved.hidden = true;
-        fsResetHint.innerText = 'Tap to Reset';
+        fsResetHint.innerText = t('fs.tapReset');
         fsOverlay.style.backgroundColor = config.color;
         fsName.innerText = config.name;
 
@@ -1480,13 +1489,13 @@ async function connectReceiverBLE() {
 
         console.log("Receiver successfully connected!");
         updateRxConnectButtonState('connected', 'Connected');
-        rxStatusText.innerText = "Connected";
+        rxStatusText.innerText = t('conn.connected');
         rxStatusText.style.color = "var(--accent-connect)";
-        showToast("Connected to Davinci Receiver!");
+        showToast(t('toast.connectedReceiver'));
 
     } catch (error) {
         console.error("Receiver BLE connection error:", error);
-        showToast("Connection error: " + error.message);
+        showToast(t('toast.connectionError') + error.message);
         resetRxState();
     } finally {
         receiverIsConnecting = false;
@@ -1500,7 +1509,7 @@ function disconnectReceiverBLE() {
 }
 
 function onRxDisconnected() {
-    showToast("Connection to receiver lost!");
+    showToast(t('toast.receiverLost'));
     resetRxState();
 }
 
@@ -1529,14 +1538,14 @@ function resetRxState() {
     setDiceSettingsEnabled(false);
 
     updateRxConnectButtonState('disconnected', 'Connect Rx');
-    rxStatusText.innerText = "Disconnected";
+    rxStatusText.innerText = t('conn.disconnected');
     rxStatusText.style.color = "var(--accent-disconnect)";
     rxBatteryText.innerText = "-- %";
 
     // Reset battery rings
     rxBatteryProgress.style.strokeDasharray = "0, 100";
     rxBatteryValue.innerText = "--%";
-    rxBatteryTooltip.setAttribute('data-tooltip', 'Receiver battery unknown');
+    rxBatteryTooltip.setAttribute('data-tooltip', t('tooltip.receiverBatteryUnknown'));
 
     // Disable sliders and GoDice select
     vibroOnSlider.disabled = true;
@@ -1551,7 +1560,7 @@ function resetRxState() {
 function updateSubBatteryUI(level) {
     // Gilt für das Gerät, das der Empfänger verbunden hat; angezeigt wird es nur beim Würfel
     if (diceBatteryChip) {
-        diceBatteryChip.innerText = `Battery ${level}%`;
+        diceBatteryChip.innerText = t('dice.battery', { level });
         diceBatteryChip.hidden = !(rxCentralKind === 'dice' && level > 0);
     }
 }
@@ -1607,7 +1616,7 @@ function renderDieIdentity() {
     const color = GODICE_COLORS[rxDieColor];
     // GoDice_<ID>_<Farbe>_v<Version>: die ID unterscheidet Würfel gleicher Farbe
     const idPart = rxDieName.replace(/^GoDice_?/, '').split('_')[0] || rxDieName;
-    if (diceNameText) diceNameText.innerText = color ? `${color.name} · ${idPart}` : rxDieName.replace(/_v\d+$/, '');
+    if (diceNameText) diceNameText.innerText = color ? `${t('color.' + rxDieColor)} · ${idPart}` : rxDieName.replace(/_v\d+$/, '');
     if (diceNameChip) diceNameChip.title = rxDieName;
     if (dieColorDot) {
         dieColorDot.classList.toggle('known', !!color);
@@ -1630,11 +1639,63 @@ const DICE_STATE_TEXT = {
 function setDiceCardState(state) {
     if (!diceCard) return;
     diceCard.dataset.state = state;
-    const text = DICE_STATE_TEXT[state] || DICE_STATE_TEXT.offline;
+    const key = DICE_STATE_TEXT[state] ? state : 'offline';
+    const text = { pill: t(`dice.state.${key}.pill`), status: t(`dice.state.${key}.status`) };
     if (diceStatePill) diceStatePill.innerText = text.pill;
     // Nach einem Wurf bleibt die Ergebniszeile stehen, bis wieder gerollt wird
     if (diceStatusEl && !(state === 'connected' && diceHistory.length > 0)) {
         diceStatusEl.innerText = text.status;
+    }
+}
+
+function rollStatusText(value, type, moved) {
+    return moved ? t('dice.movedStatus', { value }) : t('dice.rolled', { value, type });
+}
+
+// Setzt alle Texte neu, die app.js zur Laufzeit geschrieben hat
+function refreshLanguageTexts() {
+    const btnState = el => el.classList.contains('connected') ? 'connected'
+        : el.classList.contains('connecting') ? 'connecting' : 'disconnected';
+    updateConnectButtonState(btnState(connectBtn));
+    updateRxConnectButtonState(btnState(connectRxBtn));
+    if (rxStatusText) rxStatusText.innerText = receiverDevice ? t('conn.connected') : t('conn.disconnected');
+
+    const batteryTip = (el, valueEl, unknownKey) => {
+        const level = parseInt(valueEl.innerText);
+        el.setAttribute('data-tooltip', isNaN(level) ? t(unknownKey) : t('tooltip.batteryLevel', { level }));
+    };
+    batteryTip(batteryTooltip, batteryValue, 'tooltip.paletteBatteryUnknown');
+    batteryTip(rxBatteryTooltip, rxBatteryValue, 'tooltip.receiverBatteryUnknown');
+
+    for (let i = 0; i < POT_COUNT; i++) {
+        const card = document.getElementById(`pot-${i}`);
+        const statusText = document.getElementById(`pot-status-${i}`);
+        if (card && statusText) statusText.innerText = card.classList.contains('active') ? t('pot.used') : t('pot.ready');
+    }
+
+    setDiceCardState(diceCard ? diceCard.dataset.state : 'offline');
+    if (diceHistory.length > 0) {
+        const last = diceHistory[0];
+        if (diceStatusEl && diceCard && diceCard.dataset.state === 'connected') {
+            diceStatusEl.innerText = rollStatusText(last.value, last.type, last.moved);
+        }
+        if (diceTypeChip && !diceTypeChip.hidden) {
+            diceTypeChip.innerText = rxDieMode === 0 ? t('dice.typeAuto', { type: last.type }) : `D${last.type}`;
+        }
+        renderVibrationPattern(last.value, last.type, last.moved);
+        renderDiceHistory();
+    }
+    renderMoveSettings();
+    updateBindHint();
+    renderDieIdentity();
+
+    // Standard-Farbnamen und Stimme folgen der Sprache, solange keine eigene Stimme gewählt ist
+    let savedVoice = null;
+    try { savedVoice = localStorage.getItem('davinci_speech_voice'); } catch (e) { /* Speicher nicht verfügbar */ }
+    if (!savedVoice) {
+        translatePotNamesToLanguage(uiLang);
+        const voiceRow = document.getElementById('speech-voice-row');
+        if (voiceRow && voiceRow.style.display !== 'none') populateVoiceList();
     }
 }
 
@@ -1659,14 +1720,14 @@ function renderVibrationPattern(value, type, moved = false) {
         const ones = value % 10;
         html += '<i class="long"></i>'.repeat(tens);
         if (ones > 0) html += '<i class="gap"></i>' + '<i class="short"></i>'.repeat(ones);
-        label = ones > 0 ? `${tens} long + ${ones} short` : `${tens} long`;
+        label = ones > 0 ? t('dice.pattern.longShort', { tens, ones }) : t('dice.pattern.long', { n: tens });
     } else {
         html += '<i class="short"></i>'.repeat(value);
-        label = `${value} short`;
+        label = t('dice.pattern.short', { n: value });
     }
     if (moved && diceSettings.move === 2) {
         html += '<i class="gap"></i>' + '<i class="signal"></i>'.repeat(diceSettings.pulses);
-        label += ` + ${diceSettings.pulses} fast`;
+        label += t('dice.pattern.fast', { n: diceSettings.pulses });
     }
     dicePatternEl.innerHTML = html + `<small>${label}</small>`;
 }
@@ -1674,7 +1735,7 @@ function renderVibrationPattern(value, type, moved = false) {
 function renderDiceHistory() {
     if (!diceHistoryEl) return;
     diceHistoryEl.innerHTML = diceHistory.map(r =>
-        `<span class="${r.moved ? 'moved' : ''}" title="D${r.type}${r.moved ? ' · moved' : ''}">${r.value}</span>`
+        `<span class="${r.moved ? 'moved' : ''}" title="D${r.type}${r.moved ? t('dice.historyMoved') : ''}">${r.value}</span>`
     ).join('');
 }
 
@@ -1700,7 +1761,7 @@ function showDiceRoll(value, type, rssi, moved = false) {
         diceValueEl.classList.add('pop');
     }
     if (diceTypeChip) {
-        diceTypeChip.innerText = rxDieMode === 0 ? `D${type} · auto` : `D${type}`;
+        diceTypeChip.innerText = rxDieMode === 0 ? t('dice.typeAuto', { type }) : `D${type}`;
         diceTypeChip.hidden = false;
     }
     updateRssiChip(rssi);
@@ -1710,9 +1771,7 @@ function showDiceRoll(value, type, rssi, moved = false) {
     renderDiceHistory();
     setDiceCardState('connected');
     if (diceStatusEl) {
-        diceStatusEl.innerText = moved
-            ? `Moved, not rolled. Now showing ${value}.`
-            : `Rolled ${value} on a D${type}.`;
+        diceStatusEl.innerText = rollStatusText(value, type, moved);
     }
 
     // Hinweis auf die Bewegung nur im Modus "Signal", passend zum Vibrationssignal
@@ -1752,7 +1811,7 @@ function showDiceFullscreen(value, signalMove = false) {
     fsOverlay.classList.add('dice-alert');
     fsName.innerText = String(value);
     fsName.style.color = '#dfc070';
-    fsResetHint.innerText = 'Tap to close';
+    fsResetHint.innerText = t('fs.tapClose');
     fsResetHint.style.color = 'rgba(255, 255, 255, 0.6)';
     fsResetHint.style.borderColor = 'rgba(255, 255, 255, 0.15)';
     fsResetHint.style.background = 'rgba(0, 0, 0, 0.3)';
@@ -1822,15 +1881,9 @@ function applyDiceSettings(dataView) {
     updateBindHint();
 }
 
-const MOVE_HINTS = [
-    'Ignore: only real rolls count.',
-    'Count: moving the die counts like a roll.',
-    'Signal: the receiver buzzes the number, then fast pulses so you know the die was moved.',
-];
-
 function renderMoveSettings() {
     setSegValue(diceMoveSeg, diceSettings.move);
-    if (diceMoveHint) diceMoveHint.innerText = MOVE_HINTS[diceSettings.move] || MOVE_HINTS[0];
+    if (diceMoveHint) diceMoveHint.innerText = t(`move.hint.${diceSettings.move}`);
     if (moveSignalSettings) moveSignalSettings.hidden = diceSettings.move !== 2;
     if (movePulsesVal) movePulsesVal.innerText = String(diceSettings.pulses);
     if (moveMsVal) moveMsVal.innerText = `${diceSettings.pulseMs} ms`;
@@ -1841,13 +1894,13 @@ function updateBindHint() {
     const canBind = !!diceSettingsChar && (diceSettings.bind === 1 || rxCentralKind === 'dice');
     diceBindSwitch.disabled = !canBind;
     if (!diceSettingsChar) {
-        diceBindHint.innerText = 'Connect the receiver to change GoDice settings.';
+        diceBindHint.innerText = t('bind.hint.noReceiver');
     } else if (diceSettings.bind === 1) {
-        diceBindHint.innerText = 'The receiver only connects to the remembered die.';
+        diceBindHint.innerText = t('bind.hint.bound');
     } else if (rxCentralKind === 'dice') {
-        diceBindHint.innerText = 'Turn on to remember the connected die and ignore all others.';
+        diceBindHint.innerText = t('bind.hint.canBind');
     } else {
-        diceBindHint.innerText = 'Connect a GoDice to remember it.';
+        diceBindHint.innerText = t('bind.hint.noDie');
     }
 }
 
@@ -1866,13 +1919,14 @@ async function writeDiceSettings() {
         applyDiceSettings(await diceSettingsChar.readValue());
     } catch (err) {
         console.error("Error writing dice settings:", err);
-        showToast("Write error: " + err.message);
+        showToast(t('toast.writeError') + err.message);
     }
 }
 
 function updateRxConnectButtonState(state, text) {
     connectRxBtn.className = `connect-btn ${state}`;
-    connectRxBtn.querySelector('.btn-text').innerText = text;
+    connectRxBtn.querySelector('.btn-text').innerText =
+        state === 'connected' ? t('btn.connected') : state === 'connecting' ? t('btn.connecting') : t('btn.connectRx');
 
     const icon = connectRxBtn.querySelector('.btn-icon');
     if (state === 'connected') {
@@ -1900,7 +1954,7 @@ function updateRxBatteryUI(level) {
     rxBatteryProgress.style.strokeDasharray = `${level}, 100`;
     rxBatteryValue.innerText = `${level}%`;
     rxBatteryText.innerText = `${level} %`;
-    rxBatteryTooltip.setAttribute('data-tooltip', `Battery level: ${level}%`);
+    rxBatteryTooltip.setAttribute('data-tooltip', t('tooltip.batteryLevel', { level }));
 
     if (level > 50) {
         rxBatteryProgress.style.stroke = '#00e676';
@@ -1926,10 +1980,10 @@ function initReceiverControls() {
                 } else {
                     await rxVibroOnChar.writeValue(data);
                 }
-                showToast(`Vibration ON duration changed to ${val} ms.`);
+                showToast(t('toast.vibroOnSet', { val }));
             } catch (err) {
                 console.error("Error writing Vibro ON duration:", err);
-                showToast("Write error: " + err.message);
+                showToast(t('toast.writeError') + err.message);
                 // Reset slider
                 try {
                     const valData = await rxVibroOnChar.readValue();
@@ -1957,10 +2011,10 @@ function initReceiverControls() {
                 } else {
                     await rxVibroOffChar.writeValue(data);
                 }
-                showToast(`Pause duration changed to ${val} ms.`);
+                showToast(t('toast.vibroOffSet', { val }));
             } catch (err) {
                 console.error("Error writing Vibro OFF duration:", err);
-                showToast("Write error: " + err.message);
+                showToast(t('toast.writeError') + err.message);
                 // Reset slider
                 try {
                     const valData = await rxVibroOffChar.readValue();
@@ -1980,13 +2034,13 @@ function initReceiverControls() {
                 // Send 3 to trigger a triple pulse test vibration on the receiver
                 const data = new Uint8Array([3]);
                 await writeConfigValue(rxVibroTestChar, data);
-                showToast("Test vibration sent to receiver.");
+                showToast(t('toast.testSent'));
             } catch (err) {
                 console.error("Error writing Vibro TEST command:", err);
-                showToast("Failed to send command: " + err.message);
+                showToast(t('toast.sendFailed') + err.message);
             }
         } else {
-            showToast("Receiver not connected!");
+            showToast(t('toast.receiverNotConnected'));
         }
     });
 
@@ -1999,10 +2053,10 @@ function initReceiverControls() {
                 await writeConfigValue(dieTypeChar, new Uint8Array([val]));
                 rxDieMode = val;
                 setSegValue(dieTypeSeg, val);
-                showToast(val === 0 ? "Die type: detect automatically" : `Die type: D${val}`);
+                showToast(val === 0 ? t('toast.dieTypeAuto') : t('toast.dieType', { val }));
             } catch (err) {
                 console.error("Error writing GoDice die type:", err);
-                showToast("Write error: " + err.message);
+                showToast(t('toast.writeError') + err.message);
             }
         });
     }
@@ -2061,7 +2115,7 @@ function initReceiverControls() {
         diceBindSwitch.addEventListener('change', async () => {
             diceSettings.bind = diceBindSwitch.checked ? 1 : 0;
             await writeDiceSettings();
-            showToast(diceSettings.bind ? "Die remembered." : "Die forgotten.");
+            showToast(diceSettings.bind ? t('toast.dieRemembered') : t('toast.dieForgotten'));
         });
     }
 
@@ -2070,10 +2124,10 @@ function initReceiverControls() {
             if (!diceInfoChar) return;
             try {
                 await writeConfigValue(diceInfoChar, new Uint8Array([1]));
-                showToast("The connected die is blinking.");
+                showToast(t('toast.dieBlinking'));
             } catch (err) {
                 console.error("Error sending blink command:", err);
-                showToast("Write error: " + err.message);
+                showToast(t('toast.writeError') + err.message);
             }
         });
     }

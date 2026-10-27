@@ -26,12 +26,16 @@
             <div class="logo-container">
                 <span class="logo-dot"></span>
                 <h1>Davinci <span class="logo-subtitle">Color Prediction</span></h1>
+                <div class="lang-switch" role="group" aria-label="Sprache / Language">
+                    <button type="button" class="lang-switch-btn" data-lang="de">DE</button>
+                    <button type="button" class="lang-switch-btn" data-lang="en">EN</button>
+                </div>
             </div>
 
             <!-- Tab Switcher -->
             <div class="tabs-header">
-                <button id="tab-palette-btn" class="tab-btn active">Palette</button>
-                <button id="tab-receiver-btn" class="tab-btn">Receiver</button>
+                <button id="tab-palette-btn" class="tab-btn active" data-i18n="tab.palette">Palette</button>
+                <button id="tab-receiver-btn" class="tab-btn" data-i18n="tab.receiver">Receiver</button>
             </div>
 
             <!-- Palette Status Box -->
@@ -48,7 +52,7 @@
 
                 <button id="connect-btn" class="connect-btn disconnected">
                     <span class="btn-icon">⚡</span>
-                    <span class="btn-text">Connect</span>
+                    <span class="btn-text" data-i18n="btn.connect">Connect</span>
                 </button>
             </div>
 
@@ -66,7 +70,7 @@
 
                 <button id="connect-rx-btn" class="connect-btn disconnected">
                     <span class="btn-icon">⚡</span>
-                    <span class="btn-text">Connect Rx</span>
+                    <span class="btn-text" data-i18n="btn.connectRx">Connect Rx</span>
                 </button>
             </div>
         </header>
@@ -77,7 +81,7 @@
             <div id="palette-view" class="tab-content active">
                 <!-- Pots Grid (6 Channels) -->
                 <section class="pots-section">
-                    <h2 class="section-title">Sensor Status</h2>
+                    <h2 class="section-title" data-i18n="section.sensorStatus">Sensor Status</h2>
                     <div class="pots-grid" id="pots-grid">
                         <div class="pot-card" id="pot-0"
                             style="--accent-color: #ff3b30; --glow-color: rgba(255, 59, 48, 0.4)">
@@ -88,7 +92,7 @@
                             </div>
                             <div class="pot-content">
                                 <h3 class="pot-name" id="pot-name-0">Rot</h3>
-                                <p class="pot-status" id="pot-status-0">Ready</p>
+                                <p class="pot-status" id="pot-status-0" data-i18n="pot.ready">Ready</p>
                             </div>
                         </div>
 
@@ -101,7 +105,7 @@
                             </div>
                             <div class="pot-content">
                                 <h3 class="pot-name" id="pot-name-1">Gelb</h3>
-                                <p class="pot-status" id="pot-status-1">Ready</p>
+                                <p class="pot-status" id="pot-status-1" data-i18n="pot.ready">Ready</p>
                             </div>
                         </div>
 
@@ -114,7 +118,7 @@
                             </div>
                             <div class="pot-content">
                                 <h3 class="pot-name" id="pot-name-2">Blau</h3>
-                                <p class="pot-status" id="pot-status-2">Ready</p>
+                                <p class="pot-status" id="pot-status-2" data-i18n="pot.ready">Ready</p>
                             </div>
                         </div>
 
@@ -127,7 +131,7 @@
                             </div>
                             <div class="pot-content">
                                 <h3 class="pot-name" id="pot-name-3">Grün</h3>
-                                <p class="pot-status" id="pot-status-3">Ready</p>
+                                <p class="pot-status" id="pot-status-3" data-i18n="pot.ready">Ready</p>
                             </div>
                         </div>
 
@@ -140,7 +144,7 @@
                             </div>
                             <div class="pot-content">
                                 <h3 class="pot-name" id="pot-name-4">Schwarz</h3>
-                                <p class="pot-status" id="pot-status-4">Ready</p>
+                                <p class="pot-status" id="pot-status-4" data-i18n="pot.ready">Ready</p>
                             </div>
                         </div>
                     </div>
@@ -149,22 +153,22 @@
                 <!-- Feedback & Settings Section -->
                 <section class="controls-section">
                     <div class="control-card">
-                        <h3>Feedback Options</h3>
+                        <h3 data-i18n="card.feedback">Feedback Options</h3>
                         <div class="switches-container">
                             <label class="select-label" for="audio-feedback-mode">
-                                <span class="switch-text">Audio Feedback</span>
+                                <span class="switch-text" data-i18n="audio.label">Audio Feedback</span>
                                 <select id="audio-feedback-mode" class="premium-select">
-                                    <option value="off">Off</option>
-                                    <option value="speech">Voice: Numbers</option>
-                                    <option value="names">Voice: Pot Names</option>
+                                    <option value="off" data-i18n="audio.off">Off</option>
+                                    <option value="speech" data-i18n="audio.numbers">Voice: Numbers</option>
+                                    <option value="names" data-i18n="audio.names">Voice: Pot Names</option>
                                 </select>
                             </label>
                             <label class="select-label" id="speech-voice-row" style="display: none; margin-top: 12px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 12px; width: 100%;">
-                                <span class="switch-text">Speech Voice</span>
+                                <span class="switch-text" data-i18n="audio.voice">Speech Voice</span>
                                 <select id="speech-voice-select" class="premium-select" style="max-width: 190px; text-overflow: ellipsis;"></select>
                             </label>
                             <label class="switch-label" style="margin-top: 12px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 12px; display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                                <span class="switch-text">Full Screen Alert</span>
+                                <span class="switch-text" data-i18n="fullscreen.label">Full Screen Alert</span>
                                 <div class="switch">
                                     <input type="checkbox" id="fullscreen-alert-switch">
                                     <span class="slider"></span>
@@ -174,27 +178,27 @@
                     </div>
 
                     <div class="control-card" style="margin-top: 12px;">
-                        <h3>Palette Settings</h3>
+                        <h3 data-i18n="card.paletteSettings">Palette Settings</h3>
                         <div class="switches-container">
                             <label class="switch-label">
-                                <span class="switch-text">Lock After Trigger</span>
+                                <span class="switch-text" data-i18n="lock.label">Lock After Trigger</span>
                                 <div class="switch">
                                     <input type="checkbox" id="lock-after-trigger-switch" checked>
                                     <span class="slider"></span>
                                 </div>
                             </label>
-                            <button id="reset-locks-btn" class="reset-locks-btn" disabled>Reset Locks</button>
-                            <button id="deep-sleep-btn" class="deep-sleep-btn" disabled>Turn Off (Deep Sleep)</button>
+                            <button id="reset-locks-btn" class="reset-locks-btn" disabled data-i18n="btn.resetLocks">Reset Locks</button>
+                            <button id="deep-sleep-btn" class="deep-sleep-btn" disabled data-i18n="btn.deepSleep">Turn Off (Deep Sleep)</button>
 
                             <div class="dial-row">
-                                <span class="setting-text">Auto Standby (Sleep)</span>
+                                <span class="setting-text" data-i18n="standby.label">Auto Standby (Sleep)</span>
                                 <div class="dial-wrapper">
                                     <div class="dial-knob-outer disabled" id="sleep-dial-knob">
                                         <div class="dial-knob-inner">
                                             <div class="dial-marker" id="sleep-dial-marker"></div>
                                             <div class="dial-value-container">
-                                                <span class="dial-value" id="dial-value-text">3h</span>
-                                                <span class="dial-subtext">standby</span>
+                                                <span class="dial-value" id="dial-value-text">4h</span>
+                                                <span class="dial-subtext" data-i18n="standby.sub">standby</span>
                                             </div>
                                         </div>
                                     </div>
@@ -203,7 +207,7 @@
 
                             <div class="slider-row" style="margin-top: 12px; border-top: none; padding-top: 0;">
                                 <div class="slider-header">
-                                    <span class="setting-text">Sensitivity (Threshold)</span>
+                                    <span class="setting-text" data-i18n="threshold.label">Sensitivity (Threshold)</span>
                                     <span id="threshold-val" class="slider-val">--</span>
                                 </div>
                                 <input type="range" id="threshold-slider" min="2" max="100" value="35"
@@ -216,11 +220,11 @@
                 <!-- Event Log Section -->
                 <section class="log-section">
                     <div class="log-header">
-                        <h2 class="section-title">Activity Log</h2>
-                        <button id="clear-log-btn" class="clear-btn">Clear</button>
+                        <h2 class="section-title" data-i18n="log.title">Activity Log</h2>
+                        <button id="clear-log-btn" class="clear-btn" data-i18n="log.clear">Clear</button>
                     </div>
                     <div class="log-container" id="log-container">
-                        <div class="log-placeholder">No events logged. Connect to the board to receive sensor readings.</div>
+                        <div class="log-placeholder" data-i18n="log.empty">No events logged. Connect to the board to receive sensor readings.</div>
                     </div>
                 </section>
             </div>
@@ -249,7 +253,7 @@
                             <div class="dice-meta">
                                 <div class="dice-value-row">
                                     <div class="dice-value" id="dice-value">&ndash;</div>
-                                    <span class="dice-moved-badge" id="dice-moved-badge" hidden>Moved</span>
+                                    <span class="dice-moved-badge" id="dice-moved-badge" hidden data-i18n="dice.moved">Moved</span>
                                 </div>
                                 <div class="dice-status" id="dice-status">Connect the receiver to see rolls.</div>
                                 <div class="dice-chips">
@@ -263,52 +267,52 @@
                                 </div>
                             </div>
                         </div>
-                        <button type="button" class="dice-blink-btn" id="dice-blink-btn" hidden>Blink Connected Die</button>
-                        <div class="dice-pattern" id="dice-pattern" aria-label="Vibration pattern"></div>
-                        <div class="dice-history" id="dice-history" aria-label="Recent rolls"></div>
+                        <button type="button" class="dice-blink-btn" id="dice-blink-btn" hidden data-i18n="dice.blink">Blink Connected Die</button>
+                        <div class="dice-pattern" id="dice-pattern" aria-label="Vibration pattern" data-i18n-aria="dice.patternAria"></div>
+                        <div class="dice-history" id="dice-history" aria-label="Recent rolls" data-i18n-aria="dice.historyAria"></div>
                     </div>
 
                     <!-- GoDice Settings Card -->
                     <div class="control-card" id="dice-settings-card" style="margin-top: 12px;">
-                        <h3>GoDice Settings</h3>
+                        <h3 data-i18n="diceSettings.title">GoDice Settings</h3>
                         <div class="switches-container">
                             <div class="seg-row">
-                                <span class="switch-text">Die Type</span>
-                                <div class="seg-control" id="die-type-seg" role="group" aria-label="Die type">
+                                <span class="switch-text" data-i18n="diceSettings.dieType">Die Type</span>
+                                <div class="seg-control" id="die-type-seg" role="group" aria-label="Die type" data-i18n-aria="diceSettings.dieTypeAria">
                                     <button type="button" data-value="0" disabled>Auto</button>
                                     <button type="button" data-value="6" disabled>D6</button>
                                     <button type="button" data-value="20" disabled>D20</button>
                                 </div>
                             </div>
                             <div class="seg-row">
-                                <span class="switch-text">D20 Pattern</span>
-                                <div class="seg-control" id="d20-code-seg" role="group" aria-label="D20 vibration pattern">
-                                    <button type="button" data-value="1" disabled>Tens + Ones</button>
-                                    <button type="button" data-value="0" disabled>Count</button>
+                                <span class="switch-text" data-i18n="diceSettings.d20Pattern">D20 Pattern</span>
+                                <div class="seg-control" id="d20-code-seg" role="group" aria-label="D20 vibration pattern" data-i18n-aria="diceSettings.d20PatternAria">
+                                    <button type="button" data-value="1" disabled data-i18n="diceSettings.tensOnes">Tens + Ones</button>
+                                    <button type="button" data-value="0" disabled data-i18n="diceSettings.count">Count</button>
                                 </div>
                             </div>
                             <div class="slider-row" style="margin-top: 4px;">
                                 <div class="slider-header">
-                                    <span class="setting-text">Proximity</span>
+                                    <span class="setting-text" data-i18n="diceSettings.proximity">Proximity</span>
                                     <span id="dice-rssi-val" class="slider-val">-- dBm</span>
                                 </div>
                                 <input type="range" id="dice-rssi-slider" min="-90" max="-40" step="1" value="-65"
                                     class="premium-slider" disabled>
-                                <div class="slider-hint"><span>far</span><span>only very close</span></div>
+                                <div class="slider-hint"><span data-i18n="diceSettings.far">far</span><span data-i18n="diceSettings.veryClose">only very close</span></div>
                             </div>
                             <div class="seg-row seg-divider">
-                                <span class="switch-text">D6 Moved, Not Rolled</span>
-                                <div class="seg-control" id="dice-move-seg" role="group" aria-label="What to do when the D6 is moved instead of rolled">
-                                    <button type="button" data-value="0" disabled>Ignore</button>
-                                    <button type="button" data-value="1" disabled>Count</button>
-                                    <button type="button" data-value="2" disabled>Signal</button>
+                                <span class="switch-text" data-i18n="diceSettings.moved">D6 Moved, Not Rolled</span>
+                                <div class="seg-control" id="dice-move-seg" role="group" aria-label="What to do when the D6 is moved instead of rolled" data-i18n-aria="diceSettings.movedAria">
+                                    <button type="button" data-value="0" disabled data-i18n="diceSettings.ignore">Ignore</button>
+                                    <button type="button" data-value="1" disabled data-i18n="diceSettings.count">Count</button>
+                                    <button type="button" data-value="2" disabled data-i18n="diceSettings.signal">Signal</button>
                                 </div>
                             </div>
                             <span class="setting-hint" id="dice-move-hint">Ignore: only real rolls count.</span>
                             <div class="move-signal-settings" id="move-signal-settings" hidden>
                                 <div class="slider-row" style="margin-top: 0;">
                                     <div class="slider-header">
-                                        <span class="setting-text">Signal Pulses</span>
+                                        <span class="setting-text" data-i18n="diceSettings.pulses">Signal Pulses</span>
                                         <span id="move-pulses-val" class="slider-val">3</span>
                                     </div>
                                     <input type="range" id="move-pulses-slider" min="1" max="5" step="1" value="3"
@@ -316,16 +320,16 @@
                                 </div>
                                 <div class="slider-row">
                                     <div class="slider-header">
-                                        <span class="setting-text">Signal Speed</span>
+                                        <span class="setting-text" data-i18n="diceSettings.speed">Signal Speed</span>
                                         <span id="move-ms-val" class="slider-val">60 ms</span>
                                     </div>
                                     <input type="range" id="move-ms-slider" min="30" max="200" step="10" value="60"
                                         class="premium-slider" disabled>
-                                    <div class="slider-hint"><span>very fast</span><span>slower</span></div>
+                                    <div class="slider-hint"><span data-i18n="diceSettings.veryFast">very fast</span><span data-i18n="diceSettings.slower">slower</span></div>
                                 </div>
                             </div>
                             <label class="switch-label">
-                                <span class="switch-text">Only This Die</span>
+                                <span class="switch-text" data-i18n="diceSettings.onlyThis">Only This Die</span>
                                 <div class="switch">
                                     <input type="checkbox" id="dice-bind-switch" disabled>
                                     <span class="slider"></span>
@@ -337,11 +341,11 @@
 
                     <!-- Vibration Config Card -->
                     <div class="control-card" style="margin-top: 12px;">
-                        <h3>Vibration Profile</h3>
+                        <h3 data-i18n="vib.title">Vibration Profile</h3>
                         <div class="switches-container">
                             <div class="slider-row">
                                 <div class="slider-header">
-                                    <span class="setting-text">Vibration Duration (ON)</span>
+                                    <span class="setting-text" data-i18n="vib.on">Vibration Duration (ON)</span>
                                     <span id="vibro-on-val" class="slider-val">-- ms</span>
                                 </div>
                                 <input type="range" id="vibro-on-slider" min="50" max="1000" step="10" value="250"
@@ -350,7 +354,7 @@
 
                             <div class="slider-row" style="margin-top: 16px; border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 16px;">
                                 <div class="slider-header">
-                                    <span class="setting-text">Pause Duration (OFF)</span>
+                                    <span class="setting-text" data-i18n="vib.off">Pause Duration (OFF)</span>
                                     <span id="vibro-off-val" class="slider-val">-- ms</span>
                                 </div>
                                 <input type="range" id="vibro-off-slider" min="50" max="1000" step="10" value="250"
@@ -361,25 +365,23 @@
 
                     <!-- Local Testing Card (UX Feature) -->
                     <div class="control-card" style="margin-top: 12px;">
-                        <h3>Test Vibration</h3>
+                        <h3 data-i18n="test.title">Test Vibration</h3>
                         <div class="switches-container">
-                            <span class="switch-text" style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4; display: block; margin-bottom: 4px;">
-                                Test the vibration pattern directly on the receiver to verify the settings.
-                            </span>
-                            <button id="test-vibro-btn" class="reset-locks-btn" style="margin-top: 4px;">Test Vibration Pattern on Receiver</button>
+                            <span class="switch-text" style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4; display: block; margin-bottom: 4px;" data-i18n="test.text">Test the vibration pattern directly on the receiver to verify the settings.</span>
+                            <button id="test-vibro-btn" class="reset-locks-btn" style="margin-top: 4px;" data-i18n="test.btn">Test Vibration Pattern on Receiver</button>
                         </div>
                     </div>
 
                     <!-- Receiver Status Info Card -->
                     <div class="control-card" style="margin-top: 12px;">
-                        <h3>Connection Info</h3>
+                        <h3 data-i18n="conn.title">Connection Info</h3>
                         <div class="switches-container" style="gap: 8px;">
                             <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; color: var(--text-secondary);">
-                                <span>Status:</span>
+                                <span data-i18n="conn.status">Status:</span>
                                 <span id="rx-status-text" style="font-weight: 600; color: var(--accent-disconnect);">Disconnected</span>
                             </div>
                             <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; color: var(--text-secondary); margin-top: 6px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 6px;">
-                                <span>Battery Level:</span>
+                                <span data-i18n="conn.battery">Battery Level:</span>
                                 <span id="rx-battery-text" style="font-weight: 600;">-- %</span>
                             </div>
                         </div>
@@ -392,13 +394,13 @@
         <div id="edit-modal" class="modal">
             <div class="modal-content glass">
                 <span class="close-modal-btn" onclick="closeEditModal()">&times;</span>
-                <h3>Configure Color</h3>
+                <h3 data-i18n="modal.title">Configure Color</h3>
                 <div class="form-group">
-                    <label for="modal-pot-name">Color Name:</label>
-                    <input type="text" id="modal-pot-name" placeholder="e.g. Red">
+                    <label for="modal-pot-name" data-i18n="modal.name">Color Name:</label>
+                    <input type="text" id="modal-pot-name" placeholder="e.g. Red" data-i18n-placeholder="modal.placeholder">
                 </div>
                 <div class="form-group">
-                    <label>Choose Color:</label>
+                    <label data-i18n="modal.choose">Choose Color:</label>
                     <div class="color-palette">
                         <button class="color-dot active" style="background-color: #ff3b30;" data-color="#ff3b30"
                             data-glow="rgba(255, 59, 48, 0.4)"></button>
@@ -414,7 +416,7 @@
                             data-glow="rgba(255, 255, 255, 0.15)"></button>
                     </div>
                 </div>
-                <button id="save-modal-btn" class="save-btn">Save</button>
+                <button id="save-modal-btn" class="save-btn" data-i18n="modal.save">Save</button>
             </div>
         </div>
 
@@ -430,10 +432,11 @@
     <!-- Full Screen Alert Overlay -->
     <div id="fullscreen-overlay" class="fullscreen-overlay">
         <span id="fullscreen-name">Pot Name</span>
-        <span id="fullscreen-moved" hidden>Moved, not rolled</span>
+        <span id="fullscreen-moved" hidden data-i18n="fs.moved">Moved, not rolled</span>
         <span id="fullscreen-reset-hint">Tap to Reset</span>
     </div>
 
+    <script src="i18n.js"></script>
     <script src="godice.js"></script>
     <script src="app.js"></script>
 </body>

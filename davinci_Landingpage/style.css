@@ -78,6 +78,37 @@ header {
     gap: 8px;
 }
 
+/* Sprachumschalter DE/EN in der Kopfzeile */
+.lang-switch {
+    display: inline-flex;
+    margin-left: auto;
+    border: 1px solid var(--panel-border);
+    border-radius: 999px;
+    overflow: hidden;
+}
+.lang-switch-btn {
+    font-family: var(--font-heading);
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    padding: 3px 9px;
+    background: transparent;
+    border: 0;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+.lang-switch-btn + .lang-switch-btn {
+    border-left: 1px solid var(--panel-border);
+}
+.lang-switch-btn.active {
+    background: var(--gold);
+    color: #1a1205;
+}
+.lang-switch-btn:focus-visible {
+    outline: 2px solid var(--gold-light);
+    outline-offset: -2px;
+}
+
 .logo-dot {
     width: 10px;
     height: 10px;
