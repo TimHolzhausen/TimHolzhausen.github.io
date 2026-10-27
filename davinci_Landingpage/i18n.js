@@ -155,6 +155,13 @@ const I18N = {
         'toast.dieForgotten': 'Die forgotten.',
         'toast.dieBlinking': 'The connected die is blinking.',
 
+        'error.unknown': 'unknown error',
+        'error.noBluetooth': 'This browser has no Bluetooth support. On iPhone, use Bluefy.',
+        'step.chooser': 'device selection',
+        'step.gatt': 'connecting',
+        'step.service': 'finding service',
+        'step.characteristic': 'reading values',
+        'step.notify': 'starting notifications',
         'speech.moved': 'moved',
     },
     de: {
@@ -308,6 +315,13 @@ const I18N = {
         'toast.dieForgotten': 'Würfel vergessen.',
         'toast.dieBlinking': 'Der verbundene Würfel blinkt.',
 
+        'error.unknown': 'unbekannter Fehler',
+        'error.noBluetooth': 'Dieser Browser kann kein Bluetooth. Auf dem iPhone bitte Bluefy nutzen.',
+        'step.chooser': 'Geräteauswahl',
+        'step.gatt': 'Verbindungsaufbau',
+        'step.service': 'Dienst suchen',
+        'step.characteristic': 'Werte lesen',
+        'step.notify': 'Benachrichtigungen starten',
         'speech.moved': 'bewegt',
     },
 };

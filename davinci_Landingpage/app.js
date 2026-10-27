@@ -1,21 +1,26 @@
+// 16-Bit-UUIDs als volle 128-Bit-Strings angeben: Chrome versteht beides, Bluefy (iOS) nicht zuverlässig
+function uuid16(short) {
+    return '0000' + short.toString(16).padStart(4, '0') + '-0000-1000-8000-00805f9b34fb';
+}
+
 // BLE UUID Constants for Palette (Sender)
-const SENSOR_SERVICE_UUID = 0x181a;       // Environmental Sensing
-const SENSOR_CHAR_UUID = 0x2a58;          // Analog State
-const SENSOR_CONFIG_UUID = 0x2a59;        // Lock/Reset Config State
-const SENSOR_THRESHOLD_UUID = 0x2a5a;     // Threshold Config State
-const SENSOR_VALUES_CHAR_UUID = 0x2a5b;    // Live Sensor values (6 slots * 2 bytes, slot 6 unused)
-const POT_COUNT = 5;                      // Farbtöpfe auf der Palette
-const SENSOR_TIMEOUT_CHAR_UUID = 0x2a5c;   // Standby Timeout (2 bytes in minutes)
-const BATTERY_SERVICE_UUID = 0x180f;     // Battery Service
-const BATTERY_CHAR_UUID = 0x2a19;        // Battery Level
+const SENSOR_SERVICE_UUID = uuid16(0x181a);       // Environmental Sensing
+const SENSOR_CHAR_UUID = uuid16(0x2a58);          // Analog State
+const SENSOR_CONFIG_UUID = uuid16(0x2a59);        // Lock/Reset Config State
+const SENSOR_THRESHOLD_UUID = uuid16(0x2a5a);     // Threshold Config State
+const SENSOR_VALUES_CHAR_UUID = uuid16(0x2a5b);   // Live Sensor values (6 slots * 2 bytes, slot 6 unused)
+const POT_COUNT = 5;                              // Farbtöpfe auf der Palette
+const SENSOR_TIMEOUT_CHAR_UUID = uuid16(0x2a5c);  // Standby Timeout (2 bytes in minutes)
+const BATTERY_SERVICE_UUID = uuid16(0x180f);      // Battery Service
+const BATTERY_CHAR_UUID = uuid16(0x2a19);         // Battery Level
 
 // BLE UUID Constants for Receiver
 const RX_CONFIG_SERVICE_UUID = 'e695d730-802c-4740-97eb-30f1d07c08d1';
 const RX_VIBRO_ON_CHAR_UUID = 'e695d731-802c-4740-97eb-30f1d07c08d1';
 const RX_VIBRO_OFF_CHAR_UUID = 'e695d732-802c-4740-97eb-30f1d07c08d1';
 const RX_VIBRO_TEST_CHAR_UUID = 'e695d733-802c-4740-97eb-30f1d07c08d1';
-const RX_BATTERY_SERVICE_UUID = 0x180f;
-const RX_BATTERY_CHAR_UUID = 0x2a19;
+const RX_BATTERY_SERVICE_UUID = uuid16(0x180f);
+const RX_BATTERY_CHAR_UUID = uuid16(0x2a19);
 
 // Palette State
 let senderDevice = null;
@@ -598,7 +603,7 @@ function setupEventListeners() {
                     showToast(lockSwitch.checked ? t('toast.lockOn') : t('toast.lockOff'));
                 } catch (err) {
                     console.error("Error sending lock status:", err);
-                    showToast(t('toast.writeError') + err.message);
+                    showToast(t('toast.writeError') + errorText(err));
                     // Reset UI checkbox
                     try {
                         const configVal = await senderConfigChar.readValue();
@@ -620,7 +625,7 @@ function setupEventListeners() {
                     showToast(t('toast.allChannelsUnlocked'));
                 } catch (err) {
                     console.error("Error sending unlock command:", err);
-                    showToast(t('toast.unlockError') + err.message);
+                    showToast(t('toast.unlockError') + errorText(err));
                 }
             } else {
                 showToast(t('toast.notConnected'));
@@ -637,7 +642,7 @@ function setupEventListeners() {
                             showToast(t('toast.powerOffSent'));
                         } catch (err) {
                             console.error("Error sending deep sleep command:", err);
-                            showToast(t('toast.powerOffError') + err.message);
+                            showToast(t('toast.powerOffError') + errorText(err));
                         }
                     }
                 } else {
@@ -690,7 +695,7 @@ function setupEventListeners() {
                             showToast(t('toast.standbySet', { label }));
                         } catch (err) {
                             console.error("Error writing standby timeout:", err);
-                            showToast(t('toast.writeError') + err.message);
+                            showToast(t('toast.writeError') + errorText(err));
                             // Reset to actual board value
                             try {
                                 const valData = await senderTimeoutChar.readValue();
@@ -733,7 +738,7 @@ function setupEventListeners() {
                     showToast(t('toast.thresholdSet', { val }));
                 } catch (err) {
                     console.error("Error sending threshold:", err);
-                    showToast(t('toast.writeError') + err.message);
+                    showToast(t('toast.writeError') + errorText(err));
                     // Reset slider
                     try {
                         const valData = await senderThresholdChar.readValue();
@@ -759,6 +764,24 @@ async function writeConfigValue(characteristic, value) {
     } else {
         await characteristic.writeValue(data);
     }
+}
+
+// Lesbarer Fehlertext, auch für Fehler ohne message (Bluefy) und für reine Strings
+function errorText(err) {
+    if (err === undefined || err === null) return t('error.unknown');
+    if (typeof err === 'string') return err;
+    const parts = [err.name, err.message].filter(p => p && String(p) !== 'undefined');
+    if (parts.length > 0) return parts.join(': ');
+    const plain = String(err);
+    return plain && plain !== '[object Object]' && plain !== 'undefined' ? plain : t('error.unknown');
+}
+
+// Schritt des Verbindungsaufbaus, damit die Fehlermeldung zeigt, wo es hakt
+let connectStep = '';
+
+function connectErrorText(err) {
+    const step = connectStep ? ` (${t('step.' + connectStep)})` : '';
+    return t('toast.connectionError') + errorText(err) + step;
 }
 
 // Toast Notification Helper
@@ -936,6 +959,8 @@ async function connectSenderBLE() {
 
     try {
         console.log("Searching for Sender BLE devices...");
+        connectStep = 'chooser';
+        if (!navigator.bluetooth) throw new Error(t('error.noBluetooth'));
         senderDevice = await navigator.bluetooth.requestDevice({
             filters: [
                 { services: [SENSOR_SERVICE_UUID] },
@@ -998,15 +1023,20 @@ async function connectSenderBLE() {
         }
 
         console.log("Connecting to GATT Server...");
+        connectStep = 'gatt';
         const server = await senderDevice.gatt.connect();
 
         // 1. Get Environmental Sensing Service (Sensors)
         console.log("Getting Sensor Service...");
+        connectStep = 'service';
         const sensorService = await server.getPrimaryService(SENSOR_SERVICE_UUID);
+        connectStep = 'characteristic';
         senderSensorChar = await sensorService.getCharacteristic(SENSOR_CHAR_UUID);
 
         // Start notifications for sensor characteristic
+        connectStep = 'notify';
         await senderSensorChar.startNotifications();
+        connectStep = '';
         senderSensorChar.addEventListener('characteristicvaluechanged', handleSensorNotification);
 
         // Get Configuration Characteristic
@@ -1095,7 +1125,7 @@ async function connectSenderBLE() {
 
     } catch (error) {
         console.error("BLE connection error:", error);
-        showToast(t('toast.connectionError') + error.message);
+        showToast(connectErrorText(error));
         resetSenderState();
     } finally {
         senderIsConnecting = false;
@@ -1341,6 +1371,8 @@ async function connectReceiverBLE() {
 
     try {
         console.log("Searching for Receiver BLE device...");
+        connectStep = 'chooser';
+        if (!navigator.bluetooth) throw new Error(t('error.noBluetooth'));
         receiverDevice = await navigator.bluetooth.requestDevice({
             filters: [
                 { name: 'Davinci_Receiver' },
@@ -1352,11 +1384,14 @@ async function connectReceiverBLE() {
         receiverDevice.addEventListener('gattserverdisconnected', onRxDisconnected);
 
         console.log("Connecting to Receiver GATT Server...");
+        connectStep = 'gatt';
         const server = await receiverDevice.gatt.connect();
 
         // 1. Get Config Service
         console.log("Getting Receiver Config Service...");
+        connectStep = 'service';
         const rxConfigService = await server.getPrimaryService(RX_CONFIG_SERVICE_UUID);
+        connectStep = '';
 
         // Get Vibro ON characteristic
         try {
@@ -1495,7 +1530,7 @@ async function connectReceiverBLE() {
 
     } catch (error) {
         console.error("Receiver BLE connection error:", error);
-        showToast(t('toast.connectionError') + error.message);
+        showToast(connectErrorText(error));
         resetRxState();
     } finally {
         receiverIsConnecting = false;
@@ -1919,7 +1954,7 @@ async function writeDiceSettings() {
         applyDiceSettings(await diceSettingsChar.readValue());
     } catch (err) {
         console.error("Error writing dice settings:", err);
-        showToast(t('toast.writeError') + err.message);
+        showToast(t('toast.writeError') + errorText(err));
     }
 }
 
@@ -1983,7 +2018,7 @@ function initReceiverControls() {
                 showToast(t('toast.vibroOnSet', { val }));
             } catch (err) {
                 console.error("Error writing Vibro ON duration:", err);
-                showToast(t('toast.writeError') + err.message);
+                showToast(t('toast.writeError') + errorText(err));
                 // Reset slider
                 try {
                     const valData = await rxVibroOnChar.readValue();
@@ -2014,7 +2049,7 @@ function initReceiverControls() {
                 showToast(t('toast.vibroOffSet', { val }));
             } catch (err) {
                 console.error("Error writing Vibro OFF duration:", err);
-                showToast(t('toast.writeError') + err.message);
+                showToast(t('toast.writeError') + errorText(err));
                 // Reset slider
                 try {
                     const valData = await rxVibroOffChar.readValue();
@@ -2037,7 +2072,7 @@ function initReceiverControls() {
                 showToast(t('toast.testSent'));
             } catch (err) {
                 console.error("Error writing Vibro TEST command:", err);
-                showToast(t('toast.sendFailed') + err.message);
+                showToast(t('toast.sendFailed') + errorText(err));
             }
         } else {
             showToast(t('toast.receiverNotConnected'));
@@ -2056,7 +2091,7 @@ function initReceiverControls() {
                 showToast(val === 0 ? t('toast.dieTypeAuto') : t('toast.dieType', { val }));
             } catch (err) {
                 console.error("Error writing GoDice die type:", err);
-                showToast(t('toast.writeError') + err.message);
+                showToast(t('toast.writeError') + errorText(err));
             }
         });
     }
@@ -2127,7 +2162,7 @@ function initReceiverControls() {
                 showToast(t('toast.dieBlinking'));
             } catch (err) {
                 console.error("Error sending blink command:", err);
-                showToast(t('toast.writeError') + err.message);
+                showToast(t('toast.writeError') + errorText(err));
             }
         });
     }

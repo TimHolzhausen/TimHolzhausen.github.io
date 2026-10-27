@@ -1,4 +1,4 @@
-const CACHE_NAME = 'davinci-v2-cache-v21';
+const CACHE_NAME = 'davinci-v2-cache-v22';
 const ASSETS = [
   './',
   './index.html',
