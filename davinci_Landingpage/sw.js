@@ -1,10 +1,11 @@
-const CACHE_NAME = 'davinci-v2-cache-v7';
+const CACHE_NAME = 'davinci-v2-cache-v19';
 const ASSETS = [
   './',
   './index.html',
   './app.html',
   './style.css',
   './app.js',
+  './godice.js',
   './manifest.json',
   './icon.svg',
   './fflate.js'

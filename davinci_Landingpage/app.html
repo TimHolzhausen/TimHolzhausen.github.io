@@ -132,28 +132,15 @@
                         </div>
 
                         <div class="pot-card" id="pot-4"
-                            style="--accent-color: #ffffff; --glow-color: rgba(255, 255, 255, 0.4)">
+                            style="--accent-color: #000000; --glow-color: rgba(255, 255, 255, 0.15)">
                             <div class="pot-header">
                                 <span class="pot-badge">5</span>
                                 <span class="pot-value-val" id="pot-value-4">--</span>
                                 <button class="edit-pot-btn" onclick="openEditModal(4)">⚙️</button>
                             </div>
                             <div class="pot-content">
-                                <h3 class="pot-name" id="pot-name-4">Weiß</h3>
+                                <h3 class="pot-name" id="pot-name-4">Schwarz</h3>
                                 <p class="pot-status" id="pot-status-4">Ready</p>
-                            </div>
-                        </div>
-
-                        <div class="pot-card" id="pot-5"
-                            style="--accent-color: #000000; --glow-color: rgba(255, 255, 255, 0.15)">
-                            <div class="pot-header">
-                                <span class="pot-badge">6</span>
-                                <span class="pot-value-val" id="pot-value-5">--</span>
-                                <button class="edit-pot-btn" onclick="openEditModal(5)">⚙️</button>
-                            </div>
-                            <div class="pot-content">
-                                <h3 class="pot-name" id="pot-name-5">Schwarz</h3>
-                                <p class="pot-status" id="pot-status-5">Ready</p>
                             </div>
                         </div>
                     </div>
@@ -241,8 +228,115 @@
             <!-- RECEIVER VIEW -->
             <div id="receiver-view" class="tab-content">
                 <section class="controls-section">
+                    <!-- GoDice Card: letzter Wurf des Würfels am Empfänger -->
+                    <div class="control-card dice-card" id="dice-card" data-state="offline">
+                        <div class="dice-card-head">
+                            <h3>GoDice</h3>
+                            <span class="dice-state-pill" id="dice-state-pill">Receiver offline</span>
+                        </div>
+                        <div class="dice-hero">
+                            <div class="dice-visual" id="dice-visual" aria-live="polite">
+                                <div class="die-d6" id="die-d6" data-face="0">
+                                    <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+                                </div>
+                                <svg class="die-d20" id="die-d20" viewBox="0 0 120 120" aria-hidden="true">
+                                    <polygon class="d20-outline" points="60,6 108,33 108,87 60,114 12,87 12,33"/>
+                                    <polygon class="d20-face" points="60,26 92,80 28,80"/>
+                                    <path class="d20-edges" d="M60,6 L60,26 M108,33 L92,80 M12,33 L28,80 M60,114 L28,80 M60,114 L92,80 M108,87 L92,80 M12,87 L28,80 M60,26 L108,33 M60,26 L12,33"/>
+                                    <text class="d20-number" id="die-d20-number" x="60" y="70" text-anchor="middle">20</text>
+                                </svg>
+                            </div>
+                            <div class="dice-meta">
+                                <div class="dice-value-row">
+                                    <div class="dice-value" id="dice-value">&ndash;</div>
+                                    <span class="dice-moved-badge" id="dice-moved-badge" hidden>Moved</span>
+                                </div>
+                                <div class="dice-status" id="dice-status">Connect the receiver to see rolls.</div>
+                                <div class="dice-chips">
+                                    <span class="dice-chip accent" id="dice-type-chip" hidden>D6</span>
+                                    <span class="dice-chip" id="dice-name-chip" hidden><i class="die-color-dot" id="die-color-dot"></i><span id="dice-name-text">GoDice</span></span>
+                                    <span class="dice-chip" id="dice-rssi-chip" hidden>
+                                        <span class="rssi-bars" id="dice-rssi-bars"><i></i><i></i><i></i><i></i></span>
+                                        <span id="dice-rssi-text">-- dBm</span>
+                                    </span>
+                                    <span class="dice-chip" id="dice-battery-chip" hidden>--%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="dice-blink-btn" id="dice-blink-btn" hidden>Blink Connected Die</button>
+                        <div class="dice-pattern" id="dice-pattern" aria-label="Vibration pattern"></div>
+                        <div class="dice-history" id="dice-history" aria-label="Recent rolls"></div>
+                    </div>
+
+                    <!-- GoDice Settings Card -->
+                    <div class="control-card" id="dice-settings-card" style="margin-top: 12px;">
+                        <h3>GoDice Settings</h3>
+                        <div class="switches-container">
+                            <div class="seg-row">
+                                <span class="switch-text">Die Type</span>
+                                <div class="seg-control" id="die-type-seg" role="group" aria-label="Die type">
+                                    <button type="button" data-value="0" disabled>Auto</button>
+                                    <button type="button" data-value="6" disabled>D6</button>
+                                    <button type="button" data-value="20" disabled>D20</button>
+                                </div>
+                            </div>
+                            <div class="seg-row">
+                                <span class="switch-text">D20 Pattern</span>
+                                <div class="seg-control" id="d20-code-seg" role="group" aria-label="D20 vibration pattern">
+                                    <button type="button" data-value="1" disabled>Tens + Ones</button>
+                                    <button type="button" data-value="0" disabled>Count</button>
+                                </div>
+                            </div>
+                            <div class="slider-row" style="margin-top: 4px;">
+                                <div class="slider-header">
+                                    <span class="setting-text">Proximity</span>
+                                    <span id="dice-rssi-val" class="slider-val">-- dBm</span>
+                                </div>
+                                <input type="range" id="dice-rssi-slider" min="-90" max="-40" step="1" value="-65"
+                                    class="premium-slider" disabled>
+                                <div class="slider-hint"><span>far</span><span>only very close</span></div>
+                            </div>
+                            <div class="seg-row seg-divider">
+                                <span class="switch-text">D6 Moved, Not Rolled</span>
+                                <div class="seg-control" id="dice-move-seg" role="group" aria-label="What to do when the D6 is moved instead of rolled">
+                                    <button type="button" data-value="0" disabled>Ignore</button>
+                                    <button type="button" data-value="1" disabled>Count</button>
+                                    <button type="button" data-value="2" disabled>Signal</button>
+                                </div>
+                            </div>
+                            <span class="setting-hint" id="dice-move-hint">Ignore: only real rolls count.</span>
+                            <div class="move-signal-settings" id="move-signal-settings" hidden>
+                                <div class="slider-row" style="margin-top: 0;">
+                                    <div class="slider-header">
+                                        <span class="setting-text">Signal Pulses</span>
+                                        <span id="move-pulses-val" class="slider-val">3</span>
+                                    </div>
+                                    <input type="range" id="move-pulses-slider" min="1" max="5" step="1" value="3"
+                                        class="premium-slider" disabled>
+                                </div>
+                                <div class="slider-row">
+                                    <div class="slider-header">
+                                        <span class="setting-text">Signal Speed</span>
+                                        <span id="move-ms-val" class="slider-val">60 ms</span>
+                                    </div>
+                                    <input type="range" id="move-ms-slider" min="30" max="200" step="10" value="60"
+                                        class="premium-slider" disabled>
+                                    <div class="slider-hint"><span>very fast</span><span>slower</span></div>
+                                </div>
+                            </div>
+                            <label class="switch-label">
+                                <span class="switch-text">Only This Die</span>
+                                <div class="switch">
+                                    <input type="checkbox" id="dice-bind-switch" disabled>
+                                    <span class="slider"></span>
+                                </div>
+                            </label>
+                            <span class="setting-hint" id="dice-bind-hint">Connect a GoDice to remember it.</span>
+                        </div>
+                    </div>
+
                     <!-- Vibration Config Card -->
-                    <div class="control-card">
+                    <div class="control-card" style="margin-top: 12px;">
                         <h3>Vibration Profile</h3>
                         <div class="switches-container">
                             <div class="slider-row">
@@ -336,9 +430,11 @@
     <!-- Full Screen Alert Overlay -->
     <div id="fullscreen-overlay" class="fullscreen-overlay">
         <span id="fullscreen-name">Pot Name</span>
+        <span id="fullscreen-moved" hidden>Moved, not rolled</span>
         <span id="fullscreen-reset-hint">Tap to Reset</span>
     </div>
 
+    <script src="godice.js"></script>
     <script src="app.js"></script>
 </body>
 
