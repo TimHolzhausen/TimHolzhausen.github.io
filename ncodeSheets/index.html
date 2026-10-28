@@ -229,50 +229,49 @@ dialog form { text-align: right; }
 dialog button { font: 600 .9rem var(--font-ui); background: var(--sheet); color: var(--ink); border: 0; border-radius: 8px; padding: 6px 12px; margin-bottom: 8px; cursor: pointer; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } html { scroll-behavior: auto; } }
 </style>
-<script data-goatcounter="https://ncodesheets.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 </head>
 <body>
 <div class="wrap">
 
 <header class="top">
   <a class="brand" href="#"><span class="brand-dot" aria-hidden="true"></span>Custom Sheets</a>
-  <nav aria-label="Sections">
-    <a href="#finder">Find your sheet</a>
-    <a href="#strengths">Dot strengths</a>
-    <a href="#all">All files</a>
-    <a href="../ncodeBusinessCardCreator/">Business cards</a>
-    <a href="#guide">Printing guide</a>
+  <nav aria-label="Sections" data-i18n-aria-label="nav.label">
+    <a href="#finder" data-i18n="nav.finder">Find your sheet</a>
+    <a href="#strengths" data-i18n="nav.strengths">Dot strengths</a>
+    <a href="#all" data-i18n="nav.all">All files</a>
+    <a href="../ncodeBusinessCardCreator/" data-i18n="nav.business">Business cards</a>
+    <a href="#guide" data-i18n="nav.guide">Printing guide</a>
   </nav>
 </header>
 
 <div class="hero">
   <div>
-    <p class="eyebrow">For the Ultra Sharpie app</p>
-    <h1>Print your own paper for the <span class="hl">Ultra&nbsp;Sharpie</span>.</h1>
-    <p class="lead">Blank, lined, grid and letter paper, small cards and business cards. Every sheet carries the same code as the sheets that came with the trick, so the app knows exactly where each page begins and ends.</p>
+    <p class="eyebrow" data-i18n="hero.eyebrow">For the Ultra Sharpie app</p>
+    <h1 data-i18n="hero.title">Print your own paper for the <span class="hl">Ultra&nbsp;Sharpie</span>.</h1>
+    <p class="lead" data-i18n="hero.lead">Blank, lined, grid and letter paper, small cards and business cards. Every sheet carries the same code as the sheets that came with the trick, so the app knows exactly where each page begins and ends.</p>
     <div class="ctas">
-      <a class="btn primary" href="#finder">Find the right sheet</a>
-      <a class="btn" href="#" data-file="test">Print test sheet <small>0.6 MB</small></a>
+      <a class="btn primary" href="#finder" data-i18n="hero.cta">Find the right sheet</a>
+      <a class="btn" href="#" data-file="test" data-i18n="hero.test">Print test sheet <small>0.6 MB</small></a>
     </div>
-    <p class="unofficial">A free community project, not an official product. All files are PDFs for printing at home or at a print shop.</p>
+    <p class="unofficial" data-i18n="hero.unofficial">A free community project, not an official product. All files are PDFs for printing at home or at a print shop.</p>
   </div>
   <div class="fan" aria-hidden="true">
     <img src="img/grid-s.webp" alt="" width="520" height="674">
     <img src="img/letter-s.webp" alt="" width="520" height="674">
     <img src="img/lined-s.webp" alt="" width="520" height="674">
     <div class="loupe"></div>
-    <span class="note-hand">the real dots, 3× zoom</span>
+    <span class="note-hand" data-i18n="hero.note">the real dots, 3× zoom</span>
   </div>
 </div>
 
 <div class="steps">
-  <div class="step"><span class="num">1</span><div><h3>Print the test sheet</h3><p>Measure two lines with a ruler and write in the box. It tells you whether your printer keeps the scale and whether the app reads the sheet.</p></div></div>
-  <div class="step"><span class="num">2</span><div><h3>Pick a dot strength</h3><p>Optional. The strength test puts normal, light and extra light on one sheet. Use the lightest one the app reads reliably.</p></div></div>
-  <div class="step"><span class="num">3</span><div><h3>Print your paper</h3><p>Always at 100 % / actual size. Never let the printer fit the page.</p></div></div>
+  <div class="step"><span class="num">1</span><div data-i18n="steps.1"><h3>Print the test sheet</h3><p>Measure two lines with a ruler and write in the box. It tells you whether your printer keeps the scale and whether the app reads the sheet.</p></div></div>
+  <div class="step"><span class="num">2</span><div data-i18n="steps.2"><h3>Pick a dot strength</h3><p>Optional. The strength test puts normal, light and extra light on one sheet. Use the lightest one the app reads reliably.</p></div></div>
+  <div class="step"><span class="num">3</span><div data-i18n="steps.3"><h3>Print your paper</h3><p>Always at 100 % / actual size. Never let the printer fit the page.</p></div></div>
 </div>
 
 <section id="finder">
-  <div class="section-head">
+  <div class="section-head" data-i18n="finder.head">
     <p class="eyebrow">Sheet finder</p>
     <h2>What would you like to print?</h2>
     <p>Answer a few questions and you get the one file you need, with the printing tips that matter for it.</p>
@@ -280,57 +279,57 @@ dialog button { font: 600 .9rem var(--font-ui); background: var(--sheet); color:
   <div class="finder">
     <div id="questions">
       <div class="q" id="q-kind">
-        <h3><span class="mono">1</span>What do you need?</h3>
+        <h3><span class="mono">1</span><span data-i18n="q.kind">What do you need?</span></h3>
         <div class="opts">
-          <label class="opt"><input type="radio" name="kind" value="paper"><span><b>Paper to write on</b><small>Full sheets: blank, lined, grid or letter paper</small></span></label>
-          <label class="opt"><input type="radio" name="kind" value="cards"><span><b>Small cards</b><small>The A6 and A7 cards from the trick, to cut yourself</small></span></label>
-          <label class="opt"><input type="radio" name="kind" value="business"><span><b>Business cards</b><small>Ncode on the back, 85 × 54 or 85 × 55 mm</small></span></label>
-          <label class="opt"><input type="radio" name="kind" value="test"><span><b>Test my printer</b><small>First time here? Start with this</small></span></label>
+          <label class="opt"><input type="radio" name="kind" value="paper"><span><b data-i18n="kind.paper">Paper to write on</b><small data-i18n="kind.paper.s">Full sheets: blank, lined, grid or letter paper</small></span></label>
+          <label class="opt"><input type="radio" name="kind" value="cards"><span><b data-i18n="kind.cards">Small cards</b><small data-i18n="kind.cards.s">The A6 and A7 cards from the trick, to cut yourself</small></span></label>
+          <label class="opt"><input type="radio" name="kind" value="business"><span><b data-i18n="kind.business">Business cards</b><small data-i18n="kind.business.s">Ncode on the back, 85 × 54 or 85 × 55 mm</small></span></label>
+          <label class="opt"><input type="radio" name="kind" value="test"><span><b data-i18n="kind.test">Test my printer</b><small data-i18n="kind.test.s">First time here? Start with this</small></span></label>
         </div>
       </div>
 
       <div class="q" id="q-paper" hidden>
-        <h3><span class="mono">2</span>Which kind of paper?</h3>
+        <h3><span class="mono">2</span><span data-i18n="q.paper">Which kind of paper?</span></h3>
         <div class="opts">
-          <label class="opt"><input type="radio" name="paper" value="blank-a4"><span><b>Blank</b><small>Plain, one page per sheet</small></span></label>
-          <label class="opt"><input type="radio" name="paper" value="lined"><span><b>Lined</b><small>8 mm ruling</small></span></label>
-          <label class="opt"><input type="radio" name="paper" value="grid"><span><b>Grid</b><small>5 mm squares</small></span></label>
-          <label class="opt"><input type="radio" name="paper" value="letter"><span><b>Letter paper</b><small>Decorated, needs colour printing</small></span></label>
+          <label class="opt"><input type="radio" name="paper" value="blank-a4"><span><b data-i18n="paper.blank">Blank</b><small data-i18n="paper.blank.s">Plain, one page per sheet</small></span></label>
+          <label class="opt"><input type="radio" name="paper" value="lined"><span><b data-i18n="paper.lined">Lined</b><small data-i18n="paper.lined.s">8 mm ruling</small></span></label>
+          <label class="opt"><input type="radio" name="paper" value="grid"><span><b data-i18n="paper.grid">Grid</b><small data-i18n="paper.grid.s">5 mm squares</small></span></label>
+          <label class="opt"><input type="radio" name="paper" value="letter"><span><b data-i18n="paper.letter">Letter paper</b><small data-i18n="paper.letter.s">Decorated, needs colour printing</small></span></label>
         </div>
       </div>
 
       <div class="q" id="q-cards" hidden>
-        <h3><span class="mono">2</span>Which card size?</h3>
+        <h3><span class="mono">2</span><span data-i18n="q.cards">Which card size?</span></h3>
         <div class="opts">
-          <label class="opt"><input type="radio" name="cards" value="blank-a6"><span><b>A6 cut</b><small>4 cards per sheet, 108 × 140 mm each</small></span></label>
-          <label class="opt"><input type="radio" name="cards" value="blank-a7"><span><b>A7 cut</b><small>8 cards per sheet, 108 × 70 mm each</small></span></label>
+          <label class="opt"><input type="radio" name="cards" value="blank-a6"><span><b data-i18n="cards.a6">A6 cut</b><small data-i18n="cards.a6.s">4 cards per sheet, 108 × 140 mm each</small></span></label>
+          <label class="opt"><input type="radio" name="cards" value="blank-a7"><span><b data-i18n="cards.a7">A7 cut</b><small data-i18n="cards.a7.s">8 cards per sheet, 108 × 70 mm each</small></span></label>
         </div>
       </div>
 
       <div class="q" id="q-business" hidden>
-        <h3><span class="mono">2</span>How do you make your cards?</h3>
+        <h3><span class="mono">2</span><span data-i18n="q.business">How do you make your cards?</span></h3>
         <div class="opts three">
-          <label class="opt"><input type="radio" name="business" value="cards-avery"><span><b>Perforated stock 85 × 54</b><small>Avery Zweckform C32011, C32026 and compatibles</small></span></label>
-          <label class="opt"><input type="radio" name="business" value="cards-sigel"><span><b>Perforated stock 85 × 55</b><small>Sigel and others. Check the size on your pack</small></span></label>
-          <label class="opt"><input type="radio" name="business" value="creator"><span><b>My own design</b><small>Upload a front image, cut with a paper cutter</small></span></label>
+          <label class="opt"><input type="radio" name="business" value="cards-avery"><span><b data-i18n="business.avery">Perforated stock 85 × 54</b><small data-i18n="business.avery.s">Avery Zweckform C32011, C32026 and compatibles</small></span></label>
+          <label class="opt"><input type="radio" name="business" value="cards-sigel"><span><b data-i18n="business.sigel">Perforated stock 85 × 55</b><small data-i18n="business.sigel.s">Sigel and others. Check the size on your pack</small></span></label>
+          <label class="opt"><input type="radio" name="business" value="creator"><span><b data-i18n="business.creator">My own design</b><small data-i18n="business.creator.s">Upload a front image, cut with a paper cutter</small></span></label>
         </div>
       </div>
 
       <div class="q" id="q-strength" hidden>
-        <h3><span class="mono">3</span>How visible may the dots be?</h3>
-        <p class="hint">All three carry the same code. Lighter dots are easier on the eye but depend more on your printer.</p>
+        <h3><span class="mono">3</span><span data-i18n="q.strength">How visible may the dots be?</span></h3>
+        <p class="hint" data-i18n="q.strength.hint">All three carry the same code. Lighter dots are easier on the eye but depend more on your printer.</p>
         <div class="opts three">
-          <label class="opt"><input type="radio" name="strength" value="normal"><span><img class="dots" src="img/dots-normal.png" alt=""><b>Normal</b><small>Same as the trick's sheets. The safe default</small></span></label>
-          <label class="opt"><input type="radio" name="strength" value="light"><span><img class="dots" src="img/dots-light.png" alt=""><b>Light</b><small>Half the toner. Tested on a colour laser</small></span></label>
-          <label class="opt"><input type="radio" name="strength" value="extralight"><span><img class="dots" src="img/dots-extralight.png" alt=""><b>Extra light <span class="tag">experimental</span></b><small>A third of the toner. Test first</small></span></label>
+          <label class="opt"><input type="radio" name="strength" value="normal"><span><img class="dots" src="img/dots-normal.png" alt=""><b data-i18n="strength.normal">Normal</b><small data-i18n="strength.normal.s">Same as the trick's sheets. The safe default</small></span></label>
+          <label class="opt"><input type="radio" name="strength" value="light"><span><img class="dots" src="img/dots-light.png" alt=""><b data-i18n="strength.light">Light</b><small data-i18n="strength.light.s">Half the toner. Tested on a colour laser</small></span></label>
+          <label class="opt"><input type="radio" name="strength" value="extralight"><span><img class="dots" src="img/dots-extralight.png" alt=""><b data-i18n="strength.extralight">Extra light <span class="tag">experimental</span></b><small data-i18n="strength.extralight.s">A third of the toner. Test first</small></span></label>
         </div>
       </div>
 
       <div class="q" id="q-size" hidden>
-        <h3><span class="mono">4</span>Which paper is in your printer?</h3>
+        <h3><span class="mono">4</span><span data-i18n="q.size">Which paper is in your printer?</span></h3>
         <div class="opts">
-          <label class="opt"><input type="radio" name="size" value="letter"><span><b>US Letter</b><small>216 × 279 mm. A near perfect fit</small></span></label>
-          <label class="opt"><input type="radio" name="size" value="a4"><span><b>A4</b><small>210 × 297 mm. Works too, with one setting to watch</small></span></label>
+          <label class="opt"><input type="radio" name="size" value="letter"><span><b>US Letter</b><small data-i18n="size.letter.s">216 × 279 mm. A near perfect fit</small></span></label>
+          <label class="opt"><input type="radio" name="size" value="a4"><span><b>A4</b><small data-i18n="size.a4.s">210 × 297 mm. Works too, with one setting to watch</small></span></label>
         </div>
       </div>
     </div>
@@ -342,39 +341,39 @@ dialog button { font: 600 .9rem var(--font-ui); background: var(--sheet); color:
 </section>
 
 <section id="strengths">
-  <div class="section-head">
+  <div class="section-head" data-i18n="strengths.head">
     <p class="eyebrow">Dot strengths</p>
     <h2>Normal, light or extra light</h2>
     <p>Every dot stays exactly where it is, only its size changes. The pen reads all three, as long as your printer puts the small dots down cleanly. Below: 6 × 6 mm of each, at 600 dpi.</p>
   </div>
   <div class="strengths">
     <div class="strength">
-      <figure><img src="img/dots-normal.png" alt="Normal dots, magnified" width="429" height="429"><figcaption><span>normal</span><span>9.3 % toner</span></figcaption></figure>
-      <h3>Normal</h3>
-      <p>Identical to the sheets that came with the trick. Use it unless you have a reason not to.</p>
+      <figure><img src="img/dots-normal.png" alt="Normal dots, magnified" data-i18n-alt="strengths.normal.alt" width="429" height="429"><figcaption data-i18n="strengths.normal.cap"><span>normal</span><span>9.3 % toner</span></figcaption></figure>
+      <div data-i18n="strengths.normal"><h3>Normal</h3>
+      <p>Identical to the sheets that came with the trick. Use it unless you have a reason not to.</p></div>
     </div>
     <div class="strength">
-      <figure><img src="img/dots-light.png" alt="Light dots, magnified" width="429" height="429"><figcaption><span>light</span><span>4.7 % toner</span></figcaption></figure>
-      <h3>Light</h3>
-      <p>Half the ink, the same way NeoLab makes its own lighter paper. Good when the pattern distracts or prints too dark.</p>
+      <figure><img src="img/dots-light.png" alt="Light dots, magnified" data-i18n-alt="strengths.light.alt" width="429" height="429"><figcaption data-i18n="strengths.light.cap"><span>light</span><span>4.7 % toner</span></figcaption></figure>
+      <div data-i18n="strengths.light"><h3>Light</h3>
+      <p>Half the ink, the same way NeoLab makes its own lighter paper. Good when the pattern distracts or prints too dark.</p></div>
     </div>
     <div class="strength">
-      <figure><img src="img/dots-extralight.png" alt="Extra light dots, magnified" width="429" height="429"><figcaption><span>extra light</span><span>3.1 % toner</span></figcaption></figure>
-      <h3>Extra light <span class="tag">experimental</span></h3>
-      <p>The least visible pattern. Works on a colour laser, untested on other printers. Run the strength test first.</p>
+      <figure><img src="img/dots-extralight.png" alt="Extra light dots, magnified" data-i18n-alt="strengths.extralight.alt" width="429" height="429"><figcaption data-i18n="strengths.extralight.cap"><span>extra light</span><span>3.1 % toner</span></figcaption></figure>
+      <div data-i18n="strengths.extralight"><h3>Extra light <span class="tag">experimental</span></h3>
+      <p>The least visible pattern. Works on a colour laser, untested on other printers. Run the strength test first.</p></div>
     </div>
   </div>
 </section>
 
 <section id="all">
-  <div class="section-head">
+  <div class="section-head" data-i18n="all.head">
     <p class="eyebrow">All files</p>
     <h2>Everything to download</h2>
     <p>216 × 280 mm sheets, ten per file, unless stated otherwise. Click a preview to see the full page.</p>
   </div>
   <div class="callout" role="note">
     <span class="icon" aria-hidden="true">!</span>
-    <div><b>These replace your sheets, they do not add to them.</b>
+    <div data-i18n="all.callout"><b>These replace your sheets, they do not add to them.</b>
       Print test, blank A4, lined, grid and letter paper carry the same ten codes as the A4 sheets from the trick. Sheet 3 of the lined paper and sheet 3 of the grid paper are the same page for the app. Use one kind at a time. The same goes for A6, A7 and the business cards.</div>
   </div>
   <div id="catalogue"></div>
@@ -382,31 +381,31 @@ dialog button { font: 600 .9rem var(--font-ui); background: var(--sheet); color:
 
 <section>
   <div class="teaser">
-    <div>
+    <div data-i18n="teaser.text">
       <p class="eyebrow" style="color:inherit;opacity:.7">Also here</p>
       <h2>Business cards with your own front</h2>
       <p>Upload an image, pick the dot strength, and get a print-ready sheet with bleed and crop marks for a paper cutter.</p>
     </div>
-    <a class="btn" href="../ncodeBusinessCardCreator/">Open the card creator</a>
+    <a class="btn" href="../ncodeBusinessCardCreator/" data-i18n="teaser.btn">Open the card creator</a>
   </div>
 </section>
 
 <section id="guide">
-  <div class="section-head">
+  <div class="section-head" data-i18n="guide.head">
     <p class="eyebrow">Printing guide</p>
     <h2>Get the dots onto the paper</h2>
     <p>The pen reads a pattern of tiny dots. Most printing problems come from the printer changing them on the way. These settings prevent that.</p>
   </div>
   <div class="tabs" role="tablist">
-    <button role="tab" aria-selected="true" aria-controls="p-home" id="t-home">At home</button>
-    <button role="tab" aria-selected="false" aria-controls="p-a4" id="t-a4">Printing on A4</button>
-    <button role="tab" aria-selected="false" aria-controls="p-printer" id="t-printer">Which printer</button>
-    <button role="tab" aria-selected="false" aria-controls="p-black" id="t-black">Why the black matters</button>
-    <button role="tab" aria-selected="false" aria-controls="p-shop" id="t-shop">Print shops</button>
-    <button role="tab" aria-selected="false" aria-controls="p-tested" id="t-tested">What has been tested</button>
+    <button role="tab" aria-selected="true" aria-controls="p-home" id="t-home" data-i18n="tab.home">At home</button>
+    <button role="tab" aria-selected="false" aria-controls="p-a4" id="t-a4" data-i18n="tab.a4">Printing on A4</button>
+    <button role="tab" aria-selected="false" aria-controls="p-printer" id="t-printer" data-i18n="tab.printer">Which printer</button>
+    <button role="tab" aria-selected="false" aria-controls="p-black" id="t-black" data-i18n="tab.black">Why the black matters</button>
+    <button role="tab" aria-selected="false" aria-controls="p-shop" id="t-shop" data-i18n="tab.shop">Print shops</button>
+    <button role="tab" aria-selected="false" aria-controls="p-tested" id="t-tested" data-i18n="tab.tested">What has been tested</button>
   </div>
 
-  <div class="panel" role="tabpanel" id="p-home" aria-labelledby="t-home">
+  <div class="panel" role="tabpanel" id="p-home" aria-labelledby="t-home" data-i18n="panel.home">
     <h3>In the PDF viewer</h3>
     <dl class="settings">
       <dt>Size</dt><dd>“Actual size” / 100 %</dd>
@@ -425,7 +424,7 @@ dialog button { font: 600 .9rem var(--font-ui); background: var(--sheet); color:
     <p>Letter paper has a colour design and needs colour mode. If your colour laser has an option like “Print black as K only” or “Pure black”, switch it on. With inkjet, let the sheet dry before writing on it.</p>
   </div>
 
-  <div class="panel" role="tabpanel" id="p-a4" aria-labelledby="t-a4" hidden>
+  <div class="panel" role="tabpanel" id="p-a4" aria-labelledby="t-a4" data-i18n="panel.a4" hidden>
     <p>The sheets are US Letter size, 216 × 280 mm. A4 is a little narrower and a little taller. You can print on A4 as long as nothing gets scaled.</p>
     <h3>Steps</h3>
     <p>1. Put A4 paper in the printer and choose A4 as the paper size.<br>
@@ -437,7 +436,7 @@ dialog button { font: 600 .9rem var(--font-ui); background: var(--sheet); color:
     <p><b>Never let the printer “fit” the page onto A4.</b> That shrinks it by about 3 % and the pen can no longer read the dots.</p>
   </div>
 
-  <div class="panel" role="tabpanel" id="p-printer" aria-labelledby="t-printer" hidden>
+  <div class="panel" role="tabpanel" id="p-printer" aria-labelledby="t-printer" data-i18n="panel.printer" hidden>
     <p>The dots have to reach the paper exactly as they are in the file. A PostScript driver hands the page over as it is in the PDF and the printer works it out itself. Simple drivers on many cheap printers (“GDI”, “host-based”) turn the page into a picture first and may resize, smooth or toner-save it on the way.</p>
     <div class="table-wrap"><table>
       <tr><th>Printer</th><th>Verdict</th></tr>
@@ -448,12 +447,12 @@ dialog button { font: 600 .9rem var(--font-ui); background: var(--sheet); color:
     <p style="margin-top:14px">Plenty of office and home lasers speak PostScript. Look for a driver called “PS”, “PS3”, “PostScript” or, on Kyocera, “KPDL”.</p>
   </div>
 
-  <div class="panel" role="tabpanel" id="p-black" aria-labelledby="t-black" hidden>
+  <div class="panel" role="tabpanel" id="p-black" aria-labelledby="t-black" data-i18n="panel.black" hidden>
     <p>The pen lights the paper with infrared light, and its camera only sees what swallows that light. Black toner or ink (the K in CMYK) does. Cyan, magenta and yellow let infrared through.</p>
     <p>Many colour printers build black out of cyan, magenta and yellow. It looks just as black to you, but to the pen the page is empty. So the dots must come out of the black cartridge. The files store them as pure greyscale black, which printers normally print with black only.</p>
   </div>
 
-  <div class="panel" role="tabpanel" id="p-shop" aria-labelledby="t-shop" hidden>
+  <div class="panel" role="tabpanel" id="p-shop" aria-labelledby="t-shop" data-i18n="panel.shop" hidden>
     <p>Having the sheets printed professionally? Pass this on.</p>
     <dl class="settings">
       <dt>Dot pattern</dt><dd>600 dpi, pure black and white, no grey levels, no anti-aliasing</dd>
@@ -466,7 +465,7 @@ dialog button { font: 600 .9rem var(--font-ui); background: var(--sheet); color:
     <p>Ask for one proof of the test sheet before a full run and check it with the pen and the app.</p>
   </div>
 
-  <div class="panel" role="tabpanel" id="p-tested" aria-labelledby="t-tested" hidden>
+  <div class="panel" role="tabpanel" id="p-tested" aria-labelledby="t-tested" data-i18n="panel.tested" hidden>
     <div class="table-wrap"><table>
       <tr><th>File</th><th>Status</th></tr>
       <tr><td>Print test</td><td class="ok">Works</td></tr>
@@ -482,62 +481,315 @@ dialog button { font: 600 .9rem var(--font-ui); background: var(--sheet); color:
   </div>
 </section>
 
-<footer>
+<footer data-i18n="footer">
   <span>The dot pattern and the letter paper design are NeoLab Convergence's work. The sheet layout follows the templates that came with the trick.</span>
   <span>Community project by Tim Holzhausen. Not affiliated with the makers of the trick or with NeoLab.</span>
-  <span>Visits and downloads are counted anonymously with <a href="https://www.goatcounter.com">GoatCounter</a>: no cookies, no personal data, nothing shared with third parties.</span>
 </footer>
 </div>
 
 <dialog id="lightbox">
-  <form method="dialog"><button>Close</button></form>
+  <form method="dialog"><button data-i18n="lightbox.close">Close</button></form>
   <img alt="" id="lightboxImg">
 </dialog>
 
 <script>
 "use strict";
+// ---------- Language ----------
+// German browsers get German, everyone else English. "?lang=de" / "?lang=en" overrides, for checking either version.
+const LANG = (() => {
+  const q = (new URLSearchParams(location.search).get("lang") || "").toLowerCase();
+  if (q === "de" || q === "en") return q;
+  const pref = (navigator.languages && navigator.languages[0]) || navigator.language || "";
+  return /^de(-|$)/i.test(pref) ? "de" : "en";
+})();
+const DE = LANG === "de";
+
+// German text for the static markup, keyed by data-i18n / data-i18n-alt / data-i18n-aria-label. The English stays in the HTML.
+const STATIC_DE = {
+  "meta.description": "Druckbares Ncode-Papier und Visitenkarten für die Ultra-Sharpie-App: Blanko-, Linien-, Karo- und Briefpapier, kleine Karten und Visitenkarten in drei Punktstärken.",
+  "nav.label": "Bereiche",
+  "nav.finder": "Bogen finden",
+  "nav.strengths": "Punktstärken",
+  "nav.all": "Alle Dateien",
+  "nav.business": "Visitenkarten",
+  "nav.guide": "Druckanleitung",
+  "hero.eyebrow": "Für die Ultra-Sharpie-App",
+  "hero.title": `Drucke dir eigenes Papier für den <span class="hl">Ultra&nbsp;Sharpie</span>.`,
+  "hero.lead": "Blanko-, Linien-, Karo- und Briefpapier, kleine Karten und Visitenkarten. Jeder Bogen trägt denselben Code wie die Bögen, die dem Trick beiliegen. So weiß die App genau, wo jede Seite beginnt und endet.",
+  "hero.cta": "Den passenden Bogen finden",
+  "hero.test": "Testbogen drucken <small>0,6 MB</small>",
+  "hero.unofficial": "Ein kostenloses Community-Projekt, kein offizielles Produkt. Alle Dateien sind PDFs zum Drucken zu Hause oder im Copyshop.",
+  "hero.note": "die echten Punkte, 3× vergrößert",
+  "steps.1": "<h3>Testbogen drucken</h3><p>Miss zwei Linien mit dem Lineal nach und schreibe etwas in das Feld. So siehst du, ob dein Drucker maßstabsgetreu druckt und ob die App den Bogen erkennt.</p>",
+  "steps.2": "<h3>Punktstärke wählen</h3><p>Optional. Der Punktstärken-Test bringt Normal, Hell und Extrahell auf einen Bogen. Nimm die hellste Stufe, die die App noch zuverlässig liest.</p>",
+  "steps.3": "<h3>Papier drucken</h3><p>Immer mit 100 % bzw. in tatsächlicher Größe. Lass den Drucker die Seite nie anpassen.</p>",
+  "finder.head": `<p class="eyebrow">Bogenfinder</p>
+    <h2>Was möchtest du drucken?</h2>
+    <p>Beantworte ein paar Fragen und du bekommst genau die Datei, die du brauchst, samt den Drucktipps, auf die es dabei ankommt.</p>`,
+  "q.kind": "Was brauchst du?",
+  "kind.paper": "Papier zum Schreiben",
+  "kind.paper.s": "Ganze Bögen: blanko, liniert, kariert oder Briefpapier",
+  "kind.cards": "Kleine Karten",
+  "kind.cards.s": "Die A6- und A7-Karten aus dem Trick, zum Selbstzuschneiden",
+  "kind.business": "Visitenkarten",
+  "kind.business.s": "Ncode auf der Rückseite, 85 × 54 oder 85 × 55 mm",
+  "kind.test": "Drucker testen",
+  "kind.test.s": "Zum ersten Mal hier? Beginne hiermit",
+  "q.paper": "Welches Papier?",
+  "paper.blank": "Blanko",
+  "paper.blank.s": "Ohne Linien, eine Seite pro Bogen",
+  "paper.lined": "Liniert",
+  "paper.lined.s": "Zeilenabstand 8 mm",
+  "paper.grid": "Kariert",
+  "paper.grid.s": "5-mm-Kästchen",
+  "paper.letter": "Briefpapier",
+  "paper.letter.s": "Verziert, braucht Farbdruck",
+  "q.cards": "Welche Kartengröße?",
+  "cards.a6": "A6-Zuschnitt",
+  "cards.a6.s": "4 Karten pro Bogen, je 108 × 140 mm",
+  "cards.a7": "A7-Zuschnitt",
+  "cards.a7.s": "8 Karten pro Bogen, je 108 × 70 mm",
+  "q.business": "Wie stellst du deine Karten her?",
+  "business.avery": "Perforierte Bögen 85 × 54",
+  "business.avery.s": "Avery Zweckform C32011, C32026 und kompatible Bögen",
+  "business.sigel": "Perforierte Bögen 85 × 55",
+  "business.sigel.s": "Sigel und andere. Prüfe die Größe auf der Packung",
+  "business.creator": "Eigenes Design",
+  "business.creator.s": "Vorderseite als Bild hochladen, mit dem Schneidegerät zuschneiden",
+  "q.strength": "Wie sichtbar dürfen die Punkte sein?",
+  "q.strength.hint": "Alle drei tragen denselben Code. Hellere Punkte fallen weniger auf, hängen aber stärker von deinem Drucker ab.",
+  "strength.normal": "Normal",
+  "strength.normal.s": "Wie die Bögen aus dem Trick. Die sichere Wahl",
+  "strength.light": "Hell",
+  "strength.light.s": "Halb so viel Toner. Auf einem Farblaser getestet",
+  "strength.extralight": `Extrahell <span class="tag">experimentell</span>`,
+  "strength.extralight.s": "Ein Drittel des Toners. Vorher testen",
+  "q.size": "Welches Papier liegt in deinem Drucker?",
+  "size.letter.s": "216 × 279 mm. Passt fast genau",
+  "size.a4.s": "210 × 297 mm. Geht auch, mit einer Einstellung, auf die du achten musst",
+  "strengths.head": `<p class="eyebrow">Punktstärken</p>
+    <h2>Normal, hell oder extrahell</h2>
+    <p>Jeder Punkt bleibt genau an seiner Stelle, nur seine Größe ändert sich. Der Stift liest alle drei, solange dein Drucker die kleinen Punkte sauber aufs Papier bringt. Unten jeweils ein Ausschnitt von 6 × 6 mm bei 600 dpi.</p>`,
+  "strengths.normal.alt": "Normale Punkte, vergrößert",
+  "strengths.normal.cap": "<span>normal</span><span>9,3 % Toner</span>",
+  "strengths.normal": "<h3>Normal</h3><p>Identisch mit den Bögen, die dem Trick beiliegen. Nimm diese Stufe, solange nichts dagegen spricht.</p>",
+  "strengths.light.alt": "Helle Punkte, vergrößert",
+  "strengths.light.cap": "<span>hell</span><span>4,7 % Toner</span>",
+  "strengths.light": "<h3>Hell</h3><p>Halb so viel Tinte – so macht NeoLab auch sein eigenes, helleres Papier. Gut, wenn das Muster stört oder zu dunkel gedruckt wird.</p>",
+  "strengths.extralight.alt": "Extrahelle Punkte, vergrößert",
+  "strengths.extralight.cap": "<span>extrahell</span><span>3,1 % Toner</span>",
+  "strengths.extralight": `<h3>Extrahell <span class="tag">experimentell</span></h3><p>Das unauffälligste Muster. Funktioniert auf einem Farblaser, auf anderen Druckern noch ungetestet. Drucke zuerst den Punktstärken-Test.</p>`,
+  "all.head": `<p class="eyebrow">Alle Dateien</p>
+    <h2>Alles zum Herunterladen</h2>
+    <p>Bögen im Format 216 × 280 mm, zehn pro Datei, sofern nicht anders angegeben. Klicke auf eine Vorschau, um die ganze Seite zu sehen.</p>`,
+  "all.callout": "<b>Diese Bögen ersetzen deine vorhandenen, sie kommen nicht zusätzlich hinzu.</b> Drucktest, Blanko A4, Linien-, Karo- und Briefpapier tragen dieselben zehn Codes wie die A4-Bögen aus dem Trick. Bogen 3 des linierten und Bogen 3 des karierten Papiers sind für die App dieselbe Seite. Verwende immer nur eine Sorte auf einmal. Dasselbe gilt für A6, A7 und die Visitenkarten.",
+  "teaser.text": `<p class="eyebrow" style="color:inherit;opacity:.7">Ebenfalls hier</p>
+      <h2>Visitenkarten mit eigener Vorderseite</h2>
+      <p>Lade ein Bild hoch, wähle die Punktstärke und du erhältst einen druckfertigen Bogen mit Beschnitt und Schnittmarken für das Schneidegerät.</p>`,
+  "teaser.btn": "Kartengestalter öffnen",
+  "guide.head": `<p class="eyebrow">Druckanleitung</p>
+    <h2>So kommen die Punkte aufs Papier</h2>
+    <p>Der Stift liest ein Muster aus winzigen Punkten. Die meisten Druckprobleme entstehen, weil der Drucker sie auf dem Weg dorthin verändert. Diese Einstellungen verhindern das.</p>`,
+  "tab.home": "Zu Hause",
+  "tab.a4": "Auf A4 drucken",
+  "tab.printer": "Welcher Drucker",
+  "tab.black": "Warum es auf Schwarz ankommt",
+  "tab.shop": "Druckereien",
+  "tab.tested": "Was getestet wurde",
+  "panel.home": `<h3>Im PDF-Programm</h3>
+    <dl class="settings">
+      <dt>Größe</dt><dd>„Tatsächliche Größe“ bzw. 100 %</dd>
+      <dt>Papier</dt><dd>US Letter oder A4 (siehe „Auf A4 drucken“). Visitenkarten: A4.</dd>
+      <dt>Niemals</dt><dd>An Seite anpassen, übergroße Seiten verkleinern, randlos, mehrere Seiten pro Blatt, Broschüre</dd>
+    </dl>
+    <h3>In den Druckereinstellungen</h3>
+    <dl class="settings">
+      <dt>Treiber</dt><dd>Den PostScript-Treiber, falls du die Wahl hast („PS“, „PS3“, „KPDL“)</dd>
+      <dt>Farbe</dt><dd>„Nur schwarze Tinte“ oder „Graustufen“. Nicht „Graustufen in hoher Qualität“, das mischt Grau aus allen Farben.</dd>
+      <dt>Qualität</dt><dd>Die höchste Stufe. 600 oder 1200 dpi, wenn du wählen kannst.</dd>
+      <dt>Tonersparmodus</dt><dd>Aus. Er druckt die Punkte zu blass oder lückenhaft.</dd>
+      <dt>Optimierungen</dt><dd>Aus. Kantenglättung, Fotooptimierung und Schärfen verändern allesamt die Punkte.</dd>
+      <dt>Papiersorte</dt><dd>Normalpapier, möglichst glatt und weiß.</dd>
+    </dl>
+    <p>Briefpapier hat ein farbiges Design und braucht den Farbmodus. Wenn dein Farblaser eine Option wie „Schwarz nur mit K drucken“ oder „Reines Schwarz“ hat, schalte sie ein. Beim Tintenstrahldrucker lass den Bogen trocknen, bevor du darauf schreibst.</p>`,
+  "panel.a4": `<p>Die Bögen haben das Format US Letter, 216 × 280 mm. A4 ist etwas schmaler und etwas höher. Du kannst auf A4 drucken, solange nichts skaliert wird.</p>
+    <h3>Schritte</h3>
+    <p>1. Lege A4-Papier in den Drucker und wähle A4 als Papierformat.<br>
+       2. Stelle die Größe auf „Tatsächliche Größe“ bzw. 100 %. Im Adobe Reader das Häkchen bei „Papierquelle anhand der PDF-Seitengröße auswählen“ entfernen. In Chrome oder Edge „Skalierung“ auf „Benutzerdefiniert“ und 100 setzen. In der Vorschau auf dem Mac 100 % einstellen und das Einpassen auf die Seite abwählen.<br>
+       3. Meldet der Drucker, dass das Papierformat nicht passt, lass ihn mit A4 weiterdrucken.<br>
+       4. Drucke den Testbogen und miss nach: 150 mm in der Breite, 178 bis 182 mm in der Höhe.</p>
+    <h3>Das Ergebnis</h3>
+    <p>Die Seite liegt mittig auf dem A4-Bogen. Links und rechts werden jeweils etwa 3 mm Punkte abgeschnitten, vom Design geht nichts verloren. Oben und unten bleibt ein weißer Streifen von etwa 8 mm. Die App sieht nicht das Papier, sondern nur die Punkte, deshalb ist das kein Problem. Schreibe nur nicht ganz am Rand.</p>
+    <p><b>Lass den Drucker die Seite nie auf A4 „anpassen“.</b> Dabei wird sie um etwa 3 % verkleinert, und der Stift kann die Punkte nicht mehr lesen.</p>`,
+  "panel.printer": `<p>Die Punkte müssen genau so aufs Papier kommen, wie sie in der Datei stehen. Ein PostScript-Treiber übergibt die Seite so, wie sie im PDF steht, und der Drucker berechnet sie selbst. Einfache Treiber vieler günstiger Drucker („GDI“, „hostbasiert“) wandeln die Seite zuerst in ein Bild um und können sie dabei skalieren, glätten oder beim Tonersparen ausdünnen.</p>
+    <div class="table-wrap"><table>
+      <tr><th>Drucker</th><th>Bewertung</th></tr>
+      <tr><td>Laser mit PostScript</td><td class="ok">Beste Wahl</td></tr>
+      <tr><td>Laser ohne PostScript</td><td>Kann funktionieren. Mit dem Testbogen prüfen</td></tr>
+      <tr><td>Tintenstrahl</td><td>Am wenigsten zuverlässig. Vor einem ganzen Stapel testen</td></tr>
+    </table></div>
+    <p style="margin-top:14px">Viele Büro- und Heimlaser beherrschen PostScript. Suche nach einem Treiber namens „PS“, „PS3“, „PostScript“ oder bei Kyocera „KPDL“.</p>`,
+  "panel.black": `<p>Der Stift beleuchtet das Papier mit Infrarotlicht, und seine Kamera sieht nur, was dieses Licht schluckt. Schwarzer Toner bzw. schwarze Tinte (das K in CMYK) tut das. Cyan, Magenta und Gelb lassen Infrarot durch.</p>
+    <p>Viele Farbdrucker mischen Schwarz aus Cyan, Magenta und Gelb. Für dich sieht das genauso schwarz aus, für den Stift ist die Seite aber leer. Die Punkte müssen also aus der Schwarzpatrone kommen. Die Dateien speichern sie als reines Graustufen-Schwarz, das Drucker normalerweise nur mit Schwarz drucken.</p>`,
+  "panel.shop": `<p>Lässt du die Bögen professionell drucken? Gib diese Angaben weiter.</p>
+    <dl class="settings">
+      <dt>Punktmuster</dt><dd>600 dpi, reines Schwarzweiß, keine Graustufen, kein Anti-Aliasing</dd>
+      <dt>Workflow</dt><dd>PostScript- bzw. PDF-Workflow, kein Bürotreiber, der auf dem Rechner rastert</dd>
+      <dt>Seitenformat</dt><dd>216 × 280 mm, Visitenkarten auf A4</dd>
+      <dt>Farbe</dt><dd>Nur reines Schwarz (K), niemals Tiefschwarz oder Vierfarbschwarz. Nicht in CMYK-Prozessschwarz umwandeln.</dd>
+      <dt>Auflösung</dt><dd>600 oder 1200 dpi an der Maschine</dd>
+      <dt>Bitte nicht</dt><dd>Nicht skalieren, keinen Beschnitt hinzufügen, nicht neu rastern, keine Bildoptimierung</dd>
+    </dl>
+    <p>Lass dir vor der eigentlichen Auflage einen Probedruck des Testbogens machen und prüfe ihn mit Stift und App.</p>`,
+  "panel.tested": `<div class="table-wrap"><table>
+      <tr><th>Datei</th><th>Status</th></tr>
+      <tr><td>Drucktest</td><td class="ok">Funktioniert</td></tr>
+      <tr><td>Helle Bögen</td><td class="ok">Funktioniert</td></tr>
+      <tr><td>Helle Visitenkarten, Avery 85 × 54</td><td class="ok">Funktioniert</td></tr>
+      <tr><td>Extrahell (Punktstärken-Test)</td><td class="ok">Funktioniert</td></tr>
+      <tr><td>Normale Bögen und Karten</td><td>Noch nicht getestet. Dieselben Punkte wie auf den Bögen aus dem Trick</td></tr>
+      <tr><td>Sigel-Karten 85 × 55</td><td>Noch nicht getestet</td></tr>
+      <tr><td>Extrahell auf anderen Druckern</td><td>Noch nicht getestet</td></tr>
+    </table></div>
+    <p style="margin-top:14px">Alle Tests auf einem Farblaser (Kyocera ECOSYS M5521cdw); die App hat die Schrift jedes Mal auf einer einzigen Seite angezeigt. Hast du sie auf deinem Drucker ausprobiert? Berichte gern, wie es lief und welchen Drucker du verwendet hast.</p>
+    <p>Bei manchen Druckern ist eine dünne Linie quer durch das Muster zu sehen. Etwa alle 70 mm hat das Muster eine leicht abweichende Zeile; die gibt es auch auf den Originalbögen, und sie stört den Stift nicht.</p>`,
+  "footer": `<span>Das Punktmuster und das Design des Briefpapiers stammen von NeoLab Convergence. Das Bogenlayout folgt den Vorlagen, die dem Trick beiliegen.</span>
+  <span>Ein Community-Projekt von Tim Holzhausen. Keine Verbindung zu den Herstellern des Tricks oder zu NeoLab.</span>`,
+  "lightbox.close": "Schließen",
+};
+function applyStaticLanguage() {
+  document.documentElement.lang = LANG;
+  if (!DE) return;
+  document.querySelector('meta[name="description"]').content = STATIC_DE["meta.description"];
+  // a key without German text keeps its English
+  const de = (key, set) => { if (STATIC_DE[key] !== undefined) set(STATIC_DE[key]); };
+  document.querySelectorAll("[data-i18n]").forEach((el) => de(el.dataset.i18n, (t) => { el.innerHTML = t; }));
+  document.querySelectorAll("[data-i18n-alt]").forEach((el) => de(el.dataset.i18nAlt, (t) => { el.alt = t; }));
+  document.querySelectorAll("[data-i18n-aria-label]").forEach((el) => de(el.dataset.i18nAriaLabel, (t) => el.setAttribute("aria-label", t)));
+}
+applyStaticLanguage();
+
 // ---------- Files ----------
 const BASE = "files/";
 const S = "normal", L = "light", X = "extralight";
-const STRENGTH_NAME = { normal: "Normal", light: "Light", extralight: "Extra light" };
+const STRENGTH_NAME = DE ? { normal: "Normal", light: "Hell", extralight: "Extrahell" } : { normal: "Normal", light: "Light", extralight: "Extra light" };
+const GROUP_NAME = DE ? { "Start here": "Hier beginnen", "Paper": "Papier", "Small cards": "Kleine Karten", "Business cards": "Visitenkarten" } : {};
+// title/spec/desc/flaw are English; "de" holds the German versions.
 const ITEMS = {
   "test": { title: "Print Test", group: "Start here", img: "print-test", spec: "1 sheet · 216 × 280 mm",
     desc: "Two lines to measure and a box to write in. Print this first.",
+    de: { title: "Drucktest", spec: "1 Bogen · 216 × 280 mm", desc: "Zwei Linien zum Nachmessen und ein Feld zum Hineinschreiben. Drucke diesen Bogen zuerst." },
     files: { [S]: ["Ncode Print Test - 216x280mm.pdf", 0.6] } },
   "strength-test": { title: "Dot Strength Test", group: "Start here", img: "strength-test", spec: "1 sheet · 216 × 280 mm",
     desc: "Normal, light and extra light on one sheet. Write in each field and check the app.",
+    de: { title: "Punktstärken-Test", spec: "1 Bogen · 216 × 280 mm", desc: "Normal, hell und extrahell auf einem Bogen. Schreibe in jedes Feld und prüfe das Ergebnis in der App." },
     files: { [S]: ["Dot Strength Test - 216x280mm.pdf", 2.4] } },
   "blank-a4": { title: "Blank A4", group: "Paper", img: "blank-a4", spec: "10 sheets · 216 × 280 mm · one page each",
     desc: "Plain paper. “A4” names the cut of the original sheets, not the paper size. Normal is the original file from the trick.",
+    de: { title: "Blanko A4", spec: "10 Bögen · 216 × 280 mm · je eine Seite", desc: "Papier ohne Linien. „A4“ bezeichnet den Zuschnitt der Originalbögen, nicht das Papierformat. „Normal“ ist die Originaldatei aus dem Trick." },
     files: { [S]: ["Ultra Pen Sheets/10 Sheets A4 - 210 mm x 297 mm.pdf", 5.7], [L]: ["Blank A4 - 216x280mm - 10 sheets - light.pdf", 10.9], [X]: ["Blank A4 - 216x280mm - 10 sheets - extra light.pdf", 6.5] } },
   "lined": { title: "Lined", group: "Paper", img: "lined", spec: "10 sheets · 216 × 280 mm · 8 mm ruling",
     desc: "Ruled paper for longer writing.",
+    de: { title: "Liniert", spec: "10 Bögen · 216 × 280 mm · Zeilenabstand 8 mm", desc: "Liniertes Papier für längere Texte." },
     files: { [S]: ["Lined - 216x280mm - 10 sheets.pdf", 5.7], [L]: ["Lined - 216x280mm - 10 sheets - light.pdf", 10.9], [X]: ["Lined - 216x280mm - 10 sheets - extra light.pdf", 6.5] } },
   "grid": { title: "Grid", group: "Paper", img: "grid", spec: "10 sheets · 216 × 280 mm · 5 mm squares",
     desc: "Squared paper for drawings and numbers.",
+    de: { title: "Kariert", spec: "10 Bögen · 216 × 280 mm · 5-mm-Kästchen", desc: "Kariertes Papier für Skizzen und Zahlen." },
     files: { [S]: ["Grid - 216x280mm - 10 sheets.pdf", 5.7], [L]: ["Grid - 216x280mm - 10 sheets - light.pdf", 11.0], [X]: ["Grid - 216x280mm - 10 sheets - extra light.pdf", 6.5] } },
   "letter": { title: "Letter Paper", group: "Paper", img: "letter", spec: "10 sheets · 216 × 280 mm · colour",
     desc: "Decorated writing paper. Needs colour printing; test one sheet first.",
+    de: { title: "Briefpapier", spec: "10 Bögen · 216 × 280 mm · farbig", desc: "Verziertes Schreibpapier. Braucht Farbdruck; teste zuerst einen Bogen." },
     files: { [S]: ["Letter Paper - 216x280mm - 10 sheets.pdf", 19.7], [L]: ["Letter Paper - 216x280mm - 10 sheets - light.pdf", 26.9], [X]: ["Letter Paper - 216x280mm - 10 sheets - extra light.pdf", 3.2] } },
   "blank-a6": { title: "Blank A6 cards", group: "Small cards", img: "blank-a6", spec: "10 sheets · 4 cards each · 108 × 140 mm",
     desc: "Cut along the printed lines. Normal is the original file from the trick.",
+    de: { title: "Blanko-Karten A6", spec: "10 Bögen · je 4 Karten · 108 × 140 mm", desc: "Entlang der gedruckten Linien zuschneiden. „Normal“ ist die Originaldatei aus dem Trick." },
     files: { [S]: ["Ultra Pen Sheets/10 Sheets A6 - 105 mm x 148 mm.pdf", 5.9], [L]: ["Blank A6 - 216x280mm - 10 sheets - light.pdf", 11.3], [X]: ["Blank A6 - 216x280mm - 10 sheets - extra light.pdf", 6.7] } },
   "blank-a7": { title: "Blank A7 cards", group: "Small cards", img: "blank-a7", spec: "10 sheets · 8 cards each · 108 × 70 mm",
     desc: "Cut along the printed lines. Normal is the original file from the trick.",
     flaw: "Sheets 4 and 5 carry the same code, so you get 36 distinct cards, not 40. Never have both in play at once.",
+    de: { title: "Blanko-Karten A7", spec: "10 Bögen · je 8 Karten · 108 × 70 mm", desc: "Entlang der gedruckten Linien zuschneiden. „Normal“ ist die Originaldatei aus dem Trick.",
+      flaw: "Bogen 4 und 5 tragen denselben Code, du bekommst also 36 verschiedene Karten statt 40. Verwende nie beide gleichzeitig." },
     files: { [S]: ["Ultra Pen Sheets/10 Sheets A7 - 74 mm x 105 mm.pdf", 6.3], [L]: ["Blank A7 - 216x280mm - 10 sheets - light.pdf", 10.9], [X]: ["Blank A7 - 216x280mm - 10 sheets - extra light.pdf", 6.3] } },
   "cards-avery": { title: "Business cards 85 × 54", group: "Business cards", img: "cards-avery", spec: "10 cards on A4 · Avery Zweckform C32011",
     desc: "For perforated stock. Every card is its own page for the app.",
+    de: { title: "Visitenkarten 85 × 54", spec: "10 Karten auf A4 · Avery Zweckform C32011", desc: "Für perforierte Bögen. Jede Karte ist für die App eine eigene Seite." },
     guides: { [S]: ["Business Cards 85x54mm Avery C32011 - 10up A4 - with guides.pdf", 3.4], [L]: ["Business Cards 85x54mm Avery C32011 - 10up A4 - with guides - light.pdf", 3.3], [X]: ["Business Cards 85x54mm Avery C32011 - 10up A4 - with guides - extra light.pdf", 2.5] },
     files: { [S]: ["Business Cards 85x54mm Avery C32011 - 10up A4.pdf", 3.4], [L]: ["Business Cards 85x54mm Avery C32011 - 10up A4 - light.pdf", 3.3], [X]: ["Business Cards 85x54mm Avery C32011 - 10up A4 - extra light.pdf", 2.5] } },
   "cards-sigel": { title: "Business cards 85 × 55", group: "Business cards", img: "cards-sigel", spec: "10 cards on A4 · Sigel and others",
     desc: "For perforated stock. Check the size on your pack, 85 × 54 and 85 × 55 are not interchangeable.",
+    de: { title: "Visitenkarten 85 × 55", spec: "10 Karten auf A4 · Sigel und andere", desc: "Für perforierte Bögen. Prüfe die Größe auf der Packung: 85 × 54 und 85 × 55 sind nicht austauschbar." },
     guides: { [S]: ["Business Cards 85x55mm Sigel - 10up A4 - with guides.pdf", 3.4], [L]: ["Business Cards 85x55mm Sigel - 10up A4 - with guides - light.pdf", 3.3], [X]: ["Business Cards 85x55mm Sigel - 10up A4 - with guides - extra light.pdf", 2.5] },
     files: { [S]: ["Business Cards 85x55mm Sigel - 10up A4.pdf", 3.4], [L]: ["Business Cards 85x55mm Sigel - 10up A4 - light.pdf", 3.3], [X]: ["Business Cards 85x55mm Sigel - 10up A4 - extra light.pdf", 2.5] } },
 };
 const href = (path) => BASE + path.split("/").map(encodeURIComponent).join("/");
 const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const $ = (s, el = document) => el.querySelector(s);
+const tx = (it, field) => (DE && it.de && it.de[field]) || it[field];
+const mbText = (mb) => `${DE ? mb.toFixed(1).replace(".", ",") : mb.toFixed(1)} MB`;
+
+// Text built by the script, per language.
+const UI = {
+  en: {
+    downloadPdf: "Download PDF",
+    guidesLabel: "With grey card outlines, to check alignment on plain paper:",
+    showFull: (t) => `Show ${t} full size`,
+    empty: (started) => `Your file will show up here. ${started ? "Keep going on the left." : "Start with the first question."}`,
+    creator: `<p class="eyebrow">Your tool</p><h3>Business Card Creator</h3>
+      <p style="margin:0;color:var(--muted)">Upload your front design, choose the dot strength and the layout, and download a print-ready A4 sheet with bleed and crop marks.</p>
+      <a class="btn primary" href="../ncodeBusinessCardCreator/">Open the card creator</a>`,
+    yourFiles: "Your files", yourFile: "Your file",
+    testAlt: "Print test preview",
+    testDownload: "Download print test",
+    testTips: `<li>Across: exactly <b>150 mm</b> means your print is to scale.</li>
+      <li>Down: <b>178 to 182 mm</b> is normal paper feed tolerance.</li>
+      <li>Write in the box. One page in the app means the app accepts the sheets.</li>`,
+    thenLighter: "Then, if you want lighter dots:",
+    previewAlt: (t) => `${t} preview`,
+    sizeA4: "A4 paper", sizeLetter: "US Letter",
+    pickStrength: "Now pick a dot strength.",
+    tipScale: "Print at <b>100 % / actual size</b>. Never fit to page.",
+    tipCardsA4: "Print on <b>A4</b>, on your perforated stock.",
+    tipCardsGuides: (url) => `Not sure about the alignment? Print the <a href="${url}" download>version with card outlines</a> on plain paper first and hold it against your stock.`,
+    tipCardsDuplex: "Printing both sides? Flipping on the long edge swaps the two columns.",
+    tipA4Size: "Choose <b>A4</b> as paper size and keep 100 %. If the printer reports a size mismatch, continue anyway.",
+    tipA4Edges: "About 3 mm of dots are lost left and right, and there is a white strip top and bottom. Don't write right at the edge.",
+    tipLetterSize: "Choose <b>US Letter</b> as paper size. The sheet fits almost exactly.",
+    tipLetterColour: "Letter paper needs colour mode. Turn on “Print black as K only” or “Pure black” if your printer has it.",
+    tipBlack: "Use <b>black only</b> or grayscale mode, toner saving off.",
+    tipLight: "Lighter dots depend on your printer. Print one sheet and check the app before printing a stack.",
+    firstTime: (url) => `First time? Check your printer with the <a href="${url}" download>print test</a>.`,
+  },
+  de: {
+    downloadPdf: "PDF herunterladen",
+    guidesLabel: "Mit grauen Kartenumrissen, um die Ausrichtung auf Normalpapier zu prüfen:",
+    showFull: (t) => `${t} in voller Größe anzeigen`,
+    empty: (started) => `Hier erscheint deine Datei. ${started ? "Weiter geht es links." : "Beginne mit der ersten Frage."}`,
+    creator: `<p class="eyebrow">Dein Werkzeug</p><h3>Visitenkarten-Gestalter</h3>
+      <p style="margin:0;color:var(--muted)">Lade dein Design für die Vorderseite hoch, wähle Punktstärke und Layout und lade einen druckfertigen A4-Bogen mit Beschnitt und Schnittmarken herunter.</p>
+      <a class="btn primary" href="../ncodeBusinessCardCreator/">Kartengestalter öffnen</a>`,
+    yourFiles: "Deine Dateien", yourFile: "Deine Datei",
+    testAlt: "Vorschau des Drucktests",
+    testDownload: "Drucktest herunterladen",
+    testTips: `<li>Breite: Genau <b>150 mm</b> bedeuten, dass dein Ausdruck maßstabsgetreu ist.</li>
+      <li>Höhe: <b>178 bis 182 mm</b> liegen im normalen Toleranzbereich des Papiereinzugs.</li>
+      <li>Schreibe etwas in das Feld. Zeigt die App eine einzige Seite an, akzeptiert sie die Bögen.</li>`,
+    thenLighter: "Danach, falls du hellere Punkte möchtest:",
+    previewAlt: (t) => `Vorschau: ${t}`,
+    sizeA4: "A4-Papier", sizeLetter: "US Letter",
+    pickStrength: "Wähle jetzt eine Punktstärke.",
+    tipScale: "Drucke mit <b>100 % bzw. in tatsächlicher Größe</b>. Niemals an die Seite anpassen.",
+    tipCardsA4: "Drucke auf <b>A4</b>, auf deine perforierten Bögen.",
+    tipCardsGuides: (url) => `Unsicher bei der Ausrichtung? Drucke zuerst die <a href="${url}" download>Version mit Kartenumrissen</a> auf Normalpapier, lege sie auf einen deiner Bögen und halte beide gegen das Licht.`,
+    tipCardsDuplex: "Beidseitig drucken? Beim Wenden an der langen Kante tauschen die beiden Spalten die Plätze.",
+    tipA4Size: "Wähle <b>A4</b> als Papierformat und bleibe bei 100 %. Meldet der Drucker ein abweichendes Papierformat, drucke trotzdem weiter.",
+    tipA4Edges: "Links und rechts gehen etwa 3 mm Punkte verloren, oben und unten bleibt ein weißer Streifen. Schreibe nicht ganz am Rand.",
+    tipLetterSize: "Wähle <b>US Letter</b> als Papierformat. Der Bogen passt fast genau.",
+    tipLetterColour: "Briefpapier braucht den Farbmodus. Schalte „Schwarz nur mit K drucken“ oder „Reines Schwarz“ ein, falls dein Drucker das anbietet.",
+    tipBlack: "Nutze den Modus <b>nur Schwarz</b> oder Graustufen, Tonersparmodus aus.",
+    tipLight: "Hellere Punkte hängen von deinem Drucker ab. Drucke einen Bogen und prüfe ihn in der App, bevor du einen ganzen Stapel druckst.",
+    firstTime: (url) => `Zum ersten Mal hier? Prüfe deinen Drucker mit dem <a href="${url}" download>Drucktest</a>.`,
+  },
+}[LANG];
 
 // ---------- Catalogue ----------
 function renderCatalogue() {
@@ -545,16 +797,17 @@ function renderCatalogue() {
   for (const [key, it] of Object.entries(ITEMS)) (groups[it.group] ||= []).push([key, it]);
   let html = "";
   for (const [g, list] of Object.entries(groups)) {
-    html += `<h3 class="group-title">${g}</h3><div class="grid">`;
+    html += `<h3 class="group-title">${GROUP_NAME[g] || g}</h3><div class="grid">`;
     for (const [key, it] of list) {
       const links = Object.entries(it.files).map(([s, [f, mb]]) =>
-        `<a href="${href(f)}" download>${Object.keys(it.files).length > 1 ? STRENGTH_NAME[s] : "Download PDF"} <small>${mb.toFixed(1)} MB</small></a>`).join("");
-      const guides = it.guides ? `<span class="dl-label">With grey card outlines, to check alignment on plain paper:</span><div class="dl">${
-        Object.entries(it.guides).map(([s, [f, mb]]) => `<a href="${href(f)}" download>${STRENGTH_NAME[s]} <small>${mb.toFixed(1)} MB</small></a>`).join("")}</div>` : "";
+        `<a href="${href(f)}" download>${Object.keys(it.files).length > 1 ? STRENGTH_NAME[s] : UI.downloadPdf} <small>${mbText(mb)}</small></a>`).join("");
+      const guides = it.guides ? `<span class="dl-label">${UI.guidesLabel}</span><div class="dl">${
+        Object.entries(it.guides).map(([s, [f, mb]]) => `<a href="${href(f)}" download>${STRENGTH_NAME[s]} <small>${mbText(mb)}</small></a>`).join("")}</div>` : "";
+      const flaw = tx(it, "flaw");
       html += `<article class="item">
-        <button class="thumb" type="button" data-zoom="${it.img}" aria-label="Show ${esc(it.title)} full size"><img src="img/${it.img}-s.webp" alt="" loading="lazy" width="520" height="674"></button>
-        <div class="body"><h3>${esc(it.title)}</h3><span class="spec">${esc(it.spec)}</span><p class="desc">${esc(it.desc)}</p>
-        ${it.flaw ? `<span class="flaw">${esc(it.flaw)}</span>` : ""}<div class="dl">${links}</div>${guides}</div></article>`;
+        <button class="thumb" type="button" data-zoom="${it.img}" aria-label="${esc(UI.showFull(tx(it, "title")))}"><img src="img/${it.img}-s.webp" alt="" loading="lazy" width="520" height="674"></button>
+        <div class="body"><h3>${esc(tx(it, "title"))}</h3><span class="spec">${esc(tx(it, "spec"))}</span><p class="desc">${esc(tx(it, "desc"))}</p>
+        ${flaw ? `<span class="flaw">${esc(flaw)}</span>` : ""}<div class="dl">${links}</div>${guides}</div></article>`;
     }
     html += "</div>";
   }
@@ -577,52 +830,46 @@ function flow() {
 }
 function renderResult(item) {
   const r = $("#result");
-  if (!item) { r.innerHTML = `<p class="empty">Your file will show up here. ${ans.kind ? "Keep going on the left." : "Start with the first question."}</p>`; return; }
-  if (item === "creator") {
-    r.innerHTML = `<p class="eyebrow">Your tool</p><h3>Business Card Creator</h3>
-      <p style="margin:0;color:var(--muted)">Upload your front design, choose the dot strength and the layout, and download a print-ready A4 sheet with bleed and crop marks.</p>
-      <a class="btn primary" href="../ncodeBusinessCardCreator/">Open the card creator</a>`;
-    return;
-  }
+  if (!item) { r.innerHTML = `<p class="empty">${UI.empty(!!ans.kind)}</p>`; return; }
+  if (item === "creator") { r.innerHTML = UI.creator; return; }
   if (item === "test") {
     const t = ITEMS.test, st = ITEMS["strength-test"];
-    r.innerHTML = `<p class="eyebrow">Your files</p>
-      <div class="preview" data-zoom="print-test"><img src="img/print-test-s.webp" alt="Print test preview" width="520" height="674"></div>
-      <h3>Print Test</h3>
-      <a class="btn primary" href="${href(t.files.normal[0])}" download>Download print test <small>0.6 MB</small></a>
-      <ul><li>Across: exactly <b>150 mm</b> means your print is to scale.</li>
-      <li>Down: <b>178 to 182 mm</b> is normal paper feed tolerance.</li>
-      <li>Write in the box. One page in the app means the app accepts the sheets.</li></ul>
-      <div class="extra"><span>Then, if you want lighter dots:</span><a href="${href(st.files.normal[0])}" download>Dot Strength Test <small class="mono">2.4 MB</small></a></div>`;
+    r.innerHTML = `<p class="eyebrow">${UI.yourFiles}</p>
+      <div class="preview" data-zoom="print-test"><img src="img/print-test-s.webp" alt="${UI.testAlt}" width="520" height="674"></div>
+      <h3>${esc(tx(t, "title"))}</h3>
+      <a class="btn primary" href="${href(t.files.normal[0])}" download>${UI.testDownload} <small>${mbText(t.files.normal[1])}</small></a>
+      <ul>${UI.testTips}</ul>
+      <div class="extra"><span>${UI.thenLighter}</span><a href="${href(st.files.normal[0])}" download>${esc(tx(st, "title"))} <small class="mono">${mbText(st.files.normal[1])}</small></a></div>`;
     return;
   }
   const it = ITEMS[item];
   const s = ans.strength;
-  const chips = [s && STRENGTH_NAME[s], ans.kind !== "business" && ans.size && (ans.size === "a4" ? "A4 paper" : "US Letter")].filter(Boolean);
-  let html = `<p class="eyebrow">Your file</p>
-    <div class="preview" data-zoom="${it.img}"><img src="img/${it.img}-s.webp" alt="${esc(it.title)} preview" width="520" height="674"></div>
-    <h3>${esc(it.title)}</h3><div class="chips">${chips.map((c) => `<span class="chip">${esc(c)}</span>`).join("")}</div>`;
-  if (!s) { r.innerHTML = html + `<p class="empty">Now pick a dot strength.</p>`; return; }
+  const chips = [s && STRENGTH_NAME[s], ans.kind !== "business" && ans.size && (ans.size === "a4" ? UI.sizeA4 : UI.sizeLetter)].filter(Boolean);
+  let html = `<p class="eyebrow">${UI.yourFile}</p>
+    <div class="preview" data-zoom="${it.img}"><img src="img/${it.img}-s.webp" alt="${esc(UI.previewAlt(tx(it, "title")))}" width="520" height="674"></div>
+    <h3>${esc(tx(it, "title"))}</h3><div class="chips">${chips.map((c) => `<span class="chip">${esc(c)}</span>`).join("")}</div>`;
+  if (!s) { r.innerHTML = html + `<p class="empty">${UI.pickStrength}</p>`; return; }
   const [file, mb] = it.files[s];
   html += `<span class="file">${esc(file.split("/").pop())}</span>
-    <a class="btn primary" href="${href(file)}" download>Download PDF <small>${mb.toFixed(1)} MB</small></a>`;
-  const tips = ["Print at <b>100 % / actual size</b>. Never fit to page."];
+    <a class="btn primary" href="${href(file)}" download>${UI.downloadPdf} <small>${mbText(mb)}</small></a>`;
+  const tips = [UI.tipScale];
   if (it.group === "Business cards") {
-    tips.push("Print on <b>A4</b>, on your perforated stock.");
-    tips.push(`Not sure about the alignment? Print the <a href="${href(it.guides[s][0])}" download>version with card outlines</a> on plain paper first and hold it against your stock.`);
-    tips.push("Printing both sides? Flipping on the long edge swaps the two columns.");
+    tips.push(UI.tipCardsA4);
+    tips.push(UI.tipCardsGuides(href(it.guides[s][0])));
+    tips.push(UI.tipCardsDuplex);
   } else if (ans.size === "a4") {
-    tips.push("Choose <b>A4</b> as paper size and keep 100 %. If the printer reports a size mismatch, continue anyway.");
-    tips.push("About 3 mm of dots are lost left and right, and there is a white strip top and bottom. Don't write right at the edge.");
+    tips.push(UI.tipA4Size);
+    tips.push(UI.tipA4Edges);
   } else if (ans.size === "letter") {
-    tips.push("Choose <b>US Letter</b> as paper size. The sheet fits almost exactly.");
+    tips.push(UI.tipLetterSize);
   }
-  if (item === "letter") tips.push("Letter paper needs colour mode. Turn on “Print black as K only” or “Pure black” if your printer has it.");
-  else tips.push("Use <b>black only</b> or grayscale mode, toner saving off.");
-  if (s !== "normal") tips.push("Lighter dots depend on your printer. Print one sheet and check the app before printing a stack.");
-  if (it.flaw) tips.push(it.flaw);
+  if (item === "letter") tips.push(UI.tipLetterColour);
+  else tips.push(UI.tipBlack);
+  if (s !== "normal") tips.push(UI.tipLight);
+  const flaw = tx(it, "flaw");
+  if (flaw) tips.push(esc(flaw));
   html += `<ul>${tips.map((t) => `<li>${t}</li>`).join("")}</ul>
-    <div class="extra"><span>First time? Check your printer with the <a href="${href(ITEMS.test.files.normal[0])}" download>print test</a>.</span></div>`;
+    <div class="extra"><span>${UI.firstTime(href(ITEMS.test.files.normal[0]))}</span></div>`;
   r.innerHTML = html;
 }
 document.querySelectorAll("#questions input[type=radio]").forEach((el) => el.addEventListener("change", () => {
@@ -653,24 +900,6 @@ lb.addEventListener("click", (e) => { if (e.target === lb) lb.close(); });
 // hero test-sheet link
 document.querySelector('[data-file="test"]').href = href(ITEMS.test.files.normal[0]);
 document.querySelector('[data-file="test"]').setAttribute("download", "");
-
-// ---------- Anonymous counting (GoatCounter, no cookies) ----------
-// Every download becomes an event "dl/<item>/<strength>[/guides]", every finder answer "finder/<question>/<answer>".
-function track(path, title) {
-  try { if (window.goatcounter && window.goatcounter.count) window.goatcounter.count({ path, title, event: true }); } catch (e) { /* counting must never break the page */ }
-}
-const FILE_EVENT = {};
-for (const [key, it] of Object.entries(ITEMS)) {
-  for (const [s, [f]] of Object.entries(it.files)) FILE_EVENT[href(f)] = [`dl/${key}/${s}`, `${it.title} · ${STRENGTH_NAME[s]}`];
-  if (it.guides) for (const [s, [f]] of Object.entries(it.guides)) FILE_EVENT[href(f)] = [`dl/${key}/${s}/guides`, `${it.title} · ${STRENGTH_NAME[s]} · with outlines`];
-}
-document.addEventListener("click", (e) => {
-  const a = e.target.closest("a[download]");
-  const ev = a && FILE_EVENT[a.getAttribute("href")];
-  if (ev) track(...ev);
-});
-document.querySelectorAll("#questions input[type=radio]").forEach((el) =>
-  el.addEventListener("change", () => track(`finder/${el.name}/${el.value}`, `Finder: ${el.name} = ${el.value}`)));
 
 renderCatalogue();
 flow();
