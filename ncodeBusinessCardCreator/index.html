@@ -173,40 +173,39 @@ details.hints li b { color: var(--ink); font-weight: 600; }
 footer { margin-top: 80px; padding-top: 24px; border-top: 1px solid var(--rule); color: var(--muted); font-size: .86rem; display: grid; gap: 6px; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
-<script data-goatcounter="https://ncodesheets.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 </head>
 <body>
 <div class="wrap">
 
 <header class="top">
   <a class="brand" href="../ncodeSheets/"><span class="brand-dot" aria-hidden="true"></span>Custom Sheets</a>
-  <nav aria-label="Sections">
-    <a href="../ncodeSheets/#finder">Find your sheet</a>
-    <a href="../ncodeSheets/#all">All files</a>
-    <a href="./" aria-current="page">Business cards</a>
-    <a href="../ncodeSheets/#guide">Printing guide</a>
+  <nav aria-label="Sections" data-i18n-aria="nav">
+    <a href="../ncodeSheets/#finder" data-i18n="nav.finder">Find your sheet</a>
+    <a href="../ncodeSheets/#all" data-i18n="nav.all">All files</a>
+    <a href="./" aria-current="page" data-i18n="nav.cards">Business cards</a>
+    <a href="../ncodeSheets/#guide" data-i18n="nav.guide">Printing guide</a>
   </nav>
 </header>
 
 <div class="intro">
-  <p class="eyebrow">Business Card Creator</p>
-  <h1>Business cards with <span class="hl">your own front</span>.</h1>
-  <p>Upload an image, pick the dot strength for the back, and download a print-ready A4 sheet: front with bleed, Ncode on the back, crop marks on the outside for your paper cutter.</p>
+  <p class="eyebrow" data-i18n="eyebrow">Business Card Creator</p>
+  <h1 data-i18n="h1">Business cards with <span class="hl">your own front</span>.</h1>
+  <p data-i18n="intro">Upload an image, pick the dot strength for the back, and download a print-ready A4 sheet: front with bleed, Ncode on the back, crop marks on the outside for your paper cutter.</p>
 </div>
 
   <div class="app">
     <div class="controls">
       <section class="group" aria-labelledby="h-front">
-        <h2 id="h-front">Front <span>85 × 54 mm</span></h2>
+        <h2 id="h-front" data-i18n="front.h">Front <span>85 × 54 mm</span></h2>
         <label class="drop" id="drop" for="file">
-          <strong>Choose an image or drop it here</strong>
-          <small>JPG, PNG or WebP. Ideal: 91 × 60 mm at 300–600 dpi</small>
+          <strong data-i18n="drop.title">Choose an image or drop it here</strong>
+          <small data-i18n="drop.hint">JPG, PNG or WebP. Ideal: 91 × 60 mm at 300–600 dpi</small>
           <input type="file" id="file" accept="image/*">
         </label>
-        <div class="filename" id="filename">Sample design loaded. Replace it with your own image.</div>
-        <div class="seg" role="radiogroup" aria-label="How was the image designed?">
-          <label><input type="radio" name="fit" id="fit-bleed" value="bleed" checked><span>Designed with bleed<small>fills 91 × 60 mm</small></span></label>
-          <label><input type="radio" name="fit" id="fit-trim" value="trim"><span>Designed at trim size<small>85 × 54, edges mirrored</small></span></label>
+        <div class="filename" id="filename" data-i18n="filename">Sample design loaded. Replace it with your own image.</div>
+        <div class="seg" role="radiogroup" aria-label="How was the image designed?" data-i18n-aria="fit">
+          <label><input type="radio" name="fit" id="fit-bleed" value="bleed" checked><span data-i18n="fit.bleed">Designed with bleed<small>fills 91 × 60 mm</small></span></label>
+          <label><input type="radio" name="fit" id="fit-trim" value="trim"><span data-i18n="fit.trim">Designed at trim size<small>85 × 54, edges mirrored</small></span></label>
         </div>
         <div class="row">
           <label for="zoom">Zoom</label>
@@ -214,53 +213,53 @@ footer { margin-top: 80px; padding-top: 24px; border-top: 1px solid var(--rule);
           <span class="mono" id="zoomVal" style="width:3.2em;text-align:right">100 %</span>
         </div>
         <div class="row">
-          <button type="button" id="rotate">Rotate 90°</button>
-          <button type="button" id="center">Center</button>
+          <button type="button" id="rotate" data-i18n="rotate">Rotate 90°</button>
+          <button type="button" id="center" data-i18n="center">Center</button>
         </div>
       </section>
 
       <section class="group" aria-labelledby="h-back">
-        <h2 id="h-back">Back: Ncode <span>1:1 zoom at 600 dpi</span></h2>
+        <h2 id="h-back" data-i18n="back.h">Back: Ncode <span>1:1 zoom at 600 dpi</span></h2>
         <div class="strengths" role="radiogroup" aria-labelledby="h-back">
           <label class="strength"><input type="radio" name="strength" id="s-normal" value="normal"><span>
             <canvas width="32" height="32" data-swatch="normal"></canvas>
-            <span><b>Normal</b><small>Original dot size. Most robust, visibly grey.</small></span>
+            <span data-i18n="s.normal"><b>Normal</b><small>Original dot size. Most robust, visibly grey.</small></span>
             <span class="toner">100 %</span></span></label>
           <label class="strength"><input type="radio" name="strength" id="s-light" value="light" checked><span>
             <canvas width="32" height="32" data-swatch="light"></canvas>
-            <span><b>Light</b><small>Half the dot area. Tested and working.</small></span>
+            <span data-i18n="s.light"><b>Light</b><small>Half the dot area. Tested and working.</small></span>
             <span class="toner">50 %</span></span></label>
           <label class="strength"><input type="radio" name="strength" id="s-extralight" value="extralight"><span>
             <canvas width="32" height="32" data-swatch="extralight"></canvas>
-            <span><b>Extra light<span class="tag">experimental</span></b><small>Barely visible. Test it on your printer first.</small></span>
+            <span data-i18n="s.extralight"><b>Extra light<span class="tag">experimental</span></b><small>Barely visible. Test it on your printer first.</small></span>
             <span class="toner">33 %</span></span></label>
         </div>
       </section>
 
       <section class="group" aria-labelledby="h-out">
-        <h2 id="h-out">Print sheet <span>A4 · 2 pages</span></h2>
-        <div class="layouts" role="radiogroup" aria-label="Sheet layout">
-          <label class="layout"><input type="radio" name="layout" id="l-bleed9" value="bleed9" checked><span>
+        <h2 id="h-out" data-i18n="out.h">Print sheet <span>A4 · 2 pages</span></h2>
+        <div class="layouts" role="radiogroup" aria-label="Sheet layout" data-i18n-aria="layouts">
+          <label class="layout"><input type="radio" name="layout" id="l-bleed9" value="bleed9" checked><span data-i18n="l.bleed9">
             <b>9 cards · bleed all around</b><small>3 × 3, upright on the sheet. Two cuts between cards.</small></span></label>
-          <label class="layout"><input type="radio" name="layout" id="l-bleed8" value="bleed8"><span>
+          <label class="layout"><input type="radio" name="layout" id="l-bleed8" value="bleed8"><span data-i18n="l.bleed8">
             <b>8 cards · bleed all around</b><small>2 × 4, landscape. Two cuts between cards.</small></span></label>
-          <label class="layout"><input type="radio" name="layout" id="l-butt10" value="butt10"><span>
+          <label class="layout"><input type="radio" name="layout" id="l-butt10" value="butt10"><span data-i18n="l.butt10">
             <b>10 cards · edge to edge</b><small>2 × 5, landscape. One cut between cards, bleed on the outer edges only.</small></span></label>
         </div>
         <div class="row">
-          <label for="bleed">Bleed</label>
+          <label for="bleed" data-i18n="bleed">Bleed</label>
           <select id="bleed">
             <option value="3" selected>3 mm</option>
             <option value="2">2 mm</option>
             <option value="1">1 mm</option>
-            <option value="0">none</option>
+            <option value="0" data-i18n="bleed.none">none</option>
           </select>
         </div>
-        <button type="button" class="primary" id="download">Download PDF</button>
+        <button type="button" class="primary" id="download" data-i18n="download">Download PDF</button>
         <div class="status" id="status" role="status"></div>
         <details class="hints">
-          <summary>Printing and cutting</summary>
-          <ul>
+          <summary data-i18n="hints">Printing and cutting</summary>
+          <ul data-i18n="hints.list">
             <li><b>100 % / Actual size.</b> Never “Fit to page”, no borderless printing.</li>
             <li><b>Double-sided</b> flipping on the long or short edge, both work: the layout is symmetric. Without duplex, print page 1, turn the paper over, then print page 2.</li>
             <li><b>Laser printer, black as K.</b> The pen only sees carbon black. A PostScript driver passes the dots through most cleanly.</li>
@@ -274,29 +273,140 @@ footer { margin-top: 80px; padding-top: 24px; border-top: 1px solid var(--rule);
 
     <div class="mat">
       <div class="cardview">
-        <h3 style="width:100%;max-width:620px">Card <span id="cardDims">Bleed box 91 × 60 mm · drag the image to move it</span></h3>
-        <canvas id="cardCanvas" width="910" height="600" aria-label="Front preview"></canvas>
+        <h3 style="width:100%;max-width:620px" data-i18n="card.h">Card <span id="cardDims">Bleed box 91 × 60 mm · drag the image to move it</span></h3>
+        <canvas id="cardCanvas" width="910" height="600" aria-label="Front preview" data-i18n-aria="card"></canvas>
         <div class="legend">
-          <span class="l1"><i></i>Bleed, gets cut off</span>
-          <span class="l2"><i></i>Trim line 85 × 54 mm</span>
-          <span class="l3"><i></i>Safe margin 3 mm</span>
+          <span class="l1" data-i18n="legend.bleed"><i></i>Bleed, gets cut off</span>
+          <span class="l2" data-i18n="legend.trim"><i></i>Trim line 85 × 54 mm</span>
+          <span class="l3" data-i18n="legend.safe"><i></i>Safe margin 3 mm</span>
         </div>
       </div>
       <div class="sheets">
-        <div class="sheet"><h3>Page 1 · Front <span>210 × 297 mm</span></h3><canvas id="sheetFront" width="525" height="743"></canvas></div>
-        <div class="sheet"><h3>Page 2 · Back <span id="backLabel">Ncode light</span></h3><canvas id="sheetBack" width="525" height="743"></canvas></div>
+        <div class="sheet"><h3 data-i18n="sheet.front">Page 1 · Front <span>210 × 297 mm</span></h3><canvas id="sheetFront" width="525" height="743"></canvas></div>
+        <div class="sheet"><h3 data-i18n="sheet.back">Page 2 · Back <span id="backLabel">Ncode light</span></h3><canvas id="sheetBack" width="525" height="743"></canvas></div>
       </div>
       <p class="note" id="layoutNote"></p>
     </div>
   </div>
 
 <footer>
-  <span>Your image never leaves your browser: the PDF is built right here on your device.</span>
-  <span>Community project by Tim Holzhausen. Not affiliated with the makers of the trick or with NeoLab.</span>
-  <span>Visits and created PDFs are counted anonymously with <a href="https://www.goatcounter.com">GoatCounter</a>: no cookies, no personal data.</span>
+  <span data-i18n="foot.local">Your image never leaves your browser: the PDF is built right here on your device.</span>
+  <span data-i18n="foot.about">Community project by Tim Holzhausen. Not affiliated with the makers of the trick or with NeoLab.</span>
 </footer>
 </div>
 
+<script>
+"use strict";
+// ---------- Language: German for German browsers, English for everyone else ----------
+// Runs before the large data script so German visitors never see the English text flash.
+const LANG = /^de\b/i.test((navigator.languages && navigator.languages[0]) || navigator.language || "") ? "de" : "en";
+
+// Static German texts, keyed by data-i18n / data-i18n-aria. English stays in the markup.
+const DE_STATIC = {
+  "title": "Visitenkarten-Generator",
+  "description": "Eigene Ncode-Visitenkarten drucken: Bild für die Vorderseite hochladen, Punktstärke wählen und ein druckfertiges A4-PDF mit Beschnitt und Schnittmarken herunterladen.",
+  "nav": "Seitenbereiche",
+  "nav.finder": "Passendes Blatt finden",
+  "nav.all": "Alle Dateien",
+  "nav.cards": "Visitenkarten",
+  "nav.guide": "Druckanleitung",
+  "eyebrow": "Visitenkarten-Generator",
+  "h1": "Visitenkarten mit <span class=\"hl\">eigener Vorderseite</span>.",
+  "intro": "Lade ein Bild hoch, wähle die Punktstärke für die Rückseite und hol dir einen druckfertigen A4-Bogen: Vorderseite mit Beschnitt, Ncode auf der Rückseite und Schnittmarken außen am Rand für deinen Papierschneider.",
+  "front.h": "Vorderseite <span>85 × 54 mm</span>",
+  "drop.title": "Bild auswählen oder hierher ziehen",
+  "drop.hint": "JPG, PNG oder WebP. Ideal: 91 × 60 mm bei 300–600 dpi",
+  "filename": "Beispielmotiv geladen. Ersetze es durch dein eigenes Bild.",
+  "fit": "Wie wurde das Bild angelegt?",
+  "fit.bleed": "Mit Beschnitt angelegt<small>füllt 91 × 60 mm</small>",
+  "fit.trim": "Im Endformat angelegt<small>85 × 54, Ränder gespiegelt</small>",
+  "rotate": "Um 90° drehen",
+  "center": "Zentrieren",
+  "back.h": "Rückseite: Ncode <span>1:1 bei 600 dpi</span>",
+  "s.normal": "<b>Normal</b><small>Volle Punktgröße. Am zuverlässigsten, deutlich grau.</small>",
+  "s.light": "<b>Hell</b><small>Halbe Punktfläche. Getestet und bewährt.</small>",
+  "s.extralight": "<b>Sehr hell<span class=\"tag\">experimentell</span></b><small>Kaum sichtbar. Teste es erst auf deinem Drucker.</small>",
+  "out.h": "Druckbogen <span>A4 · 2 Seiten</span>",
+  "layouts": "Bogenaufteilung",
+  "l.bleed9": "<b>9 Karten · Beschnitt rundum</b><small>3 × 3, hochkant auf dem Bogen. Zwei Schnitte zwischen den Karten.</small>",
+  "l.bleed8": "<b>8 Karten · Beschnitt rundum</b><small>2 × 4, quer. Zwei Schnitte zwischen den Karten.</small>",
+  "l.butt10": "<b>10 Karten · Kante an Kante</b><small>2 × 5, quer. Ein Schnitt zwischen den Karten, Beschnitt nur an den Außenkanten.</small>",
+  "bleed": "Beschnitt",
+  "bleed.none": "keiner",
+  "download": "PDF herunterladen",
+  "hints": "Drucken und Schneiden",
+  "hints.list": `
+    <li><b>100 % / Tatsächliche Größe.</b> Niemals „An Seite anpassen“ und kein Randlosdruck.</li>
+    <li><b>Beidseitig drucken</b>, an der langen oder kurzen Kante spiegeln: Beides geht, das Layout ist symmetrisch. Ohne Duplex erst Seite 1 drucken, das Blatt umdrehen und dann Seite 2 drucken.</li>
+    <li><b>Laserdrucker, Schwarz als K.</b> Der Stift erkennt nur Rußschwarz (Carbon Black). Mit einem PostScript-Treiber kommen die Punkte am saubersten aufs Papier.</li>
+    <li><b>Schneiden, Schritt 1:</b> Vorderseite nach oben. Alle waagerechten Linien an den seitlichen Marken schneiden, von unten nach oben. So bleiben die Marken am Reststück, bis der letzte Streifen ab ist.</li>
+    <li><b>Schritt 2:</b> Die Streifen so stapeln, dass der oberste Streifen (der mit den Marken an der Oberkante) obenauf liegt. Die linke Papierkante bündig an den Anschlag legen und senkrecht an den oberen Marken schneiden.</li>
+    <li><b>Jeder Bogen trägt dieselben Codes.</b> Wenn du mehrere Bögen druckst, kommt jeder Code mehrfach vor.</li>`,
+  "card.h": "Karte <span id=\"cardDims\">Datenformat 91 × 60 mm · Bild zum Verschieben ziehen</span>",
+  "card": "Vorschau der Vorderseite",
+  "legend.bleed": "<i></i>Beschnitt, wird abgeschnitten",
+  "legend.trim": "<i></i>Endformat 85 × 54 mm",
+  "legend.safe": "<i></i>Sicherheitsabstand 3 mm",
+  "sheet.front": "Seite 1 · Vorderseite <span>210 × 297 mm</span>",
+  "sheet.back": "Seite 2 · Rückseite <span id=\"backLabel\">Ncode hell</span>",
+  "foot.local": "Dein Bild verlässt nie deinen Browser: Das PDF entsteht direkt hier auf deinem Gerät.",
+  "foot.about": "Ein Community-Projekt von Tim Holzhausen. Steht in keiner Verbindung zu den Erfindern des Tricks oder zu NeoLab.",
+};
+
+// Texts built at runtime, in both languages
+const T = {
+  en: {
+    names: { normal: "normal", light: "light", extralight: "extra light" },
+    layouts: {
+      bleed9: { short: "9-up", note: "Every card has bleed all around. Two cut lines run between neighbouring cards and the strip in between is waste. The cards stand upright on the sheet; front and back rotate together." },
+      bleed8: { short: "8-up", note: "Every card has bleed all around. Two cut lines run between neighbouring cards and the strip in between is waste." },
+      butt10: { short: "10-up", note: "Inside the block the cards sit edge to edge, so one cut separates two cards. Bleed exists on the outer edges only: ten cards with bleed gaps do not fit the height of A4." },
+    },
+    sample: ["Sample design", "Replace me with your own image", "Keep text 3 mm inside the trim line"],
+    notImage: "That is not an image file. Please choose a JPG, PNG or WebP.",
+    cantOpen: "The image could not be opened. Try saving it as JPG or PNG.",
+    fileInfo: (name, w, h, dpi, coarse, rotated) => `${name} · ${w} × ${h} px · approx. ${dpi} dpi on the card`
+      + (coarse ? " · rather coarse, 300 dpi would be better" : "")
+      + (rotated ? " · portrait, rotated by 90°" : ""),
+    creating: "Creating PDF …",
+    done: (name, mb) => `Done: ${name} (${mb.toFixed(1)} MB). Print at 100 %.`,
+    failed: (msg) => "The PDF could not be created: " + msg,
+    sampleTail: "sample",
+    fileName: (short, strength, tail) => `nCode business cards ${short} ${strength}${tail ? " - " + tail : ""}.pdf`,
+    pdfBack: (strength, b) => `Back: Ncode ${strength} \xB7 bleed ${b} mm`,
+    pdfPrint: "Print at 100 % / actual size",
+  },
+  de: {
+    names: { normal: "normal", light: "hell", extralight: "sehr hell" },
+    layouts: {
+      bleed9: { short: "9er", note: "Jede Karte hat Beschnitt rundum. Zwischen benachbarten Karten verlaufen zwei Schnittlinien, der Streifen dazwischen ist Verschnitt. Die Karten stehen hochkant auf dem Bogen; Vorder- und Rückseite sind gemeinsam gedreht." },
+      bleed8: { short: "8er", note: "Jede Karte hat Beschnitt rundum. Zwischen benachbarten Karten verlaufen zwei Schnittlinien, der Streifen dazwischen ist Verschnitt." },
+      butt10: { short: "10er", note: "Innerhalb des Blocks liegen die Karten Kante an Kante, sodass ein Schnitt zwei Karten trennt. Beschnitt gibt es nur an den Außenkanten: Zehn Karten mit Beschnitt dazwischen passen der Höhe nach nicht auf einen A4-Bogen." },
+    },
+    sample: ["Beispielmotiv", "Ersetze mich durch dein eigenes Bild", "Halte 3 mm Abstand zur Schnittlinie"],
+    notImage: "Das ist keine Bilddatei. Bitte wähle ein JPG, PNG oder WebP.",
+    cantOpen: "Das Bild ließ sich nicht öffnen. Speichere es am besten als JPG oder PNG und versuche es erneut.",
+    fileInfo: (name, w, h, dpi, coarse, rotated) => `${name} · ${w} × ${h} px · ca. ${dpi} dpi auf der Karte`
+      + (coarse ? " · eher grob, 300 dpi wären besser" : "")
+      + (rotated ? " · Hochformat, um 90° gedreht" : ""),
+    creating: "PDF wird erstellt …",
+    done: (name, mb) => `Fertig: ${name} (${mb.toFixed(1).replace(".", ",")} MB). Mit 100 % (tatsächliche Größe) drucken.`,
+    failed: (msg) => "Das PDF konnte nicht erstellt werden: " + msg,
+    sampleTail: "Beispiel",
+    fileName: (short, strength, tail) => `nCode-Visitenkarten ${short} ${strength}${tail ? " - " + tail : ""}.pdf`,
+    pdfBack: (strength, b) => `R\xFCckseite: Ncode ${strength} \xB7 Beschnitt ${b} mm`,
+    pdfPrint: "Mit 100 % (tats\xE4chliche Gr\xF6\xDFe) drucken",
+  },
+}[LANG];
+
+if (LANG === "de") {
+  document.documentElement.lang = "de";
+  document.title = DE_STATIC.title;
+  document.querySelector('meta[name="description"]').content = DE_STATIC.description;
+  for (const el of document.querySelectorAll("[data-i18n]")) if (el.dataset.i18n in DE_STATIC) el.innerHTML = DE_STATIC[el.dataset.i18n];
+  for (const el of document.querySelectorAll("[data-i18n-aria]")) if (el.dataset.i18nAria in DE_STATIC) el.setAttribute("aria-label", DE_STATIC[el.dataset.i18nAria]);
+}
+</script>
 <script src="ncode_data.js"></script>
 <script>
 "use strict";
@@ -310,12 +420,9 @@ const MARK_END = 3;                      // marks run to 3 mm from the paper edg
 
 // rot: card rotated 90° on the sheet. gutter: every card has its own bleed (two cuts per gap).
 const LAYOUTS = {
-  bleed9:  { cols: 3, rows: 3, rot: true,  gutter: true,  short: "9-up",
-             note: "Every card has bleed all around. Two cut lines run between neighbouring cards and the strip in between is waste. The cards stand upright on the sheet; front and back rotate together." },
-  bleed8:  { cols: 2, rows: 4, rot: false, gutter: true,  short: "8-up",
-             note: "Every card has bleed all around. Two cut lines run between neighbouring cards and the strip in between is waste." },
-  butt10:  { cols: 2, rows: 5, rot: false, gutter: false, short: "10-up",
-             note: "Inside the block the cards sit edge to edge, so one cut separates two cards. Bleed exists on the outer edges only: ten cards with bleed gaps do not fit the height of A4." },
+  bleed9:  { cols: 3, rows: 3, rot: true,  gutter: true,  ...T.layouts.bleed9 },
+  bleed8:  { cols: 2, rows: 4, rot: false, gutter: true,  ...T.layouts.bleed8 },
+  butt10:  { cols: 2, rows: 5, rot: false, gutter: false, ...T.layouts.butt10 },
 };
 
 // All sheet dimensions for a layout and bleed b
@@ -421,10 +528,10 @@ function sampleImage() {
   g.strokeStyle = "rgba(255,255,255,.08)"; g.lineWidth = 2;
   for (let i = -c.height; i < c.width; i += 40) { g.beginPath(); g.moveTo(i, 0); g.lineTo(i + c.height, c.height); g.stroke(); }
   g.fillStyle = "#f4d58d"; g.font = `700 ${7.5 * k}px Georgia, serif`; g.textBaseline = "alphabetic";
-  g.fillText("Sample design", 9 * k, 28 * k);
+  g.fillText(T.sample[0], 9 * k, 28 * k);
   g.fillStyle = "rgba(255,255,255,.85)"; g.font = `${3.6 * k}px "Segoe UI", sans-serif`;
-  g.fillText("Replace me with your own image", 9 * k, 35 * k);
-  g.fillText("Keep text 3 mm inside the trim line", 9 * k, 50 * k);
+  g.fillText(T.sample[1], 9 * k, 35 * k);
+  g.fillText(T.sample[2], 9 * k, 50 * k);
   return c;
 }
 const natSize = (img) => [img.width, img.height];
@@ -538,7 +645,7 @@ function refresh(all = true) {
 }
 
 // ---------- PDF ----------
-const NAMES = { normal: "normal", light: "light", extralight: "extra light" };
+const NAMES = T.names;
 function latin1(s) { const a = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) { const c = s.charCodeAt(i); a[i] = c < 256 ? c : 63; } return a; }
 const n = (v) => (+v.toFixed(4)).toString();
 const pdfStr = (s) => "(" + s.replace(/[\\()]/g, "\\$&") + ")";
@@ -567,8 +674,8 @@ async function buildPdf() {
   front += "Q\n";
   const label = (x, y, s) => `BT /Hv 6 Tf ${n(x * PT)} ${n((PAGE.h - y) * PT)} Td ${pdfStr(s)} Tj ET\n`;
   const ly = Math.min(8, g.oy - b - 3);
-  front += "q 0.35 g\n" + label(g.cutX[0] + 3, ly, `Back: Ncode ${NAMES[S.strength]} \xB7 bleed ${b} mm`)
-         + label(g.cutX[g.cutX.length - 2] + 3, ly, "Print at 100 % / actual size") + "Q\n";
+  front += "q 0.35 g\n" + label(g.cutX[0] + 3, ly, T.pdfBack(NAMES[S.strength], b))
+         + label(g.cutX[g.cutX.length - 2] + 3, ly, T.pdfPrint) + "Q\n";
 
   // Back: card k sits behind card k of the front (columns mirrored, rotation reversed)
   const iw = NW / NCODE.dpi * 25.4, ih = NH / NCODE.dpi * 25.4;
@@ -607,11 +714,8 @@ async function buildPdf() {
 }
 
 // ---------- UI ----------
-function track(path, title) {
-  try { if (window.goatcounter && window.goatcounter.count) window.goatcounter.count({ path, title, event: true }); } catch (e) { /* counting must never break the page */ }
-}
 async function loadFile(file) {
-  if (!file || !file.type.startsWith("image/")) { setStatus("That is not an image file. Please choose a JPG, PNG or WebP.", true); return; }
+  if (!file || !file.type.startsWith("image/")) { setStatus(T.notImage, true); return; }
   try {
     const bmp = await createImageBitmap(file, { imageOrientation: "from-image" });
     S.img = bmp; S.isSample = false; S.zoom = 1; S.panX = S.panY = 0;
@@ -619,12 +723,10 @@ async function loadFile(file) {
     S.name = file.name.replace(/\.[^.]+$/, "");
     $("zoom").value = 100; $("zoomVal").textContent = "100 %";
     const dpi = Math.round(Math.max(bmp.width, bmp.height) / ((S.fit === "bleed" ? 91 : 85) / 25.4));
-    $("filename").textContent = `${file.name} · ${bmp.width} × ${bmp.height} px · approx. ${dpi} dpi on the card`
-      + (dpi < 250 ? " · rather coarse, 300 dpi would be better" : "")
-      + (S.rot ? " · portrait, rotated by 90°" : "");
+    $("filename").textContent = T.fileInfo(file.name, bmp.width, bmp.height, dpi, dpi < 250, S.rot);
     setStatus("");
     refresh(false);
-  } catch (e) { setStatus("The image could not be opened. Try saving it as JPG or PNG.", true); }
+  } catch (e) { setStatus(T.cantOpen, true); }
 }
 function setStatus(t, err = false) { const s = $("status"); s.textContent = t; s.classList.toggle("err", err); }
 
@@ -660,16 +762,15 @@ cardCanvas.addEventListener("pointerup", endDrag);
 cardCanvas.addEventListener("pointercancel", endDrag);
 
 $("download").addEventListener("click", async () => {
-  const btn = $("download"); btn.disabled = true; setStatus("Creating PDF …");
+  const btn = $("download"); btn.disabled = true; setStatus(T.creating);
   try {
     const blob = await buildPdf();
-    const name = `nCode business cards ${G.short} ${NAMES[S.strength]}${S.isSample ? " - sample" : S.name ? " - " + S.name : ""}.pdf`;
+    const name = T.fileName(G.short, NAMES[S.strength], S.isSample ? T.sampleTail : S.name);
     const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name;
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 60000);
-    setStatus(`Done: ${name} (${(blob.size / 1e6).toFixed(1)} MB). Print at 100 %.`);
-    track(`creator/pdf/${S.layout}/${S.strength}`, `Card creator: ${G.short} ${NAMES[S.strength]}${S.isSample ? " (sample)" : ""}`);
-  } catch (e) { console.error(e); setStatus("The PDF could not be created: " + e.message, true); }
+    setStatus(T.done(name, blob.size / 1e6));
+  } catch (e) { console.error(e); setStatus(T.failed(e.message), true); }
   btn.disabled = false;
 });
 
