@@ -1,0 +1,680 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Homo Tactilis</title>
+<style>
+:root{
+  --bg:#faf8f4; --ink:#1f2430; --muted:#5d6472; --line:#ddd7ca; --card:#ffffff;
+  --k2:#60a5fa; --r2:#fb923c; --b2:#4ade80;
+  color-scheme: light;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Segoe UI",system-ui,sans-serif}
+main{max-width:1120px;margin:0 auto;padding:28px 16px 72px}
+h1{font:600 clamp(28px,5vw,42px)/1.1 Georgia,"Times New Roman",serif;margin:0 0 8px}
+h2{font:600 24px/1.2 Georgia,"Times New Roman",serif;margin:48px 0 6px}
+h2 + p.sub{margin:0 0 18px;color:var(--muted)}
+p{margin:0 0 12px}
+.eyebrow{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.lead{font-size:18px;max-width:48em}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px}
+.panel{padding:18px}
+
+/* Glyphen: ● = Tipp, ▬ = Brummen */
+.code{display:inline-flex;align-items:center;flex-wrap:wrap;row-gap:6px}
+.grp{display:inline-flex;align-items:center;gap:4px;color:#374151}
+.grp + .grp{margin-left:10px;padding-left:10px;border-left:2px dotted #c7c1b3}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:currentColor}
+.bar{display:inline-block;width:40px;height:10px;border-radius:6px;background:#7c3aed}
+
+/* Prinzip */
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.step{padding:16px 18px;border-top:6px solid var(--line)}
+.step .no{font:600 13px/1 "Segoe UI";letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.step h3{margin:6px 0 8px;font-size:19px}
+.step ul{margin:0;padding-left:1.1em}
+.step li{margin:2px 0;font-size:15px}
+.step .note{font-size:13px;color:var(--muted);margin:8px 0 0}
+.s1{border-top-color:var(--k2)} .s2{border-top-color:#9ca3af} .s3{border-top-color:#4b5563} .s4{border-top-color:#1f2430} .s0{border-top-color:#7c3aed}
+.addr{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin-top:16px;padding:14px 18px}
+.addr .arrow{color:var(--muted)}
+
+/* Muster */
+.pats{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.pat{padding:14px 16px}
+.pat .big{font:600 34px/1 Georgia,serif}
+.pat h3{margin:4px 0 0;font-size:17px}
+.pat .d{color:var(--muted);font-size:13px;margin:2px 0 10px}
+.pat svg{display:block;max-width:100%;height:auto}
+.timing{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px 18px;margin-top:14px;font-size:14px}
+.timing div{border-left:3px solid var(--line);padding-left:10px}
+.timing b{display:block;font-size:20px;font-weight:600}
+
+/* Zeichnungen */
+figure{margin:0;padding:12px;background:var(--card);border:1px solid var(--line);border-radius:14px}
+svg.draw{display:block;width:100%;height:auto}
+svg.draw text{font-family:"Segoe UI",system-ui,sans-serif}
+figcaption,.cap{padding:10px 8px 4px;color:var(--muted);font-size:14px;margin:0}
+.draw .rl{font-size:16px;font-weight:700;fill:#1f2430}
+.draw .rl2{font-size:13px;font-weight:600;fill:#5d6472}
+.draw .top{font-size:14px;font-weight:600;fill:#374151}
+.draw .lg{font-size:13px;fill:#374151}
+.draw .lg.b{font-weight:700;font-size:14px;fill:#1f2430}
+.draw .sm{font-size:11.5px;fill:#374151}
+.draw .dg{font-weight:700;fill:#1f2430}
+.draw .bd{font-weight:700;fill:#fff;font-size:14px}
+.draw .geo{fill:none;stroke:#8b8577;stroke-width:1.6}
+.draw .sep{stroke:#b9c2cf;stroke-width:1.2;stroke-dasharray:5 5}
+.draw .body{filter:drop-shadow(0 0 .8px rgba(31,36,48,.7))}
+.draw .cap2{font-size:13px;fill:#5d6472}
+
+/* Detailkarten */
+.details{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,500px),1fr));gap:16px}
+.dp{padding:14px 16px;border-top:6px solid var(--line)}
+.dp.z1{border-top-color:var(--k2)} .dp.z2{border-top-color:var(--r2)} .dp.z3{border-top-color:var(--b2)}
+.dp > header{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin-bottom:6px}
+.dp h3{margin:0;font:600 20px/1.2 Georgia,serif}
+.pre{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font-size:14px;color:var(--muted)}
+.badge{display:inline-grid;place-items:center;min-width:42px;height:28px;padding:0 8px;border-radius:14px;background:var(--ink);color:#fff;font-weight:700;font-size:14px}
+.lists{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:4px 16px;margin-top:6px}
+.lists h4{margin:10px 0 4px;font-size:14px}
+.lists ul{list-style:none;margin:0;padding:0}
+.lists li{font-size:14px;padding:3px 0;border-top:1px solid #eee9de}
+.lists li b{display:inline-block;min-width:2.4em;font-variant-numeric:tabular-nums}
+.lists li small{display:block;color:var(--muted);font-size:12px;padding-left:2.6em}
+.subt{margin:12px 0 0;font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+
+/* Beispiele */
+.ex{display:grid;grid-template-columns:minmax(220px,320px) 1fr;gap:6px 20px;align-items:center;padding:12px 0;border-top:1px solid #eee9de}
+.ex:first-child{border-top:0}
+.ex .nm b{font-weight:600}
+.ex .num{font-variant-numeric:tabular-nums;color:var(--muted);margin-left:8px;white-space:nowrap}
+.ex svg{max-width:100%;height:auto}
+
+/* Rechner */
+.calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;align-items:end}
+.calc label{display:block;font-size:13px;color:var(--muted);font-weight:600;letter-spacing:.03em}
+.calc select{display:block;width:100%;margin-top:4px;padding:9px 10px;font:inherit;color:var(--ink);background:#fff;border:1px solid #c9c3b4;border-radius:8px}
+.calc select:disabled{background:#f3f1ec;color:#9a9fa8}
+.calc .chk{display:flex;gap:8px;align-items:center;padding:10px 0;font-size:15px;color:var(--ink)}
+.result{margin-top:16px;display:grid;grid-template-columns:1fr auto;gap:12px 24px;align-items:center}
+.result .nm{font-size:20px;font-weight:600}
+.result .meta{color:var(--muted);font-size:14px;margin-top:4px}
+.result code{background:#f3efe6;padding:2px 6px;border-radius:5px;font-size:13px;word-break:break-all}
+#lamp{width:76px;height:76px;border-radius:50%;background:#e8e4d9;border:1px solid #cfc9b9}
+#lamp.on{background:#f59e0b;border-color:#b45309;box-shadow:0 0 28px 6px rgba(245,158,11,.6)}
+#lamp.on.long{background:#7c3aed;border-color:#5b21b6;box-shadow:0 0 28px 6px rgba(124,58,237,.5)}
+button{font:inherit;font-weight:600;padding:10px 18px;border-radius:10px;border:0;background:var(--ink);color:#fff;cursor:pointer;margin-top:12px}
+button:hover{background:#2f3748}
+@media (max-width:620px){
+  .ex{grid-template-columns:1fr}
+  .result{grid-template-columns:1fr}
+}
+ul.plain{margin:0;padding-left:1.2em}
+ul.plain li{margin:6px 0}
+.foot{margin-top:40px;color:var(--muted);font-size:14px}
+</style>
+</head>
+<body>
+<main>
+
+<header>
+  <p class="eyebrow">Homo Tactilis · Haptische Kommunikation · Konzept v2</p>
+  <h1>Wo wurde ich berührt?</h1>
+  <p class="lead">Ein Vibrations-Code für Berührungsorte am Körper, aufgebaut auf Leonardos <em>Vitruvianischem Menschen</em>. Er reicht bis zu Nase, Schulter, Handgelenk und einzelnen Fingern: <b>87 Punkte</b>, mit Rückseite rund 170. Man muss nur <b>zählen</b> können.</p>
+</header>
+
+<h2>Das Prinzip: eine Adresse in vier Gruppen</h2>
+<p class="sub">Erst grob, dann immer genauer. Jede Gruppe ist eine Zahl, und die Zahl ist die <b>Anzahl der Tipps</b>.</p>
+
+<div class="steps">
+  <div class="card step s1">
+    <div class="no">Gruppe 1</div>
+    <h3>Zone</h3>
+    <ul><li><b>1</b> Kopf</li><li><b>2</b> Rumpf &amp; Arme</li><li><b>3</b> Beine &amp; Becken</li></ul>
+  </div>
+  <div class="card step s2">
+    <div class="no">Gruppe 2</div>
+    <h3>Seite</h3>
+    <ul><li><b>1</b> links</li><li><b>2</b> Mitte</li><li><b>3</b> rechts</li></ul>
+    <p class="note">aus Sicht der berührten Person</p>
+  </div>
+  <div class="card step s3">
+    <div class="no">Gruppe 3</div>
+    <h3>Abschnitt</h3>
+    <ul><li><b>1</b> oben / körpernah</li><li><b>2</b> Mitte</li><li><b>3</b> unten / körperfern</li></ul>
+    <p class="note">Arm: Oberarm, Unterarm, Hand</p>
+  </div>
+  <div class="card step s4">
+    <div class="no">Gruppe 4</div>
+    <h3>Punkt</h3>
+    <ul><li><b>1–3</b> Punkt im Abschnitt</li><li><b>1–5</b> Finger und Zehen</li></ul>
+    <p class="note">Daumen = 1 … kleiner Finger = 5</p>
+  </div>
+  <div class="card step s0">
+    <div class="no">Vorzeichen · optional</div>
+    <h3>Rückseite</h3>
+    <ul><li>ein <b>Brummen</b> vor dem Code</li></ul>
+    <p class="note">Stirn → Hinterkopf, Knie → Kniekehle, Handfläche → Handrücken</p>
+  </div>
+</div>
+
+<div class="card addr" id="addr"></div>
+
+<p style="margin-top:14px"><b>Jeder Abbruch ist gültig:</b> Endet der Code nach Gruppe 2, ist eine grobe Region gemeint (2·1 = linker Arm). Endet er nach Gruppe 3, ist es ein Abschnitt (2·1·3 = linke Hand). So kann man grob anfangen und die Feinheiten später lernen. Auch der Sender kann gröber melden, wenn ein Sensor nicht genauer ist.</p>
+
+<h2>Die Muster</h2>
+<p class="sub">Es gibt nur Tipps (kurz, zum Zählen) und ein Brummen (lang, nur als Vorzeichen für die Rückseite).</p>
+
+<div class="pats" id="pats"></div>
+
+<div class="timing">
+  <div><b>100 ms</b>Tipp</div>
+  <div><b>140 ms</b>Lücke zwischen Tipps</div>
+  <div><b>650 ms</b>Pause zwischen Gruppen</div>
+  <div><b>450 ms</b>Brummen (Rückseite)</div>
+</div>
+<p style="margin-top:14px;color:var(--muted);font-size:14px">Dauer: grobe Region höchstens ca. 1,8 s, voller Punkt meist 2,5–4 s (Maximum ca. 4,8 s, mit Rückseite ca. 5,9 s). Zwischen zwei Meldungen mindestens 1,5 s Ruhe.</p>
+
+<h2>Übersicht: Zonen, Seiten, Abschnitte</h2>
+<p class="sub">Leonardos Figur mit Quadrat und Kreis. Die Arme liegen waagerecht auf Schulterhöhe, deshalb sind sie in der Rumpf-Reihe das „links“ und „rechts“.</p>
+
+<figure>
+  <svg id="fig" class="draw" viewBox="0 20 1130 810" role="img" aria-label="Vitruvianischer Mensch mit eingezeichneten Körperzonen und Code-Ziffern"></svg>
+  <figcaption>
+    Der schwarze Kreis zeigt die Region (Gruppe 1·2), die weißen Ziffern den Abschnitt (Gruppe 3). Beispiel: <b>2·1</b> ist der linke Arm, an der Hand steht die <b>3</b>. Also ist <b>2·1·3</b> die linke Hand. Die Punkte (Gruppe 4) stehen in den Detailkarten darunter.
+  </figcaption>
+</figure>
+
+<h2>Detailkarten: alle Punkte</h2>
+<p class="sub">Die Ziffern in den Zeichnungen sind <b>Abschnitt·Punkt</b>, also Gruppe 3 und 4. Davor kommt immer die Region aus der Kopfzeile.</p>
+
+<div class="details">
+  <article class="card dp z1">
+    <header><h3>Kopf</h3><div class="pre"><span class="badge">1·1</span>links <span class="badge">1·2</span>Mitte <span class="badge">1·3</span>rechts</div></header>
+    <svg id="dFace" class="draw" viewBox="0 -14 640 494" role="img" aria-label="Gesicht mit Code-Punkten"></svg>
+    <p class="cap">Gesicht wie im Spiegel: links im Bild = linke Gesichtshälfte. Beispiel: Nase = 1·2 + 2·2 = <b>1·2·2·2</b>.</p>
+    <div id="lFace"></div>
+  </article>
+
+  <article class="card dp z2">
+    <header><h3>Arm &amp; Hand</h3><div class="pre"><span class="badge">2·1</span>linker Arm <span class="badge">2·3</span>rechter Arm</div></header>
+    <svg id="dArm" class="draw" viewBox="0 0 640 300" role="img" aria-label="Linker Arm mit Hand und Code-Punkten"></svg>
+    <p class="cap">Linker Arm, Handfläche nach vorn. Der rechte Arm hat dieselben Punkte. Beispiel: rechter Zeigefinger = 2·3 + 3·2 = <b>2·3·3·2</b>.</p>
+    <div id="lArm"></div>
+  </article>
+
+  <article class="card dp z3">
+    <header><h3>Bein &amp; Fuß</h3><div class="pre"><span class="badge">3·1</span>linkes Bein <span class="badge">3·3</span>rechtes Bein</div></header>
+    <svg id="dLeg" class="draw" viewBox="0 0 640 440" role="img" aria-label="Linkes Bein und linker Fuß von oben mit Code-Punkten"></svg>
+    <p class="cap">Links das Bein von vorn, rechts der Fuß von oben (großer Zeh innen). Beispiel: linkes Knie = <b>3·1·2·1</b>, mit Brummen davor die Kniekehle.</p>
+    <div id="lLeg"></div>
+  </article>
+
+  <article class="card dp z2">
+    <header><h3>Rumpf &amp; Becken</h3><div class="pre"><span class="badge">2·2</span>Rumpf <span class="badge">3·2</span>Becken</div></header>
+    <svg id="dTorso" class="draw" viewBox="0 0 640 430" role="img" aria-label="Rumpf und Becken mit Code-Punkten"></svg>
+    <p class="cap">Beim Rumpf ist Gruppe 4 wieder links / Mitte / rechts. Das Becken endet schon nach Gruppe 3. Beispiel: Bauchnabel = <b>2·2·2·2</b>, mit Brummen davor die Wirbelsäule.</p>
+    <div id="lTorso"></div>
+  </article>
+</div>
+
+<h2>Beispiele</h2>
+<p class="sub">So kommt das Signal am Körper an. Die kleinen Zahlen über der Zeitleiste markieren die Gruppen.</p>
+<div class="card panel" id="examples"></div>
+
+<h2>Ausprobieren</h2>
+<p class="sub">Stelle wählen und abspielen. Auf einem Android-Smartphone (Chrome) vibriert das Gerät, am PC leuchtet nur die Lampe.</p>
+<div class="card panel">
+  <div class="calc">
+    <label>Gruppe 1 · Zone<select id="sz"></select></label>
+    <label>Gruppe 2 · Seite<select id="ss"></select></label>
+    <label>Gruppe 3 · Abschnitt<select id="sa"></select></label>
+    <label>Gruppe 4 · Punkt<select id="sp"></select></label>
+    <label class="chk"><input type="checkbox" id="sb"> Rückseite (Brummen davor)</label>
+  </div>
+  <div class="result">
+    <div>
+      <div class="nm" id="rn"></div>
+      <div style="margin-top:8px" id="rg"></div>
+      <div id="rt" style="margin-top:10px"></div>
+      <div class="meta" id="rm"></div>
+      <button id="play" type="button">▶ Abspielen</button>
+    </div>
+    <div id="lamp" aria-hidden="true"></div>
+  </div>
+</div>
+
+<h2>Warum so, und wie weiter</h2>
+<div class="card panel">
+  <ul class="plain">
+    <li><b>Zählen statt Morse:</b> Eine Zahl ist einfach die Anzahl der Tipps. Man muss keine Zeichen auswendig lernen, nur die Bedeutung der vier Gruppen. Die Ziffern-Schreibweise (z. B. 2·1·3·2) ist zugleich das Vibrationsmuster.</li>
+    <li><b>Warum nicht schneller?</b> Mehr als drei Tipps pro Gruppe gibt es nur bei Fingern und Zehen. Bis drei kann man Tipps fast ohne Nachdenken unterscheiden, vier und fünf brauchen etwas Übung.</li>
+    <li><b>Brummen nur als Vorzeichen:</b> Weil das Brummen sonst nie vorkommt, ist es sofort erkennbar und verwechselt keine Gruppe.</li>
+    <li><b>Gleiche Logik überall:</b> links / Mitte / rechts kommt immer als 1 / 2 / 3. Beim Rumpf wiederholt sich das in Gruppe 4 (Brust links = 2·2·1·1). Arme und Beine laufen immer von körpernah nach körperfern.</li>
+    <li><b>Hardware:</b> Einfache Vibrationsmotoren (ERM) brauchen ca. 50–80 ms zum Anlaufen. Wenn Tipps verschwimmen, Lücke auf 200 ms und Tipp auf 120 ms erhöhen. Linearaktoren (LRA, Taptic) sind für das Zählen deutlich besser.</li>
+    <li><b>Sensible Stellen:</b> Becken-Mitte (3·2·2) kann ungenutzt bleiben, ohne dass sich am Rest etwas ändert.</li>
+    <li><b>Zeiten sind Startwerte:</b> Am echten Gerät mit einigen Testpersonen prüfen, vor allem ob 4 und 5 Tipps sicher gezählt werden.</li>
+  </ul>
+</div>
+
+<p class="foot">Homo Tactilis · Konzeptentwurf</p>
+</main>
+
+<script>
+const $ = s => document.querySelector(s);
+
+/* ---------- Zeiten ---------- */
+const T = {tap:100, gap:140, level:650, brumm:450};
+
+/* ---------- Farben ---------- */
+const C = {
+  k:['#bfdbfe','#60a5fa','#1d4ed8'],
+  r:['#fed7aa','#fb923c','#c2410c'],
+  b:['#bbf7d0','#4ade80','#15803d']
+};
+const ZC3 = ['#1d4ed8','#c2410c','#15803d'];
+
+/* ---------- Körperbaum ----------
+   parts = Gruppe 3, p = Gruppe 4, b = Name auf der Rückseite,
+   self = Name, wenn der Code nach Gruppe 3 endet */
+const HEAD_SIDE = [
+  {n:'oben',  p:['Oberkopf','Schläfe','Augenbraue']},
+  {n:'Mitte', p:['Auge','Ohr','Wange'], b:[null,'hinter dem Ohr',null]},
+  {n:'unten', p:['Kiefer','Mundwinkel','Halsseite']}
+];
+const HEAD_MID = [
+  {n:'oben',  p:['Scheitel','Stirn','zwischen den Augenbrauen'], b:['Hinterkopf oben','Hinterkopf',null]},
+  {n:'Mitte', p:['Nasenwurzel','Nase','Oberlippe']},
+  {n:'unten', p:['Mund','Kinn','Kehle / Hals vorn'], b:[null,null,'Nacken']}
+];
+const ARM = [
+  {n:'Oberarm', p:['Schulter','Achsel','Oberarm'], b:['Schulter hinten',null,'Oberarm hinten']},
+  {n:'Unterarm', p:['Ellbogen / Armbeuge','Unterarm','Handgelenk'], b:['Ellbogenspitze','Unterarm außen','Handgelenk außen']},
+  {n:'Hand', self:'Handfläche', selfB:'Handrücken', p:['Daumen','Zeigefinger','Mittelfinger','Ringfinger','kleiner Finger']}
+];
+const TORSO = [
+  {n:'Brust', p:['Brust links','Brustbein','Brust rechts'], b:['Schulterblatt links','Wirbelsäule oben','Schulterblatt rechts']},
+  {n:'Bauch', p:['Flanke links','Bauchnabel','Flanke rechts'], b:['Rücken links','Wirbelsäule Mitte','Rücken rechts']},
+  {n:'Taille', p:['Taille links','Unterbauch','Taille rechts'], b:['unterer Rücken links','Kreuz','unterer Rücken rechts']}
+];
+const LEG = [
+  {n:'Oberschenkel', p:['Oberschenkel außen','Oberschenkel vorn','Oberschenkel innen'], b:[null,'Oberschenkel hinten',null]},
+  {n:'Knie / Unterschenkel', p:['Knie','Schienbein','Knöchel'], b:['Kniekehle','Wade','Achillessehne / Ferse']},
+  {n:'Fuß', self:'Fußrücken', selfB:'Fußsohle', p:['große Zehe','2. Zehe','3. Zehe','4. Zehe','kleine Zehe']}
+];
+const PELVIS = [
+  {n:'links', self:'Hüfte / Leiste links', selfB:'Gesäß links'},
+  {n:'Mitte', self:'Schambein', selfB:'Steiß'},
+  {n:'rechts', self:'Hüfte / Leiste rechts', selfB:'Gesäß rechts'}
+];
+const ZONES = ['Kopf','Rumpf & Arme','Beine & Becken'];
+const SIDES = ['links','Mitte','rechts'];
+const REG = {
+  11:{name:'Kopf links', parts:HEAD_SIDE}, 12:{name:'Kopf Mitte', parts:HEAD_MID}, 13:{name:'Kopf rechts', parts:HEAD_SIDE},
+  21:{name:'Linker Arm', parts:ARM},       22:{name:'Rumpf', parts:TORSO},        23:{name:'Rechter Arm', parts:ARM},
+  31:{name:'Linkes Bein', parts:LEG},      32:{name:'Becken', parts:PELVIS},      33:{name:'Rechtes Bein', parts:LEG}
+};
+
+/* ---------- Code → Muster ----------
+   Ein Code ist ein Array aus Zahlen, optional mit 'R' (Rückseite) vorne. */
+const pulses = t => t==='R' ? [T.brumm] : Array(t).fill(T.tap);
+function segments(code){
+  const s=[];
+  code.forEach((t,i)=>{
+    if(i>0) s.push({on:false, ms:T.level});
+    pulses(t).forEach((p,j)=>{ if(j>0) s.push({on:false, ms:T.gap}); s.push({on:true, ms:p, long:t==='R'}); });
+  });
+  return s;
+}
+const pattern = code => segments(code).map(s=>s.ms);
+const total = code => pattern(code).reduce((a,b)=>a+b,0);
+const numStr = code => code.map(t=>t==='R'?'R':t).join('·');
+
+function nameOf(code){
+  const back = code[0]==='R', ds = back ? code.slice(1) : code;
+  const R = REG[''+ds[0]+ds[1]];
+  let n = R.name, bn = null;
+  if(ds.length>=3){
+    const P = R.parts[ds[2]-1];
+    if(ds.length>=4){ n += ' – '+P.p[ds[3]-1]; bn = P.b && P.b[ds[3]-1]; }
+    else { n += ' – '+(P.self || P.n); bn = P.selfB; }
+  }
+  if(back) return bn ? R.name+' – '+bn : 'Rückseite: '+n;
+  return n;
+}
+
+/* ---------- Glyphen und Zeitleiste ---------- */
+const sym = t => t==='R' ? '<i class="bar"></i>' : '<i class="dot"></i>'.repeat(t);
+function glyph(code){
+  const zi = code.findIndex(t=>t!=='R');
+  return '<span class="code" role="img" aria-label="Code '+numStr(code)+'">'+
+    code.map((t,i)=>'<span class="grp"'+(i===zi?' style="color:'+ZC3[code[zi]-1]+'"':'')+'>'+sym(t)+'</span>').join('')+'</span>';
+}
+function timelineSVG(code, k){
+  k = k || 0.1;
+  const pad=4, h=44, zi=code.findIndex(t=>t!=='R');
+  let x=pad, rects='', labels='';
+  code.forEach((t,i)=>{
+    if(i>0) x += T.level*k;
+    const x0=x, col = t==='R' ? '#7c3aed' : i===zi ? ZC3[code[zi]-1] : '#374151';
+    pulses(t).forEach((p,j)=>{
+      if(j>0) x += T.gap*k;
+      rects += `<rect x="${x.toFixed(1)}" y="18" width="${(p*k).toFixed(1)}" height="22" rx="${Math.min(5,p*k/2).toFixed(1)}" fill="${col}"/>`;
+      x += p*k;
+    });
+    labels += `<text x="${((x0+x)/2).toFixed(1)}" y="12" text-anchor="middle" font-size="12" font-weight="700" fill="#5d6472" font-family="Segoe UI,system-ui,sans-serif">${t}</text>`;
+  });
+  const w = x+pad;
+  return `<svg class="tl" viewBox="0 0 ${w.toFixed(1)} ${h}" width="${Math.ceil(w)}" height="${h}" role="img" aria-label="Zeitleiste Code ${numStr(code)}">${labels}${rects}</svg>`;
+}
+
+/* ---------- Bausteine für Zeichnungen ---------- */
+const CX = 500;
+const seg = (x1,y1,x2,y2,w,col,cap) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${col}" stroke-width="${w}"${cap?' stroke-linecap="round"':''}/>`;
+const dotG = (x,y,t,r=11) => `<g><circle cx="${x}" cy="${y}" r="${r}" fill="#fff" stroke="#1f2430" stroke-width="1.2"/><text x="${x}" y="${y}" dy=".36em" text-anchor="middle" class="dg" style="font-size:${(r*1.15).toFixed(1)}px">${t}</text></g>`;
+const pt = (x,y,t) => `<g><circle cx="${x}" cy="${y}" r="13" fill="#fff" stroke="#1f2430" stroke-width="1.4"/><text x="${x}" y="${y}" dy=".36em" text-anchor="middle" class="dg" style="font-size:${String(t).length>1?10.5:13}px">${t}</text></g>`;
+const badge = (x,y,t) => `<g><circle cx="${x}" cy="${y}" r="18" fill="#1f2430" stroke="#fff" stroke-width="2"/><text x="${x}" y="${y}" dy=".36em" text-anchor="middle" class="bd">${t}</text></g>`;
+const txt = (x,y,t,cls='sm',anchor='middle') => `<text x="${x}" y="${y}" class="${cls}" text-anchor="${anchor}">${t}</text>`;
+
+function head(cx,cy,s,big){
+  const rx=30*s, ry=39*s, id = big ? 'hcB' : 'hcS';
+  const cw=2*rx/3, ch=2*ry/3, x0=cx-rx, y0=cy-ry;
+  let o = `<clipPath id="${id}"><ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}"/></clipPath><g clip-path="url(#${id})">`;
+  for(let r=0;r<3;r++) for(let c=0;c<3;c++)
+    o += `<rect x="${x0+c*cw}" y="${y0+r*ch}" width="${cw+.5}" height="${ch+.5}" fill="${C.k[r]}"/>`;
+  o += `<path d="M${x0+cw} ${y0}v${2*ry}M${x0+2*cw} ${y0}v${2*ry}M${x0} ${y0+ch}h${2*rx}M${x0} ${y0+2*ch}h${2*rx}" stroke="#fff" stroke-width="${big?2:1}"/></g>`;
+  o += `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="none" stroke="#1f2430" stroke-opacity=".6" stroke-width="${big?2:1}"/>`;
+  return o;
+}
+
+/* ---------- Übersichtsfigur ---------- */
+function figure(){
+  let s='';
+  s += `<rect x="8" y="430" width="872" height="400" rx="10" fill="#f0fdf4"/>`;
+  s += `<rect x="8" y="20" width="872" height="260" rx="10" fill="#eff6ff"/>`;
+  s += `<rect x="8" y="270" width="872" height="170" fill="#fff7ed"/>`;
+  s += `<line class="sep" x1="8" y1="270" x2="880" y2="270"/><line class="sep" x1="8" y1="440" x2="880" y2="440"/>`;
+  s += `<rect class="geo" x="190" y="170" width="620" height="620"/><circle class="geo" cx="${CX}" cy="418" r="372"/>`;
+
+  s += '<g class="body">';
+  [-1,1].forEach(sg=>{
+    const X = d => CX+sg*d;
+    s += seg(X(50),470,X(50),625,56,C.b[0]);
+    s += seg(X(50),625,X(52),765,40,C.b[1]);
+    s += `<ellipse cx="${X(70)}" cy="779" rx="36" ry="12" fill="${C.b[2]}"/>`;
+    s += seg(X(70),292,X(180),292,32,C.r[0]);
+    s += seg(X(180),292,X(250),292,26,C.r[1]);
+    s += `<ellipse cx="${X(280)}" cy="292" rx="30" ry="13" fill="${C.r[2]}"/>`;
+  });
+  const torso = 'M420 276 Q500 262 580 276 L570 400 L574 440 L426 440 L430 400 Z';
+  s += `<clipPath id="tc"><path d="${torso}"/></clipPath><g clip-path="url(#tc)">`+
+       `<rect x="400" y="260" width="200" height="70" fill="${C.r[0]}"/>`+
+       `<rect x="400" y="330" width="200" height="55" fill="${C.r[1]}"/>`+
+       `<rect x="400" y="385" width="200" height="60" fill="${C.r[2]}"/></g>`;
+  s += `<path d="M426 440 L574 440 L576 478 Q500 512 424 478 Z" fill="${C.b[1]}"/>`;
+  s += `<rect x="488" y="244" width="24" height="30" fill="${C.k[2]}"/>`;
+  s += head(CX,209,1,false);
+  s += '</g>';
+
+  [-1,1].forEach(sg=>{
+    const X = d => CX+sg*d;
+    s += dotG(X(126),292,1)+dotG(X(215),292,2)+dotG(X(280),292,3);
+    s += dotG(X(50),560,1)+dotG(X(51),695,2)+dotG(X(70),779,3);
+  });
+  s += dotG(462,303,1)+dotG(462,358,2)+dotG(462,413,3);
+  s += dotG(455,462,1,10)+dotG(500,462,2,10)+dotG(545,462,3,10);
+  s += dotG(CX,171,1,8)+dotG(CX,209,2,8)+dotG(CX,248,3,8);
+
+  s += badge(430,200,'1·1')+badge(500,138,'1·2')+badge(570,200,'1·3');
+  s += badge(320,340,'2·1')+badge(540,358,'2·2')+badge(680,340,'2·3');
+  s += badge(392,560,'3·1')+badge(500,532,'3·2')+badge(608,560,'3·3');
+
+  s += `<text class="top" x="20" y="62">◄ LINKS der Person (Gruppe 2 = 1)</text>`;
+  s += `<text class="top" x="868" y="62" text-anchor="end">RECHTS der Person (Gruppe 2 = 3) ►</text>`;
+  s += `<text class="rl" x="14" y="200">1 · KOPF</text>`;
+  s += `<text class="rl" x="14" y="345">2 · RUMPF</text><text class="rl2" x="14" y="365">&amp; ARME</text>`;
+  s += `<text class="rl" x="14" y="610">3 · BEINE</text><text class="rl2" x="14" y="630">&amp; BECKEN</text>`;
+  s += `<text class="cap2" x="${CX}" y="818" text-anchor="middle">Ansicht: Blick der Person an sich herunter, links im Bild = linke Körperseite</text>`;
+
+  const ix=985, iy=300;
+  s += `<text class="lg b" x="${ix}" y="128" text-anchor="middle">Kopf vergrößert</text>`;
+  const cw = 2*30*3.4/3;
+  ['1 links','2 Mitte','3 rechts'].forEach((t,i)=>{
+    s += `<text class="lg" x="${ix-cw+i*cw}" y="155" text-anchor="middle">${t}</text>`;
+  });
+  s += head(ix,iy,3.4,true);
+  const ch = 2*39*3.4/3;
+  [1,2,3].forEach(r=>{ s += dotG(ix, iy-39*3.4+ch*(r-.5), r, 15); });
+  s += txt(ix,458,'1 oben: Stirn · Schläfe · Brauen','lg');
+  s += txt(ix,476,'2 Mitte: Augen · Nase · Ohren','lg');
+  s += txt(ix,494,'3 unten: Mund · Kinn · Hals','lg');
+
+  const lx=890;
+  s += `<text class="lg b" x="${lx}" y="540">So liest du die Zeichnung</text>`;
+  s += `<text class="lg" x="${lx}" y="563">Farbton = Zone (Gruppe 1)</text>`;
+  [['k','1 Kopf'],['r','2 Rumpf'],['b','3 Beine']].forEach(([c,t],i)=>{
+    s += `<rect x="${lx+i*72}" y="572" width="66" height="24" rx="5" fill="${C[c][1]}"/><text class="lg" x="${lx+i*72+33}" y="588" text-anchor="middle" style="fill:#111">${t}</text>`;
+  });
+  s += `<text class="lg" x="${lx}" y="626">Helligkeit = Abschnitt (Gruppe 3)</text>`;
+  [['#e5e7eb','1 oben','#111'],['#9ca3af','2 Mitte','#111'],['#4b5563','3 unten','#fff']].forEach(([f,t,tc],i)=>{
+    s += `<rect x="${lx+i*72}" y="635" width="66" height="24" rx="5" fill="${f}"/><text class="lg" x="${lx+i*72+33}" y="651" text-anchor="middle" style="fill:${tc}">${t}</text>`;
+  });
+  s += dotG(lx+10,690,'3',10)+`<text class="lg" x="${lx+28}" y="694.5">weiß = Abschnitt</text>`;
+  s += `<circle cx="${lx+10}" cy="720" r="10" fill="#1f2430"/><text class="lg" x="${lx+28}" y="724.5">schwarz = Region</text>`;
+  s += `<text class="lg" x="${lx}" y="756">Punkte (Gruppe 4):</text>`;
+  s += `<text class="lg" x="${lx}" y="774">siehe Detailkarten</text>`;
+
+  $('#fig').innerHTML = s;
+}
+
+/* ---------- Detail: Gesicht ---------- */
+function faceSVG(){
+  let s = `<clipPath id="fcl"><ellipse cx="320" cy="215" rx="135" ry="175"/><rect x="270" y="360" width="100" height="110"/>`+
+          `<ellipse cx="178" cy="228" rx="16" ry="34"/><ellipse cx="462" cy="228" rx="16" ry="34"/></clipPath>`;
+  s += `<g clip-path="url(#fcl)"><rect x="0" y="0" width="640" height="176" fill="#dbeafe"/>`+
+       `<rect x="0" y="176" width="640" height="121" fill="#bfdbfe"/><rect x="0" y="297" width="640" height="200" fill="#93c5fd"/></g>`;
+  s += `<g fill="none" stroke="#1f2430" stroke-opacity=".5" stroke-width="2">`+
+       `<ellipse cx="178" cy="228" rx="16" ry="34"/><ellipse cx="462" cy="228" rx="16" ry="34"/>`+
+       `<path d="M270 372 V470 M370 372 V470"/><ellipse cx="320" cy="215" rx="135" ry="175"/>`+
+       `<path d="M230 170 Q258 156 286 167 M354 167 Q382 156 410 170"/>`+
+       `<ellipse cx="258" cy="198" rx="22" ry="9"/><ellipse cx="382" cy="198" rx="22" ry="9"/>`+
+       `<path d="M320 186 L305 248 Q320 257 335 248"/><path d="M284 316 Q320 330 356 316"/></g>`;
+  s += `<line class="sep" x1="300" y1="30" x2="300" y2="470"/><line class="sep" x1="340" y1="30" x2="340" y2="470"/>`;
+  s += txt(14,112,'1 oben','rl2','start')+txt(14,240,'2 Mitte','rl2','start')+txt(14,352,'3 unten','rl2','start');
+  s += badge(205,4,'1·1')+badge(320,4,'1·2')+badge(435,4,'1·3');
+  const L = [['1·1',232,88],['1·2',198,150],['1·3',258,160],['2·1',258,198],['2·2',176,232],['2·3',236,262],['3·1',222,335],['3·2',282,316],['3·3',284,425]];
+  const M = [['1·1',320,58],['1·2',320,112],['1·3',320,158],['2·1',320,192],['2·2',320,240],['2·3',320,282],['3·1',320,316],['3·2',320,362],['3·3',320,432]];
+  L.forEach(([t,x,y])=>{ s += pt(x,y,t) + pt(640-x,y,t); });
+  M.forEach(([t,x,y])=>{ s += pt(x,y,t); });
+  $('#dFace').innerHTML = s;
+}
+
+/* ---------- Detail: Arm und Hand ---------- */
+function armSVG(){
+  const r = C.r;
+  let s = `<rect x="612" y="70" width="40" height="240" rx="10" fill="#efeadf"/>`;
+  s += '<g class="body">';
+  s += seg(172,101,95,101,16,r[2],1)+seg(172,121,84,121,16,r[2],1)+seg(172,141,92,141,16,r[2],1)+seg(172,159,112,159,14,r[2],1);
+  s += seg(236,98,198,54,18,r[2],1);
+  s += `<rect x="168" y="92" width="86" height="76" rx="16" fill="${r[2]}"/>`;
+  s += seg(400,130,252,130,40,r[1]);
+  s += seg(580,130,400,130,50,r[0]);
+  s += `<circle cx="580" cy="125" r="32" fill="${r[0]}"/>`;
+  s += '</g>';
+  s += pt(585,95,'1·1')+pt(555,170,'1·2')+pt(480,130,'1·3');
+  s += pt(400,130,'2·1')+pt(326,130,'2·2')+pt(256,130,'2·3');
+  s += pt(210,130,'3');
+  s += pt(192,40,'3·1')+pt(82,101,'3·2')+pt(55,121,'3·3')+pt(82,141,'3·4')+pt(102,163,'3·5');
+  s += txt(585,66,'Schulter')+txt(555,202,'Achsel')+txt(480,174,'Oberarm');
+  s += txt(400,174,'Ellbogen')+txt(326,172,'Unterarm')+txt(262,195,'Handgelenk');
+  const F = [['3','Handfläche'],['3·1','Daumen'],['3·2','Zeigefinger'],['3·3','Mittelfinger'],['3·4','Ringfinger'],['3·5','kleiner Finger']];
+  F.forEach(([c,n],i)=>{
+    const x = 20 + Math.floor(i/3)*170, y = 236 + (i%3)*21;
+    s += `<text x="${x}" y="${y}" class="lg"><tspan font-weight="700">${c}</tspan>  ${n}</text>`;
+  });
+  s += txt(360,236,'Rückseite (Brummen):','lg b','start');
+  s += txt(360,257,'Ellbogenspitze, Handrücken,','lg','start');
+  s += txt(360,278,'Handgelenk außen …','lg','start');
+  $('#dArm').innerHTML = s;
+}
+
+/* ---------- Detail: Bein und Fuß ---------- */
+function legSVG(){
+  const b = C.b;
+  let s = '<g class="body">';
+  s += seg(210,24,210,175,66,b[0]);
+  s += seg(210,175,214,335,46,b[1]);
+  s += `<ellipse cx="236" cy="352" rx="44" ry="14" fill="${b[2]}"/>`;
+  s += `<path d="M440 400 Q420 320 428 230 Q434 160 456 140 L530 140 Q556 165 548 230 Q540 320 520 400 Q480 425 440 400 Z" fill="${b[2]}" fill-opacity=".35"/>`;
+  [[530,118,17,21],[500,110,11,15],[478,114,10,14],[459,122,9,13],[443,134,8,11]].forEach(([x,y,rx,ry])=>{
+    s += `<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="${b[2]}"/>`;
+  });
+  s += '</g>';
+  s += pt(177,95,'1·1')+pt(210,95,'1·2')+pt(243,95,'1·3');
+  s += txt(177,127,'außen')+txt(210,141,'vorn')+txt(243,127,'innen');
+  s += pt(210,175,'2·1')+pt(212,255,'2·2')+pt(214,328,'2·3')+pt(244,354,'3');
+  s += txt(150,100,'Oberschenkel','lg','end')+txt(150,180,'Knie','lg','end')+txt(150,260,'Schienbein','lg','end');
+  s += txt(150,333,'Knöchel','lg','end')+txt(150,362,'Fußrücken','lg','end');
+  s += pt(536,80,'3·1')+pt(503,68,'3·2')+pt(474,72,'3·3')+pt(449,86,'3·4')+pt(428,108,'3·5');
+  s += pt(488,260,'3');
+  s += txt(578,84,'große','sm','start')+txt(578,98,'Zehe','sm','start');
+  s += txt(395,108,'kleine','sm','end')+txt(395,122,'Zehe','sm','end');
+  s += txt(210,420,'linkes Bein von vorn','cap2')+txt(488,432,'linker Fuß von oben','cap2');
+  $('#dLeg').innerHTML = s;
+}
+
+/* ---------- Detail: Rumpf und Becken ---------- */
+function torsoSVG(){
+  const r = C.r, b = C.b;
+  let s = seg(265,380,265,428,58,'#efeadf')+seg(375,380,375,428,58,'#efeadf');
+  s += seg(200,62,150,62,34,'#efeadf')+seg(440,62,490,62,34,'#efeadf');
+  const torso = 'M200 46 Q320 24 440 46 L426 210 L434 290 L206 290 L214 210 Z';
+  s += '<g class="body">';
+  s += `<clipPath id="tsc"><path d="${torso}"/></clipPath><g clip-path="url(#tsc)">`+
+       `<rect x="190" y="0" width="260" height="122" fill="${r[0]}"/>`+
+       `<rect x="190" y="122" width="260" height="84" fill="${r[1]}"/>`+
+       `<rect x="190" y="206" width="260" height="90" fill="${r[2]}"/></g>`;
+  s += `<path d="M206 290 L434 290 L438 345 Q320 400 202 345 Z" fill="${b[1]}"/>`;
+  s += '</g>';
+  [88,165,248].forEach((y,a)=>[255,320,385].forEach((x,p)=>{ s += pt(x,y,(a+1)+'·'+(p+1)); }));
+  s += pt(255,322,'1')+pt(320,348,'2')+pt(385,322,'3');
+  s += txt(255,18,'1 links','lg')+txt(320,18,'2 Mitte','lg')+txt(385,18,'3 rechts','lg');
+  s += txt(470,93,'1 Brust','rl2','start')+txt(470,170,'2 Bauch','rl2','start')+txt(470,253,'3 Taille','rl2','start');
+  s += txt(470,328,'Becken: 1 · 2 · 3','rl2','start');
+  s += badge(110,165,'2·2')+txt(110,200,'Rumpf','lg');
+  s += badge(110,330,'3·2')+txt(110,365,'Becken','lg');
+  $('#dTorso').innerHTML = s;
+}
+
+/* ---------- Listen unter den Detailkarten ---------- */
+function partList(parts){
+  return '<div class="lists">'+parts.map((P,i)=>{
+    let li = '';
+    if(P.self) li += `<li><b>${i+1}</b>${P.self}${P.selfB?`<small>Rückseite: ${P.selfB}</small>`:''}</li>`;
+    (P.p||[]).forEach((n,j)=>{
+      const bn = P.b && P.b[j];
+      li += `<li><b>${i+1}·${j+1}</b>${n}${bn?`<small>Rückseite: ${bn}</small>`:''}</li>`;
+    });
+    return `<div><h4>${i+1} · ${P.n}</h4><ul>${li}</ul></div>`;
+  }).join('')+'</div>';
+}
+function buildLists(){
+  $('#lFace').innerHTML = '<p class="subt">Kopf links 1·1 / rechts 1·3</p>'+partList(HEAD_SIDE)+'<p class="subt">Kopf Mitte 1·2</p>'+partList(HEAD_MID);
+  $('#lArm').innerHTML = partList(ARM);
+  $('#lLeg').innerHTML = partList(LEG);
+  $('#lTorso').innerHTML = '<p class="subt">Rumpf 2·2</p>'+partList(TORSO)+'<p class="subt">Becken 3·2 (endet nach Gruppe 3)</p>'+partList(PELVIS);
+}
+
+/* ---------- Seitenteile ---------- */
+function buildAddr(){
+  const code=[2,1,3,2];
+  $('#addr').innerHTML =
+    '<span><b>Beispiel „linker Zeigefinger“</b></span>'+
+    '<span>Rumpf &amp; Arme <b>(2)</b></span><span class="arrow">→</span>'+
+    '<span>links <b>(1)</b></span><span class="arrow">→</span>'+
+    '<span>Hand <b>(3)</b></span><span class="arrow">→</span>'+
+    '<span>Zeigefinger <b>(2)</b></span><span class="arrow">=</span>'+glyph(code);
+}
+function buildPats(){
+  const info = [
+    [[1],'1','1 Tipp',''],
+    [[2],'2','2 Tipps',''],
+    [[3],'3','3 Tipps',''],
+    [[5],'4 · 5','4 oder 5 Tipps','nur für Finger und Zehen'],
+    [['R'],'▬','Brummen','Vorzeichen: Rückseite']
+  ];
+  $('#pats').innerHTML = info.map(([code,big,n,d])=>
+    `<div class="card pat"><div class="big">${big}</div><h3>${n}</h3><div class="d">${d||'&nbsp;'}</div>${timelineSVG(code,0.3)}</div>`
+  ).join('');
+}
+function buildExamples(){
+  const EX=[[1,2,2,2],[1,1,2,1],[2,1,1,1],[2,1,2,3],[2,3,3,2],[2,1,3],['R',2,1,3],['R',2,2,3,2],['R',3,3,2,1],[3,1,3,1],[2,1]];
+  $('#examples').innerHTML = EX.map(code=>
+    `<div class="ex"><div class="nm"><b>${nameOf(code)}</b><span class="num">${numStr(code)}</span><div style="margin-top:4px">${glyph(code)}</div></div>${timelineSVG(code)}</div>`
+  ).join('');
+}
+
+/* ---------- Rechner ---------- */
+let timers=[];
+const reg = () => REG[''+$('#sz').value+$('#ss').value];
+function calcCode(){
+  const code=[+$('#sz').value, +$('#ss').value], a=+$('#sa').value, p=+$('#sp').value;
+  if(a){ code.push(a); if(p) code.push(p); }
+  if($('#sb').checked) code.unshift('R');
+  return code;
+}
+function fillA(){
+  const cur = $('#sa').value || '0';
+  $('#sa').innerHTML = '<option value="0">– nur Region</option>'+
+    reg().parts.map((P,i)=>`<option value="${i+1}">${i+1} · ${P.self && !P.p ? P.self : P.n}</option>`).join('');
+  $('#sa').value = cur;
+}
+function fillP(){
+  const a=+$('#sa').value, P = a ? reg().parts[a-1] : null, sp=$('#sp');
+  const cur = sp.value || '0';
+  if(!P || !P.p){ sp.innerHTML='<option value="0">–</option>'; sp.disabled=true; return; }
+  sp.disabled=false;
+  sp.innerHTML = `<option value="0">– nur ${P.self || P.n}</option>`+P.p.map((n,i)=>`<option value="${i+1}">${i+1} · ${n}</option>`).join('');
+  sp.value = (+cur <= P.p.length) ? cur : '0';
+}
+function showCalc(){
+  const code=calcCode(), p=pattern(code);
+  $('#rn').textContent = nameOf(code);
+  $('#rg').innerHTML = glyph(code)+'<span style="margin-left:12px;color:var(--muted)">'+numStr(code)+'</span>';
+  $('#rt').innerHTML = timelineSVG(code,0.12);
+  $('#rm').innerHTML = `Dauer: ${(total(code)/1000).toFixed(2).replace('.',',')} s<br>Muster in ms (Vibration, Pause, …): <code>[${p.join(', ')}]</code>`;
+}
+function play(){
+  timers.forEach(clearTimeout); timers=[];
+  const segs=segments(calcCode()), lamp=$('#lamp');
+  lamp.className='';
+  if(navigator.vibrate){ try{ navigator.vibrate(0); navigator.vibrate(segs.map(s=>s.ms)); }catch(e){} }
+  let t=0;
+  segs.forEach(s=>{
+    if(s.on){
+      timers.push(setTimeout(()=>{ lamp.className = s.long ? 'on long' : 'on'; },t));
+      timers.push(setTimeout(()=>{ lamp.className=''; },t+s.ms));
+    }
+    t+=s.ms;
+  });
+}
+function initCalc(){
+  $('#sz').innerHTML = ZONES.map((t,i)=>`<option value="${i+1}">${i+1} · ${t}</option>`).join('');
+  $('#ss').innerHTML = SIDES.map((t,i)=>`<option value="${i+1}">${i+1} · ${t}</option>`).join('');
+  $('#sz').value='2'; $('#ss').value='1';
+  fillA(); $('#sa').value='3'; fillP(); $('#sp').value='2'; showCalc();
+  ['sz','ss'].forEach(id=>$('#'+id).addEventListener('change',()=>{fillA();fillP();showCalc();}));
+  $('#sa').addEventListener('change',()=>{fillP();showCalc();});
+  $('#sp').addEventListener('change',showCalc);
+  $('#sb').addEventListener('change',showCalc);
+  $('#play').addEventListener('click',play);
+}
+
+figure(); faceSVG(); armSVG(); legSVG(); torsoSVG(); buildLists();
+buildAddr(); buildPats(); buildExamples(); initCalc();
+</script>
+</body>
+</html>
