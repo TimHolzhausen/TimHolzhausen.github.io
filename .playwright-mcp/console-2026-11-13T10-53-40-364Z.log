@@ -1,0 +1,10 @@
+[   35147ms] [INFO] Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner. @ http://127.0.0.1:8791/magicHub/#devices:1
+[  211563ms] [WARNING] [selfie] Auswahl abgebrochen. @ http://127.0.0.1:8791/magicHub/js/ble/base.js:168
+[  212916ms] [INFO] Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner. @ http://127.0.0.1:8791/magicHub/#devices:1
+[  249100ms] [WARNING] [selfie] Auswahl abgebrochen. @ http://127.0.0.1:8791/magicHub/js/ble/base.js:168
+[  884079ms] [INFO] Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner. @ http://127.0.0.1:8791/magicHub/#devices:1
+[ 1207493ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:8791/magicHub/js/ble/peripage.js:1
+[ 1207503ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:8791/magicHub/js/web/sources.js:1
+[ 1207503ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:8791/magicHub/js/ai/vision.js:1
+[ 1207503ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:8791/magicHub/js/hub.js:1
+[ 1207504ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:8791/magicHub/js/render.js:1

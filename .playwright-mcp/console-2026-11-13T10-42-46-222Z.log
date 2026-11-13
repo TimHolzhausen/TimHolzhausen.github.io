@@ -1,0 +1,4 @@
+[  386718ms] [INFO] Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner. @ http://127.0.0.1:8791/magicHub/#combos:1
+[  398958ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:8791/magicHub/#devices:1
+[  441663ms] [LOG] [pen] Ultra Pen Neo bereit @ http://127.0.0.1:8791/magicHub/js/ble/base.js:152
+[  547937ms] [WARNING] [selfie] Auswahl abgebrochen. @ http://127.0.0.1:8791/magicHub/js/ble/base.js:152

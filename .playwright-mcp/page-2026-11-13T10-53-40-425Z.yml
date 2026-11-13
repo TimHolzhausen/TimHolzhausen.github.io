@@ -1,0 +1,92 @@
+- generic [ref=f2e1]:
+  - banner [ref=f2e2]:
+    - link "MagicHub Start" [ref=f2e3] [cursor=pointer]:
+      - /url: "#devices"
+      - generic [ref=f2e4]: MagicHub
+    - button "●1 aktiv" [ref=f2e5] [cursor=pointer]
+  - main [ref=f2e6]:
+    - region "Geräte" [ref=f2e7]:
+      - heading "Geräte" [level=1] [ref=f2e8]
+      - paragraph [ref=f2e9]:
+        - text: Tippe ein Gerät an, um es zu verbinden und einzustellen. Unter
+        - link "Kombis" [ref=f2e10] [cursor=pointer]:
+          - /url: "#combos"
+        - text: legst du fest, was wohin geht.
+      - heading "Eingaben liefern Werte" [level=2] [ref=f2e11]:
+        - text: Eingaben
+        - generic [ref=f2e12]: liefern Werte
+      - generic [ref=f2e13]:
+        - article [ref=f2e14]:
+          - button "GoDice öffnen" [ref=f2e15] [cursor=pointer]:
+            - generic [ref=f2e19]:
+              - strong [ref=f2e20]: GoDice
+              - generic [ref=f2e21]: Keine Würfel
+          - button "+ Würfel" [ref=f2e23] [cursor=pointer]
+        - article [ref=f2e24]:
+          - button "Davinci-Palette öffnen" [ref=f2e25] [cursor=pointer]:
+            - generic [ref=f2e29]:
+              - strong [ref=f2e30]: Davinci-Palette
+              - generic [ref=f2e31]: Nicht verbunden
+          - button "Verbinden" [ref=f2e33] [cursor=pointer]
+        - article [ref=f2e34]:
+          - button "Ultra Sharpie öffnen" [ref=f2e35] [cursor=pointer]:
+            - generic [ref=f2e39]:
+              - strong [ref=f2e40]: Ultra Sharpie
+              - generic [ref=f2e41]: Neosmartpen_R1
+          - button "Trennen" [ref=f2e43] [cursor=pointer]
+        - article [ref=f2e44]:
+          - button "KI-Erkennung öffnen" [ref=f2e45] [cursor=pointer]:
+            - generic [ref=f2e49]:
+              - strong [ref=f2e50]: KI-Erkennung
+              - generic [ref=f2e51]: Kein API-Key
+          - button "Einrichten" [ref=f2e53] [cursor=pointer]
+        - article [ref=f2e54]:
+          - button "Inject öffnen" [ref=f2e55] [cursor=pointer]:
+            - generic [ref=f2e59]:
+              - strong [ref=f2e60]: Inject
+              - generic [ref=f2e61]: Gestoppt
+          - button "Start" [ref=f2e63] [cursor=pointer]
+        - article [ref=f2e64]:
+          - button "Web-Quelle öffnen" [ref=f2e65] [cursor=pointer]:
+            - generic [ref=f2e69]:
+              - strong [ref=f2e70]: Web-Quelle
+              - generic [ref=f2e71]: Gestoppt
+          - button "Start" [ref=f2e73] [cursor=pointer]
+      - heading "Ausgaben zeigen, drucken, sagen" [level=2] [ref=f2e74]:
+        - text: Ausgaben
+        - generic [ref=f2e75]: zeigen, drucken, sagen
+      - generic [ref=f2e76]:
+        - article [ref=f2e77]:
+          - button "PeekSmith öffnen" [ref=f2e78] [cursor=pointer]:
+            - generic [ref=f2e82]:
+              - strong [ref=f2e83]: PeekSmith
+              - generic [ref=f2e84]: Nicht verbunden
+          - button "Verbinden" [ref=f2e86] [cursor=pointer]
+        - article [ref=f2e87]:
+          - button "Selfie Screen öffnen" [ref=f2e88] [cursor=pointer]:
+            - generic [ref=f2e92]:
+              - strong [ref=f2e93]: Selfie Screen
+              - generic [ref=f2e94]: Auswahl abgebrochen.
+          - button "Verbinden" [ref=f2e96] [cursor=pointer]
+        - article [ref=f2e97]:
+          - button "Peripage P21 öffnen" [ref=f2e98] [cursor=pointer]:
+            - generic [ref=f2e102]:
+              - strong [ref=f2e103]: Peripage P21
+              - generic [ref=f2e104]: Nicht verbunden
+          - button "Verbinden" [ref=f2e106] [cursor=pointer]
+        - article [ref=f2e107]:
+          - button "Sprachausgabe öffnen" [ref=f2e108] [cursor=pointer]:
+            - generic [ref=f2e112]:
+              - strong [ref=f2e113]: Sprachausgabe
+              - generic [ref=f2e114]: Bereit
+          - button "Test" [ref=f2e116] [cursor=pointer]
+  - navigation "Hauptnavigation" [ref=f2e117]:
+    - link "Geräte" [ref=f2e118] [cursor=pointer]:
+      - /url: "#devices"
+    - link "Kombis" [active] [ref=f2e122] [cursor=pointer]:
+      - /url: "#combos"
+    - link "Live" [ref=f2e126] [cursor=pointer]:
+      - /url: "#live"
+    - link "Hilfe" [ref=f2e130] [cursor=pointer]:
+      - /url: "#help"
+  - status: Ultra Sharpie verbunden

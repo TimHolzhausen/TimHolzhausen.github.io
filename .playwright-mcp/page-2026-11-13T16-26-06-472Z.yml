@@ -1,0 +1,92 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - link "MagicHub Start" [ref=e3] [cursor=pointer]:
+      - /url: "#devices"
+      - generic [ref=e4]: MagicHub
+    - button "0 aktiv" [ref=e5] [cursor=pointer]
+  - main [ref=e6]:
+    - region "Geräte" [ref=e7]:
+      - heading "Geräte" [level=1] [ref=e8]
+      - paragraph [ref=e9]:
+        - text: Tippe ein Gerät an, um es zu verbinden und einzustellen. Unter
+        - link "Kombis" [ref=e10] [cursor=pointer]:
+          - /url: "#combos"
+        - text: legst du fest, was wohin geht.
+      - heading "Eingaben liefern Werte" [level=2] [ref=e11]:
+        - text: Eingaben
+        - generic [ref=e12]: liefern Werte
+      - generic [ref=e13]:
+        - article [ref=e14]:
+          - button "GoDice öffnen" [ref=e15] [cursor=pointer]:
+            - generic [ref=e19]:
+              - strong [ref=e20]: GoDice
+              - generic [ref=e21]: Keine Würfel
+          - button "+ Würfel" [ref=e23] [cursor=pointer]
+        - article [ref=e24]:
+          - button "Davinci-Palette öffnen" [ref=e25] [cursor=pointer]:
+            - generic [ref=e29]:
+              - strong [ref=e30]: Davinci-Palette
+              - generic [ref=e31]: Nicht verbunden
+          - button "Verbinden" [ref=e33] [cursor=pointer]
+        - article [ref=e34]:
+          - button "Ultra Sharpie öffnen" [ref=e35] [cursor=pointer]:
+            - generic [ref=e39]:
+              - strong [ref=e40]: Ultra Sharpie
+              - generic [ref=e41]: Nicht verbunden
+          - button "Verbinden" [ref=e43] [cursor=pointer]
+        - article [ref=e44]:
+          - button "KI-Erkennung öffnen" [ref=e45] [cursor=pointer]:
+            - generic [ref=e49]:
+              - strong [ref=e50]: KI-Erkennung
+              - generic [ref=e51]: Kein API-Key
+          - button "Einrichten" [ref=e53] [cursor=pointer]
+        - article [ref=e54]:
+          - button "Inject öffnen" [ref=e55] [cursor=pointer]:
+            - generic [ref=e59]:
+              - strong [ref=e60]: Inject
+              - generic [ref=e61]: Gestoppt
+          - button "Start" [ref=e63] [cursor=pointer]
+        - article [ref=e64]:
+          - button "Web-Quelle öffnen" [ref=e65] [cursor=pointer]:
+            - generic [ref=e69]:
+              - strong [ref=e70]: Web-Quelle
+              - generic [ref=e71]: Gestoppt
+          - button "Start" [ref=e73] [cursor=pointer]
+      - heading "Ausgaben zeigen, drucken, sagen" [level=2] [ref=e74]:
+        - text: Ausgaben
+        - generic [ref=e75]: zeigen, drucken, sagen
+      - generic [ref=e76]:
+        - article [ref=e77]:
+          - button "PeekSmith öffnen" [ref=e78] [cursor=pointer]:
+            - generic [ref=e82]:
+              - strong [ref=e83]: PeekSmith
+              - generic [ref=e84]: Nicht verbunden
+          - button "Verbinden" [ref=e86] [cursor=pointer]
+        - article [ref=e87]:
+          - button "Selfie Screen öffnen" [ref=e88] [cursor=pointer]:
+            - generic [ref=e92]:
+              - strong [ref=e93]: Selfie Screen
+              - generic [ref=e94]: Nicht verbunden
+          - button "Verbinden" [ref=e96] [cursor=pointer]
+        - article [ref=e97]:
+          - button "Peripage P21 öffnen" [ref=e98] [cursor=pointer]:
+            - generic [ref=e102]:
+              - strong [ref=e103]: Peripage P21
+              - generic [ref=e104]: Nicht verbunden
+          - button "Verbinden" [ref=e106] [cursor=pointer]
+        - article [ref=e107]:
+          - button "Sprachausgabe öffnen" [ref=e108] [cursor=pointer]:
+            - generic [ref=e112]:
+              - strong [ref=e113]: Sprachausgabe
+              - generic [ref=e114]: Bereit
+          - button "Test" [ref=e116] [cursor=pointer]
+  - navigation "Hauptnavigation" [ref=e117]:
+    - link "Geräte" [ref=e118] [cursor=pointer]:
+      - /url: "#devices"
+    - link "Kombis" [ref=e122] [cursor=pointer]:
+      - /url: "#combos"
+    - link "Live" [ref=e126] [cursor=pointer]:
+      - /url: "#live"
+    - link "Hilfe" [ref=e130] [cursor=pointer]:
+      - /url: "#help"
+  - status

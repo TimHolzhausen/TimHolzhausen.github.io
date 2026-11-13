@@ -1,0 +1,1 @@
+[   17225ms] [INFO] Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner. @ http://127.0.0.1:8791/magicHub/#devices:1

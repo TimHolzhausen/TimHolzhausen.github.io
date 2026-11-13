@@ -1,0 +1,169 @@
+- generic [ref=f2e1]:
+  - banner [ref=f2e2]:
+    - link "MagicHub Start" [ref=f2e3] [cursor=pointer]:
+      - /url: "#devices"
+      - generic [ref=f2e4]: MagicHub
+    - button "●1 aktiv" [ref=f2e5] [cursor=pointer]
+  - main [ref=f2e6]:
+    - region "Kombis" [ref=f2e7]:
+      - heading "Kombis" [level=1] [ref=f2e8]
+      - paragraph [ref=f2e9]:
+        - text: "Eine Kombi ist eine Regel:"
+        - emphasis [ref=f2e10]: Wenn
+        - text: ein Auslöser kommt
+        - emphasis [ref=f2e11]: und
+        - text: der Wert passt,
+        - emphasis [ref=f2e12]: dann
+        - text: "laufen Aktionen – mit Zuordnung, Verzögerung und automatischem Ausblenden. Beispiel:"
+        - emphasis [ref=f2e13]: Würfel zeigt 3 → PeekSmith zeigt „Karo Drei“ für 8 Sekunden
+        - text: .
+      - generic [ref=f2e14]:
+        - article [ref=f2e15]:
+          - generic [ref=f2e16]:
+            - generic [ref=f2e17]: Selfie-Taste
+            - generic [aria-hidden] [ref=f2e20]: →
+            - generic [ref=f2e21]: Peripage P21
+          - generic [ref=f2e25]: sendet letzten Inhalt
+          - generic [ref=f2e26]:
+            - generic [ref=f2e27]: "Nicht verbunden: Selfie-Taste, Peripage P21"
+            - generic [ref=f2e28]:
+              - button "Testen" [ref=f2e29] [cursor=pointer]
+              - button "Ändern" [ref=f2e30] [cursor=pointer]
+              - generic [ref=f2e31]:
+                - switch "Kombi aktiv" [checked]
+                - generic [ref=f2e32] [cursor=pointer]
+        - article [ref=f2e33]:
+          - generic [ref=f2e34]:
+            - generic [ref=f2e35]: GoDice
+            - generic [aria-hidden] [ref=f2e38]: →
+            - generic [ref=f2e39]:
+              - generic [ref=f2e40]: PeekSmith
+              - generic [ref=f2e43]: Sprachausgabe
+          - generic [ref=f2e46]: "Format: Summe {text}"
+          - generic [ref=f2e47]:
+            - generic [ref=f2e48]: "Nicht verbunden: GoDice, PeekSmith"
+            - generic [ref=f2e49]:
+              - button "Testen" [ref=f2e50] [cursor=pointer]
+              - button "Ändern" [ref=f2e51] [cursor=pointer]
+              - button "Nach oben" [ref=f2e52] [cursor=pointer]: ↑
+              - generic [ref=f2e53]:
+                - switch "Kombi aktiv" [checked]
+                - generic [ref=f2e54] [cursor=pointer]
+      - button "+ Neue Kombi" [ref=f2e55] [cursor=pointer]
+      - heading "Vorlagen mit einem Tipp übernehmen" [level=2] [ref=f2e56]:
+        - text: Vorlagen
+        - generic [ref=f2e57]: mit einem Tipp übernehmen
+      - generic [ref=f2e58]:
+        - button "→ Würfelsumme aufs PeekSmith übernehmen" [ref=f2e59] [cursor=pointer]:
+          - generic [ref=f2e60]: →
+          - generic [ref=f2e65]: Würfelsumme aufs PeekSmith
+          - generic [ref=f2e66]: übernehmen
+        - button "→ Würfel → Spielkarte (Zuordnung) übernehmen" [ref=f2e67] [cursor=pointer]:
+          - generic [ref=f2e68]: →
+          - generic [ref=f2e73]: Würfel → Spielkarte (Zuordnung)
+          - generic [ref=f2e74]: übernehmen
+        - button "→ Stift-Zeichnung auf den Selfie Screen übernehmen" [ref=f2e75] [cursor=pointer]:
+          - generic [ref=f2e76]: →
+          - generic [ref=f2e81]: Stift-Zeichnung auf den Selfie Screen
+          - generic [ref=f2e82]: übernehmen
+        - button "→ Handschrift (KI) aufs PeekSmith übernehmen" [ref=f2e83] [cursor=pointer]:
+          - generic [ref=f2e84]: →
+          - generic [ref=f2e89]: Handschrift (KI) aufs PeekSmith
+          - generic [ref=f2e90]: übernehmen
+        - button "→ Inject-Wort aufs PeekSmith, nach 10 s weg übernehmen" [ref=f2e91] [cursor=pointer]:
+          - generic [ref=f2e92]: →
+          - generic [ref=f2e97]: Inject-Wort aufs PeekSmith, nach 10 s weg
+          - generic [ref=f2e98]: übernehmen
+        - button "→ Palette-Farbe ansagen & anzeigen übernehmen" [ref=f2e99] [cursor=pointer]:
+          - generic [ref=f2e100]: →
+          - generic [ref=f2e107]: Palette-Farbe ansagen & anzeigen
+          - generic [ref=f2e108]: übernehmen
+        - button "→ Würfelsumme als Vibration zählen übernehmen" [ref=f2e109] [cursor=pointer]:
+          - generic [ref=f2e110]: →
+          - generic [ref=f2e115]: Würfelsumme als Vibration zählen
+          - generic [ref=f2e116]: übernehmen
+        - button "→ Selfie-Auslöser druckt letzten Inhalt übernehmen" [ref=f2e117] [cursor=pointer]:
+          - generic [ref=f2e118]: →
+          - generic [ref=f2e123]: Selfie-Auslöser druckt letzten Inhalt
+          - generic [ref=f2e124]: übernehmen
+        - 'button "→ PeekSmith-Taste rechts lang: Display leeren übernehmen" [ref=f2e125] [cursor=pointer]':
+          - generic [ref=f2e126]: →
+          - generic [ref=f2e131]: "PeekSmith-Taste rechts lang: Display leeren"
+          - generic [ref=f2e132]: übernehmen
+  - navigation "Hauptnavigation" [ref=f2e133]:
+    - link "Geräte" [ref=f2e134] [cursor=pointer]:
+      - /url: "#devices"
+    - link "Kombis" [ref=f2e138] [cursor=pointer]:
+      - /url: "#combos"
+    - link "Live" [ref=f2e142] [cursor=pointer]:
+      - /url: "#live"
+    - link "Hilfe" [ref=f2e146] [cursor=pointer]:
+      - /url: "#help"
+  - dialog "Neue Kombi" [ref=f2e150]:
+    - generic [ref=f2e151]:
+      - generic [ref=f2e155]:
+        - heading "Neue Kombi" [level=2] [ref=f2e156]
+        - paragraph [ref=f2e157]: Auslöser → Bedingung → Inhalt → Aktionen
+      - button "Schließen" [active] [ref=f2e158] [cursor=pointer]: ✕
+    - generic [ref=f2e159]:
+      - heading "1 Wenn …" [level=3] [ref=f2e160]:
+        - generic [ref=f2e161]: "1"
+        - text: Wenn …
+      - generic [ref=f2e162]:
+        - button "GoDice" [ref=f2e163] [cursor=pointer]
+        - button "Davinci-Palette" [ref=f2e166] [cursor=pointer]
+        - button "Ultra Sharpie" [ref=f2e169] [cursor=pointer]
+        - button "KI-Erkennung" [ref=f2e172] [cursor=pointer]
+        - button "Inject" [ref=f2e175] [cursor=pointer]
+        - button "Web-Quelle" [ref=f2e178] [cursor=pointer]
+        - button "PeekSmith-Taste" [ref=f2e181] [cursor=pointer]
+        - button "Selfie-Taste" [ref=f2e184] [cursor=pointer]
+        - button "Manuell" [ref=f2e187] [cursor=pointer]
+      - paragraph [ref=f2e190]: Was soll die Kombi auslösen?
+      - heading "2 … und wenn der Wert …" [level=3] [ref=f2e191]:
+        - generic [ref=f2e192]: "2"
+        - text: … und wenn der Wert …
+      - generic [ref=f2e193]:
+        - generic [ref=f2e194]: Bedingung
+        - combobox "Bedingung" [ref=f2e195]:
+          - option "Immer" [selected]
+          - option "Wert ist genau …"
+          - option "Wert ist nicht …"
+          - option "Wert enthält …"
+          - option "Zahl zwischen …"
+          - option "Zahl ist gerade"
+          - option "Zahl ist ungerade"
+      - heading "3 … dann senden" [level=3] [ref=f2e196]:
+        - generic [ref=f2e197]: "3"
+        - text: … dann senden
+      - generic [ref=f2e198]:
+        - generic [ref=f2e199]: Inhalt
+        - combobox "Inhalt" [ref=f2e200]:
+          - option "Wert des Auslösers" [selected]
+          - option "Letzten Inhalt erneut senden"
+          - option "Nur eigenen Text (Vorlage)"
+      - generic [ref=f2e201]:
+        - generic [ref=f2e202]: Text-Vorlage
+        - textbox "Text-Vorlage" [ref=f2e203]: "{text}"
+        - paragraph [ref=f2e204]: "{text} Wert · {quelle} Auslöser · {letzter} letzter Inhalt · {zähler} wie oft ausgelöst · {uhrzeit} · {datum}. Beispiel: „Deine Karte: {text}“."
+      - group [ref=f2e205]:
+        - generic "Zuordnung (Wert → Text)" [ref=f2e206] [cursor=pointer]
+      - heading "4 Aktionen (der Reihe nach)" [level=3] [ref=f2e207]:
+        - generic [ref=f2e208]: "4"
+        - text: Aktionen (der Reihe nach)
+      - paragraph [ref=f2e210]: Noch keine Aktion. Ziel wählen und „+ Aktion“.
+      - generic [ref=f2e211]:
+        - combobox "Ziel für neue Aktion" [ref=f2e212]:
+          - option "PeekSmith" [selected]
+          - option "Selfie Screen"
+          - option "Peripage P21"
+          - option "Sprachausgabe"
+          - option "Vibration"
+        - button "+ Aktion" [ref=f2e213] [cursor=pointer]
+      - paragraph [ref=f2e214]: „Nach … s“ verzögert die Aktion. „Leeren nach … s“ blendet sie wieder aus – ideal für Peeks.
+      - group [ref=f2e215]:
+        - generic "Weitere Optionen" [ref=f2e216] [cursor=pointer]
+      - generic [ref=f2e217]:
+        - button "Kombi anlegen" [disabled]
+        - button "Testen" [disabled]
+  - status
