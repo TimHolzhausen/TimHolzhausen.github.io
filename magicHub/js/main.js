@@ -15,7 +15,7 @@ import { AiVision, PROVIDERS, AI_TASKS, localAvailability } from './ai/vision.js
 import { Hub, PRESETS, loadStore, saveStore } from './hub.js';
 import { textCanvas, printTextCanvas, drawingCanvas, fitInto, demoStrokes } from './render.js';
 
-const VERSION = '0.1.0';
+const VERSION = '0.1.1';
 const BT = hasWebBluetooth();
 
 // ---------------------------------------------------------------- Helfer
@@ -271,15 +271,20 @@ sheet.addEventListener('click', (e) => { if (e.target === sheet) sheet.close(); 
 
 function connectRow(id) {
   const btn = h('button', { class: 'btn btn-primary btn-block', type: 'button' });
+  const isBle = DEV_BY_ID[id]?.ble && BT;
+  const all = isBle ? h('button', { class: 'btn btn-ghost btn-small btn-block', type: 'button',
+    onclick: () => runAction({ run: () => dev[id].connect({ showAll: true }) }) }, 'Gerät nicht in der Liste? Alle Bluetooth-Geräte anzeigen') : null;
+  const el = h('div', {}, btn, all);
   const upd = () => {
     const a = primaryAction(id);
     btn.textContent = a.label;
     btn.disabled = !!a.disabled;
     btn.classList.toggle('btn-primary', dev[id].status !== 'connected');
     btn.onclick = () => runAction(a);
+    if (all) all.hidden = ['connected', 'connecting'].includes(dev[id].status);
   };
   upd();
-  return { el: btn, upd };
+  return { el, upd };
 }
 
 function field(label, input, hint) {
@@ -481,7 +486,13 @@ const PANELS = {
       h('form', { class: 'row', onsubmit: (e) => { e.preventDefault(); hub.deliver('selfie', { kind: 'text', text: txt.value }); } }, txt, h('button', { class: 'btn btn-primary', type: 'submit' }, 'Anzeigen')),
       h('label', { class: 'btn btn-block' }, file, 'Foto anzeigen …'),
       field('Helligkeit (Bild abdunkeln)', br), info,
-      h('p', { class: 'hint' }, 'Tasten (Auslöser, Kamera, +/−) sind als Eingabe „Selfie-Taste“ nutzbar.'));
+      h('p', { class: 'hint' }, 'Tasten (Auslöser, Kamera, +/−) sind als Eingabe „Selfie-Taste“ nutzbar.'),
+      h('details', {}, h('summary', {}, 'Screen wird nicht gefunden?'),
+        h('ol', {},
+          h('li', {}, 'Screen einschalten und in MysterSmith bzw. anderen Apps trennen (nur eine Verbindung möglich).'),
+          h('li', {}, 'Ist er in den Bluetooth-Einstellungen des Handys gekoppelt, dort „Entkoppeln“ – gekoppelte Geräte werben oft nicht mehr per BLE.'),
+          h('li', {}, '„Alle Bluetooth-Geräte anzeigen“ antippen und nach SelfieCom, TP02 oder einem unbenannten Gerät in der Nähe schauen.'),
+          h('li', {}, 'Meldet die App „bietet den Dienst nicht an“, war es das falsche Gerät – oder der Screen spricht nur klassisches Bluetooth.'))));
     return () => { c.upd(); const s = dev.selfie; info.textContent = s.connected ? s.width + '×' + s.height + ' px · Puffer ' + Math.round(s.buffer / 1024) + ' KB' : ''; };
   },
 

@@ -2,7 +2,7 @@
 // Offline-Oberfläche ≠ Offline-Funktion: Web-Quellen und KI brauchen Internet, Bluetooth braucht die Geräte.
 // Bei Änderungen an Dateien VERSION erhöhen, damit Nutzer die neue Fassung bekommen.
 
-const VERSION = 'magichub-0.1.0';
+const VERSION = 'magichub-0.1.1';
 const ASSETS = [
   './', './index.html', './manifest.webmanifest', './css/app.css',
   './vendor/godice.js',
@@ -26,7 +26,8 @@ self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
   if (e.request.method !== 'GET' || url.origin !== location.origin) return;
   e.respondWith(
-    fetch(e.request)
+    // cache: 'no-cache' → beim Server nachfragen (ETag), statt bis zu 10 min alte Dateien aus dem HTTP-Cache zu nehmen.
+    fetch(e.request.url, { cache: 'no-cache', credentials: 'same-origin' })
       .then((res) => {
         if (res.ok) { const copy = res.clone(); caches.open(VERSION).then((c) => c.put(e.request, copy)); }
         return res;

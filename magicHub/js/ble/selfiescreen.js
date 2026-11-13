@@ -30,11 +30,24 @@ export class SelfieScreen extends BleDevice {
     this._onNotify = (e) => this._receive(new Uint8Array(e.target.value.buffer, e.target.value.byteOffset, e.target.value.byteLength));
   }
 
+  // MysterSmith erkennt den Screen am Namen „SelfieCom…“ (Magnetic Selfie Screen TP02, Dual-Mode-Gerät).
+  // Über BLE kann der beworbene Name abweichen → zusätzlich Dienst- und weitere Namensfilter,
+  // notfalls „Alle Bluetooth-Geräte anzeigen“.
   requestOptions() {
-    return { filters: [{ namePrefix: 'SelfieCom' }], optionalServices: [SERVICE] };
+    return {
+      filters: [
+        { namePrefix: 'SelfieCom' },
+        { namePrefix: 'Selfie' },
+        { namePrefix: 'selfie' },
+        { namePrefix: 'TP02' },
+        { services: [SERVICE] },
+      ],
+      optionalServices: [SERVICE],
+    };
   }
 
   async setup(server) {
+    this.log('info', 'Verbunden mit „' + this.deviceName + '“ – suche Selfie-Dienst …');
     const svc = await server.getPrimaryService(SERVICE);
     this.writeC = await svc.getCharacteristic(WRITE);
     this.notifyC = await svc.getCharacteristic(NOTIFY);

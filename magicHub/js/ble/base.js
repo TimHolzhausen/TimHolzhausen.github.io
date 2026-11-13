@@ -75,8 +75,11 @@ export class BleDevice extends EventTarget {
   async setup(_server) { /* von Unterklassen */ }
   teardown() { /* von Unterklassen: Timer stoppen usw. */ }
 
-  /** Muss direkt aus einem Klick-Handler aufgerufen werden. */
-  async connect() {
+  /**
+   * Muss direkt aus einem Klick-Handler aufgerufen werden.
+   * showAll = true zeigt alle BLE-Geräte in der Auswahl (falls das Gerät anders heißt als erwartet).
+   */
+  async connect({ showAll = false } = {}) {
     if (!hasWebBluetooth()) {
       this._setStatus('error', 'Kein Web Bluetooth in diesem Browser');
       throw new Error('Kein Web Bluetooth');
@@ -84,7 +87,10 @@ export class BleDevice extends EventTarget {
     if (this.status === 'connecting') return;
     this._setStatus('connecting', 'Gerät auswählen …');
     try {
-      const device = await navigator.bluetooth.requestDevice(this.requestOptions());
+      const opts = this.requestOptions();
+      const device = await navigator.bluetooth.requestDevice(showAll
+        ? { acceptAllDevices: true, optionalServices: opts.optionalServices || [] }
+        : opts);
       this._attach(device);
       await this._open();
     } catch (err) {
@@ -122,7 +128,17 @@ export class BleDevice extends EventTarget {
     this._manualDisconnect = false;
     this._setStatus('connecting', 'Verbinde mit ' + this.deviceName + ' …');
     this.server = await this.device.gatt.connect();
-    await this.setup(this.server);
+    try {
+      await this.setup(this.server);
+    } catch (err) {
+      if (err?.name === 'NotFoundError') {
+        const e = new Error('„' + this.deviceName + '“ ist verbunden, bietet aber den ' + this.label +
+          '-Dienst über BLE nicht an. Falsches Gerät gewählt – oder es spricht nur klassisches Bluetooth, das Browser nicht können.');
+        e.name = 'ServiceMissing';
+        throw e;
+      }
+      throw err;
+    }
     this._setStatus('connected', this.deviceName);
   }
 
