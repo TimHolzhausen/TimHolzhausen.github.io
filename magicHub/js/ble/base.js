@@ -69,6 +69,8 @@ export class BleDevice extends EventTarget {
   }
 
   get connected() { return this.status === 'connected'; }
+  /** Echte GATT-Verbindung – auch während des Aufbaus (Status noch 'connecting') true. */
+  get linked() { return !!this.device?.gatt?.connected; }
   get deviceName() { return this.device?.name || this.label; }
 
   requestOptions() { throw new Error('requestOptions() fehlt'); }
@@ -85,6 +87,7 @@ export class BleDevice extends EventTarget {
       throw new Error('Kein Web Bluetooth');
     }
     if (this.status === 'connecting') return;
+    this.step = '';
     this._setStatus('connecting', 'Gerät auswählen …');
     try {
       const opts = this.requestOptions();
@@ -127,7 +130,20 @@ export class BleDevice extends EventTarget {
   async _open() {
     this._manualDisconnect = false;
     this._setStatus('connecting', 'Verbinde mit ' + this.deviceName + ' …');
-    this.server = await this.device.gatt.connect();
+    // Android meldet beim ersten GATT-Versuch oft einen Fehler (z. B. GATT 133) → bis zu 3 Versuche.
+    this.step = 'Verbindung aufbauen';
+    for (let attempt = 1; ; attempt++) {
+      try {
+        this.server = await this.device.gatt.connect();
+        break;
+      } catch (err) {
+        if (attempt >= 3 || this._manualDisconnect) throw err;
+        this.log('warn', 'Verbindungsversuch ' + attempt + ' fehlgeschlagen (' + (err.message || err.name) + ') – neuer Versuch');
+        this._setStatus('connecting', 'Verbinde erneut (Versuch ' + (attempt + 1) + ') …');
+        await sleep(800 * attempt);
+      }
+    }
+    this.step = 'Dienste lesen';
     try {
       await this.setup(this.server);
     } catch (err) {
@@ -139,15 +155,21 @@ export class BleDevice extends EventTarget {
       }
       throw err;
     }
+    this.step = '';
     this._setStatus('connected', this.deviceName);
   }
 
   _fail(err) {
-    const text = describeError(err);
+    let text = describeError(err);
+    const cancelled = err?.name === 'NotFoundError' && /cancel/i.test(err?.message || '');
+    if (!cancelled && err?.name !== 'ServiceMissing' && this.step) {
+      text = 'Schritt „' + this.step + '“: ' + text + (err?.message && !text.includes(err.message) ? ' [' + err.name + ': ' + err.message + ']' : '');
+    }
+    this.step = '';
     this.log('error', text);
     this.teardown();
     try { if (this.device?.gatt?.connected) this.device.gatt.disconnect(); } catch { /* egal */ }
-    this._setStatus(err?.name === 'NotFoundError' && /cancel/i.test(err?.message || '') ? 'idle' : 'error', text);
+    this._setStatus(cancelled ? 'idle' : 'error', text);
   }
 
   _handleDisconnect() {

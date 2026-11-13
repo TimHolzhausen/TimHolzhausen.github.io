@@ -15,7 +15,7 @@ import { AiVision, PROVIDERS, AI_TASKS, localAvailability } from './ai/vision.js
 import { Hub, PRESETS, loadStore, saveStore } from './hub.js';
 import { textCanvas, printTextCanvas, drawingCanvas, fitInto, demoStrokes } from './render.js';
 
-const VERSION = '0.1.1';
+const VERSION = '0.1.2';
 const BT = hasWebBluetooth();
 
 // ---------------------------------------------------------------- Helfer
@@ -251,9 +251,29 @@ function openSheet(id) {
   $('#sheet-title').textContent = meta.name;
   const body = $('#sheet-body');
   body.replaceChildren();
-  sheetUpdate = (PANELS[id] || (() => null))(body) || null;
+  const panelUpdate = (PANELS[id] || (() => null))(body) || null;
+  let logUpdate = null;
+  if (meta.ble) {
+    const pre = h('pre', { class: 'devlog' });
+    const copy = h('button', { class: 'btn btn-small', type: 'button', onclick: async () => {
+      const text = navigator.userAgent + '\n' + devLogs[id].join('\n');
+      try { await navigator.clipboard.writeText(text); toast('Protokoll kopiert', 'ok'); } catch { toast('Kopieren nicht möglich'); }
+    } }, 'Kopieren');
+    body.append(h('details', { class: 'devlog-box' }, h('summary', {}, 'Verbindungsprotokoll'), pre, copy));
+    logUpdate = () => { pre.textContent = devLogs[id].length ? devLogs[id].join('\n') : 'Noch keine Einträge.'; };
+  }
+  sheetUpdate = () => { panelUpdate?.(); logUpdate?.(); };
   refreshSheet();
   if (!sheet.open) sheet.showModal();
+}
+
+// Protokoll je Gerät (für die Fehlersuche, max. 60 Zeilen)
+const devLogs = Object.fromEntries(Object.keys(dev).map((k) => [k, []]));
+function pushDevLog(id, level, message) {
+  const t = new Date().toLocaleTimeString('de-DE');
+  devLogs[id].push(t + ' ' + (level === 'error' ? '✖ ' : level === 'warn' ? '⚠ ' : '') + message);
+  if (devLogs[id].length > 60) devLogs[id].shift();
+  if (openId === id) refreshSheet();
 }
 
 function refreshSheet() {
@@ -531,7 +551,11 @@ for (const [id, d] of Object.entries(dev)) {
   for (const type of ['status', 'dice', 'pots', 'battery', 'info', 'point', 'cleared', 'drawing', 'progress']) {
     d.addEventListener(type, () => { renderTiles(); if (openId === id) refreshSheet(); if (type === 'status') renderCombos(); });
   }
-  d.addEventListener('log', (e) => { if (e.detail.level === 'error') addLog('error', DEV_BY_ID[id]?.name || id, e.detail.message); });
+  d.addEventListener('log', (e) => {
+    pushDevLog(id, e.detail.level, e.detail.message);
+    if (e.detail.level === 'error') addLog('error', DEV_BY_ID[id]?.name || id, e.detail.message);
+  });
+  d.addEventListener('status', (e) => pushDevLog(id, 'info', 'Status: ' + e.detail.message));
   d.addEventListener('status', (e) => {
     if (e.detail.status === 'lost') toast((DEV_BY_ID[id]?.name || id) + ': Verbindung verloren', 'error');
     if (e.detail.status === 'connected' && DEV_BY_ID[id]?.ble) toast((DEV_BY_ID[id]?.name) + ' verbunden', 'ok');

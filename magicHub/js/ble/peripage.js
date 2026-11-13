@@ -76,7 +76,7 @@ export class PeripagePrinter extends BleDevice {
   /** Schreibt in Paketen; fällt bei Fehler auf 20 Byte zurück. */
   async _chunks(data, size, { credits = false, delay = 0 } = {}) {
     for (let i = 0; i < data.length;) {
-      if (!this.connected) throw new Error('Drucker getrennt');
+      if (!this.linked) throw new Error('Drucker getrennt');
       if (credits && this._credits <= 0) {
         await new Promise((r) => { this._creditWaiter = r; setTimeout(r, 400); });
         this._creditWaiter = null;

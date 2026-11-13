@@ -79,7 +79,7 @@ export class PeekSmith extends BleDevice {
   _line(str) {
     const bytes = [...new TextEncoder().encode(str), 10];
     this._queue = this._queue.then(async () => {
-      if (!this.connected || !this.char) return;
+      if (!this.linked || !this.char) return;
       for (let i = 0; i < bytes.length; i += 18) {
         await writeChar(this.char, bytes.slice(i, i + 18), true);
         await sleep(60);

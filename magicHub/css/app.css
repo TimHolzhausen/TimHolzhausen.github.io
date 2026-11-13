@@ -314,3 +314,5 @@ dialog .toast { display: none; }
 }
 @media (max-width: 330px) { .tiles { grid-template-columns: 1fr; } .tile { flex-wrap: wrap; } .tile-action { width: 100%; } }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+.devlog-box { margin-top: 18px; }
+.devlog { max-height: 200px; overflow: auto; padding: 10px; border-radius: 10px; background: var(--bg); border: 1px solid var(--line); font: 12px/1.45 ui-monospace, Menlo, Consolas, monospace; white-space: pre-wrap; word-break: break-word; color: var(--muted); }

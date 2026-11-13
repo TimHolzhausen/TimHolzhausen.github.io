@@ -48,20 +48,47 @@ export class SelfieScreen extends BleDevice {
 
   async setup(server) {
     this.log('info', 'Verbunden mit „' + this.deviceName + '“ – suche Selfie-Dienst …');
-    const svc = await server.getPrimaryService(SERVICE);
+    this._chunk = 180;
+    this._sentOnce = false;
+    this._sending = false;
+    await sleep(400); // Dual-Mode-Geräte unter Android brauchen nach dem Verbinden einen Moment
+    let svc;
+    try {
+      svc = await server.getPrimaryService(SERVICE);
+    } catch (err) {
+      // Android hält manchmal veraltete Dienstlisten (MysterSmith frischt dafür den GATT-Cache auf).
+      // Im Browser geht das nicht – einmal trennen und neu verbinden hilft oft.
+      this.log('warn', 'Dienst nicht gefunden (' + err.message + ') – verbinde einmal neu');
+      this._manualDisconnect = true;
+      try { this.device.gatt.disconnect(); } catch { /* egal */ }
+      await sleep(1200);
+      this._manualDisconnect = false;
+      this.server = server = await this.device.gatt.connect();
+      await sleep(600);
+      svc = await server.getPrimaryService(SERVICE);
+    }
+    this.step = 'Schreib-Kanal';
     this.writeC = await svc.getCharacteristic(WRITE);
-    this.notifyC = await svc.getCharacteristic(NOTIFY);
-    this.notifyC.addEventListener('characteristicvaluechanged', this._onNotify);
-    await this.notifyC.startNotifications();
+    this.step = 'Benachrichtigungen';
     this._requested = false;
     this._sizeKnown = false;
     this._gotAny = false;
     this._unasked = false;
+    try {
+      this.notifyC = await svc.getCharacteristic(NOTIFY);
+      this.notifyC.addEventListener('characteristicvaluechanged', this._onNotify);
+      await this.notifyC.startNotifications();
+    } catch (err) {
+      // Ohne Rückkanal trotzdem nutzbar: Bilder ohne Anforderung schicken (wie MysterSmith im Notfall).
+      this.log('warn', 'Benachrichtigungen nicht möglich (' + err.message + ') – sende Bilder ohne Anforderung, Tasten gehen dann nicht');
+      this._unasked = true;
+    }
+    this.step = 'Begrüßung senden';
     this._send([0xaa, 0x55, 0xf5, 0x01]);
     this._send([0xaa, 0x55, 0xf8, 0x01]);
     clearTimeout(this._sizeTimer);
     this._sizeTimer = setTimeout(() => {
-      if (!this.connected || this._sizeKnown) return;
+      if (!this.linked || this._sizeKnown) return;
       this.log('info', 'Keine Größenangabe – nutze ' + this.width + '×' + this.height);
       this._send([0xaa, 0x55, 0x01, 0x01, 0x01]);
       this._firstPicture();
@@ -119,7 +146,7 @@ export class SelfieScreen extends BleDevice {
   }
 
   _pump() {
-    if (!this.connected || this._sending || !this._jpeg || !this._fresh) return;
+    if (!this.linked || this._sending || !this._jpeg || !this._fresh) return;
     if (!this._requested && !this._unasked) return;
     this._requested = false;
     this._fresh = false;
@@ -132,7 +159,7 @@ export class SelfieScreen extends BleDevice {
       if (first && !this._gotAny) {
         // Antwortet der Screen nicht, Bilder ohne Anforderung schicken (wie MysterSmith).
         this._silentTimer = setTimeout(() => {
-          if (this.connected && !this._gotAny) { this._unasked = true; this.log('warn', 'Screen antwortet nicht – sende ohne Anforderung'); this._pump(); }
+          if (this.linked && !this._gotAny) { this._unasked = true; this.log('warn', 'Screen antwortet nicht – sende ohne Anforderung'); this._pump(); }
         }, 1500);
       }
       if (this._unasked) setTimeout(() => this._pump(), 300);
@@ -150,16 +177,20 @@ export class SelfieScreen extends BleDevice {
 
   async _write(data) {
     for (let i = 0; i < data.length;) {
-      if (!this.connected) throw new Error('getrennt');
+      if (!this.linked) throw new Error('getrennt');
       const end = Math.min(i + this._chunk, data.length);
       const pkt = new Uint8Array(end - i + 1);
       pkt.set(data.subarray(i, end));
       pkt[end - i] = end < data.length ? 1 : 0;
+      const props = this.writeC.properties || {};
+      const noResp = props.writeWithoutResponse && typeof this.writeC.writeValueWithoutResponse === 'function' && !this._withResponse;
       try {
-        if (typeof this.writeC.writeValueWithoutResponse === 'function') await this.writeC.writeValueWithoutResponse(pkt);
+        if (noResp) await this.writeC.writeValueWithoutResponse(pkt);
+        else if (typeof this.writeC.writeValueWithResponse === 'function') await this.writeC.writeValueWithResponse(pkt);
         else await this.writeC.writeValue(pkt);
       } catch (err) {
-        if (this._chunk > 19) { this._chunk = 19; this.log('info', 'Kleinere Pakete (MTU)'); continue; }
+        if (this._chunk > 19) { this._chunk = 19; this.log('info', 'Kleinere Pakete (MTU): ' + err.message); continue; }
+        if (noResp) { this._withResponse = true; this.log('info', 'Schreibe mit Bestätigung: ' + err.message); continue; }
         throw err;
       }
       i = end;
