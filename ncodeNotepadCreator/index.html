@@ -1,0 +1,1792 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Notepad Creator</title>
+<meta name="description" content="Design your own Ncode notepad paper: pick a format, a design or your own scan, and download a print-ready PDF with Ncode on both sides and crop marks.">
+<link rel="icon" href="../ncodeSheets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&family=Caveat:wght@600;700&family=Playfair+Display:wght@700&display=swap">
+<style>
+/* Same design system as the Custom Sheets page and the Business Card Creator. */
+:root {
+  --paper: #f4f5f7;
+  --sheet: #ffffff;
+  --ink: #16181d;
+  --muted: #5d6470;
+  --rule: #dde0e6;
+  --pen: #2346c8;
+  --pen-ink: #ffffff;
+  --hi: #ffe45c;
+  --mark: #e0457b;
+  --warn: #9a5400;
+  --shadow: 0 1px 2px rgba(20, 24, 33, .06), 0 8px 24px rgba(20, 24, 33, .08);
+  --font-ui: "Schibsted Grotesk", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #111318; --sheet: #1a1d24; --ink: #e8eaee; --muted: #9aa2ae; --rule: #2b3039;
+    --pen: #8ea6ff; --pen-ink: #0d1330; --hi: rgba(255, 220, 70, .38); --mark: #ff6b9a; --warn: #f0ad55;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 10px 30px rgba(0, 0, 0, .35);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #111318; --sheet: #1a1d24; --ink: #e8eaee; --muted: #9aa2ae; --rule: #2b3039;
+  --pen: #8ea6ff; --pen-ink: #0d1330; --hi: rgba(255, 220, 70, .38); --mark: #ff6b9a; --warn: #f0ad55;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 10px 30px rgba(0, 0, 0, .35);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body {
+  background: var(--paper); color: var(--ink);
+  font: 16px/1.55 var(--font-ui);
+  padding-inline: 20px; padding-block: 0 64px;
+}
+@media (max-width: 520px) { body { padding-inline: 16px; } }
+a { color: var(--pen); text-underline-offset: 3px; }
+.wrap { max-width: 1240px; margin: 0 auto; }
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.hl { background: linear-gradient(transparent 58%, var(--hi) 58%, var(--hi) 92%, transparent 92%); padding: 0 .08em; }
+.eyebrow { font-size: .75rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 0; }
+:focus-visible { outline: 2px solid var(--pen); outline-offset: 3px; border-radius: 4px; }
+
+.top { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-block: 18px; flex-wrap: wrap; }
+.brand { font-weight: 800; letter-spacing: -.01em; text-decoration: none; color: var(--ink); display: flex; gap: 10px; align-items: center; }
+.brand-dot { width: 22px; height: 22px; border-radius: 50%; background: radial-gradient(circle, var(--ink) 1.2px, transparent 1.6px) 0 0 / 5px 5px; border: 1.5px solid var(--ink); }
+.top nav { display: flex; gap: 20px; flex-wrap: wrap; font-size: .92rem; }
+.top nav a { color: var(--muted); text-decoration: none; }
+.top nav a:hover, .top nav a[aria-current] { color: var(--ink); }
+
+.intro { padding-block: 28px 30px; display: grid; gap: 12px; max-width: 72ch; }
+.intro h1 { font-size: clamp(2rem, 4.4vw, 3.2rem); font-weight: 800; letter-spacing: -.035em; line-height: 1.05; margin: 0; text-wrap: balance; }
+.intro p:not(.eyebrow) { margin: 0; font-size: 1.08rem; color: var(--muted); }
+
+.app { display: grid; grid-template-columns: minmax(0, 420px) minmax(0, 1fr); gap: 28px; align-items: start; }
+@media (max-width: 960px) { .app { grid-template-columns: minmax(0, 1fr); } }
+
+.controls { display: grid; gap: 12px; min-width: 0; }
+.group {
+  background: var(--sheet); border: 1px solid var(--rule); border-radius: 14px;
+  padding: 20px; display: grid; gap: 14px; min-width: 0;
+}
+.group h2 { margin: 0; font-size: 1.08rem; font-weight: 700; display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+.group h2 span { font: 400 .8rem var(--font-mono); color: var(--muted); }
+.sub-h { margin: 4px 0 -4px; font-size: .75rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+
+.drop {
+  border: 1.5px dashed var(--rule); border-radius: 10px; padding: 14px; text-align: center;
+  cursor: pointer; display: grid; gap: 2px; transition: border-color .15s, background .15s; position: relative;
+}
+.drop:hover, .drop.over { border-color: var(--pen); background: color-mix(in srgb, var(--pen) 7%, transparent); }
+.drop strong { font-weight: 600; }
+.drop small { color: var(--muted); font-size: .84rem; }
+.drop input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.filename { font-size: .85rem; color: var(--muted); overflow-wrap: anywhere; }
+
+.seg { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.seg.three { grid-template-columns: repeat(3, 1fr); }
+.seg label { position: relative; }
+.seg input { position: absolute; opacity: 0; }
+.seg span { display: block; padding: 9px 11px; font-size: .88rem; font-weight: 600; line-height: 1.3; cursor: pointer; height: 100%; border: 1.5px solid var(--rule); border-radius: 10px; }
+.seg span:hover { border-color: var(--muted); }
+.seg span small { display: block; color: var(--muted); font: 400 .76rem var(--font-mono); margin-top: 2px; }
+.seg input:checked + span { border-color: var(--pen); background: color-mix(in srgb, var(--pen) 8%, transparent); }
+.seg input:focus-visible + span { outline: 2px solid var(--pen); outline-offset: 2px; }
+
+.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.row > label, .field > span { font-size: .9rem; }
+.fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.field { display: grid; gap: 4px; min-width: 0; }
+.field.wide { grid-column: 1 / -1; }
+input[type="range"] { flex: 1; min-width: 120px; accent-color: var(--pen); }
+input[type="checkbox"] { accent-color: var(--pen); width: 17px; height: 17px; margin: 0; }
+.check { display: flex; gap: 10px; align-items: flex-start; font-size: .9rem; cursor: pointer; }
+.check input { margin-top: 3px; flex: none; }
+.check small { display: block; color: var(--muted); font-size: .82rem; }
+button, select, input[type="text"], input[type="number"] {
+  font: 600 .9rem var(--font-ui); color: var(--ink); background: transparent;
+  border: 1.5px solid var(--rule); border-radius: 10px; padding: 7px 12px;
+}
+input[type="text"], input[type="number"] { font-weight: 500; background: var(--sheet); width: 100%; min-width: 0; }
+button, select { cursor: pointer; }
+select { background: var(--sheet); width: 100%; }
+button:hover, select:hover, input[type="text"]:hover, input[type="number"]:hover { border-color: var(--muted); }
+input[type="color"] { width: 38px; height: 34px; padding: 2px; border: 1.5px solid var(--rule); border-radius: 10px; background: var(--sheet); cursor: pointer; }
+.swatches { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.swatch { width: 26px; height: 26px; border-radius: 50%; padding: 0; border: 2px solid var(--sheet); box-shadow: 0 0 0 1.5px var(--rule); }
+.swatch[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--pen); }
+
+/* Design picker */
+.designs { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; }
+.design { position: relative; }
+.design input { position: absolute; opacity: 0; }
+.design > span {
+  display: grid; gap: 5px; justify-items: center; padding: 7px 5px 6px; border: 1.5px solid var(--rule); border-radius: 10px;
+  cursor: pointer; font-size: .76rem; font-weight: 600; line-height: 1.2; text-align: center; height: 100%;
+}
+.design > span:hover { border-color: var(--muted); }
+.design input:checked + span { border-color: var(--pen); background: color-mix(in srgb, var(--pen) 8%, transparent); }
+.design input:focus-visible + span { outline: 2px solid var(--pen); outline-offset: 2px; }
+.design canvas { width: 100%; height: auto; max-height: 96px; object-fit: contain; background: #fff; box-shadow: 0 0 0 1px var(--rule); }
+
+/* Scan editor */
+.scanbox { display: grid; gap: 10px; border-top: 1px solid var(--rule); padding-top: 14px; }
+#scanCanvas { width: 100%; height: auto; touch-action: none; border-radius: 8px; background: var(--paper); cursor: crosshair; display: block; }
+.scanbox .note { font-size: .84rem; }
+
+.strengths { display: grid; gap: 8px; }
+.strength { position: relative; }
+.strength input { position: absolute; opacity: 0; }
+.strength > span {
+  display: grid; grid-template-columns: 48px 1fr auto; align-items: center; gap: 4px 12px;
+  border: 1.5px solid var(--rule); border-radius: 10px; padding: 9px 12px; cursor: pointer; transition: border-color .15s, background .15s;
+}
+.strength > span:hover { border-color: var(--muted); }
+.strength input:checked + span { border-color: var(--pen); background: color-mix(in srgb, var(--pen) 8%, transparent); }
+.strength input:focus-visible + span { outline: 2px solid var(--pen); outline-offset: 2px; }
+.strength img { width: 48px; height: 48px; image-rendering: pixelated; border-radius: 6px; background: #fff; border: 1px solid var(--rule); object-fit: none; }
+.strength b { font-weight: 600; display: block; }
+.strength small { color: var(--muted); font-size: .84rem; line-height: 1.35; display: block; }
+.strength .toner { font: .8rem var(--font-mono); color: var(--muted); }
+.tag { font: 600 .66rem var(--font-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--warn); margin-left: 6px; }
+
+.primary {
+  background: var(--pen); color: var(--pen-ink); border-color: var(--pen);
+  font-size: 1rem; padding: 12px 18px; width: 100%;
+}
+.primary:hover { transform: translateY(-1px); border-color: var(--pen); }
+.primary:disabled { opacity: .55; cursor: progress; transform: none; }
+.status { font-size: .86rem; color: var(--muted); min-height: 1.3em; }
+.status.err { color: var(--mark); }
+.info { font-size: .86rem; color: var(--muted); margin: 0; display: grid; gap: 4px; }
+.info .warn { color: var(--warn); }
+
+details.hints { font-size: .9rem; }
+details.hints summary { cursor: pointer; font-weight: 600; }
+details.hints ul { margin: 8px 0 0; padding-left: 18px; display: grid; gap: 6px; }
+details.hints li { color: var(--muted); }
+details.hints li b { color: var(--ink); font-weight: 600; }
+
+/* Work surface */
+.mat {
+  position: sticky; top: 16px; background: var(--sheet); border: 1px solid var(--rule); border-radius: 16px;
+  padding: 20px; box-shadow: var(--shadow); display: grid; gap: 22px; min-width: 0;
+}
+@media (max-width: 960px) { .mat { position: static; } }
+.mat h3 {
+  margin: 0 0 10px; font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .1em; color: var(--muted);
+  display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap;
+}
+.mat h3 span { font-family: var(--font-mono); text-transform: none; letter-spacing: 0; }
+.slipview { display: grid; gap: 12px; justify-items: center; background: var(--paper); border-radius: 12px; padding: 18px; }
+.slipview h3 { width: 100%; }
+#slipCanvas { width: auto; max-width: 100%; max-height: 62vh; height: auto; box-shadow: var(--shadow); background: #fff; display: block; }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: .82rem; justify-content: center; color: var(--muted); align-items: center; }
+.legend i { display: inline-block; width: 18px; height: 0; vertical-align: middle; margin-right: 6px; border-top: 2px solid; }
+.legend .l1 i { border-color: var(--muted); border-top-width: 8px; opacity: .55; }
+.legend .l2 i { border-color: var(--mark); }
+.legend .l3 i { border-color: #2a9df4; border-top-style: dashed; }
+.legend label { display: flex; gap: 6px; align-items: center; cursor: pointer; color: var(--ink); }
+.sheets { display: grid; grid-template-columns: 1fr 1fr 0.8fr; gap: 16px; align-items: start; }
+@media (max-width: 700px) { .sheets { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 460px) { .sheets { grid-template-columns: 1fr; } }
+.sheet { background: var(--paper); border-radius: 12px; padding: 12px; min-width: 0; }
+.sheet canvas { width: 100%; height: auto; background: #fff; display: block; box-shadow: var(--shadow); }
+.sheet h3 { margin-bottom: 8px; }
+.note { font-size: .86rem; color: var(--muted); margin: 0; }
+
+footer { margin-top: 80px; padding-top: 24px; border-top: 1px solid var(--rule); color: var(--muted); font-size: .86rem; display: grid; gap: 6px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <a class="brand" href="../ncodeSheets/"><span class="brand-dot" aria-hidden="true"></span>Custom Sheets</a>
+  <nav aria-label="Sections" data-i18n-aria="nav">
+    <a href="../ncodeSheets/#finder" data-i18n="nav.finder">Find your sheet</a>
+    <a href="../ncodeSheets/#all" data-i18n="nav.all">All files</a>
+    <a href="../ncodeBusinessCardCreator/" data-i18n="nav.cards">Business cards</a>
+    <a href="./" aria-current="page" data-i18n="nav.notepad">Notepad</a>
+    <a href="../ncodeSheets/#guide" data-i18n="nav.guide">Printing guide</a>
+  </nav>
+</header>
+
+<div class="intro">
+  <p class="eyebrow" data-i18n="eyebrow">Notepad Creator</p>
+  <h1 data-i18n="h1">Your own <span class="hl">Ncode notepad</span>, in any format.</h1>
+  <p data-i18n="intro">Pick a format, choose a design or upload a scan of a notepad you like, and download a print-ready PDF: your design with Ncode on the front, Ncode on the back, crop marks for the paper cutter.</p>
+</div>
+
+<div class="app">
+  <div class="controls">
+
+    <!-- 1 Format -->
+    <section class="group" aria-labelledby="h-format">
+      <h2 id="h-format"><span style="font:inherit;color:inherit" data-i18n="format.h">1 · Format</span> <span id="fmtLabel">105 × 148 mm</span></h2>
+      <select id="fmt" aria-label="Format" data-i18n-aria="format">
+        <optgroup label="DIN" data-i18n-label="fmt.din">
+          <option value="a4">A4 · 210 × 297 mm</option>
+          <option value="a5">A5 · 148 × 210 mm</option>
+          <option value="a6" selected>A6 · 105 × 148 mm</option>
+          <option value="a7">A7 · 74 × 105 mm</option>
+          <option value="dl">DIN lang · 99 × 210 mm</option>
+        </optgroup>
+        <optgroup label="Notepads" data-i18n-label="fmt.pads">
+          <option value="sq100" data-i18n="fmt.sq100">Square pad · 100 × 100 mm</option>
+          <option value="sq90" data-i18n="fmt.sq90">Square pad · 90 × 90 mm</option>
+          <option value="sticky" data-i18n="fmt.sticky">Sticky note size · 76 × 76 mm</option>
+          <option value="slim" data-i18n="fmt.slim">List pad · 70 × 210 mm</option>
+        </optgroup>
+        <optgroup label="US" data-i18n-label="fmt.us">
+          <option value="letter">Letter · 8.5 × 11 in</option>
+          <option value="half">Half Letter · 5.5 × 8.5 in</option>
+          <option value="i35" data-i18n="fmt.i35">Index card · 3 × 5 in</option>
+          <option value="i46" data-i18n="fmt.i46">Index card · 4 × 6 in</option>
+          <option value="i58" data-i18n="fmt.i58">Index card · 5 × 8 in</option>
+        </optgroup>
+        <option value="custom" data-i18n="fmt.custom">Custom size …</option>
+      </select>
+      <div class="fields" id="customBox" hidden>
+        <label class="field"><span data-i18n="fmt.w">Width (mm)</span><input type="number" id="cw" min="20" max="420" step="0.5" value="105"></label>
+        <label class="field"><span data-i18n="fmt.hgt">Height (mm)</span><input type="number" id="ch" min="20" max="420" step="0.5" value="148"></label>
+      </div>
+      <div class="seg" role="radiogroup" aria-label="Orientation" data-i18n-aria="orient" id="orientBox">
+        <label><input type="radio" name="orient" value="p" checked><span data-i18n="orient.p">Portrait</span></label>
+        <label><input type="radio" name="orient" value="l"><span data-i18n="orient.l">Landscape</span></label>
+      </div>
+      <p class="info" id="codeInfo"></p>
+    </section>
+
+    <!-- 2 Design -->
+    <section class="group" aria-labelledby="h-design">
+      <h2 id="h-design"><span style="font:inherit;color:inherit" data-i18n="design.h">2 · Design</span> <span data-i18n="design.hs">front side</span></h2>
+      <div id="designGrid"></div>
+      <label class="drop" id="drop" for="file">
+        <strong data-i18n="drop.title">Upload your own scan or image</strong>
+        <small data-i18n="drop.hint">JPG, PNG or WebP · scans of a notepad sheet are cleaned up automatically</small>
+        <input type="file" id="file" accept="image/*">
+      </label>
+
+      <div class="scanbox" id="scanBox" hidden>
+        <p class="sub-h" data-i18n="scan.h">Cut out the scan</p>
+        <canvas id="scanCanvas" width="760" height="560" aria-label="Scan with the four corners of the paper" data-i18n-aria="scan.canvas"></canvas>
+        <p class="note" id="scanNote" data-i18n="scan.note">Drag the four corners onto the edges of the paper. The sheet is straightened and cut out.</p>
+        <div class="row">
+          <button type="button" id="scanAuto" data-i18n="scan.auto">Detect edges</button>
+          <button type="button" id="scanFull" data-i18n="scan.full">Whole image</button>
+          <button type="button" id="scanRot" data-i18n="scan.rot">Rotate 90°</button>
+        </div>
+        <div class="row">
+          <label for="clean" data-i18n="scan.clean">Remove paper tone</label>
+          <input type="range" id="clean" min="0" max="100" value="60">
+          <span class="mono" id="cleanVal" style="width:3.2em;text-align:right">60 %</span>
+        </div>
+        <div class="seg three" role="radiogroup" aria-label="Fit" data-i18n-aria="fit">
+          <label><input type="radio" name="fit" value="stretch" checked><span data-i18n="fit.stretch">Stretch<small>to the format</small></span></label>
+          <label><input type="radio" name="fit" value="cover"><span data-i18n="fit.cover">Fill<small>crop edges</small></span></label>
+          <label><input type="radio" name="fit" value="contain"><span data-i18n="fit.contain">Fit<small>white margin</small></span></label>
+        </div>
+        <div class="filename" id="filename"></div>
+      </div>
+
+      <div class="fields" id="textBox">
+        <label class="field"><span data-i18n="txt.title">Heading</span><input type="text" id="title" maxlength="60"></label>
+        <label class="field"><span data-i18n="txt.sub">Small print / footer</span><input type="text" id="sub" maxlength="90"></label>
+      </div>
+      <div class="field" id="accentBox">
+        <span style="font-size:.9rem" data-i18n="accent">Accent colour</span>
+        <div class="swatches" id="swatches"></div>
+      </div>
+      <div class="fields">
+        <label class="field"><span data-i18n="ruling">Writing guide</span>
+          <select id="ruling">
+            <option value="none" data-i18n="r.none">None</option>
+            <option value="lined" data-i18n="r.lined">Lines</option>
+            <option value="grid" data-i18n="r.grid">Grid</option>
+            <option value="dots" data-i18n="r.dots">Dot grid</option>
+            <option value="check" data-i18n="r.check">Checklist</option>
+          </select></label>
+        <label class="field"><span data-i18n="spacing">Spacing</span>
+          <select id="spacing">
+            <option value="4">4 mm</option>
+            <option value="5">5 mm</option>
+            <option value="6">6 mm</option>
+            <option value="7" selected>7 mm</option>
+            <option value="8">8 mm</option>
+            <option value="9">9 mm</option>
+          </select></label>
+      </div>
+    </section>
+
+    <!-- 3 Ncode -->
+    <section class="group" aria-labelledby="h-code">
+      <h2 id="h-code"><span style="font:inherit;color:inherit" data-i18n="code.h">3 · Ncode</span> <span data-i18n="code.hs">600 dpi · pure black</span></h2>
+      <div class="strengths" role="radiogroup" aria-labelledby="h-code">
+        <label class="strength"><input type="radio" name="strength" value="normal"><span>
+          <img src="../ncodeSheets/img/dots-normal.png" alt="">
+          <span data-i18n="s.normal"><b>Normal</b><small>Original dot size. Most robust, visibly grey.</small></span>
+          <span class="toner">100 %</span></span></label>
+        <label class="strength"><input type="radio" name="strength" value="light" checked><span>
+          <img src="../ncodeSheets/img/dots-light.png" alt="">
+          <span data-i18n="s.light"><b>Light</b><small>Half the dot area. Tested and working.</small></span>
+          <span class="toner">50 %</span></span></label>
+        <label class="strength"><input type="radio" name="strength" value="extralight"><span>
+          <img src="../ncodeSheets/img/dots-extralight.png" alt="">
+          <span data-i18n="s.extralight"><b>Extra light<span class="tag">experimental</span></b><small>Barely visible. Test it on your printer first.</small></span>
+          <span class="toner">33 %</span></span></label>
+      </div>
+      <label class="check"><input type="checkbox" id="backCode" checked><span data-i18n="back.code">Ncode on the back too<small>Front and back become two different pages in the app.</small></span></label>
+      <label class="check"><input type="checkbox" id="backDesign"><span data-i18n="back.design">Print the design on the back as well</span></label>
+      <label class="check"><input type="checkbox" id="share"><span data-i18n="share">Small formats share a code page<small>Several sheets sit side by side on one app page. Gives more different sheets before codes repeat.</small></span></label>
+    </section>
+
+    <!-- 4 Print -->
+    <section class="group" aria-labelledby="h-out">
+      <h2 id="h-out"><span style="font:inherit;color:inherit" data-i18n="out.h">4 · Print</span> <span id="outLabel">PDF</span></h2>
+      <div class="fields">
+        <label class="field"><span data-i18n="paper">Print sheet</span>
+          <select id="paper">
+            <option value="a4">A4</option>
+            <option value="a3">A3</option>
+            <option value="letter">US Letter</option>
+            <option value="trim" data-i18n="paper.trim">Final size (print shop)</option>
+          </select></label>
+        <label class="field"><span data-i18n="count">Notepad sheets</span><input type="number" id="count" min="1" max="500" step="1" value="10"></label>
+        <label class="field"><span data-i18n="bleed">Bleed</span>
+          <select id="bleed">
+            <option value="3" selected>3 mm</option>
+            <option value="2">2 mm</option>
+            <option value="1">1 mm</option>
+            <option value="0" data-i18n="bleed.none">none</option>
+          </select></label>
+        <label class="check" style="align-self:end;padding-bottom:6px"><input type="checkbox" id="gutter" checked><span data-i18n="gutter">Bleed between sheets</span></label>
+      </div>
+      <p class="info" id="layoutInfo"></p>
+      <button type="button" class="primary" id="download" data-i18n="download">Download PDF</button>
+      <div class="status" id="status" role="status"></div>
+      <details class="hints">
+        <summary data-i18n="hints">Printing, cutting, binding</summary>
+        <ul data-i18n="hints.list">
+          <li><b>100 % / Actual size.</b> Never “Fit to page”, no borderless printing.</li>
+          <li><b>Double-sided, flip on the long edge.</b> The sheets sit in the middle of the page, so front and back line up. Without duplex, print the odd pages, turn the stack over and print the even pages.</li>
+          <li><b>Laser printer, black as K.</b> The pen only sees carbon black. The Ncode is pure black, your design is stored without any black (K = 0), so even dark areas of the design do not hide the dots. A PostScript driver passes everything through most cleanly.</li>
+          <li><b>Keep the design light behind the writing area.</b> Large, very dark areas use a lot of toner and make the paper wavy.</li>
+          <li><b>Cutting:</b> Front side up. Cut all horizontal lines at the side marks first, from the bottom up, then the vertical lines at the top marks.</li>
+          <li><b>Making a pad:</b> Stack the sheets flush, clamp them between two boards with the top edge sticking out 2 mm, and brush on padding glue (or thinned PVA glue) in two thin coats. A piece of cardboard at the bottom makes it sturdy.</li>
+        </ul>
+      </details>
+    </section>
+  </div>
+
+  <div class="mat">
+    <div class="slipview">
+      <h3><span style="font:inherit;color:inherit;text-transform:inherit;letter-spacing:inherit" data-i18n="slip.h">Sheet 1 · Front</span> <span id="slipDims">105 × 148 mm</span></h3>
+      <canvas id="slipCanvas" width="600" height="800" aria-label="Preview of the front" data-i18n-aria="slip"></canvas>
+      <div class="legend">
+        <span class="l1" data-i18n="legend.bleed"><i></i>Bleed, gets cut off</span>
+        <span class="l2" data-i18n="legend.trim"><i></i>Trim line</span>
+        <span class="l3" id="legendCover" hidden data-i18n="legend.cover"><i></i>Ncode area</span>
+        <label><input type="checkbox" id="showCode" checked><span data-i18n="legend.code">Show Ncode</span></label>
+      </div>
+    </div>
+    <div class="sheets">
+      <div class="sheet"><h3><span style="font:inherit;color:inherit;text-transform:inherit;letter-spacing:inherit" data-i18n="sheet.front">Page 1 · Front</span> <span id="frontLabel"></span></h3><canvas id="sheetFront" width="420" height="594"></canvas></div>
+      <div class="sheet" id="backSheet"><h3><span style="font:inherit;color:inherit;text-transform:inherit;letter-spacing:inherit" data-i18n="sheet.back">Page 2 · Back</span> <span id="backLabel"></span></h3><canvas id="sheetBack" width="420" height="594"></canvas></div>
+      <div class="sheet"><h3 data-i18n="map.h">In the app</h3><canvas id="mapCanvas" width="324" height="420" aria-label="Where sheet 1 lands on the app page" data-i18n-aria="map"></canvas>
+        <p class="note" id="mapNote" style="margin-top:8px"></p></div>
+    </div>
+    <p class="note" id="layoutNote"></p>
+  </div>
+</div>
+
+<footer>
+  <span data-i18n="foot.local">Your images never leave your browser: the PDF is built right here on your device.</span>
+  <span data-i18n="foot.about">Community project by Tim Holzhausen. Not affiliated with the makers of the trick or with NeoLab.</span>
+</footer>
+</div>
+
+<script>
+"use strict";
+// ---------- Language: German for German browsers, English for everyone else ----------
+const LANG = /^de\b/i.test((navigator.languages && navigator.languages[0]) || navigator.language || "") ? "de" : "en";
+
+const DE_STATIC = {
+  "title": "Notizblock-Generator",
+  "description": "Gestalte dein eigenes Ncode-Notizpapier: Format wählen, Design oder eigenen Scan nehmen und ein druckfertiges PDF mit Ncode auf beiden Seiten und Schnittmarken herunterladen.",
+  "nav": "Seitenbereiche",
+  "nav.finder": "Passendes Blatt finden",
+  "nav.all": "Alle Dateien",
+  "nav.cards": "Visitenkarten",
+  "nav.notepad": "Notizblock",
+  "nav.guide": "Druckanleitung",
+  "eyebrow": "Notizblock-Generator",
+  "h1": "Dein eigener <span class=\"hl\">Ncode-Notizblock</span>, in jedem Format.",
+  "intro": "Wähle ein Format, nimm ein fertiges Design oder lade den Scan eines Blocks hoch, der dir gefällt, und hol dir ein druckfertiges PDF: Vorderseite mit deinem Design und Ncode, Rückseite mit Ncode und Schnittmarken für den Papierschneider.",
+  "format.h": "1 · Format",
+  "format": "Format",
+  "fmt.din": "DIN",
+  "fmt.pads": "Notizblöcke",
+  "fmt.us": "US-Formate",
+  "fmt.sq100": "Zettelblock · 100 × 100 mm",
+  "fmt.sq90": "Zettelblock · 90 × 90 mm",
+  "fmt.sticky": "Haftnotiz-Größe · 76 × 76 mm",
+  "fmt.slim": "Listenblock · 70 × 210 mm",
+  "fmt.i35": "Karteikarte · 3 × 5 Zoll",
+  "fmt.i46": "Karteikarte · 4 × 6 Zoll",
+  "fmt.i58": "Karteikarte · 5 × 8 Zoll",
+  "fmt.custom": "Eigenes Format …",
+  "fmt.w": "Breite (mm)",
+  "fmt.hgt": "Höhe (mm)",
+  "orient": "Ausrichtung",
+  "orient.p": "Hochformat",
+  "orient.l": "Querformat",
+  "design.h": "2 · Design",
+  "design.hs": "Vorderseite",
+  "drop.title": "Eigenen Scan oder eigenes Bild hochladen",
+  "drop.hint": "JPG, PNG oder WebP · Scans eines Blockblatts werden automatisch bereinigt",
+  "scan.h": "Scan freistellen",
+  "scan.canvas": "Scan mit den vier Ecken des Blatts",
+  "scan.note": "Zieh die vier Ecken auf die Kanten des Papiers. Das Blatt wird gerade gerückt und ausgeschnitten.",
+  "scan.auto": "Kanten erkennen",
+  "scan.full": "Ganzes Bild",
+  "scan.rot": "Um 90° drehen",
+  "scan.clean": "Papierton entfernen",
+  "fit": "Einpassung",
+  "fit.stretch": "Strecken<small>aufs Format</small>",
+  "fit.cover": "Füllen<small>Ränder weg</small>",
+  "fit.contain": "Einpassen<small>weißer Rand</small>",
+  "txt.title": "Überschrift",
+  "txt.sub": "Kleingedrucktes / Fußzeile",
+  "accent": "Akzentfarbe",
+  "ruling": "Schreibhilfe",
+  "r.none": "Keine",
+  "r.lined": "Linien",
+  "r.grid": "Kariert",
+  "r.dots": "Punktraster",
+  "r.check": "Checkliste",
+  "spacing": "Abstand",
+  "code.h": "3 · Ncode",
+  "code.hs": "600 dpi · reines Schwarz",
+  "s.normal": "<b>Normal</b><small>Volle Punktgröße. Am zuverlässigsten, deutlich grau.</small>",
+  "s.light": "<b>Hell</b><small>Halbe Punktfläche. Getestet und bewährt.</small>",
+  "s.extralight": "<b>Sehr hell<span class=\"tag\">experimentell</span></b><small>Kaum sichtbar. Teste es erst auf deinem Drucker.</small>",
+  "back.code": "Ncode auch auf der Rückseite<small>Vorder- und Rückseite sind in der App zwei verschiedene Seiten.</small>",
+  "back.design": "Design auch auf die Rückseite drucken",
+  "share": "Kleine Formate teilen sich eine Codeseite<small>Mehrere Blätter liegen nebeneinander auf einer App-Seite. So gibt es mehr verschiedene Blätter, bevor sich Codes wiederholen.</small>",
+  "out.h": "4 · Drucken",
+  "paper": "Druckbogen",
+  "paper.trim": "Endformat (Druckerei)",
+  "count": "Blätter im Block",
+  "bleed": "Beschnitt",
+  "bleed.none": "keiner",
+  "gutter": "Beschnitt zwischen den Blättern",
+  "download": "PDF herunterladen",
+  "hints": "Drucken, Schneiden, Binden",
+  "hints.list": `
+    <li><b>100 % / Tatsächliche Größe.</b> Niemals „An Seite anpassen“ und kein Randlosdruck.</li>
+    <li><b>Beidseitig, an der langen Kante spiegeln.</b> Die Blätter liegen mittig auf dem Bogen, so passen Vorder- und Rückseite übereinander. Ohne Duplex erst die ungeraden Seiten drucken, den Stapel umdrehen und dann die geraden Seiten drucken.</li>
+    <li><b>Laserdrucker, Schwarz als K.</b> Der Stift erkennt nur Rußschwarz. Der Ncode ist reines Schwarz, dein Design wird ganz ohne Schwarzanteil gespeichert (K = 0). So verdecken auch dunkle Stellen im Design die Punkte nicht. Mit einem PostScript-Treiber kommt alles am saubersten aufs Papier.</li>
+    <li><b>Das Design hinter der Schreibfläche hell halten.</b> Große, sehr dunkle Flächen brauchen viel Toner und machen das Papier wellig.</li>
+    <li><b>Schneiden:</b> Vorderseite nach oben. Erst alle waagerechten Linien an den seitlichen Marken schneiden, von unten nach oben, dann die senkrechten an den oberen Marken.</li>
+    <li><b>Zum Block binden:</b> Blätter bündig stapeln, zwischen zwei Brettchen einspannen, die Kopfkante 2 mm überstehen lassen und in zwei dünnen Schichten Blockleim (oder verdünnten Holzleim) aufpinseln. Ein Stück Graupappe unten macht den Block stabil.</li>`,
+  "slip.h": "Blatt 1 · Vorderseite",
+  "slip": "Vorschau der Vorderseite",
+  "legend.bleed": "<i></i>Beschnitt, wird abgeschnitten",
+  "legend.trim": "<i></i>Endformat",
+  "legend.cover": "<i></i>Ncode-Fläche",
+  "legend.code": "Ncode zeigen",
+  "sheet.front": "Seite 1 · Vorderseite",
+  "sheet.back": "Seite 2 · Rückseite",
+  "map.h": "In der App",
+  "map": "Wo Blatt 1 auf der App-Seite landet",
+  "foot.local": "Deine Bilder verlassen nie deinen Browser: Das PDF entsteht direkt hier auf deinem Gerät.",
+  "foot.about": "Ein Community-Projekt von Tim Holzhausen. Steht in keiner Verbindung zu den Erfindern des Tricks oder zu NeoLab.",
+};
+
+const T = {
+  en: {
+    names: { normal: "normal", light: "light", extralight: "extra light" },
+    designs: {
+      custom: "Own scan", blank: "Blank", frame: "Frame", band: "Header bar", letterhead: "Letterhead", meeting: "Meeting",
+      sidebar: "Side title", confetti: "Confetti", space: "Space", coffee: "Coffee", doodle: "Doodles", waves: "Waves",
+      todo: "To-do", week: "Week", shopping: "Shopping",
+    },
+    cats: { own: "Your own", basic: "Simple", business: "Business", fun: "Fun", planner: "Planner" },
+    titles: {
+      frame: "Notes", band: "Notes", letterhead: "Your Company", meeting: "Meeting", sidebar: "NOTES",
+      confetti: "Great ideas", space: "Brain galaxy", coffee: "Coffee first", doodle: "Doodles & ideas", waves: "Notes",
+      todo: "To-do", week: "This week", shopping: "Shopping list",
+    },
+    subs: { letterhead: "Main Street 1 · 12345 Town · +49 123 456789", band: "", meeting: "" },
+    fields: ["Date", "Topic", "Attendees"],
+    days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+    noScan: "Upload a scan or an image",
+    codeFull: (w, h) => `Ncode covers the whole sheet. Code page: 216 × 280 mm.`,
+    codePart: (w, h, cw, ch) => `Ncode covers ${w} × ${h} mm of the ${cw} × ${ch} mm sheet: the code page is only 216 × 280 mm. Do not write in the strips without dots.`,
+    codeRot: "The format is wider than 216 mm, so the code page lies sideways: in the app the page appears rotated.",
+    unique: (u, sheets, sides) => `${u} different ${u === 1 ? "page" : "pages"} in the app` + (sides > u ? ` · codes repeat from sheet ${Math.floor(u / (sides / sheets)) + 1}` : ""),
+    perPage: (n) => `${n} sheets side by side on one app page.`,
+    layout: (n, sheets, pages, total, rot) => `${n} per print sheet${rot ? " (turned)" : ""} · ${sheets} print ${sheets === 1 ? "sheet" : "sheets"} · ${pages} PDF ${pages === 1 ? "page" : "pages"} · gives ${total} notepad sheets`,
+    wholeLayout: (pages) => `Same size as the print sheet: one sheet per page, no crop marks, nothing to cut. Your printer leaves a narrow white edge · ${pages} PDF pages`,
+    trimLayout: (pages) => `One sheet per PDF page with bleed and trim box for the print shop · ${pages} PDF pages`,
+    tooBig: "The format does not fit on this print sheet together with crop marks. Pick a larger print sheet or “Final size”.",
+    badSize: "Please enter a width and height between 20 and 420 mm.",
+    note: (b, gutter) => gutter
+      ? `Every sheet has ${b} mm bleed all around, so two cut lines run between neighbouring sheets and the strip in between is waste.`
+      : `Inside the block the sheets sit edge to edge: one cut separates two sheets. Bleed exists on the outer edges only.`,
+    mapNote: (rot, share) => (rot ? "Code page turned by 90°. " : "") + "Blue: front of sheet 1, pink: back.",
+    loading: "Loading Ncode …",
+    needServer: "The Ncode files could not be loaded. Open the page through a web server (for example GitHub Pages), not as a local file.",
+    notImage: "That is not an image file. Please choose a JPG, PNG or WebP.",
+    cantOpen: "The image could not be opened. Try saving it as JPG or PNG.",
+    fileInfo: (name, w, h) => `${name} · ${w} × ${h} px`,
+    lowRes: (dpi) => ` · approx. ${dpi} dpi on the sheet, 300 dpi would be better`,
+    creating: "Creating PDF …",
+    creatingBg: "Rendering the design at 300 dpi …",
+    creatingCode: (i, n) => `Loading Ncode page ${i} of ${n} …`,
+    done: (name, mb) => `Done: ${name} (${mb.toFixed(1)} MB). Print at 100 %, double-sided on the long edge.`,
+    failed: (msg) => "The PDF could not be created: " + msg,
+    fileName: (fmt, design, strength) => `Ncode notepad ${fmt} ${design} ${strength}.pdf`,
+    pdfFront: (i, n, strength) => `Sheet ${i}/${n} \xB7 front \xB7 Ncode ${strength}`,
+    pdfBack: (i, n) => `Sheet ${i}/${n} \xB7 back`,
+    pdfPrint: "Print at 100 % / actual size \xB7 duplex: long edge",
+    front: "front", back: "back",
+  },
+  de: {
+    names: { normal: "normal", light: "hell", extralight: "sehr hell" },
+    designs: {
+      custom: "Eigener Scan", blank: "Leer", frame: "Rahmen", band: "Kopfleiste", letterhead: "Briefkopf", meeting: "Besprechung",
+      sidebar: "Seitentitel", confetti: "Konfetti", space: "Weltraum", coffee: "Kaffee", doodle: "Kritzeleien", waves: "Wellen",
+      todo: "To-do", week: "Woche", shopping: "Einkauf",
+    },
+    cats: { own: "Eigenes", basic: "Schlicht", business: "Business", fun: "Lustig", planner: "Planer" },
+    titles: {
+      frame: "Notizen", band: "Notizen", letterhead: "Deine Firma", meeting: "Besprechung", sidebar: "NOTIZEN",
+      confetti: "Geniale Ideen", space: "Gedanken-Galaxie", coffee: "Erst mal Kaffee", doodle: "Kritzeleien & Ideen", waves: "Notizen",
+      todo: "To-do", week: "Diese Woche", shopping: "Einkaufsliste",
+    },
+    subs: { letterhead: "Hauptstraße 1 · 12345 Musterstadt · 01234 567890", band: "", meeting: "" },
+    fields: ["Datum", "Thema", "Teilnehmer"],
+    days: ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"],
+    noScan: "Lade einen Scan oder ein Bild hoch",
+    codeFull: () => `Der Ncode bedeckt das ganze Blatt. Codeseite: 216 × 280 mm.`,
+    codePart: (w, h, cw, ch) => `Der Ncode bedeckt ${w} × ${h} mm des ${cw} × ${ch} mm großen Blatts, denn eine Codeseite ist nur 216 × 280 mm groß. In die Streifen ohne Punkte nicht schreiben.`,
+    codeRot: "Das Format ist breiter als 216 mm, deshalb liegt die Codeseite quer: In der App erscheint die Seite gedreht.",
+    unique: (u, sheets, sides) => `${u} verschiedene ${u === 1 ? "Seite" : "Seiten"} in der App` + (sides > u ? ` · ab Blatt ${Math.floor(u / (sides / sheets)) + 1} wiederholen sich die Codes` : ""),
+    perPage: (n) => `${n} Blätter liegen nebeneinander auf einer App-Seite.`,
+    layout: (n, sheets, pages, total, rot) => `${n} pro Druckbogen${rot ? " (gedreht)" : ""} · ${sheets} ${sheets === 1 ? "Druckbogen" : "Druckbögen"} · ${pages} PDF-${pages === 1 ? "Seite" : "Seiten"} · ergibt ${total} Blätter`,
+    wholeLayout: (pages) => `So groß wie der Druckbogen: ein Blatt pro Seite, ohne Schnittmarken, nichts zu schneiden. Dein Drucker lässt einen schmalen weißen Rand · ${pages} PDF-Seiten`,
+    trimLayout: (pages) => `Ein Blatt pro PDF-Seite mit Beschnitt und Endformat-Rahmen für die Druckerei · ${pages} PDF-Seiten`,
+    tooBig: "Das Format passt mit Schnittmarken nicht auf diesen Druckbogen. Wähle einen größeren Bogen oder „Endformat“.",
+    badSize: "Bitte Breite und Höhe zwischen 20 und 420 mm eingeben.",
+    note: (b, gutter) => gutter
+      ? `Jedes Blatt hat rundum ${b} mm Beschnitt. Zwischen benachbarten Blättern verlaufen deshalb zwei Schnittlinien, der Streifen dazwischen ist Verschnitt.`
+      : `Innerhalb des Blocks liegen die Blätter Kante an Kante: Ein Schnitt trennt zwei Blätter. Beschnitt gibt es nur an den Außenkanten.`,
+    mapNote: (rot) => (rot ? "Codeseite um 90° gedreht. " : "") + "Blau: Vorderseite von Blatt 1, Pink: Rückseite.",
+    loading: "Ncode wird geladen …",
+    needServer: "Die Ncode-Dateien ließen sich nicht laden. Öffne die Seite über einen Webserver (zum Beispiel GitHub Pages), nicht als lokale Datei.",
+    notImage: "Das ist keine Bilddatei. Bitte wähle ein JPG, PNG oder WebP.",
+    cantOpen: "Das Bild ließ sich nicht öffnen. Speichere es am besten als JPG oder PNG und versuche es erneut.",
+    fileInfo: (name, w, h) => `${name} · ${w} × ${h} px`,
+    lowRes: (dpi) => ` · ca. ${dpi} dpi auf dem Blatt, 300 dpi wären besser`,
+    creating: "PDF wird erstellt …",
+    creatingBg: "Design wird mit 300 dpi berechnet …",
+    creatingCode: (i, n) => `Ncode-Seite ${i} von ${n} wird geladen …`,
+    done: (name, mb) => `Fertig: ${name} (${mb.toFixed(1).replace(".", ",")} MB). Mit 100 % beidseitig drucken, an der langen Kante spiegeln.`,
+    failed: (msg) => "Das PDF konnte nicht erstellt werden: " + msg,
+    fileName: (fmt, design, strength) => `Ncode-Notizblock ${fmt} ${design} ${strength}.pdf`,
+    pdfFront: (i, n, strength) => `Bogen ${i}/${n} \xB7 Vorderseite \xB7 Ncode ${strength}`,
+    pdfBack: (i, n) => `Bogen ${i}/${n} \xB7 R\xFCckseite`,
+    pdfPrint: "Mit 100 % drucken \xB7 beidseitig: lange Kante",
+    front: "Vorderseite", back: "Rückseite",
+  },
+}[LANG];
+
+if (LANG === "de") {
+  document.documentElement.lang = "de";
+  document.title = DE_STATIC.title;
+  document.querySelector('meta[name="description"]').content = DE_STATIC.description;
+  for (const el of document.querySelectorAll("[data-i18n]")) if (el.dataset.i18n in DE_STATIC) el.innerHTML = DE_STATIC[el.dataset.i18n];
+  for (const el of document.querySelectorAll("[data-i18n-aria]")) if (el.dataset.i18nAria in DE_STATIC) el.setAttribute("aria-label", DE_STATIC[el.dataset.i18nAria]);
+  for (const el of document.querySelectorAll("[data-i18n-label]")) if (el.dataset.i18nLabel in DE_STATIC) el.label = DE_STATIC[el.dataset.i18nLabel];
+}
+</script>
+<script>
+"use strict";
+// =====================================================================================
+// Geometry. Everything is in mm, y from the top, unless a name says otherwise.
+// =====================================================================================
+const NC = { dpi: 600, w: 5103, h: 6615, pages: 10 };      // one Ncode page: 216 × 280 mm at 600 dpi
+const CW = NC.w / NC.dpi * 25.4, CH = NC.h / NC.dpi * 25.4;
+const BOX = 3;                 // the design is always rendered with 3 mm around the trim
+const PT = 72 / 25.4;
+const BG_DPI = 300;
+const MARK_END = 3;            // crop marks stop 3 mm before the paper edge
+const IN = 25.4;
+const FORMATS = {
+  a4: [210, 297], a5: [148, 210], a6: [105, 148], a7: [74, 105], dl: [99, 210],
+  sq100: [100, 100], sq90: [90, 90], sticky: [76, 76], slim: [70, 210],
+  letter: [8.5 * IN, 11 * IN], half: [5.5 * IN, 8.5 * IN], i35: [3 * IN, 5 * IN], i46: [4 * IN, 6 * IN], i58: [5 * IN, 8 * IN],
+};
+const FMT_SHORT = { a4: "A4", a5: "A5", a6: "A6", a7: "A7", dl: "DL", sq100: "100x100", sq90: "90x90", sticky: "76x76", slim: "70x210",
+  letter: "Letter", half: "Half-Letter", i35: "3x5in", i46: "4x6in", i58: "5x8in" };
+const PAPERS = { a4: { w: 210, h: 297 }, a3: { w: 297, h: 420 }, letter: { w: 215.9, h: 279.4 } };
+
+const S = {
+  fmt: "a6", orient: "p", cw: 105, ch: 148,
+  design: "sidebar", title: "", sub: "", titleTouched: false, subTouched: false, accent: "#2a9d8f",
+  ruling: "lined", spacing: 7,
+  scan: null, clean: 60, fit: "stretch",
+  strength: "light", backCode: true, backDesign: false, share: false,
+  paper: "a4", bleed: 3, gutter: true, count: 10, showCode: true,
+};
+const $ = (id) => document.getElementById(id);
+const fmt1 = (v) => { const s = (Math.round(v * 10) / 10).toString(); return LANG === "de" ? s.replace(".", ",") : s; };
+
+function fmtSize() {
+  let w, h;
+  if (S.fmt === "custom") { w = S.cw; h = S.ch; }
+  else { [w, h] = FORMATS[S.fmt]; if (S.orient === "l") [w, h] = [h, w]; }
+  return { W: w, H: h };
+}
+const sizeOk = ({ W, H }) => W >= 20 && H >= 20 && W <= 420 && H <= 420;
+
+// Where on the Ncode pages the sheets get their code.
+// A "frame" is the code page turned like the sheet (turned by 90° only if the sheet is wider than 216 mm).
+// The frame is cut into cells of sheet + bleed; every cell is one slot.
+function codeGeom(W, H, b, share) {
+  const area = (fw, fh) => Math.min(W, fw) * Math.min(H, fh);
+  let rot = false;
+  if (!(W <= CW + 1e-6 && H <= CH + 1e-6)) rot = (W <= CH + 1e-6 && H <= CW + 1e-6) || area(CH, CW) > area(CW, CH) + 1e-6;
+  const FW = rot ? CH : CW, FH = rot ? CW : CH;
+  const cellW = Math.min(FW, W + 2 * b), cellH = Math.min(FH, H + 2 * b);
+  const nx = share ? Math.max(1, Math.floor(FW / cellW + 1e-9)) : 1;
+  const ny = share ? Math.max(1, Math.floor(FH / cellH + 1e-9)) : 1;
+  const R = nx * ny, U = NC.pages * R;
+  const region = (r) => {
+    const rx = (r % nx) * cellW, ry = Math.floor(r / nx) * cellH;
+    return { r, rx, ry, ox: rx + (cellW - W) / 2, oy: ry + (cellH - H) / 2 };
+  };
+  const slot = (j) => { const u = j % U; return { page: Math.floor(u / R), ...region(u % R) }; };
+  const cover = { w: Math.min(W, FW), h: Math.min(H, FH) };
+  return { rot, FW, FH, cellW, cellH, nx, ny, R, U, slot, region, cover, full: cover.w >= W - 0.01 && cover.h >= H - 0.01 };
+}
+// Ncode image (u, v in 0..1, v downwards, native orientation) -> sheet coordinates (mm from the trim corner)
+function codeToSlip(cg, sl) {
+  return cg.rot ? (u, v) => [-sl.ox + (1 - v) * CH, -sl.oy + u * CW]
+                : (u, v) => [-sl.ox + u * CW, -sl.oy + v * CH];
+}
+
+// Imposition on the print sheet
+function sheetGeom(W, H, b, paper, gutter) {
+  if (paper === "trim") {
+    const t = { x: b, y: b, w: W, h: H }, cells = [{ c: 0, r: 0, t, clip: { x: 0, y: 0, w: W + 2 * b, h: H + 2 * b } }];
+    return { trim: true, P: { w: W + 2 * b, h: H + 2 * b }, rot: false, cols: 1, rows: 1, n: 1, b, cells, at: () => cells[0], cutX: [], cutY: [] };
+  }
+  const P = PAPERS[paper], M = Math.max(12, b + 9), gap = gutter ? 2 * b : 0;
+  let best = null;
+  for (const rot of [false, true]) {
+    const fw = rot ? H : W, fh = rot ? W : H;
+    const cols = Math.floor((P.w - 2 * M + gap + 1e-6) / (fw + gap)), rows = Math.floor((P.h - 2 * M + gap + 1e-6) / (fh + gap));
+    if (cols > 0 && rows > 0 && (!best || cols * rows > best.cols * best.rows)) best = { rot, fw, fh, cols, rows };
+  }
+  if (!best) {
+    // Same size as the print sheet (A4 on A4, Letter on Letter): one per page, no crop marks, nothing to cut
+    for (const rot of [false, true]) {
+      const fw = rot ? H : W, fh = rot ? W : H;
+      if (fw <= P.w + 0.6 && fh <= P.h + 0.6) {
+        const t = { x: (P.w - fw) / 2, y: (P.h - fh) / 2, w: fw, h: fh };
+        const cells = [{ c: 0, r: 0, t, clip: { x: 0, y: 0, w: P.w, h: P.h } }];
+        return { trim: false, whole: true, P, rot, cols: 1, rows: 1, n: 1, b, ox: t.x, oy: t.y, bw: fw, bh: fh, cells, at: () => cells[0], cutX: [], cutY: [] };
+      }
+    }
+    return null;
+  }
+  const { rot, fw, fh, cols, rows } = best;
+  const bw = cols * fw + (cols - 1) * gap, bh = rows * fh + (rows - 1) * gap;
+  const ox = (P.w - bw) / 2, oy = (P.h - bh) / 2;
+  const cells = [], xs = new Map(), ys = new Map();
+  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+    const t = { x: ox + c * (fw + gap), y: oy + r * (fh + gap), w: fw, h: fh };
+    const e = gutter ? [b, b, b, b] : [c === 0 ? b : 0, r === 0 ? b : 0, c === cols - 1 ? b : 0, r === rows - 1 ? b : 0];
+    cells.push({ c, r, t, clip: { x: t.x - e[0], y: t.y - e[1], w: t.w + e[0] + e[2], h: t.h + e[1] + e[3] } });
+    for (const x of [t.x, t.x + fw]) xs.set(x.toFixed(4), x);
+    for (const y of [t.y, t.y + fh]) ys.set(y.toFixed(4), y);
+  }
+  const sort = (m) => [...m.values()].sort((a, z) => a - z);
+  return { trim: false, P, rot, cols, rows, n: cells.length, b, ox, oy, bw, bh, cells, at: (c, r) => cells[r * cols + c], cutX: sort(xs), cutY: sort(ys) };
+}
+// Sheet coordinates (mm, upright sheet, origin at its trim corner) -> print sheet.
+// rot 1: clockwise (front), -1: counter-clockwise (back; seen from behind it is the same rotation).
+function toSheet(t, rot, cx, cy) {
+  if (rot === 1) return [t.x + t.w - cy, t.y + cx];
+  if (rot === -1) return [t.x + cy, t.y + t.h - cx];
+  return [t.x + cx, t.y + cy];
+}
+function marks(g) {
+  if (g.trim) return [];
+  const gap = g.b + 1.5, out = [], P = g.P;
+  const top = g.oy - gap, bot = g.oy + g.bh + gap, left = g.ox - gap, right = g.ox + g.bw + gap;
+  for (const x of g.cutX) { if (top > MARK_END + 1) out.push([x, top, x, MARK_END]); if (P.h - bot > MARK_END + 1) out.push([x, bot, x, P.h - MARK_END]); }
+  for (const y of g.cutY) { if (left > MARK_END + 1) out.push([left, y, MARK_END, y]); if (P.w - right > MARK_END + 1) out.push([right, y, P.w - MARK_END, y]); }
+  return out;
+}
+// Which code slot every sheet gets. Sheet s: front slot 2s, back slot 2s + 1.
+function plan(g, cg, printSheets) {
+  const out = [];
+  for (let p = 0; p < printSheets; p++) g.cells.forEach((cell, i) => {
+    const s = p * g.n + i;
+    out.push({ p, i, s, cell, f: cg.slot(S.backCode ? 2 * s : s), bk: S.backCode ? cg.slot(2 * s + 1) : null });
+  });
+  return out;
+}
+
+// =====================================================================================
+// Colours, random numbers, small drawing helpers
+// =====================================================================================
+const hex2rgb = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+const rgb2hex = (c) => "#" + c.map((v) => Math.round(Math.max(0, Math.min(255, v))).toString(16).padStart(2, "0")).join("");
+const mix = (a, b, t) => { const A = hex2rgb(a), B = hex2rgb(b); return rgb2hex(A.map((v, i) => v + (B[i] - v) * t)); };
+const rgba = (h, a) => { const [r, g, b] = hex2rgb(h); return `rgba(${r},${g},${b},${a})`; };
+function rng(seed) {   // mulberry32
+  let a = seed >>> 0;
+  return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+}
+const hashStr = (s) => { let h = 2166136261; for (const ch of s) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; };
+const UI_FONT = '"Schibsted Grotesk", "Segoe UI", sans-serif', HAND = 'Caveat, "Comic Sans MS", cursive', SERIF = '"Playfair Display", Georgia, serif';
+function bleedFill(g, c, color) { g.fillStyle = color; g.fillRect(-BOX, -BOX, c.W + 2 * BOX, c.H + 2 * BOX); }
+// Draws text, shrinking it until it fits maxW. Returns the used size.
+function fitText(g, text, x, y, size, maxW, font, weight = 700, align = "left") {
+  let s = size;
+  g.font = `${weight} ${s}px ${font}`;
+  while (s > 1.2 && g.measureText(text).width > maxW) { s *= 0.92; g.font = `${weight} ${s}px ${font}`; }
+  g.textAlign = align; g.fillText(text, x, y); g.textAlign = "left";
+  return s;
+}
+function margin(c) { return Math.max(5, Math.min(12, Math.min(c.W, c.H) * 0.065)); }
+function star(g, x, y, r, n = 5, inner = 0.45) {
+  g.beginPath();
+  for (let i = 0; i < 2 * n; i++) { const a = -Math.PI / 2 + i * Math.PI / n, rr = i % 2 ? r * inner : r; g.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr); }
+  g.closePath();
+}
+function heart(g, x, y, s) {
+  g.beginPath(); g.moveTo(x, y + s * 0.3);
+  g.bezierCurveTo(x, y, x - s * 0.5, y, x - s * 0.5, y + s * 0.3);
+  g.bezierCurveTo(x - s * 0.5, y + s * 0.6, x, y + s * 0.8, x, y + s);
+  g.bezierCurveTo(x, y + s * 0.8, x + s * 0.5, y + s * 0.6, x + s * 0.5, y + s * 0.3);
+  g.bezierCurveTo(x + s * 0.5, y, x, y, x, y + s * 0.3); g.closePath();
+}
+// A wobbly hand-drawn line from (x0,y0) to (x1,y1)
+function wobble(g, x0, y0, x1, y1, rnd, amp = 0.5) {
+  const len = Math.hypot(x1 - x0, y1 - y0), n = Math.max(2, Math.round(len / 6)), nx = -(y1 - y0) / len, ny = (x1 - x0) / len;
+  for (let i = 1; i <= n; i++) {
+    const t = i / n, j = i === n ? 0 : (rnd() - 0.5) * 2 * amp;
+    g.lineTo(x0 + (x1 - x0) * t + nx * j, y0 + (y1 - y0) * t + ny * j);
+  }
+}
+
+// =====================================================================================
+// Designs. Each draw(g, c) paints in mm with the origin at the trim corner; the bleed
+// reaches 3 mm beyond the trim. It returns the writing area for the writing guide (or null).
+// c: { W, H, A (accent), title, sub, rnd, k (px per mm) }
+// =====================================================================================
+const INK = "#23262d", GREY = "#6b7280";
+const DESIGNS = {
+  custom: { cat: "own", ruling: "none", draw(g, c) {
+    bleedFill(g, c, "#ffffff");
+    const m = margin(c);
+    if (!S.scan) {
+      g.fillStyle = "#eef1f6"; g.fillRect(0, 0, c.W, c.H);
+      g.strokeStyle = "#9aa3b2"; g.lineWidth = Math.max(0.4, c.W / 120); g.setLineDash([2, 1.5]);
+      g.strokeRect(m, m, c.W - 2 * m, c.H - 2 * m); g.setLineDash([]);
+      const s = Math.min(c.W, c.H) * 0.18, cx = c.W / 2, cy = c.H / 2 - s * 0.3;
+      g.strokeStyle = "#6b7280"; g.lineWidth = s * 0.1; g.lineCap = "round";
+      g.beginPath(); g.moveTo(cx, cy + s * 0.5); g.lineTo(cx, cy - s * 0.5); g.moveTo(cx - s * 0.35, cy - s * 0.15); g.lineTo(cx, cy - s * 0.5); g.lineTo(cx + s * 0.35, cy - s * 0.15); g.stroke();
+      g.fillStyle = "#4b5563"; fitText(g, T.noScan, cx, cy + s * 1.2, Math.min(c.W, c.H) * 0.065, c.W - 4 * m, UI_FONT, 600, "center");
+      return null;
+    }
+    drawScan(g, c);
+    return { x: m, y: m, w: c.W - 2 * m, h: c.H - 2 * m };
+  } },
+
+  blank: { cat: "basic", ruling: "lined", draw(g, c) {
+    bleedFill(g, c, "#ffffff"); const m = margin(c);
+    return { x: m, y: m, w: c.W - 2 * m, h: c.H - 2 * m };
+  } },
+
+  frame: { cat: "basic", ruling: "lined", draw(g, c) {
+    bleedFill(g, c, "#ffffff"); const m = margin(c), lw = Math.max(0.35, m * 0.06);
+    g.strokeStyle = c.A; g.lineWidth = lw;
+    const r = m * 0.5; g.beginPath(); g.roundRect(m * 0.7, m * 0.7, c.W - 1.4 * m, c.H - 1.4 * m, r); g.stroke();
+    let top = m * 1.4;
+    if (c.title) {
+      const s = Math.min(6, Math.max(3.2, c.W * 0.04));
+      g.fillStyle = c.A; g.letterSpacing = `${s * 0.18}px`;
+      fitText(g, c.title.toUpperCase(), m * 1.4, m * 1.4 + s, s, c.W - 2.8 * m, UI_FONT, 700);
+      g.letterSpacing = "0px";
+      top = m * 1.4 + s * 1.9;
+    }
+    if (c.sub) { g.fillStyle = GREY; fitText(g, c.sub, c.W / 2, c.H - m * 1.05, Math.min(2.6, m * 0.3), c.W - 3 * m, UI_FONT, 500, "center"); }
+    return { x: m * 1.4, y: top, w: c.W - 2.8 * m, h: c.H - top - m * (c.sub ? 1.6 : 1.3) };
+  } },
+
+  band: { cat: "business", ruling: "lined", draw(g, c) {
+    bleedFill(g, c, "#ffffff"); const m = margin(c);
+    const hb = Math.max(11, Math.min(26, c.H * 0.12));
+    g.fillStyle = c.A; g.fillRect(-BOX, -BOX, c.W + 2 * BOX, hb + BOX);
+    g.fillStyle = mix(c.A, "#ffffff", 0.55); g.fillRect(-BOX, hb, c.W + 2 * BOX, Math.max(0.6, hb * 0.06));
+    g.fillStyle = "#ffffff";
+    const s = fitText(g, c.title, m, hb * 0.64, hb * 0.42, c.sub ? c.W * 0.6 : c.W - 2 * m, UI_FONT, 800);
+    if (c.sub) { g.fillStyle = "rgba(255,255,255,.85)"; fitText(g, c.sub, c.W - m, hb * 0.62, Math.min(s * 0.5, 3.4), c.W * 0.36 - m, UI_FONT, 500, "right"); }
+    return { x: m, y: hb + m * 0.6, w: c.W - 2 * m, h: c.H - hb - m * 1.4 };
+  } },
+
+  letterhead: { cat: "business", ruling: "none", draw(g, c) {
+    bleedFill(g, c, "#ffffff"); const m = margin(c);
+    const d = Math.max(9, Math.min(18, c.W * 0.11)), cx = m + d / 2, cy = m + d / 2;
+    g.fillStyle = c.A; g.beginPath(); g.arc(cx, cy, d / 2, 0, Math.PI * 2); g.fill();
+    const ini = (c.title || "").split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0].toUpperCase()).join("") || "N";
+    g.fillStyle = "#ffffff"; g.textBaseline = "middle";
+    fitText(g, ini, cx, cy + d * 0.03, d * 0.46, d * 0.75, SERIF, 700, "center");
+    g.textBaseline = "alphabetic";
+    g.fillStyle = INK; fitText(g, c.title, m + d + m * 0.6, cy + d * 0.16, d * 0.42, c.W - d - 2.6 * m, SERIF, 700);
+    const ly = m + d + m * 0.6;
+    g.strokeStyle = c.A; g.lineWidth = 0.35; g.beginPath(); g.moveTo(m, ly); g.lineTo(c.W - m, ly); g.stroke();
+    const fy = c.H - m;
+    if (c.sub) {
+      g.strokeStyle = mix(c.A, "#ffffff", 0.5); g.lineWidth = 0.25; g.beginPath(); g.moveTo(m, fy - 4.5); g.lineTo(c.W - m, fy - 4.5); g.stroke();
+      g.fillStyle = GREY; fitText(g, c.sub, c.W / 2, fy, 2.6, c.W - 2 * m, UI_FONT, 500, "center");
+    }
+    return { x: m, y: ly + m * 0.5, w: c.W - 2 * m, h: fy - ly - m * 0.5 - (c.sub ? 7 : 0) };
+  } },
+
+  meeting: { cat: "business", ruling: "lined", draw(g, c) {
+    bleedFill(g, c, "#ffffff"); const m = margin(c);
+    const s = Math.max(4, Math.min(7, c.W * 0.05));
+    g.fillStyle = c.A; g.fillRect(m, m, 1.2, s * 1.1);
+    g.fillStyle = INK; fitText(g, c.title, m + 3.5, m + s * 0.92, s, c.W - 2 * m - 4, UI_FONT, 800);
+    let y = m + s * 1.1 + 6;
+    const labels = T.fields, fs = Math.max(2.4, Math.min(3.2, c.W * 0.025));
+    const pairs = c.W > 130 ? [[labels[0], labels[1]], [labels[2]]] : [[labels[0]], [labels[1]], [labels[2]]];
+    g.lineWidth = 0.25;
+    for (const row of pairs) {
+      const colW = (c.W - 2 * m - (row.length - 1) * 6) / row.length;
+      row.forEach((lab, i) => {
+        const x = m + i * (colW + 6);
+        g.fillStyle = c.A; g.font = `700 ${fs}px ${UI_FONT}`; g.fillText(lab.toUpperCase(), x, y);
+        const lw = g.measureText(lab.toUpperCase()).width + 2;
+        g.strokeStyle = "#b8bec9"; g.beginPath(); g.moveTo(x + lw, y + 0.4); g.lineTo(x + colW, y + 0.4); g.stroke();
+      });
+      y += fs + 5;
+    }
+    g.fillStyle = mix(c.A, "#ffffff", 0.88); g.fillRect(-BOX, y - 2, c.W + 2 * BOX, 1.2);
+    return { x: m, y: y + 1, w: c.W - 2 * m, h: c.H - y - m - 1 };
+  } },
+
+  sidebar: { cat: "business", ruling: "lined", draw(g, c) {
+    bleedFill(g, c, "#ffffff"); const m = margin(c);
+    const sw = Math.max(9, Math.min(20, c.W * 0.12));
+    g.fillStyle = mix(c.A, "#ffffff", 0.9); g.fillRect(-BOX, -BOX, sw + BOX, c.H + 2 * BOX);
+    g.fillStyle = c.A; g.fillRect(sw - 0.6, -BOX, 0.6, c.H + 2 * BOX);
+    if (c.title) {
+      g.save(); g.translate(sw * 0.68, m); g.rotate(-Math.PI / 2);
+      g.fillStyle = mix(c.A, "#ffffff", 0.15); g.letterSpacing = `${sw * 0.08}px`;
+      fitText(g, c.title, -c.H + 2 * m, 0, sw * 0.62, c.H - 2 * m, UI_FONT, 800, "left");
+      g.letterSpacing = "0px"; g.restore();
+    }
+    if (c.sub) { g.fillStyle = GREY; fitText(g, c.sub, c.W - m, c.H - m * 0.7, 2.5, c.W - sw - 2 * m, UI_FONT, 500, "right"); }
+    return { x: sw + m * 0.8, y: m, w: c.W - sw - m * 1.8, h: c.H - m * (c.sub ? 2.2 : 2) };
+  } },
+
+  confetti: { cat: "fun", ruling: "dots", draw(g, c) {
+    bleedFill(g, c, "#ffffff"); const m = margin(c), rnd = c.rnd;
+    const pal = [c.A, "#ffbe0b", "#fb5607", "#ff006e", "#8338ec", "#3a86ff", "#06d6a0"];
+    const band = Math.max(8, Math.min(18, Math.min(c.W, c.H) * 0.13));
+    const n = Math.round((c.W + c.H) * 2 * band / 22);
+    for (let i = 0; i < n; i++) {
+      let x = -BOX + rnd() * (c.W + 2 * BOX), y = -BOX + rnd() * (c.H + 2 * BOX);
+      const side = Math.floor(rnd() * 4);
+      if (side === 0) y = -BOX + rnd() * (band + BOX); else if (side === 1) y = c.H - band + rnd() * (band + BOX);
+      else if (side === 2) x = -BOX + rnd() * (band + BOX); else x = c.W - band + rnd() * (band + BOX);
+      g.save(); g.translate(x, y); g.rotate(rnd() * Math.PI * 2);
+      g.fillStyle = pal[Math.floor(rnd() * pal.length)]; g.strokeStyle = g.fillStyle;
+      const s = 1.2 + rnd() * 2, kind = Math.floor(rnd() * 4);
+      if (kind === 0) { g.beginPath(); g.arc(0, 0, s * 0.55, 0, 7); g.fill(); }
+      else if (kind === 1) g.fillRect(-s, -s * 0.3, 2 * s, s * 0.6);
+      else if (kind === 2) { g.beginPath(); g.moveTo(0, -s * 0.7); g.lineTo(s * 0.65, s * 0.5); g.lineTo(-s * 0.65, s * 0.5); g.closePath(); g.fill(); }
+      else { g.lineWidth = 0.5; g.lineCap = "round"; g.beginPath(); g.moveTo(-s, 0); g.quadraticCurveTo(-s / 2, -s * 0.8, 0, 0); g.quadraticCurveTo(s / 2, s * 0.8, s, 0); g.stroke(); }
+      g.restore();
+    }
+    let top = band + 2;
+    if (c.title) {
+      const s = Math.max(6, Math.min(13, c.W * 0.09));
+      g.fillStyle = "#ffffff"; g.fillRect(m * 1.5, band - s * 0.2, c.W - 3 * m, s * 1.25);
+      g.fillStyle = INK; fitText(g, c.title, c.W / 2, band + s * 0.75, s, c.W - 3.4 * m, HAND, 700, "center");
+      top = band + s * 1.3;
+    }
+    return { x: band, y: top, w: c.W - 2 * band, h: c.H - top - band };
+  } },
+
+  space: { cat: "fun", ruling: "lined", draw(g, c) {
+    bleedFill(g, c, "#ffffff"); const m = margin(c), rnd = c.rnd;
+    const hb = Math.max(14, Math.min(34, c.H * 0.16));
+    const grad = g.createLinearGradient(0, -BOX, 0, hb);
+    grad.addColorStop(0, "#1b1446"); grad.addColorStop(1, mix(c.A, "#1b1446", 0.55));
+    g.fillStyle = grad; g.beginPath(); g.moveTo(-BOX, -BOX); g.lineTo(c.W + BOX, -BOX); g.lineTo(c.W + BOX, hb * 0.82);
+    g.quadraticCurveTo(c.W / 2, hb * 1.18, -BOX, hb * 0.82); g.closePath(); g.fill();
+    for (let i = 0; i < c.W * 0.5; i++) {
+      const x = -BOX + rnd() * (c.W + 2 * BOX), y = -BOX + rnd() * hb * 0.85;
+      g.fillStyle = `rgba(255,255,255,${0.5 + rnd() * 0.5})`; g.beginPath(); g.arc(x, y, 0.15 + rnd() * 0.35, 0, 7); g.fill();
+    }
+    const pr = hb * 0.26, px = c.W - m - pr, py = hb * 0.42;
+    g.fillStyle = "#ffb703"; g.beginPath(); g.arc(px, py, pr, 0, 7); g.fill();
+    g.fillStyle = "#fb8500"; g.beginPath(); g.arc(px - pr * 0.3, py - pr * 0.2, pr * 0.22, 0, 7); g.arc(px + pr * 0.35, py + pr * 0.3, pr * 0.15, 0, 7); g.fill();
+    g.strokeStyle = "#ffe8a3"; g.lineWidth = pr * 0.12; g.beginPath(); g.ellipse(px, py, pr * 1.7, pr * 0.42, -0.35, 0.15 * Math.PI, 0.85 * Math.PI, true); g.stroke();
+    g.fillStyle = "#ffffff";
+    fitText(g, c.title, m, hb * 0.5, hb * 0.27, c.W - 2 * m - 3.6 * pr, UI_FONT, 800);
+    // rocket in the bottom right corner
+    const rs = Math.max(6, Math.min(14, c.W * 0.09)), rx = c.W - m - rs * 0.6, ry = c.H - m - rs * 0.7;
+    g.save(); g.translate(rx, ry); g.rotate(-Math.PI / 4);
+    g.fillStyle = "#ff6b6b"; g.beginPath(); g.moveTo(0, -rs * 0.75); g.quadraticCurveTo(rs * 0.32, -rs * 0.35, rs * 0.22, rs * 0.35); g.lineTo(-rs * 0.22, rs * 0.35); g.quadraticCurveTo(-rs * 0.32, -rs * 0.35, 0, -rs * 0.75); g.fill();
+    g.fillStyle = "#4cc9f0"; g.beginPath(); g.arc(0, -rs * 0.2, rs * 0.1, 0, 7); g.fill();
+    g.fillStyle = c.A; g.beginPath(); g.moveTo(-rs * 0.22, rs * 0.1); g.lineTo(-rs * 0.42, rs * 0.45); g.lineTo(-rs * 0.2, rs * 0.35); g.fill();
+    g.beginPath(); g.moveTo(rs * 0.22, rs * 0.1); g.lineTo(rs * 0.42, rs * 0.45); g.lineTo(rs * 0.2, rs * 0.35); g.fill();
+    g.fillStyle = "#ffb703"; g.beginPath(); g.moveTo(-rs * 0.13, rs * 0.38); g.quadraticCurveTo(0, rs * 0.9, rs * 0.13, rs * 0.38); g.fill();
+    g.restore();
+    for (const [sx, sy, sr] of [[0.12, 0.92, 1.1], [0.55, 0.96, 0.8], [0.8, 0.8, 0.7]]) { g.fillStyle = mix(c.A, "#ffffff", 0.3); star(g, c.W * sx, c.H * sy, sr); g.fill(); }
+    return { x: m, y: hb + 3, w: c.W - 2 * m - rs * 0.4, h: c.H - hb - m - rs * 1.2 };
+  } },
+
+  coffee: { cat: "fun", ruling: "lined", draw(g, c) {
+    bleedFill(g, c, "#fffcf5"); const m = margin(c), rnd = c.rnd;
+    const rings = [[c.W * 0.86, c.H * 0.1, 0.17], [c.W * 0.1, c.H * 0.88, 0.14], [c.W * 0.95, c.H * 0.97, 0.1]];
+    for (const [x, y, f] of rings) {
+      const r = Math.min(c.W, c.H) * f + 6;
+      g.fillStyle = "rgba(160,110,60,.07)"; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill();
+      for (let k = 0; k < 3; k++) {
+        g.strokeStyle = `rgba(130,80,40,${0.18 + rnd() * 0.12})`; g.lineWidth = 0.4 + rnd() * 0.8;
+        const a0 = rnd() * 6.28, rr = r * (0.97 + rnd() * 0.05);
+        g.beginPath(); g.ellipse(x, y, rr, rr * (0.96 + rnd() * 0.06), rnd(), a0, a0 + 4 + rnd() * 2); g.stroke();
+      }
+    }
+    // cup
+    const s = Math.max(7, Math.min(14, c.W * 0.1)), cx = m + s * 0.55, cy = m + s * 0.4;
+    g.fillStyle = c.A; g.beginPath(); g.moveTo(cx - s * 0.5, cy); g.lineTo(cx + s * 0.5, cy); g.quadraticCurveTo(cx + s * 0.45, cy + s * 0.85, cx, cy + s * 0.85); g.quadraticCurveTo(cx - s * 0.45, cy + s * 0.85, cx - s * 0.5, cy); g.fill();
+    g.strokeStyle = c.A; g.lineWidth = s * 0.09; g.beginPath(); g.arc(cx + s * 0.5, cy + s * 0.3, s * 0.18, -1.3, 1.3); g.stroke();
+    g.strokeStyle = mix(c.A, "#ffffff", 0.45); g.lineWidth = s * 0.06; g.lineCap = "round";
+    for (const dx of [-0.18, 0.05, 0.28]) { g.beginPath(); g.moveTo(cx + dx * s, cy - s * 0.12); g.bezierCurveTo(cx + (dx - 0.12) * s, cy - s * 0.3, cx + (dx + 0.12) * s, cy - s * 0.42, cx + dx * s, cy - s * 0.6); g.stroke(); }
+    g.fillStyle = "#6b4226"; fitText(g, c.title, cx + s * 0.95, cy + s * 0.62, s * 0.62, c.W - 2 * m - s * 1.5, HAND, 700);
+    if (c.sub) { g.fillStyle = "#8a6a50"; fitText(g, c.sub, c.W / 2, c.H - m * 0.6, 2.6, c.W - 2 * m, UI_FONT, 500, "center"); }
+    const top = cy + s * 1.2;
+    return { x: m, y: top, w: c.W - 2 * m, h: c.H - top - m * 1.2 };
+  } },
+
+  doodle: { cat: "fun", ruling: "none", draw(g, c) {
+    bleedFill(g, c, "#ffffff"); const m = margin(c), rnd = c.rnd;
+    g.strokeStyle = c.A; g.lineWidth = 0.55; g.lineCap = "round"; g.lineJoin = "round";
+    for (let pass = 0; pass < 2; pass++) {
+      const o = m * 0.6 + pass * 0.7;
+      g.beginPath(); g.moveTo(o, o);
+      wobble(g, o, o, c.W - o, o, rnd); wobble(g, c.W - o, o, c.W - o, c.H - o, rnd); wobble(g, c.W - o, c.H - o, o, c.H - o, rnd); wobble(g, o, c.H - o, o, o, rnd);
+      g.stroke();
+    }
+    const s = Math.max(4, Math.min(8, Math.min(c.W, c.H) * 0.06));
+    g.fillStyle = "#ffbe0b"; star(g, c.W - m * 0.6, m * 0.6, s * 0.75); g.fill(); g.strokeStyle = INK; g.lineWidth = 0.3; g.stroke();
+    g.fillStyle = "#ff6b8b"; heart(g, m * 0.6, c.H - m * 0.6 - s * 0.5, s); g.fill(); g.stroke();
+    g.strokeStyle = c.A; g.lineWidth = 0.45; g.beginPath();
+    for (let a = 0; a < 16; a += 0.2) { const r = a * s * 0.035; g.lineTo(c.W - m * 0.8 + Math.cos(a) * r, c.H - m * 0.8 + Math.sin(a) * r); }
+    g.stroke();
+    // cloud
+    g.fillStyle = "#ffffff"; g.strokeStyle = INK; g.lineWidth = 0.3;
+    const cx = m * 0.9, cy = m * 0.9; g.beginPath(); g.arc(cx, cy, s * 0.45, Math.PI * 0.5, Math.PI * 1.5); g.arc(cx + s * 0.5, cy - s * 0.35, s * 0.5, Math.PI, 0); g.arc(cx + s, cy, s * 0.45, Math.PI * 1.5, Math.PI * 0.5); g.closePath(); g.fill(); g.stroke();
+    const fs = Math.max(6, Math.min(12, c.W * 0.085));
+    g.fillStyle = INK; fitText(g, c.title, c.W / 2, m + fs * 1.1, fs, c.W - 4 * m - 2 * s, HAND, 700, "center");
+    g.strokeStyle = c.A; g.lineWidth = 0.5; g.beginPath(); g.moveTo(c.W * 0.3, m + fs * 1.45); wobble(g, c.W * 0.3, m + fs * 1.45, c.W * 0.7, m + fs * 1.45, rnd, 0.6); g.stroke();
+    const top = m + fs * 2;
+    return { x: m * 1.4, y: top, w: c.W - 2.8 * m, h: c.H - top - m * 1.5 };
+  } },
+
+  waves: { cat: "fun", ruling: "lined", draw(g, c) {
+    bleedFill(g, c, "#ffffff"); const m = margin(c);
+    const cols = [mix(c.A, "#ffffff", 0.75), mix(c.A, "#ffffff", 0.55), mix(c.A, "#ffffff", 0.3)];
+    const hTop = Math.max(10, Math.min(28, c.H * 0.13)), hBot = hTop * 0.7;
+    const wave = (base, amp, len, phase, up, color) => {
+      g.fillStyle = color; g.beginPath(); g.moveTo(-BOX, up ? -BOX : c.H + BOX);
+      for (let x = -BOX; x <= c.W + BOX + 0.01; x += 1) g.lineTo(x, base + Math.sin(x / len * Math.PI * 2 + phase) * amp);
+      g.lineTo(c.W + BOX, up ? -BOX : c.H + BOX); g.closePath(); g.fill();
+    };
+    cols.forEach((col, i) => wave(hTop * (1 - i * 0.22), hTop * 0.12, c.W * (0.7 - i * 0.12), i * 1.7, true, col));
+    cols.forEach((col, i) => wave(c.H - hBot * (1 - i * 0.25), hBot * 0.14, c.W * (0.6 + i * 0.1), 2 + i * 1.3, false, col));
+    g.fillStyle = "#ffffff"; fitText(g, c.title, m, hTop * 0.55, hTop * 0.38, c.W - 2 * m, UI_FONT, 800);
+    return { x: m, y: hTop + 4, w: c.W - 2 * m, h: c.H - hTop - hBot - 6 };
+  } },
+
+  todo: { cat: "planner", ruling: "check", draw(g, c) {
+    bleedFill(g, c, "#ffffff"); const m = margin(c);
+    const s = Math.max(5, Math.min(9, c.W * 0.065));
+    g.strokeStyle = c.A; g.lineWidth = s * 0.12; g.lineCap = "round"; g.lineJoin = "round";
+    g.strokeRect(m, m, s, s);
+    g.beginPath(); g.moveTo(m + s * 0.22, m + s * 0.5); g.lineTo(m + s * 0.45, m + s * 0.75); g.lineTo(m + s * 1.05, m - s * 0.1); g.stroke();
+    g.fillStyle = INK; fitText(g, c.title, m + s * 1.5, m + s * 0.88, s * 0.95, c.W - 2 * m - s * 1.6, UI_FONT, 800);
+    g.fillStyle = c.A; g.fillRect(m, m + s * 1.5, c.W - 2 * m, 0.5);
+    if (c.sub) { g.fillStyle = GREY; fitText(g, c.sub, c.W - m, c.H - m * 0.6, 2.5, c.W - 2 * m, UI_FONT, 500, "right"); }
+    const top = m + s * 1.7;
+    return { x: m, y: top, w: c.W - 2 * m, h: c.H - top - m };
+  } },
+
+  week: { cat: "planner", ruling: "none", draw(g, c) {
+    bleedFill(g, c, "#ffffff"); const m = margin(c);
+    const s = Math.max(4.5, Math.min(8, c.W * 0.055));
+    g.fillStyle = INK; fitText(g, c.title, m, m + s * 0.85, s, c.W * 0.6, UI_FONT, 800);
+    g.strokeStyle = "#b8bec9"; g.lineWidth = 0.25; g.beginPath(); g.moveTo(c.W * 0.62, m + s * 0.85); g.lineTo(c.W - m, m + s * 0.85); g.stroke();
+    const top = m + s * 1.6, h = (c.H - top - m) / 7, fs = Math.max(2.2, Math.min(3.4, h * 0.22));
+    T.days.forEach((d, i) => {
+      const y = top + i * h;
+      g.fillStyle = i >= 5 ? mix(c.A, "#ffffff", 0.82) : mix(c.A, "#ffffff", 0.92); g.fillRect(m, y + 0.6, c.W - 2 * m, h - 1.2);
+      g.fillStyle = c.A; g.fillRect(m, y + 0.6, 0.9, h - 1.2);
+      g.fillStyle = mix(c.A, INK, 0.35); g.font = `700 ${fs}px ${UI_FONT}`; g.fillText(d.toUpperCase(), m + 2.4, y + 0.6 + fs * 1.4);
+    });
+    return null;
+  } },
+
+  shopping: { cat: "planner", ruling: "check", draw(g, c) {
+    bleedFill(g, c, "#ffffff"); const m = margin(c);
+    const s = Math.max(6, Math.min(11, c.W * 0.08)), x = m, y = m;
+    g.strokeStyle = c.A; g.lineWidth = s * 0.09; g.lineJoin = "round"; g.lineCap = "round";
+    g.beginPath(); g.moveTo(x, y + s * 0.1); g.lineTo(x + s * 0.2, y + s * 0.1); g.lineTo(x + s * 0.35, y + s * 0.65); g.lineTo(x + s * 0.95, y + s * 0.65); g.lineTo(x + s * 1.05, y + s * 0.28); g.lineTo(x + s * 0.27, y + s * 0.28); g.stroke();
+    g.fillStyle = c.A; g.beginPath(); g.arc(x + s * 0.42, y + s * 0.85, s * 0.08, 0, 7); g.arc(x + s * 0.88, y + s * 0.85, s * 0.08, 0, 7); g.fill();
+    g.fillStyle = INK; fitText(g, c.title, x + s * 1.35, y + s * 0.72, s * 0.7, c.W - 2 * m - s * 1.4, UI_FONT, 800);
+    g.setLineDash([0.8, 0.8]); g.strokeStyle = mix(c.A, "#ffffff", 0.4); g.lineWidth = 0.35;
+    g.beginPath(); g.moveTo(m, y + s * 1.2); g.lineTo(c.W - m, y + s * 1.2); g.stroke(); g.setLineDash([]);
+    const top = y + s * 1.35;
+    return { x: m, y: top, w: c.W - 2 * m, h: c.H - top - m };
+  } },
+};
+const DESIGN_ORDER = ["custom", "blank", "frame", "band", "letterhead", "meeting", "sidebar", "confetti", "space", "coffee", "doodle", "waves", "todo", "week", "shopping"];
+
+function drawRuling(g, a, type, sp, c) {
+  if (!a || type === "none" || a.w <= 0 || a.h <= 0) return;
+  const col = mix(c.A, "#9aa3b2", 0.55), light = mix(col, "#ffffff", 0.35);
+  g.save(); g.beginPath(); g.rect(a.x - 0.01, a.y - 0.01, a.w + 0.02, a.h + 0.02); g.clip();
+  g.strokeStyle = light; g.fillStyle = col; g.lineWidth = 0.2;
+  if (type === "lined" || type === "check") {
+    for (let y = a.y + sp; y <= a.y + a.h + 0.01; y += sp) {
+      g.beginPath(); g.moveTo(a.x, y); g.lineTo(a.x + a.w, y); g.stroke();
+      if (type === "check") { const bs = Math.min(3.4, sp * 0.5); g.strokeStyle = col; g.lineWidth = 0.25; g.strokeRect(a.x + 0.3, y - bs - sp * 0.15, bs, bs); g.strokeStyle = light; g.lineWidth = 0.2; }
+    }
+  } else if (type === "grid") {
+    const nx = Math.floor(a.w / sp), ny = Math.floor(a.h / sp), x0 = a.x + (a.w - nx * sp) / 2, y0 = a.y + (a.h - ny * sp) / 2;
+    for (let i = 0; i <= nx; i++) { g.beginPath(); g.moveTo(x0 + i * sp, y0); g.lineTo(x0 + i * sp, y0 + ny * sp); g.stroke(); }
+    for (let j = 0; j <= ny; j++) { g.beginPath(); g.moveTo(x0, y0 + j * sp); g.lineTo(x0 + nx * sp, y0 + j * sp); g.stroke(); }
+  } else if (type === "dots") {
+    const nx = Math.floor(a.w / sp), ny = Math.floor(a.h / sp), x0 = a.x + (a.w - nx * sp) / 2, y0 = a.y + (a.h - ny * sp) / 2;
+    const r = Math.max(0.22, 0.6 / c.k);
+    for (let i = 0; i <= nx; i++) for (let j = 0; j <= ny; j++) { g.beginPath(); g.arc(x0 + i * sp, y0 + j * sp, r, 0, 7); g.fill(); }
+  }
+  g.restore();
+}
+const titleFor = (id) => S.titleTouched ? S.title : (T.titles[id] || "");
+const subFor = (id) => S.subTouched ? S.sub : (T.subs[id] || "");
+
+// Renders a design as a canvas of the 3 mm bleed box at k px/mm.
+function renderDesign(id, k, opts = {}) {
+  const { W, H } = fmtSize();
+  const w = Math.max(1, Math.round((W + 2 * BOX) * k)), h = Math.max(1, Math.round((H + 2 * BOX) * k));
+  const cv = document.createElement("canvas"); cv.width = w; cv.height = h;
+  const g = cv.getContext("2d");
+  g.fillStyle = "#fff"; g.fillRect(0, 0, w, h);
+  g.scale(w / (W + 2 * BOX), h / (H + 2 * BOX)); g.translate(BOX, BOX);
+  g.imageSmoothingQuality = "high";
+  const c = { W, H, A: S.accent, title: titleFor(id), sub: subFor(id), rnd: rng(hashStr(id + Math.round(W) + "x" + Math.round(H))), k, hi: !!opts.hi };
+  const area = DESIGNS[id].draw(g, c);
+  const ruling = opts.ruling ?? S.ruling;
+  if (area) drawRuling(g, area, ruling, S.spacing, c);
+  return cv;
+}
+
+// =====================================================================================
+// Scan: corner detection, perspective straightening, paper tone removal
+// =====================================================================================
+function toCanvas(src, maxSide) {
+  const s = Math.min(1, maxSide / Math.max(src.width, src.height));
+  const c = document.createElement("canvas"); c.width = Math.max(1, Math.round(src.width * s)); c.height = Math.max(1, Math.round(src.height * s));
+  const g = c.getContext("2d"); g.imageSmoothingQuality = "high"; g.drawImage(src, 0, 0, c.width, c.height);
+  return c;
+}
+function rotateCanvas(src) {
+  const c = document.createElement("canvas"); c.width = src.height; c.height = src.width;
+  const g = c.getContext("2d"); g.translate(c.width, 0); g.rotate(Math.PI / 2); g.drawImage(src, 0, 0);
+  return c;
+}
+const FULL_QUAD = [[0, 0], [1, 0], [1, 1], [0, 1]];
+// Finds the sheet of paper: everything that differs clearly from the colour along the image border.
+function autoQuad(src) {
+  const c = toCanvas(src, 360), w = c.width, h = c.height, d = c.getContext("2d").getImageData(0, 0, w, h).data;
+  const ring = [], bw = Math.max(2, Math.round(Math.min(w, h) * 0.02));
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    if (x >= bw && x < w - bw && y >= bw && y < h - bw) continue;
+    ring.push(y * w + x);
+  }
+  const med = [0, 1, 2].map((ch) => { const v = ring.map((i) => d[i * 4 + ch]).sort((a, z) => a - z); return v[v.length >> 1]; });
+  const mask = new Uint8Array(w * h);
+  for (let i = 0; i < w * h; i++) mask[i] = (Math.abs(d[i * 4] - med[0]) + Math.abs(d[i * 4 + 1] - med[1]) + Math.abs(d[i * 4 + 2] - med[2])) > 60 ? 1 : 0;
+  // largest connected component
+  const lab = new Int32Array(w * h), stack = new Int32Array(w * h);
+  let best = 0, bestSize = 0, cur = 0;
+  for (let i = 0; i < w * h; i++) {
+    if (!mask[i] || lab[i]) continue;
+    cur++; let sp = 0, size = 0; stack[sp++] = i; lab[i] = cur;
+    while (sp) {
+      const p = stack[--sp]; size++;
+      const x = p % w, y = (p / w) | 0;
+      if (x > 0 && mask[p - 1] && !lab[p - 1]) { lab[p - 1] = cur; stack[sp++] = p - 1; }
+      if (x < w - 1 && mask[p + 1] && !lab[p + 1]) { lab[p + 1] = cur; stack[sp++] = p + 1; }
+      if (y > 0 && mask[p - w] && !lab[p - w]) { lab[p - w] = cur; stack[sp++] = p - w; }
+      if (y < h - 1 && mask[p + w] && !lab[p + w]) { lab[p + w] = cur; stack[sp++] = p + w; }
+    }
+    if (size > bestSize) { bestSize = size; best = cur; }
+  }
+  if (bestSize < 0.15 * w * h || bestSize > 0.97 * w * h) return FULL_QUAD.map((p) => p.slice());
+  let tl = [0, 0, Infinity], tr = [0, 0, -Infinity], br = [0, 0, -Infinity], bl = [0, 0, -Infinity];
+  for (let i = 0; i < w * h; i++) {
+    if (lab[i] !== best) continue;
+    const x = i % w, y = (i / w) | 0;
+    if (x + y < tl[2]) tl = [x, y, x + y];
+    if (x - y > tr[2]) tr = [x, y, x - y];
+    if (x + y > br[2]) br = [x, y, x + y];
+    if (y - x > bl[2]) bl = [x, y, y - x];
+  }
+  const n = (p) => [(p[0] + 0.5) / w, (p[1] + 0.5) / h];
+  const q = [n(tl), n(tr), n(br), n(bl)];
+  // a hair inwards, so no border colour gets in
+  const cx = q.reduce((s, p) => s + p[0], 0) / 4, cy = q.reduce((s, p) => s + p[1], 0) / 4;
+  return q.map(([x, y]) => [x + (cx - x) * 0.008, y + (cy - y) * 0.008]);
+}
+// Projective map of the unit square onto a quad (tl, tr, br, bl), Heckbert's formula.
+function squareToQuad(q) {
+  const [[x0, y0], [x1, y1], [x2, y2], [x3, y3]] = q;
+  const dx1 = x1 - x2, dx2 = x3 - x2, dx3 = x0 - x1 + x2 - x3, dy1 = y1 - y2, dy2 = y3 - y2, dy3 = y0 - y1 + y2 - y3;
+  let a, b, c, d, e, f, gg = 0, hh = 0;
+  if (Math.abs(dx3) < 1e-9 && Math.abs(dy3) < 1e-9) { a = x1 - x0; b = x3 - x0; c = x0; d = y1 - y0; e = y3 - y0; f = y0; }
+  else {
+    const den = dx1 * dy2 - dx2 * dy1;
+    gg = (dx3 * dy2 - dx2 * dy3) / den; hh = (dx1 * dy3 - dx3 * dy1) / den;
+    a = x1 - x0 + gg * x1; b = x3 - x0 + hh * x3; c = x0; d = y1 - y0 + gg * y1; e = y3 - y0 + hh * y3; f = y0;
+  }
+  return (u, v) => { const z = gg * u + hh * v + 1; return [(a * u + b * v + c) / z, (d * u + e * v + f) / z]; };
+}
+function scanAspect() {
+  const sc = S.scan, W = sc.full.width, H = sc.full.height, q = sc.quad.map(([x, y]) => [x * W, y * H]);
+  const dist = (p, r) => Math.hypot(p[0] - r[0], p[1] - r[1]);
+  return (dist(q[0], q[1]) + dist(q[3], q[2])) / (dist(q[0], q[3]) + dist(q[1], q[2]));
+}
+const scanData = new WeakMap();
+function pixels(cv) { let d = scanData.get(cv); if (!d) { d = cv.getContext("2d").getImageData(0, 0, cv.width, cv.height); scanData.set(cv, d); } return d; }
+// Removes the paper colour and uneven lighting: estimates the paper colour block by block and divides it out.
+function cleanImage(img, strength) {
+  const { width: w, height: h, data: d } = img, s = strength / 100;
+  if (s <= 0) return;
+  const bs = Math.max(8, Math.max(w, h) / 14), gx = Math.max(1, Math.ceil(w / bs)), gy = Math.max(1, Math.ceil(h / bs));
+  const paper = new Float32Array(gx * gy * 3), plum = new Float32Array(gx * gy);
+  const hist = new Uint32Array(256);
+  for (let by = 0; by < gy; by++) for (let bx = 0; bx < gx; bx++) {
+    const x0 = Math.floor(bx * w / gx), x1 = Math.floor((bx + 1) * w / gx), y0 = Math.floor(by * h / gy), y1 = Math.floor((by + 1) * h / gy);
+    hist.fill(0); let n = 0;
+    for (let y = y0; y < y1; y += 2) for (let x = x0; x < x1; x += 2) { const i = (y * w + x) * 4; hist[(d[i] * 77 + d[i + 1] * 150 + d[i + 2] * 29) >> 8]++; n++; }
+    let acc = 0, L = 255; for (let v = 255; v >= 0; v--) { acc += hist[v]; if (acc >= n * 0.12) { L = v; break; } }
+    let r = 0, gg = 0, b = 0, m = 0;
+    for (let y = y0; y < y1; y += 2) for (let x = x0; x < x1; x += 2) {
+      const i = (y * w + x) * 4; if (((d[i] * 77 + d[i + 1] * 150 + d[i + 2] * 29) >> 8) >= L) { r += d[i]; gg += d[i + 1]; b += d[i + 2]; m++; }
+    }
+    const k = by * gx + bx; m = m || 1;
+    paper[k * 3] = r / m; paper[k * 3 + 1] = gg / m; paper[k * 3 + 2] = b / m; plum[k] = L;
+  }
+  const sorted = [...plum].sort((a, z) => a - z), medL = sorted[sorted.length >> 1];
+  let gr = 0, gg2 = 0, gb = 0, gn = 0;
+  for (let k = 0; k < gx * gy; k++) if (plum[k] >= medL) { gr += paper[k * 3]; gg2 += paper[k * 3 + 1]; gb += paper[k * 3 + 2]; gn++; }
+  const glob = [gr / gn, gg2 / gn, gb / gn];
+  // blocks covered by print (much darker than the typical paper) take the global paper colour
+  for (let k = 0; k < gx * gy; k++) if (plum[k] < medL * 0.85) { paper[k * 3] = glob[0]; paper[k * 3 + 1] = glob[1]; paper[k * 3 + 2] = glob[2]; }
+  const sm = new Float32Array(paper.length);
+  for (let by = 0; by < gy; by++) for (let bx = 0; bx < gx; bx++) for (let ch = 0; ch < 3; ch++) {
+    let sum = 0, n = 0;
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+      const X = bx + dx, Y = by + dy; if (X < 0 || Y < 0 || X >= gx || Y >= gy) continue; sum += paper[(Y * gx + X) * 3 + ch]; n++;
+    }
+    sm[(by * gx + bx) * 3 + ch] = Math.max(40, sum / n);
+  }
+  const bp = 28 * s, wp = 255 - 62 * s, scale = 255 / (wp - bp);
+  const lut = new Uint8ClampedArray(512);
+  for (let v = 0; v < 512; v++) lut[v] = (v / 1 - bp) * scale;
+  const colPaper = new Float32Array(gx * 3);
+  for (let y = 0; y < h; y++) {
+    let fy = (y + 0.5) / h * gy - 0.5; fy = Math.max(0, Math.min(gy - 1, fy));
+    const y0 = Math.floor(fy), y1 = Math.min(gy - 1, y0 + 1), ty = fy - y0;
+    for (let bx = 0; bx < gx; bx++) for (let ch = 0; ch < 3; ch++)
+      colPaper[bx * 3 + ch] = sm[(y0 * gx + bx) * 3 + ch] * (1 - ty) + sm[(y1 * gx + bx) * 3 + ch] * ty;
+    for (let x = 0; x < w; x++) {
+      let fx = (x + 0.5) / w * gx - 0.5; fx = Math.max(0, Math.min(gx - 1, fx));
+      const x0 = Math.floor(fx), x1 = Math.min(gx - 1, x0 + 1), tx = fx - x0, i = (y * w + x) * 4;
+      for (let ch = 0; ch < 3; ch++) {
+        const p = colPaper[x0 * 3 + ch] * (1 - tx) + colPaper[x1 * 3 + ch] * tx;
+        const v = Math.min(511, d[i + ch] * 255 / p);
+        d[i + ch] = lut[v | 0];
+      }
+    }
+  }
+}
+const scanCache = new Map();
+// The cut-out, straightened and cleaned scan at outW × outH pixels.
+function processedScan(outW, outH, hi) {
+  const sc = S.scan;
+  outW = Math.max(1, Math.round(outW)); outH = Math.max(1, Math.round(outH));
+  const key = [outW, outH, hi ? 1 : 0, sc.id, sc.quad.flat().map((v) => v.toFixed(4)).join(","), S.clean].join("|");
+  if (scanCache.has(key)) return scanCache.get(key);
+  const src = hi || outW * outH > 1.2e6 ? sc.full : sc.small;
+  const sd = pixels(src), sw = src.width, sh = src.height, s = sd.data;
+  const map = squareToQuad(sc.quad.map(([x, y]) => [x * sw, y * sh]));
+  const cv = document.createElement("canvas"); cv.width = outW; cv.height = outH;
+  const g = cv.getContext("2d"), out = g.createImageData(outW, outH), o = out.data;
+  for (let y = 0; y < outH; y++) {
+    const v = (y + 0.5) / outH;
+    for (let x = 0; x < outW; x++) {
+      let [px, py] = map((x + 0.5) / outW, v);
+      px = Math.max(0, Math.min(sw - 1.001, px - 0.5)); py = Math.max(0, Math.min(sh - 1.001, py - 0.5));
+      const ix = px | 0, iy = py | 0, fx = px - ix, fy = py - iy;
+      const i00 = (iy * sw + ix) * 4, i10 = i00 + 4, i01 = i00 + sw * 4, i11 = i01 + 4, j = (y * outW + x) * 4;
+      for (let ch = 0; ch < 3; ch++)
+        o[j + ch] = (s[i00 + ch] * (1 - fx) + s[i10 + ch] * fx) * (1 - fy) + (s[i01 + ch] * (1 - fx) + s[i11 + ch] * fx) * fy;
+      o[j + 3] = 255;
+    }
+  }
+  cleanImage(out, S.clean);
+  g.putImageData(out, 0, 0);
+  if (scanCache.size > 6) scanCache.delete(scanCache.keys().next().value);
+  scanCache.set(key, cv);
+  return cv;
+}
+function drawScan(g, c) {
+  const asp = scanAspect(), W = c.W, H = c.H;
+  g.save(); g.beginPath(); g.rect(-BOX, -BOX, W + 2 * BOX, H + 2 * BOX); g.clip();
+  if (S.fit === "stretch") {
+    const img = processedScan(W * c.k, H * c.k, c.hi);
+    g.drawImage(img, 0, 0, W, H);
+    for (const dx of [-1, 0, 1]) for (const dy of [-1, 0, 1]) {
+      if (!dx && !dy) continue;
+      g.save(); g.translate(dx > 0 ? 2 * W : 0, dy > 0 ? 2 * H : 0); g.scale(dx ? -1 : 1, dy ? -1 : 1);
+      g.drawImage(img, 0, 0, W, H); g.restore();
+    }
+  } else {
+    const bw = S.fit === "cover" ? W + 2 * BOX : W, bh = S.fit === "cover" ? H + 2 * BOX : H;
+    let w = bw, h = bw / asp;
+    if (S.fit === "cover" ? h < bh : h > bh) { h = bh; w = bh * asp; }
+    const img = processedScan(w * c.k, h * c.k, c.hi);
+    g.drawImage(img, (W - w) / 2, (H - h) / 2, w, h);
+  }
+  g.restore();
+}
+
+// =====================================================================================
+// Ncode pages: fetched on demand, one file per page and strength (1 bit, zlib)
+// =====================================================================================
+const STRIDE = Math.ceil(NC.w / 8);
+const zCache = {}, pvCache = {};
+function fetchCode(strength, page) {
+  const key = strength + "-" + page;
+  if (!zCache[key]) zCache[key] = fetch(`ncode/${key}.bin`).then((r) => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
+    .then((b) => new Uint8Array(b)).catch((e) => { delete zCache[key]; throw e; });
+  return zCache[key];
+}
+async function inflate(bytes) {
+  const s = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("deflate"));
+  return new Uint8Array(await new Response(s).arrayBuffer());
+}
+async function deflate(bytes) {
+  const s = new Blob([bytes]).stream().pipeThrough(new CompressionStream("deflate"));
+  return new Uint8Array(await new Response(s).arrayBuffer());
+}
+const POP = Uint8Array.from({ length: 256 }, (_, i) => { let n = 0; for (let v = i; v; v >>= 1) n += v & 1; return n; });
+const PV = 2;   // preview: px per mm
+// Greyscale preview of a code page (average dot density)
+function codePreview(strength, page) {
+  const key = strength + "-" + page;
+  if (!pvCache[key]) pvCache[key] = fetchCode(strength, page).then(inflate).then((bits) => {
+    const w = Math.round(CW * PV), h = Math.round(CH * PV), sum = new Float32Array(w * h);
+    const colBin = Uint16Array.from({ length: STRIDE }, (_, x) => Math.min(w - 1, Math.floor(x * 8 * w / NC.w)));
+    const colN = new Float32Array(w), rowN = new Float32Array(h);
+    for (let x = 0; x < STRIDE; x++) colN[colBin[x]] += 8;
+    for (let y = 0; y < NC.h; y++) {
+      const ry = Math.min(h - 1, Math.floor(y * h / NC.h)), row = y * STRIDE, by = ry * w;
+      rowN[ry]++;
+      for (let x = 0; x < STRIDE; x++) { const b = bits[row + x]; if (b) sum[by + colBin[x]] += POP[b]; }
+    }
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) sum[y * w + x] /= (colN[x] * rowN[y]) || 1;
+    const per = 1;
+    const cv = document.createElement("canvas"); cv.width = w; cv.height = h;
+    const ctx = cv.getContext("2d"), id = ctx.createImageData(w, h);
+    for (let i = 0; i < w * h; i++) {
+      const v = 255 - Math.min(255, (sum[i] / per) * 255 * 1.8);
+      id.data[i * 4] = id.data[i * 4 + 1] = id.data[i * 4 + 2] = v; id.data[i * 4 + 3] = 255;
+    }
+    ctx.putImageData(id, 0, 0);
+    return cv;
+  }).catch((e) => { delete pvCache[key]; throw e; });
+  return pvCache[key];
+}
+
+// =====================================================================================
+// Preview
+// =====================================================================================
+// Draws img through an affine map (u, v in 0..1 -> mm) into a canvas with k px/mm, clipped to clip (mm)
+function placeImage(g, k, img, map, clip) {
+  const [x0, y0] = map(0, 0), [x1, y1] = map(1, 0), [x2, y2] = map(0, 1);
+  g.save();
+  g.beginPath(); g.rect(clip.x * k, clip.y * k, clip.w * k, clip.h * k); g.clip();
+  g.setTransform((x1 - x0) * k / img.width, (y1 - y0) * k / img.width, (x2 - x0) * k / img.height, (y2 - y0) * k / img.height, x0 * k, y0 * k);
+  g.drawImage(img, 0, 0);
+  g.restore();
+}
+const designMap = (t, rot, W, H) => (u, v) => toSheet(t, rot, -BOX + u * (W + 2 * BOX), -BOX + v * (H + 2 * BOX));
+const codeMap = (t, rot, cg, sl) => { const f = codeToSlip(cg, sl); return (u, v) => toSheet(t, rot, ...f(u, v)); };
+
+let G = null, CG = null;
+function setCanvasSize(cv, wmm, hmm, longPx) {
+  const s = longPx / Math.max(wmm, hmm), w = Math.round(wmm * s), h = Math.round(hmm * s);
+  if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+  return s;
+}
+let previewToken = 0;
+async function drawSlip(token) {
+  const { W, H } = fmtSize(), cv = $("slipCanvas");
+  const k = setCanvasSize(cv, W + 2 * BOX, H + 2 * BOX, 900) ;
+  const design = renderDesign(S.design, k);
+  let codeImg = null;
+  const sl = CG.slot(0);
+  if (S.showCode) { try { codeImg = await codePreview(S.strength, sl.page); } catch (e) { showLoadError(); } }
+  if (token !== previewToken) return;
+  const g = cv.getContext("2d");
+  g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, cv.width, cv.height);
+  g.drawImage(design, 0, 0, cv.width, cv.height);
+  if (codeImg) {
+    g.save(); g.globalCompositeOperation = "multiply";
+    const t = { x: BOX, y: BOX, w: W, h: H };
+    placeImage(g, k, codeImg, codeMap(t, 0, CG, sl), { x: BOX - S.bleed, y: BOX - S.bleed, w: W + 2 * S.bleed, h: H + 2 * S.bleed });
+    g.restore();
+  }
+  // bleed darkened, trim line
+  g.save(); g.fillStyle = "rgba(20,30,25,.42)";
+  g.beginPath(); g.rect(0, 0, cv.width, cv.height); g.rect(BOX * k, BOX * k, W * k, H * k); g.fill("evenodd"); g.restore();
+  g.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue("--mark").trim() || "#e0457b"; g.lineWidth = 2;
+  g.strokeRect(BOX * k, BOX * k, W * k, H * k);
+  if (!CG.full) {
+    const f = codeToSlip(CG, sl), [ax, ay] = f(0, 0), [bx, by] = f(1, 1);
+    const x0 = Math.max(0, Math.min(ax, bx)), y0 = Math.max(0, Math.min(ay, by)), x1 = Math.min(W, Math.max(ax, bx)), y1 = Math.min(H, Math.max(ay, by));
+    g.strokeStyle = "#2a9df4"; g.setLineDash([8, 6]); g.lineWidth = 2;
+    g.strokeRect((BOX + x0) * k, (BOX + y0) * k, (x1 - x0) * k, (y1 - y0) * k); g.setLineDash([]);
+  }
+}
+async function drawSheets(token) {
+  const { W, H } = fmtSize(), g0 = G;
+  const fcv = $("sheetFront"), bcv = $("sheetBack");
+  const hasBack = S.backCode || S.backDesign;
+  $("backSheet").hidden = !hasBack;
+  const k = setCanvasSize(fcv, g0.P.w, g0.P.h, 600); setCanvasSize(bcv, g0.P.w, g0.P.h, 600);
+  const design = renderDesign(S.design, Math.min(12, k * 2));
+  const pl = plan(g0, CG, 1);
+  const pages = new Set(); pl.forEach((e) => { pages.add(e.f.page); if (e.bk) pages.add(e.bk.page); });
+  const pv = {};
+  try { await Promise.all([...pages].map(async (p) => { pv[p] = await codePreview(S.strength, p); })); } catch (e) { showLoadError(); }
+  if (token !== previewToken) return;
+  const rotF = g0.rot ? 1 : 0, rotB = g0.rot ? -1 : 0;
+  // front
+  let g = fcv.getContext("2d"); g.setTransform(1, 0, 0, 1, 0, 0);
+  g.fillStyle = "#fff"; g.fillRect(0, 0, fcv.width, fcv.height);
+  for (const e of pl) {
+    placeImage(g, k, design, designMap(e.cell.t, rotF, W, H), e.cell.clip);
+    if (pv[e.f.page]) { g.save(); g.globalCompositeOperation = "multiply"; placeImage(g, k, pv[e.f.page], codeMap(e.cell.t, rotF, CG, e.f), e.cell.clip); g.restore(); }
+  }
+  g.strokeStyle = "#000"; g.lineWidth = Math.max(1, 0.25 * k);
+  for (const [x0, y0, x1, y1] of marks(g0)) { g.beginPath(); g.moveTo(x0 * k, y0 * k); g.lineTo(x1 * k, y1 * k); g.stroke(); }
+  if (g0.trim) { g.strokeStyle = "rgba(224,69,123,.8)"; g.lineWidth = 1; const t = g0.cells[0].t; g.strokeRect(t.x * k, t.y * k, t.w * k, t.h * k); }
+  // back
+  if (!hasBack) return;
+  g = bcv.getContext("2d"); g.setTransform(1, 0, 0, 1, 0, 0);
+  g.fillStyle = "#fff"; g.fillRect(0, 0, bcv.width, bcv.height);
+  pl.forEach((e) => {
+    const bc = g0.at(g0.cols - 1 - e.cell.c, e.cell.r);
+    if (S.backDesign) placeImage(g, k, design, designMap(bc.t, rotB, W, H), bc.clip);
+    if (e.bk && pv[e.bk.page]) { g.save(); g.globalCompositeOperation = "multiply"; placeImage(g, k, pv[e.bk.page], codeMap(bc.t, rotB, CG, e.bk), bc.clip); g.restore(); }
+  });
+  g.strokeStyle = "rgba(0,0,0,.18)"; g.lineWidth = 1;
+  for (const cell of g0.cells) g.strokeRect(cell.t.x * k, cell.t.y * k, cell.t.w * k, cell.t.h * k);
+}
+function drawMap() {
+  const cv = $("mapCanvas"), g = cv.getContext("2d"), { W, H } = fmtSize();
+  const k = cv.width / CW; g.setTransform(1, 0, 0, 1, 0, 0);
+  g.fillStyle = "#fff"; g.fillRect(0, 0, cv.width, cv.height);
+  g.fillStyle = "rgba(0,0,0,.05)";
+  for (let y = 4; y < CH; y += 4) for (let x = 4; x < CW; x += 4) g.fillRect(x * k - 0.6, y * k - 0.6, 1.2, 1.2);
+  // regions in native page coordinates
+  const rect = (sl) => {
+    // trim of the sheet in frame coordinates
+    let x = sl.ox, y = sl.oy, w = W, h = H;
+    x = Math.max(0, x); y = Math.max(0, y); w = Math.min(CG.FW, sl.ox + W) - x; h = Math.min(CG.FH, sl.oy + H) - y;
+    if (!CG.rot) return [x, y, w, h];
+    // frame -> native: frame x' = (1 - v) * CH, y' = u * CW  =>  u = y'/CW, v = 1 - x'/CH
+    return [y, CH - x - w, h, w];
+  };
+  g.strokeStyle = "rgba(0,0,0,.25)"; g.lineWidth = 1;
+  for (let r = 0; r < CG.R; r++) { const [x, y, w, h] = rect(CG.region(r)); g.strokeRect(x * k + 0.5, y * k + 0.5, w * k - 1, h * k - 1); }
+  const f = CG.slot(0), b = S.backCode ? CG.slot(1) : null;
+  const paint = (sl, col, lab) => {
+    const [x, y, w, h] = rect(sl); g.fillStyle = rgba(col, 0.25); g.fillRect(x * k, y * k, w * k, h * k);
+    g.strokeStyle = col; g.lineWidth = 2; g.strokeRect(x * k + 1, y * k + 1, w * k - 2, h * k - 2);
+    g.fillStyle = col; g.font = `700 ${Math.max(10, Math.min(16, w * k * 0.18))}px ${UI_FONT}`; g.fillText(lab, x * k + 5, y * k + 17);
+  };
+  const same = b && b.page === f.page;
+  paint(f, "#2a6df4", "1");
+  if (same) paint(b, "#e0457b", "1′");
+  g.strokeStyle = "#16181d"; g.lineWidth = 1; g.strokeRect(0.5, 0.5, cv.width - 1, cv.height - 1);
+  $("mapNote").textContent = T.mapNote(CG.rot) + (b && !same ? (LANG === "de" ? " Die Rückseite liegt auf einer eigenen Seite." : " The back is on a page of its own.") : "");
+}
+
+function showLoadError() { setStatus(T.needServer, true); }
+function updateInfo() {
+  const { W, H } = fmtSize();
+  const info = [];
+  if (CG.full) info.push(T.codeFull(W, H));
+  else info.push(`<span class="warn">${T.codePart(fmt1(CG.cover.w), fmt1(CG.cover.h), fmt1(W), fmt1(H))}</span>`);
+  if (CG.rot) info.push(`<span class="warn">${T.codeRot}</span>`);
+  if (CG.R > 1) info.push(T.perPage(CG.R));
+  $("codeInfo").innerHTML = info.join("<br>");
+  $("legendCover").hidden = CG.full;
+  if (!G) { $("layoutInfo").innerHTML = `<span class="warn">${T.tooBig}</span>`; return; }
+  const sheets = Math.ceil(S.count / G.n), total = sheets * G.n, hasBack = S.backCode || S.backDesign;
+  const pages = sheets * (hasBack ? 2 : 1), sides = S.backCode ? 2 * total : total;
+  const lines = [G.trim ? T.trimLayout(pages) : G.whole ? T.wholeLayout(pages) : T.layout(G.n, sheets, pages, total, G.rot), T.unique(Math.min(CG.U, sides), total, sides)];
+  $("layoutInfo").innerHTML = lines.map((l, i) => i === 1 && sides > CG.U ? `<span class="warn">${l}</span>` : l).join("<br>");
+  $("layoutNote").textContent = G.trim || G.whole ? "" : T.note(S.bleed, S.gutter);
+}
+
+let raf = 0;
+function refresh() {
+  cancelAnimationFrame(raf);
+  raf = requestAnimationFrame(() => {
+    const sz = fmtSize();
+    $("fmtLabel").textContent = `${fmt1(sz.W)} × ${fmt1(sz.H)} mm`;
+    $("slipDims").textContent = `${fmt1(sz.W)} × ${fmt1(sz.H)} mm`;
+    if (!sizeOk(sz)) { setStatus(T.badSize, true); $("download").disabled = true; return; }
+    if ($("status").textContent === T.badSize) setStatus("");
+    CG = codeGeom(sz.W, sz.H, S.bleed, S.share);
+    G = sheetGeom(sz.W, sz.H, S.bleed, S.paper, S.gutter);
+    $("download").disabled = !G;
+    $("frontLabel").textContent = G ? `${fmt1(G.P.w)} × ${fmt1(G.P.h)} mm` : "";
+    $("backLabel").textContent = "Ncode " + T.names[S.strength];
+    $("outLabel").textContent = G ? (G.trim ? "PDF" : `${G.n}×`) : "–";
+    updateInfo();
+    drawMap();
+    const token = ++previewToken;
+    drawSlip(token);
+    if (G) drawSheets(token);
+    scheduleThumbs();
+  });
+}
+
+// Design picker thumbnails
+let thumbTimer = 0;
+function scheduleThumbs() { clearTimeout(thumbTimer); thumbTimer = setTimeout(drawThumbs, 120); }
+function drawThumbs() {
+  const { W, H } = fmtSize(); if (!sizeOk({ W, H })) return;
+  for (const id of DESIGN_ORDER) {
+    const cv = document.querySelector(`canvas[data-thumb="${id}"]`); if (!cv) continue;
+    const k = 150 / Math.max(W, H);
+    const img = renderDesign(id, k * 1.5, { ruling: id === S.design ? S.ruling : DESIGNS[id].ruling });
+    cv.width = Math.round(W * k); cv.height = Math.round(H * k);
+    const g = cv.getContext("2d");
+    g.drawImage(img, BOX * k * 1.5, BOX * k * 1.5, W * k * 1.5, H * k * 1.5, 0, 0, cv.width, cv.height);
+  }
+}
+function buildDesignGrid() {
+  const box = $("designGrid"); box.innerHTML = "";
+  let cat = null, grid = null;
+  for (const id of DESIGN_ORDER) {
+    const D = DESIGNS[id];
+    if (D.cat !== cat) {
+      cat = D.cat;
+      const h = document.createElement("p"); h.className = "sub-h"; h.textContent = T.cats[cat]; h.style.margin = "10px 0 6px"; box.appendChild(h);
+      grid = document.createElement("div"); grid.className = "designs"; grid.setAttribute("role", "radiogroup"); grid.setAttribute("aria-label", T.cats[cat]); box.appendChild(grid);
+    }
+    const lab = document.createElement("label"); lab.className = "design";
+    lab.innerHTML = `<input type="radio" name="design" value="${id}"${id === S.design ? " checked" : ""}><span><canvas data-thumb="${id}" width="60" height="80"></canvas>${T.designs[id]}</span>`;
+    grid.appendChild(lab);
+  }
+  box.querySelectorAll('input[name="design"]').forEach((el) => el.addEventListener("change", () => selectDesign(el.value)));
+}
+function selectDesign(id) {
+  S.design = id;
+  S.ruling = DESIGNS[id].ruling; $("ruling").value = S.ruling;
+  if (!S.titleTouched) $("title").value = titleFor(id);
+  if (!S.subTouched) $("sub").value = subFor(id);
+  if (id === "custom" && !S.scan) $("file").click();
+  const r = document.querySelector(`input[name="design"][value="${id}"]`); if (r) r.checked = true;
+  updateScanBox();
+  refresh();
+}
+
+// =====================================================================================
+// Scan editor
+// =====================================================================================
+const scv = $("scanCanvas");
+let scanView = null, dragCorner = -1;
+function updateScanBox() {
+  const show = S.design === "custom" && !!S.scan;
+  $("scanBox").hidden = !show;
+  $("textBox").hidden = S.design === "custom";
+  if (show) drawScanEditor();
+}
+function drawScanEditor() {
+  const sc = S.scan; if (!sc) return;
+  const src = sc.small, maxW = 760, maxH = 620;
+  const s = Math.min(maxW / src.width, maxH / src.height);
+  scv.width = Math.round(src.width * s); scv.height = Math.round(src.height * s);
+  scanView = { s, w: scv.width, h: scv.height };
+  const g = scv.getContext("2d");
+  g.drawImage(src, 0, 0, scv.width, scv.height);
+  const q = sc.quad.map(([x, y]) => [x * scv.width, y * scv.height]);
+  g.save(); g.fillStyle = "rgba(10,14,30,.5)";
+  g.beginPath(); g.rect(0, 0, scv.width, scv.height); g.moveTo(...q[0]); q.slice(1).forEach((p) => g.lineTo(...p)); g.closePath(); g.fill("evenodd"); g.restore();
+  g.strokeStyle = "#ffe45c"; g.lineWidth = 2.5; g.beginPath(); g.moveTo(...q[0]); q.slice(1).forEach((p) => g.lineTo(...p)); g.closePath(); g.stroke();
+  const r = Math.max(9, scv.width / 55);
+  for (const [x, y] of q) { g.fillStyle = "#2346c8"; g.strokeStyle = "#fff"; g.lineWidth = 2.5; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); g.stroke(); }
+}
+function scanPoint(e) { const b = scv.getBoundingClientRect(); return [(e.clientX - b.left) / b.width, (e.clientY - b.top) / b.height]; }
+scv.addEventListener("pointerdown", (e) => {
+  if (!S.scan) return;
+  const [x, y] = scanPoint(e), b = scv.getBoundingClientRect();
+  let best = -1, bd = Infinity;
+  S.scan.quad.forEach(([qx, qy], i) => { const d = Math.hypot((qx - x) * b.width, (qy - y) * b.height); if (d < bd) { bd = d; best = i; } });
+  if (bd > 44) return;
+  dragCorner = best; scv.setPointerCapture(e.pointerId); e.preventDefault();
+});
+scv.addEventListener("pointermove", (e) => {
+  if (dragCorner < 0) return;
+  const [x, y] = scanPoint(e);
+  S.scan.quad[dragCorner] = [Math.max(0, Math.min(1, x)), Math.max(0, Math.min(1, y))];
+  drawScanEditor(); refresh();
+});
+const endScanDrag = () => { dragCorner = -1; };
+scv.addEventListener("pointerup", endScanDrag);
+scv.addEventListener("pointercancel", endScanDrag);
+$("scanAuto").addEventListener("click", () => { if (!S.scan) return; S.scan.quad = autoQuad(S.scan.small); drawScanEditor(); refresh(); });
+$("scanFull").addEventListener("click", () => { if (!S.scan) return; S.scan.quad = FULL_QUAD.map((p) => p.slice()); drawScanEditor(); refresh(); });
+$("scanRot").addEventListener("click", () => {
+  const sc = S.scan; if (!sc) return;
+  sc.full = rotateCanvas(sc.full); sc.small = rotateCanvas(sc.small); sc.id++;
+  const q = sc.quad.map(([x, y]) => [1 - y, x]);          // clockwise
+  sc.quad = [q[3], q[0], q[1], q[2]];                     // the old bottom-left corner is the new top-left
+  drawScanEditor(); refresh();
+});
+$("clean").addEventListener("input", (e) => { S.clean = +e.target.value; $("cleanVal").textContent = e.target.value + " %"; refresh(); });
+document.querySelectorAll('input[name="fit"]').forEach((el) => el.addEventListener("change", () => { S.fit = el.value; refresh(); }));
+
+let scanSeq = 0;
+async function loadFile(file) {
+  if (!file || !file.type.startsWith("image/")) { setStatus(T.notImage, true); return; }
+  try {
+    const bmp = await createImageBitmap(file, { imageOrientation: "from-image" });
+    const full = toCanvas(bmp, 4200), small = toCanvas(full, 1100);
+    S.scan = { name: file.name, full, small, quad: autoQuad(small), id: ++scanSeq * 1000 };
+    scanCache.clear();
+    const { W, H } = fmtSize(), dpi = Math.round(Math.max(bmp.width, bmp.height) / (Math.max(W, H) / 25.4));
+    $("filename").textContent = T.fileInfo(file.name, bmp.width, bmp.height) + (dpi < 200 ? T.lowRes(dpi) : "");
+    setStatus("");
+    S.design = "custom"; S.ruling = "none"; $("ruling").value = "none";
+    const r = document.querySelector('input[name="design"][value="custom"]'); if (r) r.checked = true;
+    updateScanBox(); refresh();
+  } catch (e) { console.error(e); setStatus(T.cantOpen, true); }
+}
+
+// =====================================================================================
+// PDF (written by hand, no libraries)
+// =====================================================================================
+function latin1(s) { const a = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) { const c = s.charCodeAt(i); a[i] = c < 256 ? c : 63; } return a; }
+const n = (v) => (+v.toFixed(4)).toString();
+const pdfStr = (s) => "(" + s.replace(/[\\()]/g, "\\$&") + ")";
+const nextFrame = () => new Promise((r) => setTimeout(r, 0));
+
+async function buildPdf() {
+  const { W, H } = fmtSize(), b = S.bleed, g = G, cg = CG;
+  const sheets = Math.ceil(S.count / g.n), pl = plan(g, cg, sheets);
+  const hasBack = S.backCode || S.backDesign;
+  const P = g.P;
+  const used = [...new Set(pl.flatMap((e) => e.bk ? [e.f.page, e.bk.page] : [e.f.page]))].sort((a, z) => a - z);
+  const masks = [];
+  for (let i = 0; i < used.length; i++) { setStatus(T.creatingCode(i + 1, used.length)); masks.push(await fetchCode(S.strength, used[i])); }
+  const maskName = (page) => "N" + page;
+
+  // Design: 300 dpi, stored as CMYK without black (K = 0) so the pen sees only the Ncode
+  setStatus(T.creatingBg); await nextFrame();
+  const cv = renderDesign(S.design, BG_DPI / 25.4, { hi: true });
+  const rgba = cv.getContext("2d").getImageData(0, 0, cv.width, cv.height).data;
+  const cmyk = new Uint8Array(cv.width * cv.height * 4);
+  for (let i = 0, j = 0; i < rgba.length; i += 4, j += 4) { cmyk[j] = 255 - rgba[i]; cmyk[j + 1] = 255 - rgba[i + 1]; cmyk[j + 2] = 255 - rgba[i + 2]; }
+  const bg = await deflate(cmyk);
+  setStatus(T.creating); await nextFrame();
+
+  const Pp = ([x, y]) => [x * PT, (P.h - y) * PT];
+  const cm = (map) => {
+    const [ex, ey] = Pp(map(0, 1)), [ax, ay] = Pp(map(1, 1)), [cx, cy] = Pp(map(0, 0));
+    return [ax - ex, ay - ey, cx - ex, cy - ey, ex, ey].map(n).join(" ") + " cm";
+  };
+  const clipOp = (cl) => [cl.x * PT, (P.h - cl.y - cl.h) * PT, cl.w * PT, cl.h * PT].map(n).join(" ") + " re W n";
+  const label = (x, y, s) => `BT /Hv 6 Tf ${n(x * PT)} ${n((P.h - y) * PT)} Td ${pdfStr(s)} Tj ET\n`;
+  const rotF = g.rot ? 1 : 0, rotB = g.rot ? -1 : 0;
+  const markOps = (() => {
+    let s = "q 0 G 0.3 w 0 J\n";
+    for (const [x0, y0, x1, y1] of marks(g)) s += `${n(x0 * PT)} ${n((P.h - y0) * PT)} m ${n(x1 * PT)} ${n((P.h - y1) * PT)} l S\n`;
+    return s + "Q\n";
+  })();
+
+  const contents = [];
+  for (let p = 0; p < sheets; p++) {
+    const items = pl.filter((e) => e.p === p);
+    let front = "";
+    for (const e of items) {
+      front += `q ${clipOp(e.cell.clip)} ${cm(designMap(e.cell.t, rotF, W, H))} /D Do Q\n`;
+      front += `q 0 g ${clipOp(e.cell.clip)} ${cm(codeMap(e.cell.t, rotF, cg, e.f))} /${maskName(e.f.page)} Do Q\n`;
+    }
+    if (!g.trim) {
+      front += markOps;
+      const ly = Math.min(8, g.oy - b - 3);
+      if (ly > 4) front += "q 0.35 g\n" + label(g.cutX[0], ly, T.pdfFront(p + 1, sheets, T.names[S.strength])) + label(g.cutX[g.cutX.length - 1] - 62, ly, T.pdfPrint) + "Q\n";
+    }
+    contents.push(front);
+    if (hasBack) {
+      let back = "";
+      for (const e of items) {
+        const bc = g.at(g.cols - 1 - e.cell.c, e.cell.r);
+        if (S.backDesign) back += `q ${clipOp(bc.clip)} ${cm(designMap(bc.t, rotB, W, H))} /D Do Q\n`;
+        if (e.bk) back += `q 0 g ${clipOp(bc.clip)} ${cm(codeMap(bc.t, rotB, cg, e.bk))} /${maskName(e.bk.page)} Do Q\n`;
+      }
+      if (!g.trim) { const ly = Math.min(8, g.oy - b - 3); if (ly > 4) back += "q 0.35 g\n" + label(g.cutX[0], ly, T.pdfBack(p + 1, sheets)) + "Q\n"; }
+      contents.push(back);
+    }
+  }
+
+  // Objects: 1 catalog, 2 pages, 3 font, 4 design, 5 resources, 6.. masks, then page + content pairs
+  const parts = [], offs = [];
+  let len = 0;
+  const push = (u) => { if (typeof u === "string") u = latin1(u); parts.push(u); len += u.length; };
+  const obj = (num, body) => { offs[num] = len; push(`${num} 0 obj\n${body}\nendobj\n`); };
+  const sobj = (num, dict, data) => { offs[num] = len; push(`${num} 0 obj\n<< ${dict} /Length ${data.length} >>\nstream\n`); push(data); push("\nendstream\nendobj\n"); };
+  const firstPage = 6 + masks.length, pageNums = contents.map((_, i) => firstPage + 2 * i);
+  const box = (x, y, w, h) => `[${n(x * PT)} ${n(y * PT)} ${n((x + w) * PT)} ${n((y + h) * PT)}]`;
+  const media = box(0, 0, P.w, P.h);
+  const trimBox = g.trim ? ` /TrimBox ${box(b, b, W, H)} /BleedBox ${media}` : "";
+  push("%PDF-1.4\n%\xE2\xE3\xCF\xD3\n");
+  obj(1, "<< /Type /Catalog /Pages 2 0 R >>");
+  obj(2, `<< /Type /Pages /Kids [${pageNums.map((x) => x + " 0 R").join(" ")}] /Count ${pageNums.length} >>`);
+  obj(3, "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>");
+  sobj(4, `/Type /XObject /Subtype /Image /Width ${cv.width} /Height ${cv.height} /ColorSpace /DeviceCMYK /BitsPerComponent 8 /Filter /FlateDecode`, bg);
+  obj(5, `<< /XObject << /D 4 0 R ${used.map((p, i) => `/${maskName(p)} ${6 + i} 0 R`).join(" ")} >> /Font << /Hv 3 0 R >> >>`);
+  masks.forEach((m, i) => sobj(6 + i, `/Type /XObject /Subtype /Image /Width ${NC.w} /Height ${NC.h} /ImageMask true /BitsPerComponent 1 /Decode [1 0] /Interpolate false /Filter /FlateDecode`, m));
+  contents.forEach((c, i) => {
+    obj(pageNums[i], `<< /Type /Page /Parent 2 0 R /MediaBox ${media}${trimBox} /Resources 5 0 R /Contents ${pageNums[i] + 1} 0 R >>`);
+    sobj(pageNums[i] + 1, "", latin1(c));
+  });
+  const count = firstPage + 2 * contents.length, xref = len;
+  let x = `xref\n0 ${count}\n0000000000 65535 f \n`;
+  for (let i = 1; i < count; i++) x += String(offs[i]).padStart(10, "0") + " 00000 n \n";
+  push(x + `trailer\n<< /Size ${count} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`);
+  return new Blob(parts, { type: "application/pdf" });
+}
+
+// =====================================================================================
+// UI wiring
+// =====================================================================================
+function setStatus(t, err = false) { const s = $("status"); s.textContent = t; s.classList.toggle("err", err); }
+
+$("fmt").addEventListener("change", (e) => {
+  S.fmt = e.target.value;
+  $("customBox").hidden = S.fmt !== "custom"; $("orientBox").hidden = S.fmt === "custom";
+  refresh();
+});
+document.querySelectorAll('input[name="orient"]').forEach((el) => el.addEventListener("change", () => { S.orient = el.value; refresh(); }));
+for (const id of ["cw", "ch"]) $(id).addEventListener("input", (e) => { S[id] = parseFloat(String(e.target.value).replace(",", ".")) || 0; refresh(); });
+$("title").addEventListener("input", (e) => { S.title = e.target.value; S.titleTouched = true; refresh(); });
+$("sub").addEventListener("input", (e) => { S.sub = e.target.value; S.subTouched = true; refresh(); });
+$("ruling").addEventListener("change", (e) => { S.ruling = e.target.value; refresh(); });
+$("spacing").addEventListener("change", (e) => { S.spacing = +e.target.value; refresh(); });
+document.querySelectorAll('input[name="strength"]').forEach((el) => el.addEventListener("change", () => { S.strength = el.value; refresh(); }));
+$("backCode").addEventListener("change", (e) => { S.backCode = e.target.checked; refresh(); });
+$("backDesign").addEventListener("change", (e) => { S.backDesign = e.target.checked; refresh(); });
+$("share").addEventListener("change", (e) => { S.share = e.target.checked; refresh(); });
+$("paper").addEventListener("change", (e) => { S.paper = e.target.value; refresh(); });
+$("bleed").addEventListener("change", (e) => { S.bleed = +e.target.value; refresh(); });
+$("gutter").addEventListener("change", (e) => { S.gutter = e.target.checked; refresh(); });
+$("count").addEventListener("input", (e) => { S.count = Math.max(1, Math.min(500, parseInt(e.target.value, 10) || 1)); refresh(); });
+$("showCode").addEventListener("change", (e) => { S.showCode = e.target.checked; refresh(); });
+
+const ACCENTS = ["#2a9d8f", "#2346c8", "#e76f51", "#e0457b", "#8338ec", "#f4a261", "#264653", "#6a994e"];
+function buildSwatches() {
+  const box = $("swatches");
+  box.innerHTML = ACCENTS.map((c) => `<button type="button" class="swatch" style="background:${c}" data-c="${c}" aria-label="${c}" aria-pressed="${c === S.accent}"></button>`).join("")
+    + `<input type="color" id="accentPick" value="${S.accent}" aria-label="Colour">`;
+  box.querySelectorAll(".swatch").forEach((b) => b.addEventListener("click", () => setAccent(b.dataset.c)));
+  $("accentPick").addEventListener("input", (e) => setAccent(e.target.value));
+}
+function setAccent(c) {
+  S.accent = c; $("accentPick").value = c;
+  document.querySelectorAll(".swatch").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.c === c)));
+  refresh();
+}
+
+$("file").addEventListener("change", (e) => { loadFile(e.target.files[0]); e.target.value = ""; });
+const drop = $("drop");
+["dragenter", "dragover"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", (e) => loadFile(e.dataTransfer.files[0]));
+document.addEventListener("dragover", (e) => e.preventDefault());
+document.addEventListener("drop", (e) => { e.preventDefault(); if (e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]); });
+
+$("download").addEventListener("click", async () => {
+  if (!G) return;
+  const btn = $("download"); btn.disabled = true; setStatus(T.creating);
+  try {
+    const blob = await buildPdf();
+    const { W, H } = fmtSize();
+    const fmtName = S.fmt === "custom" ? `${fmt1(W)}x${fmt1(H)}mm` : FMT_SHORT[S.fmt] + (S.orient === "l" ? (LANG === "de" ? " quer" : " landscape") : "");
+    const name = T.fileName(fmtName, T.designs[S.design], T.names[S.strength]);
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+    setStatus(T.done(name, blob.size / 1e6));
+  } catch (e) {
+    console.error(e);
+    setStatus(/fetch|Failed|\d{3}/.test(String(e.message)) ? T.needServer : T.failed(e.message), true);
+  }
+  btn.disabled = false;
+});
+
+// Start
+buildSwatches();
+buildDesignGrid();
+$("title").value = titleFor(S.design);
+$("sub").value = subFor(S.design);
+$("ruling").value = S.ruling;
+updateScanBox();
+refresh();
+// Fonts arrive later: draw again once they are there
+document.fonts.load(`700 20px Caveat`).then(() => document.fonts.load(`700 20px "Playfair Display"`)).then(() => document.fonts.load(`800 20px "Schibsted Grotesk"`)).then(refresh).catch(() => {});
+</script>
+</body>
+</html>
