@@ -81,24 +81,76 @@ export class BleDevice extends EventTarget {
    * Muss direkt aus einem Klick-Handler aufgerufen werden.
    * showAll = true zeigt alle BLE-Geräte in der Auswahl (falls das Gerät anders heißt als erwartet).
    */
-  async connect({ showAll = false } = {}) {
+  async connect({ showAll = false, choose = false } = {}) {
     if (!hasWebBluetooth()) {
       this._setStatus('error', 'Kein Web Bluetooth in diesem Browser');
       throw new Error('Kein Web Bluetooth');
     }
     if (this.status === 'connecting') return;
     this.step = '';
-    this._setStatus('connecting', 'Gerät auswählen …');
     try {
-      const opts = this.requestOptions();
-      const device = await navigator.bluetooth.requestDevice(showAll
-        ? { acceptAllDevices: true, optionalServices: opts.optionalServices || [] }
-        : opts);
-      this._attach(device);
+      // Schnellweg: bereits erlaubtes Gerät ohne Auswahlfenster (nur wenn der Browser getDevices() kann).
+      const known = !showAll && !choose ? await this._knownDevice() : null;
+      if (known) {
+        this._attach(known);
+        this._setStatus('connecting', 'Warte auf ' + this.deviceName + ' …');
+        await this._waitForAdvertisement(known);
+      } else {
+        this._setStatus('connecting', 'Gerät auswählen …');
+        const opts = this.requestOptions();
+        const device = await navigator.bluetooth.requestDevice(showAll
+          ? { acceptAllDevices: true, optionalServices: opts.optionalServices || [] }
+          : opts);
+        this._attach(device);
+      }
       await this._open();
+      this._remember();
     } catch (err) {
       this._fail(err);
       throw err;
+    }
+  }
+
+  /** Kann dieser Browser bekannte Geräte ohne Auswahlfenster verbinden? */
+  static get canQuickConnect() {
+    return typeof navigator !== 'undefined' && typeof navigator.bluetooth?.getDevices === 'function';
+  }
+
+  get rememberedName() {
+    try { return JSON.parse(localStorage.getItem('magichub_dev_' + this.id) || 'null')?.name || ''; } catch { return ''; }
+  }
+
+  _remember() {
+    try { localStorage.setItem('magichub_dev_' + this.id, JSON.stringify({ id: this.device.id, name: this.device.name || '' })); } catch { /* egal */ }
+  }
+
+  forget() {
+    try { localStorage.removeItem('magichub_dev_' + this.id); } catch { /* egal */ }
+  }
+
+  async _knownDevice() {
+    if (!BleDevice.canQuickConnect) return null;
+    let saved;
+    try { saved = JSON.parse(localStorage.getItem('magichub_dev_' + this.id) || 'null'); } catch { saved = null; }
+    if (!saved?.id) return null;
+    try {
+      const list = await navigator.bluetooth.getDevices();
+      return list.find((d) => d.id === saved.id) || null;
+    } catch { return null; }
+  }
+
+  /** Wartet (max. 10 s), bis das Gerät funkt – sonst schlägt gatt.connect() auf Android oft fehl. */
+  async _waitForAdvertisement(device) {
+    if (typeof device.watchAdvertisements !== 'function') return;
+    const ctrl = new AbortController();
+    try {
+      await new Promise((resolve, reject) => {
+        const timer = setTimeout(() => reject(Object.assign(new Error(this.deviceName + ' antwortet nicht. Eingeschaltet und nicht mit einer anderen App verbunden? Sonst „Anderes Gerät wählen“.'), { name: 'NotInRange' })), 10000);
+        device.addEventListener('advertisementreceived', () => { clearTimeout(timer); resolve(); }, { once: true });
+        device.watchAdvertisements({ signal: ctrl.signal }).catch(() => { clearTimeout(timer); resolve(); });
+      });
+    } finally {
+      ctrl.abort();
     }
   }
 

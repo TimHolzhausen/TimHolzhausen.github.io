@@ -219,6 +219,9 @@
           <summary>Bluetooth-Probleme</summary>
           <ul>
             <li>Gerät erscheint nicht: Gerät neu einschalten, näher ans Handy, in anderen Apps (z.&nbsp;B. MysterSmith) trennen – BLE-Geräte nehmen meist nur eine Verbindung an.</li>
+            <li>Suche dauert lange: Die Geräteliste stammt von Chrome. Geräte tauchen erst auf, wenn Chrome ihr Funksignal und ihren Namen empfangen hat – stromsparende Gadgets funken nur alle 1–2&nbsp;Sekunden. Gerät kurz vorher einschalten, MysterSmith ganz schließen, Energiesparmodus aus.</li>
+            <li>Ohne Suche verbinden: Kann Chrome bekannte Geräte direkt verbinden, steht im Geräte-Fenster „Verbinden mit …“. Sonst lässt sich das in <code>chrome://flags</code> mit „Use the new permissions backend for Web Bluetooth“ einschalten (experimentell).</li>
+            <li>Xiaomi/Android findet gar nichts: Standort einschalten und unter Einstellungen → Apps → Chrome → Berechtigungen „Geräte in der Nähe“ und „Standort“ erlauben.</li>
             <li>„Bluetooth ausgeschaltet“: Bluetooth am Handy einschalten, bei Android ggf. Standort freigeben.</li>
             <li>Verbindung verloren: in der Kachel auf <em>Erneut verbinden</em> tippen. Automatisches Wiederverbinden gibt es bewusst nicht.</li>
             <li>Windows: manche Geräte müssen vorher in den Bluetooth-Einstellungen gekoppelt sein.</li>

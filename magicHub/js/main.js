@@ -3,7 +3,7 @@
 import { config, resolvedAppUrl, shortcutUrl } from './config.js';
 import { buildBluefyUrl } from './bluefy.js';
 import { hasWebBluetooth, getPlatform, detectPlatform, setPlatformOverride, looksLikeBluefy, isStandalone } from './platform.js';
-import { describeError } from './ble/base.js';
+import { describeError, BleDevice } from './ble/base.js';
 import { GoDiceSet } from './ble/godice.js';
 import { DavinciPalette, POT_COUNT } from './ble/davinci.js';
 import { UltraSharpie } from './ble/ultrasharpie.js';
@@ -15,7 +15,7 @@ import { AiVision, PROVIDERS, AI_TASKS, localAvailability } from './ai/vision.js
 import { Hub, PRESETS, loadStore, saveStore } from './hub.js';
 import { textCanvas, printTextCanvas, drawingCanvas, fitInto, demoStrokes } from './render.js';
 
-const VERSION = '0.1.2';
+const VERSION = '0.1.3';
 const BT = hasWebBluetooth();
 
 // ---------------------------------------------------------------- Helfer
@@ -294,14 +294,28 @@ function connectRow(id) {
   const isBle = DEV_BY_ID[id]?.ble && BT;
   const all = isBle ? h('button', { class: 'btn btn-ghost btn-small btn-block', type: 'button',
     onclick: () => runAction({ run: () => dev[id].connect({ showAll: true }) }) }, 'Gerät nicht in der Liste? Alle Bluetooth-Geräte anzeigen') : null;
-  const el = h('div', {}, btn, all);
+  const other = isBle ? h('button', { class: 'btn btn-ghost btn-small btn-block', type: 'button',
+    onclick: () => runAction({ run: () => dev[id].connect({ choose: true }) }) }, 'Anderes Gerät wählen') : null;
+  const quick = isBle ? h('p', { class: 'hint' }) : null;
+  const el = h('div', {}, btn, other, all, quick);
   const upd = () => {
+    const d = dev[id];
     const a = primaryAction(id);
-    btn.textContent = a.label;
+    const remembered = isBle ? d.rememberedName : '';
+    const fast = isBle && BleDevice.canQuickConnect && remembered;
+    btn.textContent = fast && a.label === 'Verbinden' ? 'Verbinden mit ' + remembered : a.label;
     btn.disabled = !!a.disabled;
-    btn.classList.toggle('btn-primary', dev[id].status !== 'connected');
+    btn.classList.toggle('btn-primary', d.status !== 'connected');
     btn.onclick = () => runAction(a);
-    if (all) all.hidden = ['connected', 'connecting'].includes(dev[id].status);
+    const busy = ['connected', 'connecting'].includes(d.status);
+    if (all) all.hidden = busy;
+    if (other) other.hidden = busy || !fast;
+    if (quick) {
+      quick.hidden = busy;
+      quick.textContent = BleDevice.canQuickConnect
+        ? (fast ? 'Verbindet direkt ohne Suche. Für ein neues Gerät „Anderes Gerät wählen“.' : 'Nach der ersten Verbindung geht es künftig ohne Suche.')
+        : 'Suche dauert lange? Chrome kann bekannte Geräte auch ohne Suche verbinden – dafür in chrome://flags „Use the new permissions backend for Web Bluetooth“ aktivieren (experimentell).';
+    }
   };
   upd();
   return { el, upd };
