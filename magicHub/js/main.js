@@ -14,9 +14,10 @@ import { InjectSource, JsonUrlSource } from './web/sources.js';
 import { AiVision, PROVIDERS, AI_TASKS, localAvailability } from './ai/vision.js';
 import { Hub, PRESETS, CONDITIONS, CONTENTS, TEMPLATE_VARS, loadStore, saveStore, comboLabel, describeWhen } from './hub.js';
 import { buildPrint, ensureFont, normalizeLayout, FONTS, ORIENTATIONS } from './print-layout.js';
+import { STACKS, CARD_FORMATS, cardName, stackMapText } from './stacks.js';
 import { textCanvas, drawingCanvas, fitInto, demoStrokes } from './render.js';
 
-const VERSION = '0.2.0';
+const VERSION = '0.2.1';
 const BT = hasWebBluetooth();
 
 // ---------------------------------------------------------------- Helfer
@@ -786,6 +787,30 @@ function testCombo(combo) {
   toast('Test: „' + comboLabel(hub, combo) + '“ ausgelöst');
 }
 
+/** Karten-Stack in das Zuordnungsfeld einfügen (Nummer → Karte oder Karte → Nummer). */
+function stackInsert(mapField) {
+  const picker = stackPicker({ withView: false });
+  const dir = h('select', { 'aria-label': 'Richtung' },
+    h('option', { value: 'num2card' }, 'Nummer → Karte (z. B. 7 → Pik Ass)'),
+    h('option', { value: 'card2num' }, 'Karte → Nummer (z. B. Pik Ass → 7)'));
+  const view = h('div', { class: 'stack-view', hidden: true });
+  const show = h('button', { class: 'btn btn-ghost btn-small', type: 'button', onclick: () => {
+    view.hidden = !view.hidden;
+    show.textContent = view.hidden ? 'Stack ansehen' : 'Stack ausblenden';
+    if (!view.hidden) view.replaceChildren(stackGrid(picker.stackSel.value, picker.fmtSel.value));
+  } }, 'Stack ansehen');
+  const refresh = () => { if (!view.hidden) view.replaceChildren(stackGrid(picker.stackSel.value, picker.fmtSel.value)); };
+  picker.stackSel.addEventListener('change', refresh); picker.fmtSel.addEventListener('change', refresh);
+  const insert = h('button', { class: 'btn', type: 'button', onclick: () => {
+    if (mapField.value.trim() && !confirm('Vorhandene Zuordnung ersetzen?')) return;
+    mapField.value = stackMapText(picker.stackSel.value, { format: picker.fmtSel.value, direction: dir.value });
+    toast(STACKS[picker.stackSel.value].label + ' eingefügt', 'ok');
+  } }, 'Stack einfügen');
+  return h('div', { class: 'stack-insert' },
+    h('p', { class: 'hint' }, 'Karten-Stack als Zuordnung übernehmen – z. B. Würfel, Inject-Zahl oder KI-erkannte Nummer → Karte.'),
+    picker.el, field('Richtung', dir), h('div', { class: 'row' }, insert, show), view);
+}
+
 function openComboBuilder(existing = null) {
   openId = null;
   sheetUpdate = null;
@@ -933,6 +958,7 @@ function openComboBuilder(existing = null) {
     step(3, '… dann senden'), field('Inhalt', contentSel),
     field('Text-Vorlage', tpl, TEMPLATE_VARS + '. Beispiel: „Deine Karte: {text}“.'),
     h('details', { open: !!c.map.trim() }, h('summary', {}, 'Zuordnung (Wert → Text)'),
+      stackInsert(map),
       field('Eine Zeile pro Wert', map, 'Format „Wert=Text“. Mehrere Werte: „1,2=Klein“. „*=…“ gilt für alles andere. Beispiel: Würfel 3 → „Karo Drei“.')),
     step(4, 'Aktionen (der Reihe nach)'), actBox,
     h('div', { class: 'row add-action' }, addSel, addBtn),
@@ -945,6 +971,52 @@ function openComboBuilder(existing = null) {
     h('div', { class: 'row sheet-actions' }, save, test, del));
   if (!sheet.open) sheet.showModal();
 }
+
+/** Stack als Tabelle Position → Karte. Rote Farben rot. */
+function stackGrid(stackId, format = 'de') {
+  const st = STACKS[stackId];
+  return h('ol', { class: 'stack-grid' }, ...st.cards.map((code, i) => h('li', { class: /[HD]$/.test(code) ? 'red' : '' },
+    h('span', { class: 'pos' }, String(i + 1)),
+    h('span', { class: 'sym' }, cardName(code, 'symbol')),
+    h('span', { class: 'name' }, cardName(code, format)))));
+}
+
+/** Auswahl Stack + Schreibweise + Ansicht; onChange(stackId, format). */
+function stackPicker({ withView = true } = {}) {
+  const stackSel = h('select', { 'aria-label': 'Stack' }, ...Object.entries(STACKS).map(([k, st]) => h('option', { value: k }, st.label)));
+  stackSel.value = settings.stackId && STACKS[settings.stackId] ? settings.stackId : 'mnemonica';
+  const fmtSel = h('select', { 'aria-label': 'Schreibweise' }, ...Object.entries(CARD_FORMATS).map(([k, f]) => h('option', { value: k }, f.label)));
+  fmtSel.value = settings.cardFormat && CARD_FORMATS[settings.cardFormat] ? settings.cardFormat : 'de';
+  const search = h('input', { type: 'search', placeholder: 'Suchen: Nummer oder Karte', autocomplete: 'off' });
+  const view = h('div', { class: 'stack-view' });
+  const draw = () => {
+    settings.stackId = stackSel.value; settings.cardFormat = fmtSel.value; saveSettings();
+    if (!withView) return;
+    const grid = stackGrid(stackSel.value, fmtSel.value);
+    const q = search.value.trim().toLowerCase();
+    if (q) {
+      for (const li of grid.children) {
+        const hit = li.querySelector('.pos').textContent === q || li.textContent.toLowerCase().includes(q);
+        li.classList.toggle('hit', hit);
+        li.hidden = !hit;
+      }
+    }
+    view.replaceChildren(grid);
+  };
+  stackSel.addEventListener('change', draw); fmtSel.addEventListener('change', draw); search.addEventListener('input', draw);
+  draw();
+  const el = h('div', { class: 'stack-picker' },
+    h('div', { class: 'grid-2' }, field('Stack', stackSel), field('Schreibweise', fmtSel)),
+    withView ? search : null, withView ? view : null);
+  return { el, stackSel, fmtSel };
+}
+
+// Bereich „Karten-Stacks“ auf der Kombi-Seite
+(() => {
+  const box = $('#stacks-box');
+  if (!box) return;
+  box.append(stackPicker().el);
+})();
 
 // ---------------------------------------------------------------- Live
 const logEl = $('#log');

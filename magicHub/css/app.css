@@ -149,7 +149,7 @@ main { max-width: 760px; margin: 0 auto; padding: 8px 16px 24px; }
 .icon-btn { all: unset; cursor: pointer; width: 36px; height: 36px; display: grid; place-items: center; border-radius: 50%; background: var(--card-strong); color: var(--muted); }
 .icon-btn:focus-visible { outline: 2px solid var(--accent-2); }
 
-input[type=text], input[type=url], input[type=password], input[type=number], select, textarea {
+input[type=text], input[type=search], input[type=url], input[type=password], input[type=number], select, textarea {
   width: 100%; min-height: 44px; padding: 10px 12px; border-radius: 12px;
   border: 1px solid var(--line); background: var(--bg-2); color: var(--text); font: inherit;
 }
@@ -342,3 +342,14 @@ dialog .toast { display: none; }
 .paper-sheet canvas { width: auto; max-width: 100%; max-height: 220px; }
 .center { text-align: center; }
 @media (max-width: 380px) { .grid-2 { grid-template-columns: 1fr; } }
+
+/* ---- Karten-Stacks ---- */
+.stack-insert { display: grid; gap: 4px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+.stack-view { max-height: 360px; overflow: auto; margin-top: 8px; border-radius: 12px; }
+.stack-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 4px; }
+.stack-grid li { display: flex; align-items: baseline; gap: 8px; padding: 6px 8px; border-radius: 8px; background: color-mix(in srgb, var(--text) 5%, transparent); font-size: .9rem; }
+.stack-grid .pos { min-width: 1.8em; text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); font-size: .8rem; }
+.stack-grid .sym { min-width: 2.4em; font-weight: 700; }
+.stack-grid li.red .sym { color: #e5484d; }
+.stack-grid li.hit { outline: 2px solid var(--accent); }
+.stack-picker input[type=search] { margin-top: 4px; }

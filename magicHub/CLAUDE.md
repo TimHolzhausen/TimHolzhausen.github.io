@@ -54,6 +54,7 @@ kombiniert. Ein HTTPS-Link für Android (Chrome) und iPhone (App **Bluefy**).
 ```
 js/main.js            Oberfläche (Geräte-Kacheln, Detail-Sheets, Kombi-Editor, Live, Einrichtung, Hilfe), Verdrahtung
 js/hub.js             Regel-Engine: Quellen → Kombis → Ziele; Speicherung (localStorage „magichub_v1“)
+js/stacks.js          Karten-Stacks (Mnemonica, Aronson, Si Stebbins, Eight Kings, neue Packung) + Schreibweisen
 js/print-layout.js    Drucklayout (quer/hochkant, Schrift min/max, Ausrichtung, Ränder, Neigung, Länge)
 js/render.js          Text/Zeichnung → Canvas für Displays
 js/ai/vision.js       Erkennung: ghand (kostenlos), tesseract (kostenlos), claude, openai, gemini, gvision, local
@@ -78,6 +79,8 @@ js/config.js, platform.js, bluefy.js   Projektvorgabe (s. o.)
   - `template` (`{text} {quelle} {letzter} {zähler} {uhrzeit} {datum}`)
   - `actions[] {target, do: show|clear, delay, hideAfter}`
   - `cooldown`, `onlyNew`, `once`
+- Karten-Stacks: Im Kombi-Editor unter „Zuordnung“ lässt sich ein Stack einfügen (Nummer → Karte oder Karte → Nummer, Letzteres mit allen Schreibweisen als Schlüssel). Unter Kombis gibt es eine Stack-Tabelle mit Suche.
+  Neue Stacks in `js/stacks.js` eintragen; Codes `AS`, `10H` usw. Nur belegte Reihenfolgen verwenden.
 - Alte Kombis aus Version 0.1 (`targets[]`) migriert `normalizeCombo()` automatisch.
 - **Neues Gerät hinzufügen:**
   1. Treiber in `js/ble/` anlegen (von `BleDevice` erben, `requestOptions()` und `setup()` implementieren).
@@ -133,7 +136,7 @@ Den Code macht `webcrack@2` lesbar, z. B. mit einem kleinen Node-Skript `webcrac
   - FEF0 nutzt MysterSmith für Pitata Ultra/Chalk und den E-Ink-Tag.
   - Was das Gerät ist, ist noch ungeklärt.
 
-## Stand und offene Punkte (13.11.2026, Version 0.2.0)
+## Stand und offene Punkte (13.11.2026, Version 0.2.1)
 
 - **Selfie Screen:** verbindet am PC, nachdem das Handy getrennt war. Bildübertragung und Tasten mit dem Entwickler prüfen.
 - **Alle Geräte:** auf echter Hardware in MagicHub noch ungetestet (Checkliste in README).

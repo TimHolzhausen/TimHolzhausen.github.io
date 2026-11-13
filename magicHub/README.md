@@ -18,6 +18,9 @@ Zahlenbereich, gerade/ungerade) → **Inhalt** (Wert, letzter Inhalt oder eigene
 `3=Karo Drei` und Vorlage `Karte: {text}`) → beliebig viele **Aktionen** (anzeigen/leeren, Verzögerung,
 nach x s ausblenden). Dazu Sperrzeit, „nur neue Werte“, „nur einmal“ und ein Testknopf.
 
+**Karten-Stacks** (Mnemonica, Aronson, Si Stebbins, Eight Kings, neue Packung) lassen sich als Zuordnung
+einfügen – Nummer → Karte oder Karte → Nummer – und unter „Kombis“ nachschlagen.
+
 ## Starten (lokal)
 
 Kein Build nötig – reine statische Dateien (ES-Module).
