@@ -21,8 +21,17 @@
       <img src="icons/icon.svg" alt="" width="30" height="30">
       <span>MagicHub</span>
     </a>
+    <button class="pill pill-accent" id="install-top" type="button" hidden>Installieren</button>
     <button class="pill" id="conn-pill" type="button" aria-live="polite">0 verbunden</button>
   </header>
+
+  <div class="banner banner-update" id="update-banner" role="status" hidden>
+    <div>
+      <strong>Neue Version verfügbar</strong>
+      <span id="update-text"></span>
+    </div>
+    <button class="btn btn-small btn-primary" id="update-now" type="button">Jetzt aktualisieren</button>
+  </div>
 
   <div class="banner" id="bt-banner" hidden>
     <div>
@@ -237,6 +246,24 @@
         <details class="card">
           <summary>KI & API-Key</summary>
           <p>Die KI-Erkennung kann Claude, OpenAI, Google Gemini, Google Cloud Vision oder – falls der Browser es kann – eine lokale KI auf dem Gerät nutzen. API-Keys bleiben nur in diesem Browser gespeichert und gehen nur an den gewählten Anbieter. Bei jeder Erkennung wird das Bild der Zeichnung dorthin übertragen; das kostet Guthaben. Lege am besten eigene Keys mit Ausgabenlimit an. Die lokale KI schickt nichts ins Netz, ist aber auf den meisten Handys noch nicht verfügbar.</p>
+        </details>
+        <details class="card" id="app-card">
+          <summary>App, Updates & Daten</summary>
+          <h3>Installieren</h3>
+          <p id="install-state"></p>
+          <button class="btn btn-primary" id="install-help-btn" type="button" hidden>MagicHub installieren</button>
+          <h3>Updates</h3>
+          <p>Beim Start (und wenn die App nach längerer Pause wieder geöffnet wird) prüft MagicHub, ob es eine neue Version gibt, und bietet sie oben an.</p>
+          <p class="hint" id="update-state"></p>
+          <button class="btn" id="update-check" type="button">Jetzt nach Updates suchen</button>
+          <h3>Einstellungen</h3>
+          <p>Alles – Kombis, Geräte-Einstellungen, Drucklayout, API-Keys – wird nur lokal in diesem Browser auf diesem Gerät gespeichert. Es gibt kein Konto und keinen Server. Löschst du die Website-Daten, ist es weg; deshalb hier eine Sicherung als Datei.</p>
+          <p class="hint" id="storage-state"></p>
+          <div class="row">
+            <button class="btn" id="settings-export" type="button">Sichern (Datei)</button>
+            <label class="btn">Sicherung laden <input type="file" accept=".json,application/json" id="settings-import" class="sr-only"></label>
+          </div>
+          <label class="switch-row"><input type="checkbox" id="export-keys"> <span>API-Keys mit in die Sicherung schreiben</span></label>
         </details>
         <details class="card">
           <summary>Teststatus</summary>

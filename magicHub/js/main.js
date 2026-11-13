@@ -17,7 +17,7 @@ import { buildPrint, ensureFont, normalizeLayout, FONTS, ORIENTATIONS } from './
 import { STACKS, CARD_FORMATS, cardName, stackMapText } from './stacks.js';
 import { textCanvas, drawingCanvas, fitInto, demoStrokes } from './render.js';
 
-const VERSION = '0.2.2';
+const VERSION = '0.3.0';
 const BT = hasWebBluetooth();
 
 // ---------------------------------------------------------------- Helfer
@@ -1128,16 +1128,66 @@ document.querySelectorAll('[data-copy]').forEach((b) => b.addEventListener('clic
   try { await navigator.clipboard.writeText(inp.value); toast('Adresse kopiert', 'ok'); } catch { inp.select(); toast('Bitte manuell kopieren'); }
 }));
 
+// ---------------------------------------------------------------- Installation
 let installEvent = null;
-window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); installEvent = e; $('#install-btn').hidden = false; });
-$('#install-btn').addEventListener('click', async () => {
+const INSTALL_BTNS = ['#install-btn', '#install-top', '#install-help-btn'];
+const isInstalled = () => isStandalone();
+function renderInstall() {
+  INSTALL_BTNS.forEach((s) => { $(s).hidden = !installEvent; });
+  let t;
+  if (isInstalled()) t = 'MagicHub läuft als installierte App.';
+  else if (installEvent) t = 'Dieser Browser kann MagicHub als App installieren – mit eigenem Symbol, ohne Adressleiste.';
+  else if (detectPlatform() === 'ios') t = 'iPhone: Bluefy kann keine Apps installieren. Leg die Seite in Bluefy als Favorit an. Ein Symbol über Safari → Teilen → „Zum Home-Bildschirm“ öffnet in Safari – dort gibt es kein Bluetooth.';
+  else t = 'Installieren über das Browser-Menü: Chrome ⋮ → „App installieren“ bzw. „Zum Startbildschirm hinzufügen“. Erscheint der Punkt nicht, ist die App vielleicht schon installiert.';
+  $('#install-state').textContent = t;
+}
+async function doInstall() {
   if (!installEvent) return;
   installEvent.prompt();
   const r = await installEvent.userChoice.catch(() => null);
   if (r?.outcome === 'accepted') toast('Installation gestartet', 'ok');
-  installEvent = null; $('#install-btn').hidden = true;
+  installEvent = null; renderInstall();
+}
+window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); installEvent = e; renderInstall(); });
+INSTALL_BTNS.forEach((s) => $(s).addEventListener('click', doInstall));
+window.addEventListener('appinstalled', () => { installEvent = null; renderInstall(); toast('MagicHub installiert – Bluetooth bitte einmal neu testen', 'ok'); });
+renderInstall();
+
+// ---------------------------------------------------------------- Einstellungen lokal + Sicherung
+async function renderStorage() {
+  let t = 'Gespeichert im Browser (localStorage).';
+  try {
+    if (navigator.storage?.persist) {
+      const ok = (await navigator.storage.persisted()) || (await navigator.storage.persist());
+      t += ok ? ' Der Browser hält die Daten dauerhaft fest.' : ' Der Browser darf sie bei Speichermangel löschen – Sicherung empfohlen.';
+    }
+  } catch { /* egal */ }
+  $('#storage-state').textContent = t;
+}
+renderStorage();
+$('#settings-export').addEventListener('click', () => {
+  const data = structuredClone(loadStore());
+  if (!$('#export-keys').checked && data.settings?.ai) data.settings.ai.keys = {};
+  const blob = new Blob([JSON.stringify({ app: 'MagicHub', version: VERSION, saved: new Date().toISOString(), data }, null, 2)], { type: 'application/json' });
+  const a = h('a', { href: URL.createObjectURL(blob), download: 'magichub-einstellungen-' + new Date().toISOString().slice(0, 10) + '.json' });
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  toast('Sicherung erstellt', 'ok');
 });
-window.addEventListener('appinstalled', () => toast('MagicHub installiert – Bluetooth bitte einmal neu testen', 'ok'));
+$('#settings-import').addEventListener('change', async (e) => {
+  const f = e.target.files[0]; e.target.value = '';
+  if (!f) return;
+  try {
+    const j = JSON.parse(await f.text());
+    if (j.app !== 'MagicHub' || typeof j.data !== 'object') throw new Error('keine MagicHub-Sicherung');
+    if (!confirm('Alle aktuellen Einstellungen und Kombis durch die Sicherung vom ' + new Date(j.saved).toLocaleString('de-DE') + ' ersetzen?')) return;
+    const keep = loadStore().settings?.ai?.keys;
+    if (keep && j.data.settings?.ai && !Object.keys(j.data.settings.ai.keys || {}).length) j.data.settings.ai.keys = keep;
+    localStorage.setItem('magichub_v1', JSON.stringify(j.data));
+    toast('Sicherung geladen – starte neu …', 'ok');
+    setTimeout(() => location.reload(), 800);
+  } catch (err) { toast('Laden fehlgeschlagen: ' + err.message, 'error'); }
+});
 
 $('#test-status').replaceChildren(...[
   'Ultra Sharpie / Ultra Pen (Init-Sequenz, Koordinaten)',
@@ -1178,7 +1228,54 @@ route();
 renderTiles();
 renderCombos();
 
-// ---------------------------------------------------------------- Service Worker
+// ---------------------------------------------------------------- Service Worker + Updates
+let swReg = null;
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
-  navigator.serviceWorker.register('sw.js').catch((err) => console.warn('Service Worker:', err));
+  navigator.serviceWorker.register('sw.js').then((r) => { swReg = r; }).catch((err) => console.warn('Service Worker:', err));
 }
+
+/** Ist Version a neuer als b? */
+function newer(a, b) {
+  const pa = a.split('.').map(Number); const pb = b.split('.').map(Number);
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) if ((pa[i] || 0) !== (pb[i] || 0)) return (pa[i] || 0) > (pb[i] || 0);
+  return false;
+}
+let lastUpdateCheck = 0;
+/** Liest die Version aus sw.js am Server (eine Quelle der Wahrheit) und vergleicht sie mit der laufenden. */
+async function checkForUpdate({ manual = false } = {}) {
+  lastUpdateCheck = Date.now();
+  const state = $('#update-state');
+  try {
+    const res = await fetch('sw.js?check=' + Date.now(), { cache: 'no-store' });
+    const remote = (await res.text()).match(/magichub-(\d+(?:\.\d+)*)/)?.[1];
+    if (!remote) throw new Error('Version nicht lesbar');
+    if (newer(remote, VERSION)) {
+      $('#update-text').textContent = 'Version ' + remote + ' (du hast ' + VERSION + ').';
+      $('#update-banner').hidden = false;
+      state.textContent = 'Version ' + remote + ' ist verfügbar.';
+    } else {
+      state.textContent = 'Aktuell (' + VERSION + '), geprüft um ' + new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) + '.';
+      if (manual) toast('MagicHub ist aktuell', 'ok');
+    }
+    swReg?.update().catch(() => {});
+  } catch (err) {
+    state.textContent = navigator.onLine === false ? 'Offline – Update-Prüfung beim nächsten Start.' : 'Update-Prüfung fehlgeschlagen: ' + err.message;
+    if (manual) toast(state.textContent, 'error');
+  }
+}
+async function applyUpdate() {
+  if (Object.values(dev).some((d) => d.connected) && !confirm('Beim Aktualisieren werden alle Geräte getrennt. Jetzt aktualisieren?')) return;
+  const btn = $('#update-now'); btn.disabled = true; btn.textContent = 'Lade …';
+  try {
+    await swReg?.update().catch(() => {});
+    if (window.caches) for (const k of await caches.keys()) if (k.startsWith('magichub-')) await caches.delete(k);
+  } catch { /* trotzdem neu laden */ }
+  location.reload();
+}
+$('#update-now').addEventListener('click', applyUpdate);
+$('#update-check').addEventListener('click', () => checkForUpdate({ manual: true }));
+// Beim Start prüfen – und wenn die (installierte) App nach mehr als 30 min Pause wieder in den Vordergrund kommt.
+setTimeout(checkForUpdate, 1500);
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && Date.now() - lastUpdateCheck > 30 * 60 * 1000) checkForUpdate();
+});

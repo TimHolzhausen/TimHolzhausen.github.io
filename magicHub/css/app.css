@@ -353,3 +353,8 @@ dialog .toast { display: none; }
 .stack-grid li.red .sym { color: #e5484d; }
 .stack-grid li.hit { outline: 2px solid var(--accent); }
 .stack-picker input[type=search] { margin-top: 4px; }
+
+/* ---- Installation / Updates ---- */
+.pill.pill-accent { background: var(--grad); color: #fff; font-weight: 700; border-color: transparent; margin-left: auto; margin-right: 8px; }
+.banner-update { border-color: var(--accent); }
+#app-card h3 { margin: 14px 0 4px; font-size: 1rem; }

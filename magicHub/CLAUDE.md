@@ -48,6 +48,7 @@ kombiniert. Ein HTTPS-Link für Android (Chrome) und iPhone (App **Bluefy**).
 - **Feature Detection** über `navigator.bluetooth?.requestDevice`, das Betriebssystem nur für Hinweise nutzen. Plattform immer auch manuell wählbar (iPadOS meldet sich als Mac).
 - **Ehrlichkeit:** Ungetestetes nicht als funktionierend darstellen. Alle iPhone-Praxistests bleiben als offen markiert (Hilfe → „Noch nicht getestet“ und README-Checkliste).
 - **Zentrale Konfiguration** in `js/config.js`: `appName`, `appUrl`, `bluefyAppStoreUrl`, `shortcutIcloudUrl`, `bluefyLinkVariant`.
+- **Updates/Installation (0.3.0):** Die Update-Prüfung liest `magichub-x.y.z` aus `sw.js` am Server und vergleicht mit `VERSION` in `main.js` → beide immer gleich hochzählen (Semver-Vergleich). Geprüft wird beim Start und nach >30 min im Hintergrund; Banner „Jetzt aktualisieren“ löscht die Caches und lädt neu. Installieren über `beforeinstallprompt` (Knopf oben + Hilfe → „App, Updates & Daten“). Einstellungen nur in `localStorage` (`magichub_v1`), `navigator.storage.persist()`, Sicherung als JSON (API-Keys nur auf Wunsch).
 - Offline-Oberfläche ist keine Offline-Funktion: Der Service Worker cacht nur die App-Shell; fremde Anfragen (APIs) fasst er nicht an.
 
 ## Architektur
@@ -137,7 +138,7 @@ Den Code macht `webcrack@2` lesbar, z. B. mit einem kleinen Node-Skript `webcrac
   - FEF0 nutzt MysterSmith für Pitata Ultra/Chalk und den E-Ink-Tag.
   - Was das Gerät ist, ist noch ungeklärt.
 
-## Stand und offene Punkte (13.11.2026, version 0.2.2)
+## Stand und offene Punkte (13.11.2026, version 0.3.0)
 
 - **Selfie Screen:** verbindet am PC, nachdem das Handy getrennt war. Bildübertragung und Tasten mit dem Entwickler prüfen.
 - **Alle Geräte:** auf echter Hardware in MagicHub noch ungetestet (Checkliste in README).
