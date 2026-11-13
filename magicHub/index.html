@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>MagicHub</title>
+  <meta name="description" content="MagicHub verbindet Zauber-Gadgets per Bluetooth: GoDice, Davinci-Palette, Ultra Sharpie, PeekSmith, Selfie Screen, Peripage P21, Inject und KI.">
+  <meta name="theme-color" content="#0b0a14">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="css/app.css">
+  <script src="vendor/godice.js" defer></script>
+  <script type="module" src="js/main.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#devices" aria-label="MagicHub Start">
+      <img src="icons/icon.svg" alt="" width="30" height="30">
+      <span>MagicHub</span>
+    </a>
+    <button class="pill" id="conn-pill" type="button" aria-live="polite">0 verbunden</button>
+  </header>
+
+  <div class="banner" id="bt-banner" hidden>
+    <div>
+      <strong>Bluetooth ist in diesem Browser nicht verfügbar.</strong>
+      <span id="bt-banner-text">Web-Quellen, KI und Vorschau funktionieren trotzdem.</span>
+    </div>
+    <a class="btn btn-small" href="#setup">Einrichten</a>
+  </div>
+
+  <main id="main">
+    <!-- Geräte -->
+    <section class="view" id="view-devices" aria-labelledby="h-devices">
+      <h1 id="h-devices">Geräte</h1>
+      <p class="lead">Tippe ein Gerät an, um es zu verbinden und einzustellen. Unter <a href="#combos">Kombis</a> legst du fest, was wohin geht.</p>
+      <h2 class="group-title">Eingaben <small>liefern Werte</small></h2>
+      <div class="tiles" id="tiles-in"></div>
+      <h2 class="group-title">Ausgaben <small>zeigen, drucken, sagen</small></h2>
+      <div class="tiles" id="tiles-out"></div>
+    </section>
+
+    <!-- Kombinationen -->
+    <section class="view" id="view-combos" aria-labelledby="h-combos" hidden>
+      <h1 id="h-combos">Kombis</h1>
+      <p class="lead">Eine Kombi verbindet eine Eingabe mit einer oder mehreren Ausgaben – z.&nbsp;B. <em>Würfelsumme → PeekSmith</em>.</p>
+      <div id="combo-list" class="stack"></div>
+      <button class="btn btn-primary btn-block" id="combo-new" type="button">+ Neue Kombi</button>
+      <h2 class="group-title">Vorlagen <small>mit einem Tipp übernehmen</small></h2>
+      <div id="presets" class="stack"></div>
+    </section>
+
+    <!-- Live -->
+    <section class="view" id="view-live" aria-labelledby="h-live" hidden>
+      <h1 id="h-live">Live</h1>
+      <p class="lead">So sehen die Ausgaben gerade aus – auch ohne verbundene Geräte.</p>
+      <div class="preview-grid">
+        <figure class="card preview">
+          <figcaption>PeekSmith</figcaption>
+          <div class="peek-screen" id="pv-peek">MagicHub</div>
+        </figure>
+        <figure class="card preview">
+          <figcaption>Selfie Screen</figcaption>
+          <canvas id="pv-selfie" width="160" height="192" class="selfie-screen"></canvas>
+        </figure>
+        <figure class="card preview preview-wide">
+          <figcaption>Peripage P21</figcaption>
+          <div class="paper"><canvas id="pv-print" width="384" height="120"></canvas></div>
+        </figure>
+      </div>
+
+      <div class="card">
+        <h2>Ausprobieren</h2>
+        <form id="manual-form" class="row">
+          <label class="sr-only" for="manual-text">Eigener Text</label>
+          <input id="manual-text" type="text" placeholder="Eigener Text, z. B. Herz Dame" autocomplete="off">
+          <button class="btn btn-primary" type="submit">Senden</button>
+        </form>
+        <p class="hint">„Senden“ nutzt die Quelle <strong>Manuell</strong> – lege dafür eine Kombi an oder nutze die Schnellziele:</p>
+        <div class="chips" id="manual-targets"></div>
+        <h3>Ohne Hardware simulieren</h3>
+        <div class="chips" id="demo-buttons"></div>
+      </div>
+
+      <div class="card">
+        <div class="row row-between">
+          <h2>Protokoll</h2>
+          <button class="btn btn-ghost btn-small" id="log-clear" type="button">Leeren</button>
+        </div>
+        <ol class="log" id="log" aria-live="polite"></ol>
+      </div>
+    </section>
+
+    <!-- Einrichtung -->
+    <section class="view" id="view-setup" aria-labelledby="h-setup" hidden>
+      <h1 id="h-setup">Einrichtung</h1>
+      <p class="lead" id="setup-detected"></p>
+      <div class="segmented" role="tablist" aria-label="Plattform wählen">
+        <button role="tab" data-platform="ios" type="button">iPhone / iPad</button>
+        <button role="tab" data-platform="android" type="button">Android</button>
+        <button role="tab" data-platform="desktop" type="button">Computer</button>
+      </div>
+
+      <div class="setup-panel" data-panel="ios" hidden>
+        <div class="callout">
+          Safari auf dem iPhone kann kein Web Bluetooth. Dafür gibt es die kostenlose App
+          <strong>Bluefy – Web BLE Browser</strong> (Drittanbieter). MagicHub läuft darin wie hier.
+        </div>
+        <ol class="steps">
+          <li>
+            <h3>Bluefy installieren</h3>
+            <p>Einmalig aus dem App Store laden.</p>
+            <a class="btn btn-primary" id="ios-appstore" target="_blank" rel="noopener">Bluefy im App Store</a>
+          </li>
+          <li>
+            <h3>MagicHub in Bluefy öffnen</h3>
+            <p>Öffnet Bluefy direkt mit dieser App.</p>
+            <a class="btn btn-primary" id="ios-bluefy">In Bluefy öffnen</a>
+            <p class="hint">Noch nicht auf einem echten iPhone getestet. Passiert nichts, nimm Schritt&nbsp;3.</p>
+          </li>
+          <li>
+            <h3>Falls der Knopf nicht klappt</h3>
+            <p>Adresse kopieren, Bluefy öffnen, oben in die Adresszeile einfügen und öffnen.</p>
+            <div class="row">
+              <input type="text" readonly id="ios-url" aria-label="Adresse der App">
+              <button class="btn" type="button" data-copy="#ios-url">Kopieren</button>
+            </div>
+          </li>
+          <li>
+            <h3>Optional: als Icon auf den Home-Bildschirm</h3>
+            <p>Ein Apple-Kurzbefehl öffnet MagicHub per Tipp direkt in Bluefy.</p>
+            <a class="btn" id="ios-shortcut" target="_blank" rel="noopener">Kurzbefehl laden</a>
+            <p class="hint" id="ios-shortcut-hint"></p>
+            <details>
+              <summary>So legst du den Kurzbefehl auf den Home-Bildschirm</summary>
+              <ol>
+                <li>Auf „Kurzbefehl laden“ tippen und in der Kurzbefehle-App mit <em>Kurzbefehl hinzufügen</em> bestätigen.</li>
+                <li>In <strong>Kurzbefehle</strong> den neuen Kurzbefehl lange drücken → <em>Details</em> bzw. Teilen-Menü.</li>
+                <li><em>Zum Home-Bildschirm</em> wählen (Bezeichnung je nach iOS-Version), Name und Icon festlegen, <em>Hinzufügen</em>.</li>
+                <li>Das Icon startet Bluefy mit MagicHub. Fehlt Bluefy, zuerst Schritt&nbsp;1.</li>
+              </ol>
+            </details>
+          </li>
+        </ol>
+        <p class="hint">Tipp: Bluefy hat einen Vollbildmodus, den du in Bluefy selbst einschaltest – automatisch per Link geht das nicht.</p>
+      </div>
+
+      <div class="setup-panel" data-panel="android" hidden>
+        <div class="callout ok" id="android-ok" hidden>Dein Browser unterstützt Web Bluetooth. Du kannst direkt loslegen.</div>
+        <div class="callout" id="android-no" hidden>Dieser Browser kann kein Web Bluetooth. Öffne MagicHub in <strong>Google Chrome</strong>.</div>
+        <ol class="steps">
+          <li id="android-chrome-step">
+            <h3>In Chrome öffnen</h3>
+            <a class="btn btn-primary" id="android-chrome">In Chrome öffnen</a>
+            <p class="hint">Klappt der Knopf nicht: Adresse kopieren und in Chrome einfügen.</p>
+            <div class="row">
+              <input type="text" readonly id="android-url" aria-label="Adresse der App">
+              <button class="btn" type="button" data-copy="#android-url">Kopieren</button>
+            </div>
+          </li>
+          <li>
+            <h3>Als App installieren (optional)</h3>
+            <p id="install-text">Chrome-Menü <strong>⋮</strong> → <em>App installieren</em> bzw. <em>Zum Startbildschirm hinzufügen</em>.</p>
+            <button class="btn btn-primary" id="install-btn" type="button" hidden>MagicHub installieren</button>
+          </li>
+          <li>
+            <h3>Bluetooth & Standort</h3>
+            <p>Bluetooth einschalten. Manche Android-Versionen verlangen für die Gerätesuche auch die Standortfreigabe.</p>
+          </li>
+        </ol>
+      </div>
+
+      <div class="setup-panel" data-panel="desktop" hidden>
+        <ol class="steps">
+          <li>
+            <h3>Chrome oder Edge verwenden</h3>
+            <p>Web Bluetooth gibt es in Chrome und Edge (Windows, macOS, ChromeOS). Safari und Firefox können es nicht; unter Linux muss es ggf. in <code>chrome://flags</code> aktiviert werden.</p>
+          </li>
+          <li>
+            <h3>Für Handys: Link teilen</h3>
+            <div class="row">
+              <input type="text" readonly id="desktop-url" aria-label="Adresse der App">
+              <button class="btn" type="button" data-copy="#desktop-url">Kopieren</button>
+            </div>
+          </li>
+        </ol>
+      </div>
+      <a class="btn btn-ghost btn-block" href="#devices">Zur App</a>
+    </section>
+
+    <!-- Hilfe -->
+    <section class="view" id="view-help" aria-labelledby="h-help" hidden>
+      <h1 id="h-help">Hilfe</h1>
+      <div class="stack">
+        <details class="card" open>
+          <summary>Schnellstart</summary>
+          <ol>
+            <li><strong>Geräte</strong>: Gerät antippen → <em>Verbinden</em> → im Browser-Dialog auswählen.</li>
+            <li><strong>Kombis</strong>: Vorlage übernehmen oder eigene Kombi bauen (Eingabe → Ausgaben).</li>
+            <li><strong>Live</strong>: ausprobieren – auch ohne Hardware über „Simulieren“.</li>
+          </ol>
+        </details>
+        <details class="card">
+          <summary>Installation auf Android</summary>
+          <p>Link in Chrome öffnen, Bluetooth einschalten. Über das Chrome-Menü <em>App installieren</em> landet MagicHub als Icon auf dem Startbildschirm. Nach der Installation die Bluetooth-Verbindung einmal neu testen.</p>
+          <a href="#setup" data-platform-link="android">Zur Android-Einrichtung</a>
+        </details>
+        <details class="card">
+          <summary>Einrichtung auf iPhone</summary>
+          <p>Auf dem iPhone braucht Web Bluetooth die kostenlose App Bluefy (Drittanbieter). Optional öffnet ein Apple-Kurzbefehl MagicHub per Home-Bildschirm-Icon in Bluefy.</p>
+          <a href="#setup" data-platform-link="ios">Zur iPhone-Einrichtung</a>
+        </details>
+        <details class="card">
+          <summary>Bluefy direkt öffnen</summary>
+          <p>Bluefy starten, in die Adresszeile <code id="help-url"></code> eingeben und öffnen.</p>
+        </details>
+        <details class="card">
+          <summary>Bluetooth-Probleme</summary>
+          <ul>
+            <li>Gerät erscheint nicht: Gerät neu einschalten, näher ans Handy, in anderen Apps (z.&nbsp;B. MysterSmith) trennen – BLE-Geräte nehmen meist nur eine Verbindung an.</li>
+            <li>„Bluetooth ausgeschaltet“: Bluetooth am Handy einschalten, bei Android ggf. Standort freigeben.</li>
+            <li>Verbindung verloren: in der Kachel auf <em>Erneut verbinden</em> tippen. Automatisches Wiederverbinden gibt es bewusst nicht.</li>
+            <li>Windows: manche Geräte müssen vorher in den Bluetooth-Einstellungen gekoppelt sein.</li>
+          </ul>
+        </details>
+        <details class="card">
+          <summary>KI & API-Key</summary>
+          <p>Die KI-Erkennung kann Claude, OpenAI, Google Gemini, Google Cloud Vision oder – falls der Browser es kann – eine lokale KI auf dem Gerät nutzen. API-Keys bleiben nur in diesem Browser gespeichert und gehen nur an den gewählten Anbieter. Bei jeder Erkennung wird das Bild der Zeichnung dorthin übertragen; das kostet Guthaben. Lege am besten eigene Keys mit Ausgabenlimit an. Die lokale KI schickt nichts ins Netz, ist aber auf den meisten Handys noch nicht verfügbar.</p>
+        </details>
+        <details class="card">
+          <summary>Teststatus</summary>
+          <p>Die Geräteprotokolle stammen aus eigenen Projekten bzw. der MysterSmith-App. Noch <strong>nicht</strong> mit echter Hardware über Web Bluetooth geprüft:</p>
+          <ul id="test-status"></ul>
+        </details>
+      </div>
+      <p class="hint center" id="version"></p>
+    </section>
+  </main>
+
+  <nav class="tabbar" aria-label="Hauptnavigation">
+    <a href="#devices" data-tab="devices"><svg viewBox="0 0 24 24"><use href="#i-grid"/></svg><span>Geräte</span></a>
+    <a href="#combos" data-tab="combos"><svg viewBox="0 0 24 24"><use href="#i-combo"/></svg><span>Kombis</span></a>
+    <a href="#live" data-tab="live"><svg viewBox="0 0 24 24"><use href="#i-live"/></svg><span>Live</span></a>
+    <a href="#help" data-tab="help"><svg viewBox="0 0 24 24"><use href="#i-help"/></svg><span>Hilfe</span></a>
+  </nav>
+
+  <dialog id="sheet" class="sheet" aria-labelledby="sheet-title">
+    <div class="sheet-head">
+      <div class="sheet-icon" id="sheet-icon"></div>
+      <div>
+        <h2 id="sheet-title"></h2>
+        <p class="sheet-status" id="sheet-status"></p>
+      </div>
+      <button class="icon-btn" id="sheet-close" type="button" aria-label="Schließen">✕</button>
+    </div>
+    <div class="sheet-body" id="sheet-body"></div>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="i-grid" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></g></symbol>
+      <symbol id="i-combo" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="6" r="2.5"/><circle cx="5" cy="18" r="2.5"/><circle cx="19" cy="12" r="2.5"/><path d="M7.5 6c5 0 4 6 9 6M7.5 18c5 0 4-6 9-6"/></g></symbol>
+      <symbol id="i-live" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="2.5"/><path d="M7.8 7.8a6 6 0 0 0 0 8.4M16.2 7.8a6 6 0 0 1 0 8.4M4.9 4.9a10 10 0 0 0 0 14.2M19.1 4.9a10 10 0 0 1 0 14.2"/></g></symbol>
+      <symbol id="i-help" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.3a2.6 2.6 0 0 1 5 .9c0 1.8-2.5 2.2-2.5 3.8"/><circle cx="12" cy="17.3" r=".6" fill="currentColor"/></g></symbol>
+      <symbol id="i-dice" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2"><rect x="3.5" y="3.5" width="17" height="17" rx="4"/></g><g fill="currentColor"><circle cx="8.5" cy="8.5" r="1.5"/><circle cx="15.5" cy="15.5" r="1.5"/><circle cx="12" cy="12" r="1.5"/></g></symbol>
+      <symbol id="i-palette" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M12 3a9 9 0 1 0 0 18c1.4 0 2-1 1.6-2.1-.5-1.3.3-2.4 1.7-2.4H18a3 3 0 0 0 3-3C21 7 17 3 12 3z"/><g fill="currentColor"><circle cx="7.5" cy="11" r="1.4"/><circle cx="10" cy="7" r="1.4"/><circle cx="15" cy="7.5" r="1.4"/></g></symbol>
+      <symbol id="i-pen" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 3.5l4 4L9 19l-5 1 1-5z"/><path d="M14 6l4 4"/></g></symbol>
+      <symbol id="i-spark" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></g></symbol>
+      <symbol id="i-globe" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/></g></symbol>
+      <symbol id="i-link" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></g></symbol>
+      <symbol id="i-display" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="2.5" y="6" width="19" height="12" rx="3"/><path d="M7 12h6" stroke-linecap="round"/></g></symbol>
+      <symbol id="i-image" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="5" y="2.5" width="14" height="19" rx="3"/><circle cx="12" cy="9" r="2.5"/><path d="M8 17c1-2 2.4-3 4-3s3 1 4 3"/></g></symbol>
+      <symbol id="i-printer" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M7 9V3h10v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/></g></symbol>
+      <symbol id="i-speaker" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></g></symbol>
+      <symbol id="i-hand" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17c3-1 5-6 8-6s2 6 5 6 3-3 3-3"/><path d="M4 21h16"/></g></symbol>
+      <symbol id="i-button" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5" fill="currentColor"/></g></symbol>
+    </defs>
+  </svg>
+</body>
+</html>
