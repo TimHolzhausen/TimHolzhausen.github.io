@@ -17,7 +17,7 @@ import { buildPrint, ensureFont, normalizeLayout, FONTS, ORIENTATIONS } from './
 import { STACKS, CARD_FORMATS, cardName, stackMapText } from './stacks.js';
 import { textCanvas, drawingCanvas, fitInto, demoStrokes } from './render.js';
 
-const VERSION = '0.3.0';
+const VERSION = '0.3.1';
 const BT = hasWebBluetooth();
 
 // ---------------------------------------------------------------- Helfer
@@ -170,6 +170,13 @@ async function renderPrint(p, layout = printLayout) {
   await ensureFont(layout.font);
   return buildPrint(p, layout, dev.printer.width);
 }
+hub.registerTarget({
+  id: 'inject-send', label: 'Inject (senden)', icon: 'globe', accepts: ['text'],
+  async deliver(p) {
+    const r = await dev.inject.send(p.text);
+    if (r.skipped) addLog('skip', 'Inject', 'Nicht zurückgesendet – kam gerade erst von Inject');
+  },
+});
 hub.registerTarget({
   id: 'speech', label: 'Sprachausgabe', icon: 'speaker', accepts: ['text'],
   async deliver(p) {
@@ -507,12 +514,26 @@ const PANELS = {
     };
     [id, iv, g, w].forEach((x) => x.addEventListener('change', apply));
     const c = connectRow('inject');
-    body.append(field('Inject-Account-ID', id, 'Steht in der Inject-App. Abgefragt wird https://11z.co/_w/<ID>/selection.'),
+    const sendTxt = h('input', { type: 'text', placeholder: 'Text an Inject senden', autocomplete: 'off' });
+    const sendInfo = h('p', { class: 'hint' }, dev.inject.lastSent ? 'Zuletzt gesendet: „' + dev.inject.lastSent + '“' : '');
+    const sendForm = h('form', { class: 'row', onsubmit: async (e) => {
+      e.preventDefault();
+      apply();
+      try {
+        await hub.deliver('inject-send', { kind: 'text', text: sendTxt.value });
+        sendInfo.textContent = 'Gesendet: „' + dev.inject.lastSent + '“';
+        toast('An Inject gesendet', 'ok');
+      } catch (err) { sendInfo.textContent = err.message; toast(err.message, 'error'); }
+    } }, sendTxt, h('button', { class: 'btn btn-primary', type: 'submit' }, 'Senden'));
+    body.append(field('Inject-Account-ID', id, 'Die Account-Nummer aus der Inject-App (nicht der Benutzername). Abgefragt wird https://11z.co/_w/<ID>/selection.'),
       field('Abfrage alle … Sekunden', iv),
       h('label', { class: 'switch-row' }, g, h('span', {}, 'Ergebnisse von der Google-Seite')),
       h('label', { class: 'switch-row' }, w, h('span', {}, 'Ergebnisse von anderen Seiten')),
       c.el,
-      h('p', { class: 'hint' }, 'Der beim Start schon vorhandene Wert wird übersprungen – gemeldet werden nur neue Auswahlen.'));
+      h('p', { class: 'hint' }, 'Der beim Start schon vorhandene Wert wird übersprungen – gemeldet werden nur neue Auswahlen.'),
+      h('h3', {}, 'An Inject senden'),
+      h('p', { class: 'hint' }, 'Wie „App Integrations“ in MysterSmith: Der Text landet in Inject als neue Auswahl. In Kombis gibt es dafür die Ausgabe „Inject (senden)“ – z. B. Zeichnung → KI-Erkennung → Inject. Senden geht auch ohne laufende Abfrage. Ein gerade von Inject empfangener Wert wird nicht sofort zurückgeschickt.'),
+      sendForm, sendInfo);
     return () => { c.upd(); };
   },
 
@@ -740,6 +761,7 @@ function isLive(id) {
   const map = { 'peeksmith-buttons': 'peeksmith', 'selfie-buttons': 'selfie' };
   const key = map[id] || id;
   if (key === 'manual' || key === 'speech' || key === 'vibrate') return true;
+  if (key === 'inject-send') return !dev.inject.validate();
   return dev[key] ? dev[key].connected : true;
 }
 

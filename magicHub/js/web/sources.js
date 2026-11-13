@@ -1,6 +1,10 @@
 // Web-Quellen, die regelmäßig abgefragt werden.
 // Inject: https://11z.co/_w/<Account-ID>/selection → { value, source } (aus MysterSmith web_polling.js).
 //   CORS geprüft am 13.11.2026: Access-Control-Allow-Origin: * → im Browser abfragbar.
+//   Senden (MysterSmith „App Integrations“ / index.js action_lastrec_to_inject): POST an dieselbe Adresse,
+//   JSON { "value": "<Text>" }. Preflight erlaubt POST + content-type (geprüft 13.11.2026).
+//   Unbekannte Account-ID → HTTP 400. Die Inject-ID (Benutzername) → Account-Nummer-Abfrage von MysterSmith
+//   (inject.joshuariley.co.uk/id/…) erlaubt kein CORS, daher muss die Account-Nummer eingetragen werden.
 // Eigene JSON-URL: jede HTTPS-Adresse, die CORS erlaubt; Feldpfad wie "data.word" oder "items.0.name".
 
 class PollSource extends EventTarget {
@@ -52,6 +56,7 @@ class PollSource extends EventTarget {
       if (value != null && value !== '' && value !== this.lastValue) {
         const initial = this._first;
         this.lastValue = value;
+        this._receivedAt = Date.now();
         if (!initial || this.showInitial) this._emit('value', { text: String(value), initial });
       }
       this._first = false;
@@ -80,6 +85,31 @@ export class InjectSource extends PollSource {
   }
 
   url() { return 'https://11z.co/_w/' + encodeURIComponent(this.accountId.trim()) + '/selection'; }
+
+  /**
+   * Text an Inject senden. Wie MysterSmith: Zeilenumbrüche → Leerzeichen, und ein gerade erst von
+   * Inject empfangener Wert wird nicht innerhalb von 10 s zurückgeschickt (sonst Endlosschleife).
+   * Danach gilt der gesendete Wert als bekannt, damit die eigene Abfrage ihn nicht als neue Auswahl meldet.
+   */
+  async send(text) {
+    const err = this.validate();
+    if (err) throw new Error(err);
+    const value = String(text ?? '').replace(/<br>|\r?\n/g, ' ').replace(/\s{2,}/g, ' ').trim();
+    if (!value) throw new Error('Leerer Text');
+    if (value === this.lastValue && Date.now() - (this._receivedAt || 0) < 10000) return { skipped: true };
+    let res;
+    try {
+      res = await fetch(this.url(), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ value }), cache: 'no-store' });
+    } catch {
+      throw new Error('Senden blockiert (Netzwerk oder CORS)');
+    }
+    if (res.status === 400) throw new Error('Inject: Account-ID unbekannt');
+    if (!res.ok) throw new Error('Inject: HTTP ' + res.status);
+    this.lastValue = value;
+    this.lastSent = value;
+    this._emit('sent', { text: value });
+    return { skipped: false };
+  }
 
   extract(json, _text, status) {
     if (!json) return null;

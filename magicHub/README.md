@@ -10,7 +10,7 @@ Web-App, die Zauber-Gadgets per **Web Bluetooth** verbindet und frei **kombinier
 | Davinci-Palette (5 Farbtöpfe) | Selfie Screen (Text, Zeichnung, Foto als JPEG) |
 | Ultra Sharpie / Ultra Pen (Zeichnung) | Peripage P21 (quer/hochkant, Schrift, Ränder, Kopien …) |
 | Erkennung der Zeichnung: **kostenlos** (Google Handschrift, Tesseract) oder per Key (Claude, OpenAI, Gemini, Google Vision), lokal | Sprachausgabe (Handy) |
-| Inject (Web-Abfrage), eigene JSON-URL | Vibration (Handy, nicht iPhone) |
+| Inject (Web-Abfrage), eigene JSON-URL | Vibration (Handy, nicht iPhone), **an Inject senden** |
 | PeekSmith- und Selfie-Tasten (Auslöser) | |
 
 Eine **Kombi** ist eine Regel: **Auslöser** (Eingabe) → **Bedingung** (immer, „ist genau“, „enthält“,
