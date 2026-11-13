@@ -12,12 +12,12 @@ import { SelfieScreen } from './ble/selfiescreen.js';
 import { PeripagePrinter } from './ble/peripage.js';
 import { InjectSource, JsonUrlSource } from './web/sources.js';
 import { AiVision, PROVIDERS, AI_TASKS, localAvailability } from './ai/vision.js';
-import { Hub, PRESETS, CONDITIONS, CONTENTS, TEMPLATE_VARS, LIST_MODES, loadStore, saveStore, comboLabel, describeWhen } from './hub.js';
+import { Hub, PRESETS, CONDITIONS, CONTENTS, TEMPLATE_VARS, LIST_MODES, JOINERS, loadStore, saveStore, comboLabel, describeWhen } from './hub.js';
 import { buildPrint, ensureFont, normalizeLayout, FONTS, ORIENTATIONS } from './print-layout.js';
 import { STACKS, CARD_FORMATS, cardName, stackMapText } from './stacks.js';
 import { textCanvas, drawingCanvas, fitInto, demoStrokes } from './render.js';
 
-const VERSION = '0.4.0';
+const VERSION = '0.4.1';
 const BT = hasWebBluetooth();
 
 // ---------------------------------------------------------------- Helfer
@@ -909,6 +909,9 @@ function openComboBuilder(existing = null) {
   // 3 Inhalt
   const contentSel = h('select', {}, ...Object.entries(CONTENTS).map(([k, l]) => h('option', { value: k }, l)));
   const tpl = h('input', { type: 'text', autocomplete: 'off' });
+  const listN = h('input', { type: 'number', min: 0, max: 99, inputmode: 'numeric', placeholder: '0 = alle' });
+  const joiner = h('select', {}, ...Object.entries(JOINERS).map(([k, l]) => h('option', { value: k }, l)));
+  const listNRow = field('Wie viele (die letzten)', listN, '0 = die ganze Liste. Eine Zuordnung unten gilt für jeden Eintrag einzeln (z. B. 7, 12 → Pik Ass, Herz Dame).');
   const map = h('textarea', { rows: 4, placeholder: '1=Pik Ass\n2=Herz Dame\nRot=Feuer\n*=Unbekannt' });
   // 4 Aktionen
   const actBox = h('div', { class: 'stack actions-list' });
@@ -928,6 +931,8 @@ function openComboBuilder(existing = null) {
     c.when = { type: condType.value, value: condVal.value.trim(), min: condMin.value, max: condMax.value };
     c.content = contentSel.value;
     c.template = tpl.value || '{text}';
+    c.listN = Math.max(0, Number(listN.value) || 0);
+    c.joiner = joiner.value;
     c.map = map.value;
     c.name = name.value.trim();
     c.cooldown = Math.max(0, Number(cooldown.value) || 0);
@@ -1002,10 +1007,12 @@ function openComboBuilder(existing = null) {
   // Werte setzen
   condType.value = c.when.type; condVal.value = c.when.value || ''; condMin.value = c.when.min ?? ''; condMax.value = c.when.max ?? '';
   contentSel.value = c.content; tpl.value = c.template; map.value = c.map;
+  listN.value = c.listN || 0; joiner.value = c.joiner ?? ', ';
+  listNRow.hidden = c.content !== 'list';
   name.value = c.name; cooldown.value = c.cooldown || 0; onlyNew.checked = c.onlyNew; once.checked = c.once;
 
   condType.addEventListener('change', drawCond);
-  contentSel.addEventListener('change', () => { drawAddSel(); validate(); });
+  contentSel.addEventListener('change', () => { listNRow.hidden = contentSel.value !== 'list'; drawAddSel(); validate(); });
   addBtn.addEventListener('click', () => {
     if (!addSel.value || addSel.selectedOptions[0]?.disabled) return;
     c.actions.push({ target: addSel.value, do: hub.targets.get(addSel.value)?.clearOnly ? 'clear' : 'show', delay: 0, hideAfter: 0 });
@@ -1026,7 +1033,8 @@ function openComboBuilder(existing = null) {
   $('#sheet-body').replaceChildren(
     step(1, 'Wenn …'), srcBox, srcHint,
     step(2, '… und wenn der Wert …'), field('Bedingung', condType), condValRow, suggest, condRangeRow, values,
-    step(3, '… dann senden'), field('Inhalt', contentSel),
+    step(3, '… dann senden'), field('Inhalt', contentSel), listNRow,
+    field('Trennzeichen zwischen Listeneinträgen', joiner, 'Gilt für „Letzte Einträge“, {liste} und {letzte:3}.'),
     field('Text-Vorlage', tpl, TEMPLATE_VARS + '. Beispiel: „Deine Karte: {text}“.'),
     h('details', { open: !!c.map.trim() }, h('summary', {}, 'Zuordnung (Wert → Text)'),
       stackInsert(map),

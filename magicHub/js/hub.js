@@ -10,7 +10,8 @@
 //   id, name, enabled,
 //   source,                                   Auslöser (Quellen-ID)
 //   when: { type, value, min, max },          Bedingung: any | is | not | contains | range | even | odd
-//   content: 'event' | 'last' | 'fixed',      was gesendet wird: Wert des Auslösers, letzter Inhalt, nur Vorlage
+//   content: 'event' | 'last' | 'fixed' | 'list',  Wert des Auslösers, letzter Inhalt, nur Vorlage, letzte N Listeneinträge
+//   listN: 0 = alle, joiner: Trennzeichen     für 'list', {liste} und {letzte:N}; die Zuordnung gilt dann je Eintrag
 //   map: '1=Pik Ass\n2=Herz Dame\n*=?',       optionale Zuordnung Wert → Text (vor der Vorlage)
 //   template: '{text}',                       Text-Vorlage
 //   actions: [{ target, do: 'show'|'clear', delay, hideAfter }],   Sekunden
@@ -56,9 +57,12 @@ export const CONTENTS = {
   event: 'Wert des Auslösers',
   last: 'Letzten Inhalt erneut senden',
   fixed: 'Nur eigenen Text (Vorlage)',
+  list: 'Letzte Einträge der Sitzungsliste (kombiniert)',
 };
 
-export const TEMPLATE_VARS = '{text} Wert · {quelle} Auslöser · {letzter} letzter Inhalt · {zähler} wie oft ausgelöst · {uhrzeit} · {datum} · Sitzungsliste: {liste} alle, {anzahl}, {1} … {9} n-ter Eintrag, {-1} neuester';
+export const JOINERS = { ', ': 'Komma', ' ': 'Leerzeichen', '': 'Nichts (direkt aneinander)', ' - ': 'Bindestrich', '\n': 'Neue Zeile' };
+
+export const TEMPLATE_VARS = '{text} Wert · {quelle} Auslöser · {letzter} letzter Inhalt · {zähler} wie oft ausgelöst · {uhrzeit} · {datum} · Sitzungsliste: {liste} alle, {letzte:3} die letzten 3, {anzahl}, {1} … {9} n-ter Eintrag, {-1} neuester';
 
 const act = (target, extra = {}) => ({ target, do: 'show', delay: 0, hideAfter: 0, ...extra });
 
@@ -84,6 +88,8 @@ export function normalizeCombo(c, sources) {
     when: { type: 'any', value: '', min: '', max: '', ...(c.when || {}) },
     content: c.content || (sources?.get(c.source)?.kind === 'trigger' ? 'last' : 'event'),
     map: c.map || '',
+    listN: Math.max(0, Number(c.listN) || 0),
+    joiner: typeof c.joiner === 'string' && c.joiner in JOINERS ? c.joiner : ', ',
     template: c.template || '{text}',
     actions: Array.isArray(c.actions) ? c.actions.map((a) => act(a.target, a)) : (c.targets || []).map((t) => act(t)),
     cooldown: Number(c.cooldown) || 0,
@@ -258,19 +264,22 @@ export class Hub extends EventTarget {
     this._state.set(combo.id, st);
 
     // Inhalt bestimmen
+    const mapper = combo.map.trim() ? parseMap(combo.map) : null;
+    const mapOne = (t) => {
+      if (!mapper || t == null) return t;
+      const key = String(t).trim().toLowerCase();
+      return mapper.has(key) ? mapper.get(key) : mapper.has('*') ? mapper.get('*') : t;
+    };
+    const joiner = combo.joiner ?? ', ';
+    const lastN = (n) => (n > 0 ? this.list.slice(-n) : this.list).map((e) => e.text);
     let content;
-    if (combo.content === 'last') content = this.last || { kind: 'text', text: '', source: event.source };
+    if (combo.content === 'list') content = { kind: 'text', text: lastN(combo.listN).map(mapOne).join(joiner), source: event.source, mapped: true };
+    else if (combo.content === 'last') content = this.last || { kind: 'text', text: '', source: event.source };
     else if (combo.content === 'fixed') content = { kind: 'text', text: '', source: event.source };
     else content = event;
     if (!content) return false;
 
-    let text = content.text;
-    if (text != null && combo.map.trim()) {
-      const m = parseMap(combo.map);
-      const key = String(text).trim().toLowerCase();
-      if (m.has(key)) text = m.get(key);
-      else if (m.has('*')) text = m.get('*');
-    }
+    const text = content.mapped ? content.text : mapOne(content.text);
     const now = new Date();
     const vars = {
       text: text ?? '',
@@ -280,14 +289,15 @@ export class Hub extends EventTarget {
       zaehler: String(st.count),
       uhrzeit: now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }),
       datum: now.toLocaleDateString('de-DE'),
-      liste: this.list.map((e) => e.text).join(', '),
+      liste: lastN(0).join(joiner),
       anzahl: String(this.list.length),
     };
     const nth = (i) => { const n = Number(i); const e = n > 0 ? this.list[n - 1] : this.list[this.list.length + n]; return e ? e.text : ''; };
     const tpl = combo.content === 'fixed' && combo.template === '{text}' ? '' : combo.template;
     const rendered = (tpl || '{text}')
       .replace(/\{(text|quelle|letzter|zähler|zaehler|uhrzeit|datum|liste|anzahl)\}/g, (_, k) => vars[k])
-      .replace(/\{(-?[1-9])\}/g, (_, i) => nth(i));
+      .replace(/\{(-?[1-9])\}/g, (_, i) => nth(i))
+      .replace(/\{letzte:(\d{1,2})\}/g, (_, n) => lastN(Number(n)).join(joiner));
     const keepImage = content.kind === 'image' && (content.strokes || content.canvas);
     const out = keepImage
       ? { ...content, text: content.text != null ? rendered : undefined }
