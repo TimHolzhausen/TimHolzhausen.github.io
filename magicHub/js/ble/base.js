@@ -1,6 +1,9 @@
 // Gemeinsame Web-Bluetooth-Schicht für alle Gerätetreiber.
 // - requestDevice() wird nur aus connect() aufgerufen, und connect() nur direkt aus einem Klick-Handler.
-// - Kein automatischer Reconnect: nach Verbindungsverlust bietet die Oberfläche "Erneut verbinden" an.
+// - Automatisch verbinden (pro Gerät abschaltbar, seit 0.5.0 auf Wunsch des Nutzers):
+//   * nach Verbindungsverlust: mit dem gemerkten Geräte-Objekt neu verbinden (geht ohne Nutzer-Tipp),
+//   * beim App-Start: nur wenn der Browser getDevices() kann (Chrome mit Flag), sonst bleibt der Tipp nötig.
+//   Gewartet wird auf Funksignale (watchAdvertisements), sonst mit wachsenden Pausen neu versucht.
 
 import { hasWebBluetooth } from '../platform.js';
 
@@ -66,6 +69,74 @@ export class BleDevice extends EventTarget {
     this.status = 'idle'; // idle | connecting | connected | lost | error
     this.statusMessage = 'Nicht verbunden';
     this._onDisconnected = () => this._handleDisconnect();
+    this.autoConnect = true;
+    this._autoCtrl = null;
+  }
+
+  get autoWaiting() { return !!this._autoCtrl; }
+
+  /** Automatisches Verbinden abbrechen (Nutzer verbindet selbst, trennt oder schaltet es ab). */
+  stopAuto() {
+    if (!this._autoCtrl) return;
+    this._autoCtrl.abort();
+    this._autoCtrl = null;
+    if (this.status === 'lost' || this.status === 'idle') this._setStatus(this.status, this.status === 'lost' ? 'Verbindung verloren' : 'Nicht verbunden');
+  }
+
+  /** Beim Start: gemerktes Gerät suchen und verbinden, sobald es in Reichweite ist. */
+  async autoStart() {
+    if (!this.autoConnect || this.connected || this._autoCtrl) return false;
+    const known = await this._knownDevice();
+    if (!known) return false;
+    this._attach(known);
+    this._autoLoop('idle', 'Wartet auf ' + this.deviceName + ' (automatisch) …');
+    return true;
+  }
+
+  async _autoLoop(waitStatus, waitMessage) {
+    if (this._autoCtrl) return;
+    const ctrl = new AbortController();
+    this._autoCtrl = ctrl;
+    const signal = ctrl.signal;
+    try {
+      for (let attempt = 0; !signal.aborted; attempt++) {
+        this._setStatus(waitStatus, waitMessage);
+        await this._waitNearby(signal, attempt);
+        if (signal.aborted) break;
+        try {
+          await this._open();
+          this.log('info', 'Automatisch verbunden');
+          break;
+        } catch (err) {
+          if (signal.aborted) break;
+          this.teardown();
+          try { if (this.device?.gatt?.connected) this.device.gatt.disconnect(); } catch { /* egal */ }
+          this.log('warn', 'Automatisch verbinden fehlgeschlagen (' + (err.message || err.name) + ') – neuer Versuch');
+          await sleep(Math.min(30000, 2000 * (attempt + 1)));
+        }
+      }
+    } finally {
+      if (this._autoCtrl === ctrl) this._autoCtrl = null;
+    }
+  }
+
+  /** Wartet auf ein Funksignal des Geräts; ohne watchAdvertisements nur eine Pause. */
+  async _waitNearby(signal, attempt) {
+    const dev = this.device;
+    if (typeof dev?.watchAdvertisements !== 'function') { await sleep(attempt ? 3000 : 500); return; }
+    const watch = new AbortController();
+    const stop = () => watch.abort();
+    signal.addEventListener('abort', stop, { once: true });
+    try {
+      await new Promise((resolve) => {
+        dev.addEventListener('advertisementreceived', resolve, { once: true });
+        signal.addEventListener('abort', resolve, { once: true });
+        dev.watchAdvertisements({ signal: watch.signal }).catch(() => setTimeout(resolve, 3000));
+      });
+    } finally {
+      signal.removeEventListener('abort', stop);
+      watch.abort();
+    }
   }
 
   get connected() { return this.status === 'connected'; }
@@ -86,6 +157,7 @@ export class BleDevice extends EventTarget {
       this._setStatus('error', 'Kein Web Bluetooth in diesem Browser');
       throw new Error('Kein Web Bluetooth');
     }
+    this.stopAuto();
     if (this.status === 'connecting') return;
     this.step = '';
     try {
@@ -156,6 +228,7 @@ export class BleDevice extends EventTarget {
 
   /** Erneut mit dem zuletzt gewählten Gerät verbinden (ohne neue Auswahl). Nur auf Nutzer-Tipp aufrufen. */
   async reconnect() {
+    this.stopAuto();
     if (!this.device) return this.connect();
     this._setStatus('connecting', 'Verbinde erneut …');
     try {
@@ -167,6 +240,7 @@ export class BleDevice extends EventTarget {
   }
 
   disconnect() {
+    this.stopAuto();
     this._manualDisconnect = true;
     this.teardown();
     try { if (this.device?.gatt?.connected) this.device.gatt.disconnect(); } catch { /* egal */ }
@@ -229,6 +303,7 @@ export class BleDevice extends EventTarget {
     if (this._manualDisconnect) return;
     this.log('warn', this.deviceName + ': Verbindung verloren');
     this._setStatus('lost', 'Verbindung verloren');
+    if (this.autoConnect && this.device) this._autoLoop('lost', 'Verbindung verloren – verbinde automatisch …');
   }
 
   _setStatus(status, message) {

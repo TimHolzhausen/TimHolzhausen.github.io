@@ -17,7 +17,7 @@ import { buildPrint, ensureFont, normalizeLayout, FONTS, ORIENTATIONS } from './
 import { STACKS, CARD_FORMATS, cardName, stackMapText } from './stacks.js';
 import { textCanvas, drawingCanvas, fitInto, demoStrokes } from './render.js';
 
-const VERSION = '0.4.4';
+const VERSION = '0.5.0';
 const BT = hasWebBluetooth();
 
 // ---------------------------------------------------------------- Helfer
@@ -306,6 +306,7 @@ function primaryAction(id) {
   if (d.status === 'connected') return { label: 'Trennen', run: () => d.disconnect() };
   if (d.status === 'connecting') return { label: 'Verbinde …', disabled: true };
   if (d.status === 'lost') return { label: 'Erneut verbinden', run: () => d.reconnect() };
+  if (d.autoWaiting) return { label: 'Wartet … jetzt verbinden', run: () => d.connect() };
   return { label: 'Verbinden', run: () => d.connect() };
 }
 
@@ -394,7 +395,21 @@ function connectRow(id) {
   const other = isBle ? h('button', { class: 'btn btn-ghost btn-small btn-block', type: 'button',
     onclick: () => runAction({ run: () => dev[id].connect({ choose: true }) }) }, 'Anderes Gerät wählen') : null;
   const quick = isBle ? h('p', { class: 'hint' }) : null;
-  const el = h('div', {}, btn, other, all, quick);
+  const autoBox = isBle && dev[id] instanceof BleDevice ? h('input', { type: 'checkbox' }) : null;
+  if (autoBox) {
+    autoBox.checked = dev[id].autoConnect;
+    autoBox.addEventListener('change', () => {
+      settings.autoConnect = { ...settings.autoConnect, [id]: autoBox.checked };
+      saveSettings();
+      dev[id].autoConnect = autoBox.checked;
+      if (!autoBox.checked) dev[id].stopAuto();
+      else if (!dev[id].connected) dev[id].autoStart().catch(() => {});
+      upd();
+    });
+  }
+  const autoHint = autoBox ? h('p', { class: 'hint' }) : null;
+  const el = h('div', {}, btn, other, all, quick,
+    autoBox ? h('label', { class: 'switch-row' }, autoBox, h('span', {}, 'Automatisch verbinden (beim Start und nach Abbruch)')) : null, autoHint);
   const upd = () => {
     const d = dev[id];
     const a = primaryAction(id);
@@ -412,6 +427,13 @@ function connectRow(id) {
       quick.textContent = BleDevice.canQuickConnect
         ? (fast ? 'Verbindet direkt ohne Suche. Für ein neues Gerät „Anderes Gerät wählen“.' : 'Nach der ersten Verbindung geht es künftig ohne Suche.')
         : 'Suche dauert lange? Chrome kann bekannte Geräte auch ohne Suche verbinden – dafür in chrome://flags „Use the new permissions backend for Web Bluetooth“ aktivieren (experimentell).';
+    }
+    if (autoHint) {
+      autoHint.textContent = d.autoWaiting
+        ? 'Wartet, bis ' + d.deviceName + ' eingeschaltet und in Reichweite ist. „Verbinden“ oder Abschalten beendet das Warten.'
+        : BleDevice.canQuickConnect
+          ? 'Nach einem Abbruch und beim Start der App wird das zuletzt genutzte Gerät von selbst verbunden.'
+          : 'Nach einem Abbruch wird von selbst neu verbunden. Beim App-Start geht das in diesem Browser nicht (Chrome: Flag oben), dann einmal tippen.';
     }
   };
   upd();
@@ -783,6 +805,13 @@ const PANELS = {
     return null;
   },
 };
+
+// Automatisch verbinden (pro Gerät, Standard an)
+const autoOn = (id) => settings.autoConnect?.[id] !== false;
+for (const [id, d] of Object.entries(dev)) if (d instanceof BleDevice) d.autoConnect = autoOn(id);
+if (BT) setTimeout(() => {
+  for (const [id, d] of Object.entries(dev)) if (d instanceof BleDevice && d.autoConnect) d.autoStart().catch(() => {});
+}, 800);
 
 // Status-/Datenänderungen → Oberfläche
 for (const [id, d] of Object.entries(dev)) {

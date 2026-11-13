@@ -42,7 +42,7 @@ kombiniert. Ein HTTPS-Link für Android (Chrome) und iPhone (App **Bluefy**).
   - BLE-UUIDs nur aus belegten Quellen (siehe Protokolle).
 - **Web Bluetooth:**
   - `requestDevice()` nur direkt aus einem Klick-Handler aufrufen.
-  - Kein automatischer Reconnect; nach Verbindungsverlust „Erneut verbinden“ anbieten.
+  - ~~Kein automatischer Reconnect~~ – vom Nutzer am 13.11.2026 aufgehoben: automatisches Verbinden pro Gerät (`settings.autoConnect[id]`, Standard an), beim Start (nur mit `getDevices()`) und nach Abbruch (`_autoLoop` in `base.js`, wartet per `watchAdvertisements`, sonst Pausen). „Erneut verbinden“/„Verbinden“ bleibt als manueller Weg. GoDice (eigene Klasse) ist ausgenommen.
     Gegen Abbrüche stattdessen: Selfie-Screen-Keep-Alive (aktuelles Bild alle 15 s erneut, nur bei offener Anforderung), Wake Lock solange ein Gerät verbunden ist (`settings.keepAwake`), Abbruch-Diagnose im Geräte-Protokoll.
   - Für Bluefy immer 128-Bit-UUIDs verwenden (`uuid16()`).
 - **Feature Detection** über `navigator.bluetooth?.requestDevice`, das Betriebssystem nur für Hinweise nutzen. Plattform immer auch manuell wählbar (iPadOS meldet sich als Mac).
@@ -144,7 +144,7 @@ Den Code macht `webcrack@2` lesbar, z. B. mit einem kleinen Node-Skript `webcrac
   - FEF0 nutzt MysterSmith für Pitata Ultra/Chalk und den E-Ink-Tag.
   - Was das Gerät ist, ist noch ungeklärt.
 
-## Stand und offene Punkte (13.11.2026, version 0.4.4)
+## Stand und offene Punkte (13.11.2026, version 0.5.0)
 
 - **Selfie Screen:** verbindet am PC, nachdem das Handy getrennt war. Bildübertragung und Tasten mit dem Entwickler prüfen.
 - **Alle Geräte:** auf echter Hardware in MagicHub noch ungetestet (Checkliste in README).
