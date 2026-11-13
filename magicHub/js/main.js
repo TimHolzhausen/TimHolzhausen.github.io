@@ -12,10 +12,11 @@ import { SelfieScreen } from './ble/selfiescreen.js';
 import { PeripagePrinter } from './ble/peripage.js';
 import { InjectSource, JsonUrlSource } from './web/sources.js';
 import { AiVision, PROVIDERS, AI_TASKS, localAvailability } from './ai/vision.js';
-import { Hub, PRESETS, loadStore, saveStore } from './hub.js';
-import { textCanvas, printTextCanvas, drawingCanvas, fitInto, demoStrokes } from './render.js';
+import { Hub, PRESETS, CONDITIONS, CONTENTS, TEMPLATE_VARS, loadStore, saveStore, comboLabel, describeWhen } from './hub.js';
+import { buildPrint, ensureFont, normalizeLayout, FONTS, ORIENTATIONS } from './print-layout.js';
+import { textCanvas, drawingCanvas, fitInto, demoStrokes } from './render.js';
 
-const VERSION = '0.1.3';
+const VERSION = '0.2.0';
 const BT = hasWebBluetooth();
 
 // ---------------------------------------------------------------- Helfer
@@ -78,7 +79,11 @@ if (settings.ai) {
   if (typeof a.auto === 'boolean') dev.ai.auto = a.auto;
 }
 if (settings.davinciPots) settings.davinciPots.forEach((n, i) => { if (dev.davinci.pots[i] && n) dev.davinci.pots[i].name = n; });
-if (settings.printer) Object.assign(dev.printer, settings.printer);
+if (settings.printer) {
+  Object.assign(dev.printer, settings.printer);
+  if (!['00', '01', '02'].includes(dev.printer.density)) dev.printer.density = '02';
+}
+let printLayout = normalizeLayout(settings.printLayout);
 if (settings.pen?.finishDelay) dev.pen.finishDelay = settings.pen.finishDelay;
 if (settings.peeksmith?.brightness != null) dev.peeksmith.brightness = settings.peeksmith.brightness;
 if (settings.selfie?.brightness) dev.selfie.brightness = settings.selfie.brightness;
@@ -96,22 +101,25 @@ const DEVICES = [
   { id: 'selfie', group: 'out', name: 'Selfie Screen', desc: 'Mystersmith-Display', icon: 'image', ble: true },
   { id: 'printer', group: 'out', name: 'Peripage P21', desc: 'Thermodrucker', icon: 'printer', ble: true },
   { id: 'speech', group: 'out', name: 'Sprachausgabe', desc: 'Ansage übers Handy', icon: 'speaker' },
+  { id: 'vibrate', group: 'out', name: 'Vibration', desc: 'Geheimes Zählen am Handy', icon: 'vibrate' },
 ];
 const DEV_BY_ID = Object.fromEntries(DEVICES.map((d) => [d.id, d]));
 
 // ---------------------------------------------------------------- Hub
 const hub = new Hub();
+const range = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => String(a + i));
 [
-  { id: 'godice', label: 'GoDice', icon: 'dice', kind: 'text' },
-  { id: 'davinci', label: 'Davinci-Palette', icon: 'palette', kind: 'text' },
-  { id: 'pen', label: 'Ultra Sharpie', icon: 'pen', kind: 'image' },
-  { id: 'ai', label: 'KI-Erkennung', icon: 'spark', kind: 'text' },
-  { id: 'inject', label: 'Inject', icon: 'globe', kind: 'text' },
-  { id: 'json', label: 'Web-Quelle', icon: 'link', kind: 'text' },
-  { id: 'peeksmith-buttons', label: 'PeekSmith-Taste', icon: 'button', kind: 'trigger' },
-  { id: 'selfie-buttons', label: 'Selfie-Taste', icon: 'button', kind: 'trigger' },
-  { id: 'manual', label: 'Manuell', icon: 'hand', kind: 'text' },
+  { id: 'godice', label: 'GoDice', icon: 'dice', kind: 'text', hint: 'Wert = Summe, Einzelwerte oder letzter Würfel (einstellbar beim Gerät).', values: () => range(1, 12) },
+  { id: 'davinci', label: 'Davinci-Palette', icon: 'palette', kind: 'text', hint: 'Wert = Name des berührten Topfs.', values: () => dev.davinci.pots.slice(0, POT_COUNT).map((p) => p.name) },
+  { id: 'pen', label: 'Ultra Sharpie', icon: 'pen', kind: 'image', hint: 'Fertige Zeichnung (Bild). Für erkannten Text „KI-Erkennung“ wählen.' },
+  { id: 'ai', label: 'KI-Erkennung', icon: 'spark', kind: 'text', hint: 'Wert = erkannter Text.' },
+  { id: 'inject', label: 'Inject', icon: 'globe', kind: 'text', hint: 'Wert = neu gewähltes Wort.' },
+  { id: 'json', label: 'Web-Quelle', icon: 'link', kind: 'text', hint: 'Wert = Feld aus der JSON-Antwort.' },
+  { id: 'peeksmith-buttons', label: 'PeekSmith-Taste', icon: 'button', kind: 'trigger', hint: 'Wert = Name der Taste.', values: () => ['Links', 'Rechts', 'Seite', 'Links lang', 'Rechts lang', 'Seite lang', 'Magnet'] },
+  { id: 'selfie-buttons', label: 'Selfie-Taste', icon: 'button', kind: 'trigger', hint: 'Wert = Name der Taste.', values: () => ['Auslöser', 'Kamera wechseln', 'Plus', 'Minus'] },
+  { id: 'manual', label: 'Manuell', icon: 'hand', kind: 'text', hint: 'Wert = Text aus „Live → Manuell senden“.' },
 ].forEach((s) => hub.registerSource(s));
+hub.init();
 
 const pv = { peek: $('#pv-peek'), selfie: $('#pv-selfie'), print: $('#pv-print') };
 
@@ -120,6 +128,10 @@ hub.registerTarget({
   async deliver(p) {
     pv.peek.textContent = p.text || ' ';
     if (dev.peeksmith.connected) await dev.peeksmith.showText(p.text);
+  },
+  async clear() {
+    pv.peek.textContent = ' ';
+    if (dev.peeksmith.connected) await dev.peeksmith.clear();
   },
 });
 hub.registerTarget({
@@ -132,19 +144,31 @@ hub.registerTarget({
     drawPreview(pv.selfie, canvas);
     if (s.connected) await s.showCanvas(canvas);
   },
+  async clear() {
+    const s = dev.selfie;
+    const c = textCanvas('', s.width, s.height);
+    drawPreview(pv.selfie, c);
+    if (s.connected) await s.showCanvas(c);
+  },
 });
 hub.registerTarget({
   id: 'printer', label: 'Peripage P21', icon: 'printer', accepts: ['text', 'image'],
   async deliver(p) {
-    const w = dev.printer.width;
-    const canvas = p.kind === 'image'
-      ? (p.strokes ? drawingCanvas(p.strokes, w, w, { bg: '#fff', fg: '#000', line: 5 }) : fitInto(p.canvas, w, Math.round(p.canvas.height * w / p.canvas.width), '#fff'))
-      : printTextCanvas(p.text, w);
-    pv.print.width = canvas.width; pv.print.height = canvas.height;
-    pv.print.getContext('2d').drawImage(canvas, 0, 0);
-    if (dev.printer.connected) await dev.printer.printCanvas(canvas, { dither: p.kind === 'image' && !p.strokes });
+    const { page, print } = await renderPrint(p);
+    drawPreview(pv.print, page);
+    if (dev.printer.connected) {
+      await dev.printer.printJob(print, {
+        dither: p.kind === 'image' && !p.strokes && printLayout.dither,
+        copies: printLayout.copies, feedBefore: printLayout.feedBefore, feedAfter: printLayout.feedAfter,
+      });
+    }
   },
 });
+
+async function renderPrint(p, layout = printLayout) {
+  await ensureFont(layout.font);
+  return buildPrint(p, layout, dev.printer.width);
+}
 hub.registerTarget({
   id: 'speech', label: 'Sprachausgabe', icon: 'speaker', accepts: ['text'],
   async deliver(p) {
@@ -155,7 +179,28 @@ hub.registerTarget({
     u.rate = settings.speechRate || 1;
     speechSynthesis.speak(u);
   },
+  clear() { if ('speechSynthesis' in window) speechSynthesis.cancel(); },
 });
+hub.registerTarget({
+  id: 'vibrate', label: 'Vibration', icon: 'vibrate', accepts: ['text'],
+  async deliver(p) {
+    if (!('vibrate' in navigator)) throw new Error('Vibration wird hier nicht unterstützt (z. B. iPhone)');
+    navigator.vibrate(vibrationPattern(p.text));
+  },
+  clear() { if ('vibrate' in navigator) navigator.vibrate(0); },
+});
+
+/** Zahl n → Impulse: Zehner lang, Einer kurz (z. B. 12 = lang, Pause, kurz, kurz). Text → ein Impuls. */
+function vibrationPattern(text) {
+  const n = parseInt(String(text).trim(), 10);
+  if (!Number.isFinite(n) || n <= 0 || n > 60) return [120];
+  const pattern = [];
+  const tens = Math.floor(n / 10); const ones = n % 10;
+  for (let i = 0; i < tens; i++) pattern.push(600, 350);
+  if (tens && ones) pattern.push(0, 500);
+  for (let i = 0; i < ones; i++) pattern.push(150, 250);
+  return pattern;
+}
 
 function drawPreview(canvas, src) {
   canvas.width = src.width; canvas.height = src.height;
@@ -181,7 +226,7 @@ async function handleDrawing(strokes) {
   hub.publish('pen', { kind: 'image', strokes, canvas: drawingCanvas(strokes, 384, 384) });
   if (dev.ai.auto && dev.ai.ready) {
     try {
-      const text = await dev.ai.recognize(drawingCanvas(strokes, 512, 512, { line: 6 }));
+      const text = await dev.ai.recognize(drawingCanvas(strokes, 512, 512, { line: 6 }), strokes);
       hub.publish('ai', { kind: 'text', text });
       toast('KI erkannt: ' + text);
     } catch (err) { toast(err.message, 'error'); }
@@ -191,6 +236,7 @@ async function handleDrawing(strokes) {
 // ---------------------------------------------------------------- Kacheln
 function statusOf(id) {
   if (id === 'speech') return { status: 'speechSynthesis' in window ? 'connected' : 'error', message: 'speechSynthesis' in window ? 'Bereit' : 'Nicht unterstützt' };
+  if (id === 'vibrate') return { status: 'vibrate' in navigator ? 'connected' : 'error', message: 'vibrate' in navigator ? 'Bereit' : 'Nicht unterstützt (iPhone)' };
   const d = dev[id];
   return { status: d.status, message: d.statusMessage };
 }
@@ -202,6 +248,7 @@ function primaryAction(id) {
   if (id === 'godice') return { label: '+ Würfel', run: () => dev.godice.addDie() };
   if (id === 'ai') return { label: d.ready ? 'Einstellen' : 'Einrichten', run: () => openSheet('ai') };
   if (id === 'speech') return { label: 'Test', run: () => hub.deliver('speech', { kind: 'text', text: 'MagicHub ist bereit' }) };
+  if (id === 'vibrate') return { label: 'Test', run: () => hub.deliver('vibrate', { kind: 'text', text: '3' }) };
   if (id === 'inject' || id === 'json') {
     if (d.status === 'connected' || d.status === 'connecting') return { label: 'Stopp', run: () => d.stop() };
     return { label: 'Start', run: () => { if (d.validate()) { openSheet(id); return; } d.start(); } };
@@ -234,7 +281,7 @@ function renderTiles() {
         h('button', { class: 'btn btn-small tile-action' + (st.status === 'connected' ? '' : ' btn-primary'), type: 'button', disabled: act.disabled, onclick: () => runAction(act) }, act.label));
     }));
   }
-  const n = DEVICES.filter((d) => d.id !== 'speech' && statusOf(d.id).status === 'connected').length;
+  const n = DEVICES.filter((d) => !['speech', 'vibrate'].includes(d.id) && statusOf(d.id).status === 'connected').length;
   $('#conn-pill').textContent = n + ' aktiv';
   $('#conn-pill').classList.toggle('on', n > 0);
 }
@@ -432,7 +479,7 @@ const PANELS = {
       save();
       try {
         const strokes = dev.pen.strokes.length ? dev.pen.strokes : demoStrokes();
-        const text = await dev.ai.recognize(drawingCanvas(strokes, 512, 512, { line: 6 }));
+        const text = await dev.ai.recognize(drawingCanvas(strokes, 512, 512, { line: 6 }), strokes);
         hub.publish('ai', { kind: 'text', text });
         toast('KI erkannt: ' + text);
       } catch (err) { toast(err.message, 'error'); }
@@ -533,21 +580,100 @@ const PANELS = {
   printer(body) {
     const c = connectRow('printer');
     const txt = h('textarea', { rows: 2, placeholder: 'Text zum Drucken' });
-    const dens = h('select', {}, ...[['00', 'Hell'], ['02', 'Normal'], ['04', 'Dunkler'], ['08', 'Sehr dunkel']].map(([v, l]) => h('option', { value: v }, l)));
+    txt.value = settings.printTestText || 'Herz Dame';
+    const L = { ...printLayout };
+    const preview = h('canvas', { class: 'print-preview' });
+    const previewInfo = h('p', { class: 'hint center' });
+    let pvTimer;
+    const redraw = () => {
+      clearTimeout(pvTimer);
+      pvTimer = setTimeout(async () => {
+        const { page } = await renderPrint({ kind: 'text', text: txt.value || ' ' }, L);
+        drawPreview(preview, page);
+        const mm = (v) => Math.round(v / 8);
+        previewInfo.textContent = 'Etikett ' + mm(page.width) + ' × ' + mm(page.height) + ' mm (Leseansicht)';
+      }, 80);
+    };
+    const save = () => { printLayout = normalizeLayout(L); settings.printLayout = printLayout; saveSettings(); redraw(); };
+    const sel = (key, opts) => {
+      const el = h('select', {}, ...Object.entries(opts).map(([v, l]) => h('option', { value: v }, l)));
+      el.value = String(L[key]);
+      el.addEventListener('change', () => { L[key] = el.value; save(); });
+      return el;
+    };
+    const numIn = (key, min, max, step = 1) => {
+      const el = h('input', { type: 'number', min, max, step, value: L[key], inputmode: 'decimal' });
+      el.addEventListener('input', () => { if (el.value !== '') { L[key] = Number(el.value); save(); } });
+      return el;
+    };
+    const rangeIn = (key, min, max, step, fmt) => {
+      const out = h('output', {}, fmt(L[key]));
+      const el = h('input', { type: 'range', min, max, step, value: L[key] });
+      el.addEventListener('input', () => { L[key] = Number(el.value); out.textContent = fmt(L[key]); save(); });
+      return h('div', { class: 'range-row' }, el, out);
+    };
+    const check = (key, label) => {
+      const el = h('input', { type: 'checkbox' }); el.checked = !!L[key];
+      el.addEventListener('change', () => { L[key] = el.checked; save(); });
+      return h('label', { class: 'switch-row' }, el, h('span', {}, label));
+    };
+    txt.addEventListener('input', () => { settings.printTestText = txt.value; saveSettings(); redraw(); });
+
+    const dens = h('select', {}, ...[['00', 'Hell'], ['01', 'Mittel'], ['02', 'Dunkel']].map(([v, l]) => h('option', { value: v }, l)));
     dens.value = dev.printer.density;
     const mode = h('select', {}, h('option', { value: 'official' }, 'Standard (mit Flusssteuerung)'), h('option', { value: 'safe' }, 'Sicher (langsamer, mit Pausen)'));
     mode.value = dev.printer.mode;
-    const apply = () => { dev.printer.density = dens.value; dev.printer.mode = mode.value; settings.printer = { density: dens.value, mode: mode.value }; saveSettings(); };
-    dens.addEventListener('change', apply); mode.addEventListener('change', apply);
+    const applyDev = () => { dev.printer.density = dens.value; dev.printer.mode = mode.value; settings.printer = { density: dens.value, mode: mode.value }; saveSettings(); };
+    dens.addEventListener('change', applyDev); mode.addEventListener('change', applyDev);
+
     const info = h('p', { class: 'hint' });
+    const reset = h('button', { class: 'btn btn-ghost btn-small', type: 'button', onclick: () => {
+      settings.printLayout = undefined; saveSettings(); printLayout = normalizeLayout(); openSheet('printer'); toast('Druck-Einstellungen zurückgesetzt');
+    } }, 'Alles zurücksetzen');
+
     body.append(noBt() || '', c.el,
+      h('div', { class: 'paper paper-sheet' }, preview), previewInfo,
       txt,
       h('div', { class: 'row' },
         h('button', { class: 'btn btn-primary', type: 'button', onclick: () => txt.value.trim() && hub.deliver('printer', { kind: 'text', text: txt.value }) }, 'Drucken'),
         h('button', { class: 'btn', type: 'button', onclick: () => dev.printer.feed(10).catch((e) => toast(e.message, 'error')) }, 'Papier vor')),
-      field('Schwärzung', dens), field('Übertragung', mode), info,
-      h('p', { class: 'hint' }, 'Ohne Verbindung zeigt „Live“ nur die Druckvorschau.'));
-    return () => { c.upd(); const p = dev.printer; info.textContent = p.connected ? (p.device?.name || '') + ' · ' + p.width + ' px breit' + (p.battery != null ? ' · Akku ' + p.battery + ' %' : '') + (p.printing ? ' · druckt …' : '') : ''; };
+      h('h3', { class: 'group-title' }, 'Layout'),
+      field('Ausrichtung', sel('orientation', ORIENTATIONS)),
+      field('Etikettenlänge (mm)', numIn('length', 0, 400), '0 = automatisch passend zum Text. Fester Wert = Text wird in das Etikett eingepasst.'),
+      h('div', { class: 'grid-2' },
+        field('Schrift', sel('font', Object.fromEntries(Object.entries(FONTS).map(([k, f]) => [k, f.label])))),
+        field('Zeilenhöhe', rangeIn('lineHeight', 70, 180, 5, (v) => v + ' %'))),
+      check('bold', 'Fett'),
+      h('div', { class: 'grid-2' },
+        field('Min. Schrift (mm)', numIn('minFont', 2, 40)),
+        field('Max. Schrift (mm)', numIn('maxFont', 3, 45))),
+      h('div', { class: 'grid-2' },
+        field('Waagerecht', sel('hAlign', { left: 'Links', center: 'Mitte', right: 'Rechts' })),
+        field('Senkrecht', sel('vAlign', { top: 'Oben', center: 'Mitte', bottom: 'Unten' }))),
+      field('Rand innen (mm)', rangeIn('padding', 0, 15, 1, (v) => v + ' mm')),
+      field('Neigung', rangeIn('tilt', -15, 15, 1, (v) => v + '°'), 'Leicht schräg wirkt handgeschrieben.'),
+      check('invert', 'Invertiert (weiß auf schwarz)'),
+      check('border', 'Rahmen'),
+      h('h3', { class: 'group-title' }, 'Papier & Drucker'),
+      h('div', { class: 'grid-2' },
+        field('Vorschub vorher (mm)', numIn('feedBefore', 0, 50)),
+        field('Vorschub nachher (mm)', numIn('feedAfter', 0, 50))),
+      field('Kopien', numIn('copies', 1, 10)),
+      check('dither', 'Fotos rastern (Graustufen)'),
+      field('Schwärzung', dens, 'Wirkt beim nächsten Druck.'),
+      field('Übertragung', mode),
+      info, reset);
+    redraw();
+    return () => { c.upd(); const p = dev.printer; info.textContent = p.connected ? (p.device?.name || '') + ' · ' + p.width + ' px (' + Math.round(p.width / 8) + ' mm) breit' + (p.battery != null ? ' · Akku ' + p.battery + ' %' : '') + (p.printing ? ' · druckt …' : '') : 'Nicht verbunden – Vorschau funktioniert trotzdem.'; };
+  },
+
+  vibrate(body) {
+    const ok = 'vibrate' in navigator;
+    body.append(
+      h('p', {}, 'Lässt das Handy vibrieren – unauffällig in der Tasche. Zahlen werden gezählt: Zehner lang, Einer kurz (12 = lang · kurz kurz).'),
+      ok ? '' : h('p', { class: 'callout' }, 'Dieser Browser kann nicht vibrieren (iPhone/Safari/Bluefy unterstützen das nicht).'),
+      h('div', { class: 'row' }, ...['3', '7', '12'].map((n) => h('button', { class: 'btn', type: 'button', disabled: !ok, onclick: () => hub.deliver('vibrate', { kind: 'text', text: n }) }, 'Test ' + n))));
+    return null;
   },
 
   speech(body) {
@@ -577,14 +703,14 @@ for (const [id, d] of Object.entries(dev)) {
 }
 
 // ---------------------------------------------------------------- Kombis
-function chip(srcOrTarget, extra = {}) {
-  return h('span', { class: 'chip-static', ...extra }, icon(srcOrTarget.icon), srcOrTarget.label);
+function chip(srcOrTarget, extra = {}, note = '') {
+  return h('span', { class: 'chip-static', ...extra }, icon(srcOrTarget.icon), srcOrTarget.label, note ? h('small', {}, ' ' + note) : null);
 }
 
 function isLive(id) {
   const map = { 'peeksmith-buttons': 'peeksmith', 'selfie-buttons': 'selfie' };
   const key = map[id] || id;
-  if (key === 'manual' || key === 'speech') return true;
+  if (key === 'manual' || key === 'speech' || key === 'vibrate') return true;
   return dev[key] ? dev[key].connected : true;
 }
 
@@ -593,68 +719,230 @@ function renderCombos() {
   if (!hub.combos.length) {
     list.replaceChildren(h('div', { class: 'empty-card' }, h('strong', {}, 'Noch keine Kombi.'), h('span', {}, 'Nimm eine Vorlage unten oder baue eine eigene.')));
   } else {
-    list.replaceChildren(...hub.combos.map((c) => {
+    list.replaceChildren(...hub.combos.map((c, idx) => {
       const src = hub.sources.get(c.source);
-      const offline = [c.source, ...c.targets].filter((x) => !isLive(x)).map((x) => (hub.sources.get(x) || hub.targets.get(x))?.label);
+      const ids = [c.source, ...c.actions.map((a) => a.target)];
+      const offline = [...new Set(ids)].filter((x) => !isLive(x)).map((x) => (hub.sources.get(x) || hub.targets.get(x))?.label);
       const toggle = h('input', { type: 'checkbox', role: 'switch', 'aria-label': 'Kombi aktiv' });
       toggle.checked = c.enabled;
       toggle.addEventListener('change', () => hub.updateCombo(c.id, { enabled: toggle.checked }));
+      const cond = describeWhen(c.when);
+      const extras = [
+        c.content === 'last' ? 'sendet letzten Inhalt' : c.content === 'fixed' ? 'sendet: ' + c.template : (c.template !== '{text}' ? 'Format: ' + c.template : ''),
+        c.map.trim() ? 'mit Zuordnung' : '',
+        c.cooldown ? 'Sperre ' + c.cooldown + ' s' : '',
+        c.onlyNew ? 'nur neue Werte' : '',
+        c.once ? 'einmalig' : '',
+      ].filter(Boolean);
       return h('article', { class: 'combo card' + (c.enabled ? '' : ' disabled') },
+        c.name ? h('strong', { class: 'combo-name' }, c.name) : null,
         h('div', { class: 'combo-flow' },
           src ? chip(src) : h('span', {}, c.source),
+          cond ? h('span', { class: 'cond' }, cond) : null,
           h('span', { class: 'arrow', 'aria-hidden': 'true' }, '→'),
-          h('span', { class: 'combo-targets' }, ...c.targets.map((t) => hub.targets.get(t)).filter(Boolean).map((t) => chip(t)))),
+          h('span', { class: 'combo-targets' }, ...c.actions.map((a) => {
+            const t = hub.targets.get(a.target);
+            if (!t) return null;
+            const note = [a.delay ? '+' + a.delay + ' s' : '', a.do === 'clear' ? 'leeren' : '', a.hideAfter ? a.hideAfter + ' s sichtbar' : ''].filter(Boolean).join(', ');
+            return chip(t, note ? { title: note } : {}, note);
+          }))),
+        extras.length ? h('small', { class: 'muted combo-extras' }, extras.join(' · ')) : null,
         h('div', { class: 'combo-foot' },
-          h('small', { class: offline.length ? 'warn' : 'muted' }, offline.length ? 'Nicht verbunden: ' + offline.join(', ') : (c.template !== '{text}' ? 'Format: ' + c.template : 'Bereit')),
+          h('small', { class: offline.length ? 'warn' : 'muted' }, offline.length ? 'Nicht verbunden: ' + offline.join(', ') : 'Bereit'),
           h('span', { class: 'combo-actions' },
+            h('button', { class: 'btn btn-ghost btn-small', type: 'button', title: 'Mit Beispielwert auslösen', onclick: () => testCombo(c) }, 'Testen'),
             h('button', { class: 'btn btn-ghost btn-small', type: 'button', onclick: () => openComboBuilder(c) }, 'Ändern'),
-            h('button', { class: 'btn btn-ghost btn-small', type: 'button', onclick: () => { hub.removeCombo(c.id); toast('Kombi gelöscht'); } }, 'Löschen'),
+            idx > 0 ? h('button', { class: 'btn btn-ghost btn-small', type: 'button', 'aria-label': 'Nach oben', onclick: () => hub.moveCombo(c.id, -1) }, '↑') : null,
             h('label', { class: 'switch' }, toggle, h('span', {})))));
     }));
   }
   $('#presets').replaceChildren(...PRESETS.map((p) => {
-    const exists = hub.combos.some((c) => c.source === p.source && p.targets.every((t) => c.targets.includes(t)));
-    return h('button', { class: 'preset', type: 'button', disabled: exists, onclick: () => { hub.addCombo({ source: p.source, targets: p.targets, template: p.template }); toast('Kombi angelegt'); } },
-      h('span', { class: 'preset-flow' }, icon(hub.sources.get(p.source).icon), '→', ...p.targets.map((t) => icon(hub.targets.get(t).icon))),
+    const exists = hub.combos.some((c) => c.name === p.name);
+    return h('button', { class: 'preset', type: 'button', disabled: exists, onclick: () => { hub.addCombo({ ...p, actions: p.actions.map((a) => ({ ...a })) }); toast('Kombi angelegt'); } },
+      h('span', { class: 'preset-flow' }, icon(hub.sources.get(p.source).icon), '→', ...[...new Set(p.actions.map((a) => a.target))].map((t) => icon(hub.targets.get(t).icon))),
       h('span', {}, p.name), h('small', {}, exists ? 'vorhanden' : 'übernehmen'));
   }));
 }
 hub.addEventListener('combos', renderCombos);
 $('#combo-new').addEventListener('click', () => openComboBuilder());
 
+/** Beispielwert für den Testknopf. */
+function sampleValue(combo) {
+  const w = combo.when;
+  if (w.type === 'is' || w.type === 'contains') return String(w.value).split(',')[0].trim();
+  if (w.type === 'range') return String(w.min !== '' ? w.min : w.max || 1);
+  if (w.type === 'even') return '4';
+  if (w.type === 'odd') return '3';
+  const s = hub.sources.get(combo.source);
+  return s?.values?.()[0] || 'Test';
+}
+
+function testCombo(combo) {
+  const s = hub.sources.get(combo.source);
+  const payload = s?.kind === 'image'
+    ? { kind: 'image', strokes: dev.pen.strokes.length ? dev.pen.strokes.map((x) => x.slice()) : demoStrokes(), source: combo.source }
+    : { kind: s?.kind === 'trigger' ? 'trigger' : 'text', text: sampleValue(combo), source: combo.source };
+  hub.fire(combo, payload, { force: true });
+  toast('Test: „' + comboLabel(hub, combo) + '“ ausgelöst');
+}
+
 function openComboBuilder(existing = null) {
   openId = null;
   sheetUpdate = null;
   $('#sheet-icon').replaceChildren(icon('combo'));
   $('#sheet-title').textContent = existing ? 'Kombi ändern' : 'Neue Kombi';
-  $('#sheet-status').textContent = 'Eingabe wählen, dann eine oder mehrere Ausgaben';
+  $('#sheet-status').textContent = 'Auslöser → Bedingung → Inhalt → Aktionen';
   $('#sheet-status').className = 'sheet-status';
-  let source = existing?.source || null;
-  const targets = new Set(existing?.targets || []);
-  const tpl = h('input', { type: 'text', value: existing?.template || '{text}' });
+
+  const c = existing
+    ? JSON.parse(JSON.stringify(existing))
+    : { name: '', source: null, when: { type: 'any', value: '', min: '', max: '' }, content: 'event', map: '', template: '{text}', actions: [], cooldown: 0, onlyNew: false, once: false };
+
+  // 1 Auslöser
   const srcBox = h('div', { class: 'chips' });
-  const tgtBox = h('div', { class: 'chips' });
-  const save = h('button', { class: 'btn btn-primary btn-block', type: 'button' }, existing ? 'Speichern' : 'Kombi anlegen');
-  const draw = () => {
-    srcBox.replaceChildren(...[...hub.sources.values()].map((s) => h('button', { type: 'button', class: 'chip' + (s.id === source ? ' on' : ''), 'aria-pressed': String(s.id === source), onclick: () => { source = s.id; [...targets].forEach((t) => { if (!hub.compatible(source, t)) targets.delete(t); }); draw(); } }, icon(s.icon), s.label)));
-    tgtBox.replaceChildren(...[...hub.targets.values()].map((t) => {
-      const ok = !source || hub.compatible(source, t.id);
-      return h('button', { type: 'button', class: 'chip' + (targets.has(t.id) ? ' on' : ''), disabled: !ok, 'aria-pressed': String(targets.has(t.id)), onclick: () => { targets.has(t.id) ? targets.delete(t.id) : targets.add(t.id); draw(); } }, icon(t.icon), t.label);
-    }));
-    save.disabled = !source || !targets.size;
+  const srcHint = h('p', { class: 'hint' });
+  // 2 Bedingung
+  const condType = h('select', {}, ...Object.entries(CONDITIONS).map(([k, l]) => h('option', { value: k }, l)));
+  const listId = 'vals' + Math.random().toString(36).slice(2, 6);
+  const values = h('datalist', { id: listId });
+  const condVal = h('input', { type: 'text', list: listId, placeholder: 'z. B. 6 oder Rot, Blau', autocomplete: 'off' });
+  const condMin = h('input', { type: 'number', placeholder: 'von', inputmode: 'decimal' });
+  const condMax = h('input', { type: 'number', placeholder: 'bis', inputmode: 'decimal' });
+  const condValRow = field('Wert(e)', condVal, 'Mehrere durch Komma trennen. Groß/klein egal.');
+  const condRangeRow = h('div', { class: 'grid-2' }, field('Von', condMin), field('Bis', condMax));
+  const suggest = h('div', { class: 'chips chips-small' });
+  // 3 Inhalt
+  const contentSel = h('select', {}, ...Object.entries(CONTENTS).map(([k, l]) => h('option', { value: k }, l)));
+  const tpl = h('input', { type: 'text', autocomplete: 'off' });
+  const map = h('textarea', { rows: 4, placeholder: '1=Pik Ass\n2=Herz Dame\nRot=Feuer\n*=Unbekannt' });
+  // 4 Aktionen
+  const actBox = h('div', { class: 'stack actions-list' });
+  const addSel = h('select', { 'aria-label': 'Ziel für neue Aktion' });
+  const addBtn = h('button', { class: 'btn', type: 'button' }, '+ Aktion');
+  // 5 Optionen
+  const name = h('input', { type: 'text', placeholder: 'z. B. Kartenvorhersage', maxlength: 40 });
+  const cooldown = h('input', { type: 'number', min: 0, max: 600, step: 1, inputmode: 'numeric' });
+  const onlyNew = h('input', { type: 'checkbox' });
+  const once = h('input', { type: 'checkbox' });
+
+  const save = h('button', { class: 'btn btn-primary', type: 'button' }, existing ? 'Speichern' : 'Kombi anlegen');
+  const test = h('button', { class: 'btn', type: 'button' }, 'Testen');
+  const del = existing ? h('button', { class: 'btn btn-ghost', type: 'button' }, 'Löschen') : null;
+
+  const read = () => {
+    c.when = { type: condType.value, value: condVal.value.trim(), min: condMin.value, max: condMax.value };
+    c.content = contentSel.value;
+    c.template = tpl.value || '{text}';
+    c.map = map.value;
+    c.name = name.value.trim();
+    c.cooldown = Math.max(0, Number(cooldown.value) || 0);
+    c.onlyNew = onlyNew.checked;
+    c.once = once.checked;
   };
+
+  const drawActions = () => {
+    actBox.replaceChildren(...(c.actions.length ? c.actions.map((a, i) => {
+      const t = hub.targets.get(a.target);
+      const doSel = h('select', { 'aria-label': 'Aktion' }, h('option', { value: 'show' }, 'Anzeigen'), t?.clear ? h('option', { value: 'clear' }, 'Leeren') : null);
+      doSel.value = a.do;
+      const delay = h('input', { type: 'number', min: 0, max: 600, step: 0.5, value: a.delay, inputmode: 'decimal', 'aria-label': 'Verzögerung in Sekunden' });
+      const hide = h('input', { type: 'number', min: 0, max: 600, step: 0.5, value: a.hideAfter, inputmode: 'decimal', 'aria-label': 'Nach Sekunden wieder leeren' });
+      doSel.addEventListener('change', () => { a.do = doSel.value; drawActions(); });
+      delay.addEventListener('input', () => { a.delay = Math.max(0, Number(delay.value) || 0); });
+      hide.addEventListener('input', () => { a.hideAfter = Math.max(0, Number(hide.value) || 0); });
+      return h('div', { class: 'action-row' },
+        h('div', { class: 'action-head' },
+          h('span', { class: 'num' }, String(i + 1)),
+          t ? chip(t) : a.target,
+          h('span', { class: 'spacer' }),
+          i > 0 ? h('button', { class: 'btn btn-ghost btn-small', type: 'button', 'aria-label': 'Nach oben', onclick: () => { c.actions.splice(i - 1, 0, c.actions.splice(i, 1)[0]); drawActions(); } }, '↑') : null,
+          h('button', { class: 'btn btn-ghost btn-small', type: 'button', 'aria-label': 'Aktion entfernen', onclick: () => { c.actions.splice(i, 1); drawActions(); } }, '✕')),
+        h('div', { class: 'action-fields' },
+          h('label', {}, h('span', {}, 'Was'), doSel),
+          h('label', {}, h('span', {}, 'Nach … s'), delay),
+          a.do === 'show' && t?.clear ? h('label', {}, h('span', {}, 'Leeren nach … s'), hide) : null));
+    }) : [h('p', { class: 'empty' }, 'Noch keine Aktion. Ziel wählen und „+ Aktion“.')]));
+    validate();
+  };
+
+  const drawAddSel = () => {
+    const keep = addSel.value;
+    addSel.replaceChildren(...[...hub.targets.values()].map((t) => h('option', { value: t.id, disabled: !!c.source && !hub.compatible(c.source, t.id, contentSel.value) }, t.label)));
+    if (keep && !addSel.querySelector('option[value="' + keep + '"]:disabled')) addSel.value = keep;
+    else { const first = addSel.querySelector('option:not(:disabled)'); if (first) addSel.value = first.value; }
+  };
+
+  const drawCond = () => {
+    const t = condType.value;
+    condValRow.hidden = !['is', 'not', 'contains'].includes(t);
+    condRangeRow.hidden = t !== 'range';
+    const s = hub.sources.get(c.source);
+    const vals = s?.values?.() || [];
+    values.replaceChildren(...vals.map((v) => h('option', { value: v })));
+    suggest.hidden = condValRow.hidden || !vals.length;
+    suggest.replaceChildren(...vals.slice(0, 12).map((v) => h('button', { type: 'button', class: 'chip', onclick: () => {
+      const cur = condVal.value.split(',').map((x) => x.trim()).filter(Boolean);
+      if (!cur.includes(v)) cur.push(v);
+      condVal.value = cur.join(', ');
+    } }, v)));
+  };
+
+  const drawSources = () => {
+    srcBox.replaceChildren(...[...hub.sources.values()].map((s) => h('button', { type: 'button', class: 'chip' + (s.id === c.source ? ' on' : ''), 'aria-pressed': String(s.id === c.source), onclick: () => {
+      c.source = s.id;
+      if (s.kind === 'trigger' && contentSel.value === 'event' && !existing) contentSel.value = 'last';
+      drawSources(); drawCond(); drawAddSel(); validate();
+    } }, icon(s.icon), s.label)));
+    const s = hub.sources.get(c.source);
+    srcHint.textContent = s ? s.hint : 'Was soll die Kombi auslösen?';
+  };
+
+  const validate = () => {
+    const okTargets = c.actions.every((a) => a.do === 'clear' || hub.compatible(c.source, a.target, contentSel.value));
+    save.disabled = !c.source || !c.actions.length || !okTargets;
+    test.disabled = save.disabled;
+  };
+
+  // Werte setzen
+  condType.value = c.when.type; condVal.value = c.when.value || ''; condMin.value = c.when.min ?? ''; condMax.value = c.when.max ?? '';
+  contentSel.value = c.content; tpl.value = c.template; map.value = c.map;
+  name.value = c.name; cooldown.value = c.cooldown || 0; onlyNew.checked = c.onlyNew; once.checked = c.once;
+
+  condType.addEventListener('change', drawCond);
+  contentSel.addEventListener('change', () => { drawAddSel(); validate(); });
+  addBtn.addEventListener('click', () => {
+    if (!addSel.value || addSel.selectedOptions[0]?.disabled) return;
+    c.actions.push({ target: addSel.value, do: 'show', delay: 0, hideAfter: 0 });
+    drawActions();
+  });
   save.addEventListener('click', () => {
-    const data = { source, targets: [...targets], template: tpl.value.includes('{text}') ? tpl.value : '{text}' };
-    if (existing) hub.updateCombo(existing.id, data); else hub.addCombo(data);
+    read();
+    if (existing) hub.updateCombo(existing.id, c); else hub.addCombo(c);
     sheet.close();
     toast(existing ? 'Kombi gespeichert' : 'Kombi angelegt', 'ok');
   });
-  draw();
+  test.addEventListener('click', () => { read(); testCombo({ ...c, id: existing?.id || 'test' }); });
+  del?.addEventListener('click', () => { hub.removeCombo(existing.id); sheet.close(); toast('Kombi gelöscht'); });
+
+  drawSources(); drawCond(); drawAddSel(); drawActions();
+
+  const step = (n, title) => h('h3', { class: 'step-title' }, h('span', { class: 'num' }, String(n)), title);
   $('#sheet-body').replaceChildren(
-    h('h3', { class: 'step-title' }, h('span', { class: 'num' }, '1'), 'Wenn …'), srcBox,
-    h('h3', { class: 'step-title' }, h('span', { class: 'num' }, '2'), '… dann ausgeben auf'), tgtBox,
-    h('details', {}, h('summary', {}, 'Format (optional)'), field('Text-Vorlage', tpl, '{text} = Wert, {quelle} = Name der Eingabe. Beispiel: „Karte: {text}“. Bilder werden unverändert weitergegeben.')),
-    save);
+    step(1, 'Wenn …'), srcBox, srcHint,
+    step(2, '… und wenn der Wert …'), field('Bedingung', condType), condValRow, suggest, condRangeRow, values,
+    step(3, '… dann senden'), field('Inhalt', contentSel),
+    field('Text-Vorlage', tpl, TEMPLATE_VARS + '. Beispiel: „Deine Karte: {text}“.'),
+    h('details', { open: !!c.map.trim() }, h('summary', {}, 'Zuordnung (Wert → Text)'),
+      field('Eine Zeile pro Wert', map, 'Format „Wert=Text“. Mehrere Werte: „1,2=Klein“. „*=…“ gilt für alles andere. Beispiel: Würfel 3 → „Karo Drei“.')),
+    step(4, 'Aktionen (der Reihe nach)'), actBox,
+    h('div', { class: 'row add-action' }, addSel, addBtn),
+    h('p', { class: 'hint' }, '„Nach … s“ verzögert die Aktion. „Leeren nach … s“ blendet sie wieder aus – ideal für Peeks.'),
+    h('details', {}, h('summary', {}, 'Weitere Optionen'),
+      field('Name (optional)', name),
+      field('Sperrzeit (s)', cooldown, 'Nach dem Auslösen so lange ignorieren – gegen doppelte Würfe oder Tastenprellen.'),
+      h('label', { class: 'switch-row' }, onlyNew, h('span', {}, 'Nur auslösen, wenn sich der Wert geändert hat')),
+      h('label', { class: 'switch-row' }, once, h('span', {}, 'Nur einmal auslösen, danach ausschalten'))),
+    h('div', { class: 'row sheet-actions' }, save, test, del));
   if (!sheet.open) sheet.showModal();
 }
 
@@ -662,7 +950,7 @@ function openComboBuilder(existing = null) {
 const logEl = $('#log');
 function addLog(kind, label, text) {
   const t = new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-  logEl.prepend(h('li', { class: 'log-' + kind }, h('time', {}, t), h('span', { class: 'log-dir' }, kind === 'in' ? '▸' : kind === 'out' ? '◂' : '!'), h('strong', {}, label), h('span', {}, text || '')));
+  logEl.prepend(h('li', { class: 'log-' + kind }, h('time', {}, t), h('span', { class: 'log-dir' }, kind === 'in' ? '▸' : kind === 'out' ? '◂' : kind === 'skip' ? '·' : '!'), h('strong', {}, label), h('span', {}, text || '')));
   while (logEl.children.length > 80) logEl.lastChild.remove();
 }
 hub.addEventListener('activity', (e) => {
@@ -675,6 +963,10 @@ hub.addEventListener('unrouted', (e) => {
   if (e.detail.source === 'manual') toast('Keine Kombi für „Manuell“ – nutze die Schnellziele darunter.');
 });
 $('#log-clear').addEventListener('click', () => logEl.replaceChildren());
+$('#cancel-pending').addEventListener('click', () => {
+  const n = hub.cancelPending();
+  toast(n ? n + ' geplante Aktion(en) abgebrochen' : 'Nichts geplant');
+});
 
 $('#manual-form').addEventListener('submit', (e) => {
   e.preventDefault();
@@ -697,7 +989,7 @@ const DEMOS = [
 ];
 $('#demo-buttons').replaceChildren(...DEMOS.map((d) => h('button', { type: 'button', class: 'chip', onclick: d.run }, icon(d.icon), d.label)));
 drawPreview(pv.selfie, textCanvas('MagicHub', 160, 192));
-drawPreview(pv.print, printTextCanvas('MagicHub', 384));
+renderPrint({ kind: 'text', text: 'MagicHub' }).then(({ page }) => drawPreview(pv.print, page));
 
 // ---------------------------------------------------------------- Einrichtung & Hilfe
 const appUrl = resolvedAppUrl();
@@ -751,7 +1043,9 @@ $('#test-status').replaceChildren(...[
   'Ultra Sharpie / Ultra Pen (Init-Sequenz, Koordinaten)',
   'PeekSmith (Text, Tasten; Umlaute/PS3-Schrift vereinfacht)',
   'Selfie Screen (JPEG-Übertragung, Tasten)',
-  'Peripage P21 (Druck, Flusssteuerung, Papiervorschub)',
+  'Peripage P21 (Druck, Flusssteuerung, Papiervorschub, Querdruck-Richtung, Kopien)',
+  'Kostenlose Erkennung (Google Handschrift, Tesseract) mit echtem Stift',
+  'Vibration auf Android',
   'GoDice und Davinci-Palette in dieser App (in den Einzel-Apps erprobt)',
   'Inject mit echter Account-ID',
   'KI-Erkennung mit echten Keys (Claude, OpenAI, Gemini, Google Vision) und lokale Browser-KI',

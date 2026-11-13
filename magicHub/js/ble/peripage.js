@@ -17,7 +17,7 @@ const ZERO_96 = new Uint8Array(96);
 export class PeripagePrinter extends BleDevice {
   constructor() {
     super('printer', 'Peripage P21');
-    this.density = '02'; // MysterSmith-Standard; höher = dunkler (00..08 je nach Modell)
+    this.density = '02'; // MysterSmith: 00 hell, 01 mittel, 02 dunkel
     this.mode = 'official'; // 'official' (Credits) | 'safe' (Pausen)
     this.battery = null;
     this.printing = false;
@@ -128,6 +128,16 @@ export class PeripagePrinter extends BleDevice {
     } finally {
       this.printing = false;
     }
+  }
+
+  /** Mehrere Kopien mit Vorschub davor/danach. */
+  async printJob(canvas, { dither = false, copies = 1, feedBefore = 0, feedAfter = 0 } = {}) {
+    if (feedBefore > 0) await this.feed(feedBefore);
+    for (let i = 0; i < copies; i++) {
+      if (i) this.log('info', 'Kopie ' + (i + 1) + ' von ' + copies);
+      await this.printCanvas(canvas, { dither });
+    }
+    if (feedAfter > 0) await this.feed(feedAfter);
   }
 
   async feed(mm = 10) {

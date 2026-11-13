@@ -2,11 +2,11 @@
 // Offline-Oberfläche ≠ Offline-Funktion: Web-Quellen und KI brauchen Internet, Bluetooth braucht die Geräte.
 // Bei Änderungen an Dateien VERSION erhöhen, damit Nutzer die neue Fassung bekommen.
 
-const VERSION = 'magichub-0.1.3';
+const VERSION = 'magichub-0.2.0';
 const ASSETS = [
   './', './index.html', './manifest.webmanifest', './css/app.css',
   './vendor/godice.js',
-  './js/main.js', './js/config.js', './js/platform.js', './js/bluefy.js', './js/hub.js', './js/render.js',
+  './js/main.js', './js/print-layout.js', './js/config.js', './js/platform.js', './js/bluefy.js', './js/hub.js', './js/render.js',
   './js/ble/base.js', './js/ble/godice.js', './js/ble/davinci.js', './js/ble/ultrasharpie.js',
   './js/ble/peeksmith.js', './js/ble/selfiescreen.js', './js/ble/peripage.js',
   './js/web/sources.js', './js/ai/vision.js',

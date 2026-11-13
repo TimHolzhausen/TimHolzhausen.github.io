@@ -8,13 +8,15 @@ Web-App, die Zauber-Gadgets per **Web Bluetooth** verbindet und frei **kombinier
 | --- | --- |
 | GoDice (mehrere Würfel, Summe/Einzelwerte) | PeekSmith One/2/3 (Text, Helligkeit) |
 | Davinci-Palette (5 Farbtöpfe) | Selfie Screen (Text, Zeichnung, Foto als JPEG) |
-| Ultra Sharpie / Ultra Pen (Zeichnung) | Peripage P21 (Text, Zeichnung drucken) |
-| KI-Erkennung der Zeichnung (Claude, OpenAI, Gemini, Google Vision, lokal) | Sprachausgabe (Handy) |
-| Inject (Web-Abfrage), eigene JSON-URL | |
+| Ultra Sharpie / Ultra Pen (Zeichnung) | Peripage P21 (quer/hochkant, Schrift, Ränder, Kopien …) |
+| Erkennung der Zeichnung: **kostenlos** (Google Handschrift, Tesseract) oder per Key (Claude, OpenAI, Gemini, Google Vision), lokal | Sprachausgabe (Handy) |
+| Inject (Web-Abfrage), eigene JSON-URL | Vibration (Handy, nicht iPhone) |
 | PeekSmith- und Selfie-Tasten (Auslöser) | |
 
-Eine **Kombi** leitet eine Eingabe an eine oder mehrere Ausgaben, optional mit Text-Vorlage (`Karte: {text}`).
-Tasten-Eingaben geben den letzten Inhalt erneut aus (z. B. Selfie-Auslöser → letzten Wert drucken).
+Eine **Kombi** ist eine Regel: **Auslöser** (Eingabe) → **Bedingung** (immer, „ist genau“, „enthält“,
+Zahlenbereich, gerade/ungerade) → **Inhalt** (Wert, letzter Inhalt oder eigener Text, mit Zuordnung
+`3=Karo Drei` und Vorlage `Karte: {text}`) → beliebig viele **Aktionen** (anzeigen/leeren, Verzögerung,
+nach x s ausblenden). Dazu Sperrzeit, „nur neue Werte“, „nur einmal“ und ein Testknopf.
 
 ## Starten (lokal)
 
@@ -63,7 +65,8 @@ magicHub/
     ├── main.js             Oberfläche: Geräte, Kombis, Live, Einrichtung, Hilfe
     ├── hub.js              Quellen → Kombis → Ziele, Speicherung
     ├── config.js, platform.js, bluefy.js
-    ├── render.js           Text/Zeichnung → Canvas
+    ├── render.js           Text/Zeichnung → Canvas (Displays)
+    ├── print-layout.js     Drucklayout (Ausrichtung, Schrift, Ränder …) für Thermodrucker
     ├── ble/                base.js + je Gerät ein Treiber
     ├── web/sources.js      Inject, JSON-URL
     └── ai/vision.js        KI-Anbieter
@@ -87,6 +90,9 @@ magicHub/
 - [ ] GoDice & Davinci in dieser App (in den Einzel-Apps erprobt)
 - [ ] Inject mit echter Account-ID
 - [ ] KI: Claude, OpenAI, Gemini, Google Vision mit echten Keys; lokale KI in Chrome
+  (Google Handschrift und Tesseract am PC mit Test-Strichen geprüft, noch nicht mit echtem Stift)
+- [ ] Peripage: Querdruck-Richtung (rechts/links) am echten Gerät, Kopien, Vorschub
+- [ ] Vibration auf Android
 - [ ] Bluefy-Direktlink (beide Varianten) auf echtem iPhone
 - [ ] Apple-Kurzbefehl importieren, auf Home-Bildschirm legen, starten
 - [ ] Bluefy-Vollbild (manuell)

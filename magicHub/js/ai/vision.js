@@ -20,6 +20,20 @@ export const AI_TASKS = {
 };
 
 export const PROVIDERS = {
+  ghand: {
+    label: 'Google Handschrift (kostenlos)',
+    needsKey: false,
+    free: true,
+    note: 'Kostenlos, ohne Key. Nutzt die Stift-Striche direkt (wie die Google-Tastatur) – sehr gut für Wörter, Zahlen und Namen. ' +
+      'Inoffizielle Schnittstelle von Google: kann sich ohne Ankündigung ändern. „Zeichnung → Begriff“ funktioniert auch (häufige Begriffe auf Deutsch, sonst englisch).',
+  },
+  tesseract: {
+    label: 'Tesseract (kostenlos, offline)',
+    needsKey: false,
+    free: true,
+    note: 'Kostenlose Texterkennung direkt im Browser. Lädt einmalig ca. 5–10 MB, danach offline. ' +
+      'Gut für Druckbuchstaben, schwach bei Schreibschrift. Nur „Handschrift → Text“.',
+  },
   claude: {
     label: 'Claude (Anthropic)',
     needsKey: true,
@@ -42,13 +56,13 @@ export const PROVIDERS = {
     keyHint: 'AIza…',
     defaultModel: 'gemini-2.5-flash',
     freeModel: true,
-    note: 'Key bei aistudio.google.com. Modellname bei Bedarf anpassen.',
+    note: 'Key bei aistudio.google.com – dort gibt es meist eine kostenlose Stufe mit Tageslimit. Modellname bei Bedarf anpassen.',
   },
   gvision: {
     label: 'Google Cloud Vision',
     needsKey: true,
     keyHint: 'AIza…',
-    note: 'Reine Texterkennung (OCR), sehr gut für Handschrift. „Zeichnung → Begriff“ liefert englische Labels. Key in der Google Cloud Console mit aktivierter Vision API.',
+    note: 'Reine Texterkennung (OCR), sehr gut für Handschrift. Die ersten 1000 Bilder pro Monat sind kostenlos. „Zeichnung → Begriff“ liefert englische Labels. Key in der Google Cloud Console mit aktivierter Vision API.',
   },
   local: {
     label: 'Lokal auf dem Gerät (experimentell)',
@@ -62,7 +76,7 @@ export class AiVision extends EventTarget {
     super();
     this.id = 'ai';
     this.label = 'KI';
-    this.provider = 'claude';
+    this.provider = 'ghand';
     this.keys = {}; // provider → key
     this.models = {}; // provider → Modellname
     this.task = 'handwriting';
@@ -87,8 +101,11 @@ export class AiVision extends EventTarget {
     this.dispatchEvent(new CustomEvent('status', { detail: { status, message } }));
   }
 
-  /** @param {HTMLCanvasElement} canvas  weißer Hintergrund, dunkle Striche */
-  async recognize(canvas) {
+  /**
+   * @param {HTMLCanvasElement} canvas  weißer Hintergrund, dunkle Striche
+   * @param {Array<Array<{x,y}>>} [strokes]  Original-Striche (für Google Handschrift)
+   */
+  async recognize(canvas, strokes = null) {
     if (!this.ready) throw new Error('Bitte zuerst einen API-Key für ' + PROVIDERS[this.provider].label + ' eintragen.');
     if (this.busy) throw new Error('Erkennung läuft bereits');
     this.busy = true;
@@ -96,8 +113,8 @@ export class AiVision extends EventTarget {
     try {
       const b64 = canvas.toDataURL('image/png').split(',')[1];
       const prompt = AI_TASKS[this.task].prompt;
-      const run = { claude, openai, gemini, gvision, local }[this.provider];
-      const text = clean(await run({ key: this.key, model: this.model, b64, canvas, prompt, task: this.task }));
+      const run = { ghand, tesseract, claude, openai, gemini, gvision, local }[this.provider];
+      const text = clean(await run({ key: this.key, model: this.model, b64, canvas, prompt, task: this.task, strokes }));
       this.refreshStatus();
       return text || '?';
     } catch (err) {
@@ -216,4 +233,84 @@ async function local({ canvas, prompt, task }) {
     return found.map((f) => f.rawValue).join(' ');
   }
   throw new Error('Auf diesem Gerät/Browser ist keine lokale KI verfügbar.');
+}
+
+// --- Google Handschrift (inoffizielle Input-Tools-Schnittstelle, wie Google-Tastatur / AutoDraw) ---
+// Erwartet Striche als [[xs], [ys], [ts]]. Antwort: ["SUCCESS", [[id, [Kandidaten…], …]]].
+async function ghand({ strokes, canvas, task }) {
+  if (!strokes?.length) strokes = strokesFromCanvas(canvas);
+  if (!strokes.length) throw new Error('Keine Striche zum Erkennen.');
+  let maxX = 1, maxY = 1;
+  for (const s of strokes) for (const p of s) { maxX = Math.max(maxX, p.x); maxY = Math.max(maxY, p.y); }
+  // Auf 0..1000 skalieren und lange Strecken mit Zwischenpunkten füllen (wie echte Stift-Abtastung).
+  let minX = Infinity, minY = Infinity;
+  for (const s of strokes) for (const p of s) { minX = Math.min(minX, p.x); minY = Math.min(minY, p.y); }
+  const scale = 1000 / Math.max(maxX - minX, maxY - minY, 1);
+  const ink = strokes.filter((s) => s.length).map((s) => {
+    const xs = [], ys = [], ts = [];
+    let t = 0;
+    s.forEach((p, i) => {
+      const x = (p.x - minX) * scale, y = (p.y - minY) * scale;
+      if (i) {
+        const px = xs[xs.length - 1], py = ys[ys.length - 1];
+        const steps = Math.floor(Math.hypot(x - px, y - py) / 15);
+        for (let k = 1; k < steps; k++) { xs.push(Math.round(px + (x - px) * k / steps)); ys.push(Math.round(py + (y - py) * k / steps)); ts.push(t += 10); }
+      }
+      xs.push(Math.round(x)); ys.push(Math.round(y)); ts.push(t += 10);
+    });
+    return [xs, ys, ts];
+  });
+  maxX = maxY = 1000;
+  const drawing = task === 'drawing';
+  const url = 'https://inputtools.google.com/request?ime=handwriting&app=' + (drawing ? 'autodraw' : 'mobilesearch') + '&cs=1&oe=UTF-8';
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      options: 'enable_pre_space',
+      requests: [{ writing_guide: { writing_area_width: Math.round(maxX * 1.1), writing_area_height: Math.round(maxY * 1.1) }, ink, language: drawing ? 'quickdraw' : 'de' }],
+    }),
+  });
+  if (!res.ok) throw new Error('Google Handschrift: Fehler ' + res.status);
+  const json = await res.json();
+  if (json?.[0] !== 'SUCCESS') throw new Error('Google Handschrift hat nichts erkannt.');
+  const cands = json[1]?.[0]?.[1] || [];
+  if (drawing) return DRAW_DE[String(cands[0] || '').toLowerCase()] || cands[0] || '';
+  return cands[0] || '';
+}
+
+// Häufige Zeichen-Begriffe (Quick-Draw-Kategorien) auf Deutsch; Rest bleibt englisch.
+const DRAW_DE = {
+  house: 'Haus', heart: 'Herz', star: 'Stern', sun: 'Sonne', moon: 'Mond', tree: 'Baum', flower: 'Blume', car: 'Auto',
+  cat: 'Katze', dog: 'Hund', fish: 'Fisch', bird: 'Vogel', apple: 'Apfel', banana: 'Banane', cloud: 'Wolke', key: 'Schlüssel',
+  clock: 'Uhr', umbrella: 'Regenschirm', cup: 'Tasse', 'coffee cup': 'Kaffeetasse', glasses: 'Brille', eye: 'Auge', hat: 'Hut',
+  book: 'Buch', boat: 'Boot', airplane: 'Flugzeug', bicycle: 'Fahrrad', guitar: 'Gitarre', bell: 'Glocke', candle: 'Kerze',
+  crown: 'Krone', diamond: 'Diamant', door: 'Tür', duck: 'Ente', face: 'Gesicht', 'smiley face': 'Smiley', snowman: 'Schneemann',
+  spider: 'Spinne', snake: 'Schlange', square: 'Quadrat', circle: 'Kreis', triangle: 'Dreieck', hexagon: 'Sechseck',
+  'light bulb': 'Glühbirne', lightning: 'Blitz', mountain: 'Berg', pencil: 'Bleistift', scissors: 'Schere', sword: 'Schwert',
+  television: 'Fernseher', 'wine glass': 'Weinglas', church: 'Kirche', castle: 'Burg', rainbow: 'Regenbogen', cake: 'Kuchen',
+  'birthday cake': 'Geburtstagstorte', 'ice cream': 'Eis', pizza: 'Pizza', mushroom: 'Pilz', butterfly: 'Schmetterling',
+  rabbit: 'Hase', horse: 'Pferd', pig: 'Schwein', cow: 'Kuh', elephant: 'Elefant', lion: 'Löwe', owl: 'Eule', hand: 'Hand',
+  envelope: 'Briefumschlag', 'hot air balloon': 'Heißluftballon', 'the eiffel tower': 'Eiffelturm', anchor: 'Anker', arrow: 'Pfeil',
+};
+
+/** Notbehelf ohne Striche (z. B. Foto): keine Erkennung möglich. */
+function strokesFromCanvas() { return []; }
+
+// --- Tesseract.js (lokal im Browser, lädt Bibliothek + Sprachdaten von jsDelivr) ---
+let tessWorker = null;
+async function tesseract({ canvas, task }) {
+  if (task !== 'handwriting') throw new Error('Tesseract kann nur Text erkennen, keine Zeichnungen.');
+  if (!window.Tesseract) {
+    await new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
+      s.onload = resolve;
+      s.onerror = () => reject(new Error('Tesseract konnte nicht geladen werden (Internet?).'));
+      document.head.append(s);
+    });
+  }
+  if (!tessWorker) tessWorker = await window.Tesseract.createWorker(['deu', 'eng']);
+  const { data } = await tessWorker.recognize(canvas);
+  return (data?.text || '').replace(/\s+/g, ' ');
 }
