@@ -41,6 +41,10 @@
     <a class="btn btn-small" href="#setup">Einrichten</a>
   </div>
 
+  <div id="pocket" class="pocket" hidden aria-label="Taschenmodus – zum Beenden 2 Sekunden gedrückt halten">
+    <span class="pocket-hint" id="pocket-hint">Taschenmodus · zum Beenden 2 s gedrückt halten</span>
+  </div>
+
   <main id="main">
     <!-- Geräte -->
     <section class="view" id="view-devices" aria-labelledby="h-devices">
@@ -102,6 +106,7 @@
           <button class="btn btn-ghost btn-small" id="list-clear" type="button">Leeren</button>
         </div>
         <ol class="session-list" id="session-list"></ol>
+        <button class="btn btn-block" type="button" data-pocket>Taschenmodus (Display schwarz, Vibration und Bluetooth laufen weiter)</button>
         <details>
           <summary>Einstellungen</summary>
           <div id="list-settings"></div>

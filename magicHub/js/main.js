@@ -17,7 +17,7 @@ import { buildPrint, ensureFont, normalizeLayout, FONTS, ORIENTATIONS } from './
 import { STACKS, CARD_FORMATS, cardName, stackMapText } from './stacks.js';
 import { textCanvas, drawingCanvas, fitInto, demoStrokes } from './render.js';
 
-const VERSION = '0.4.3';
+const VERSION = '0.4.4';
 const BT = hasWebBluetooth();
 
 // ---------------------------------------------------------------- Helfer
@@ -203,11 +203,24 @@ hub.registerTarget({
 hub.registerTarget({
   id: 'vibrate', label: 'Vibration', icon: 'vibrate', accepts: ['text'],
   async deliver(p) {
-    if (!('vibrate' in navigator)) throw new Error('Vibration wird hier nicht unterstützt (z. B. iPhone)');
-    navigator.vibrate(vibrationPattern(p.text));
+    vibrateNow(vibrationPattern(p.text));
   },
   clear() { if ('vibrate' in navigator) navigator.vibrate(0); },
 });
+
+/**
+ * Vibrieren mit verständlicher Fehlermeldung. Chrome meldet ein Verbot nur über den Rückgabewert false:
+ * - erst nach dem ersten Tippen auf die Seite erlaubt (Nutzer-Aktivierung),
+ * - nur solange die Seite sichtbar ist (nicht im Hintergrund, nicht bei ausgeschaltetem Display).
+ * Ist true zurückgekommen und es vibriert trotzdem nicht, blockiert Android selbst (Einstellungen).
+ */
+function vibrateNow(pattern) {
+  if (!('vibrate' in navigator)) throw new Error('Vibration wird hier nicht unterstützt (z. B. iPhone)');
+  if (document.visibilityState !== 'visible') throw new Error('MagicHub ist im Hintergrund – Chrome vibriert nur bei sichtbarer Seite');
+  const ok = navigator.vibrate(pattern);
+  if (!ok) throw new Error('Chrome hat die Vibration abgelehnt – einmal auf die Seite tippen, dann geht es');
+  return ok;
+}
 
 /** Zahl n → Impulse: Zehner lang, Einer kurz (z. B. 12 = lang, Pause, kurz, kurz). Text → ein Impuls. */
 function vibrationPattern(text) {
@@ -737,10 +750,27 @@ const PANELS = {
 
   vibrate(body) {
     const ok = 'vibrate' in navigator;
+    const result = h('p', { class: 'hint', role: 'status' });
+    const pocket = h('button', { class: 'btn btn-block', type: 'button', 'data-pocket': '' }, 'Taschenmodus starten');
+    const direct = h('button', { class: 'btn btn-primary', type: 'button', disabled: !ok, onclick: () => {
+      try {
+        vibrateNow([1000]);
+        result.textContent = 'Chrome hat die Vibration angenommen. Spürst du nichts, blockiert Android sie – siehe unten.';
+      } catch (err) { result.textContent = err.message; }
+    } }, 'Einfacher Test: 1 Sekunde');
     body.append(
-      h('p', {}, 'Lässt das Handy vibrieren – unauffällig in der Tasche. Zahlen werden gezählt: Zehner lang, Einer kurz (12 = lang · kurz kurz).'),
+      h('p', {}, 'Lässt das Handy vibrieren. Zahlen werden gezählt: Zehner lang, Einer kurz (12 = lang · kurz kurz).'),
       ok ? '' : h('p', { class: 'callout' }, 'Dieser Browser kann nicht vibrieren (iPhone/Safari/Bluefy unterstützen das nicht).'),
-      h('div', { class: 'row' }, ...['3', '7', '12'].map((n) => h('button', { class: 'btn', type: 'button', disabled: !ok, onclick: () => hub.deliver('vibrate', { kind: 'text', text: n }) }, 'Test ' + n))));
+      direct, result,
+      h('p', { class: 'callout' }, 'In der Hosentasche: Bei ausgeschaltetem Display pausiert Chrome die Seite – dann vibriert nichts und Bluetooth bricht ab. Das kann eine Web-App nicht umgehen. Stattdessen den Taschenmodus nutzen: Display bleibt an, ist aber komplett schwarz (auf OLED-Displays praktisch aus) und reagiert nicht auf Berührungen. Beenden: 2 Sekunden gedrückt halten.'),
+      pocket,
+      h('div', { class: 'row' }, ...['3', '7', '12'].map((n) => h('button', { class: 'btn', type: 'button', disabled: !ok, onclick: () => hub.deliver('vibrate', { kind: 'text', text: n }) }, 'Test ' + n))),
+      h('details', {}, h('summary', {}, 'Es vibriert nicht?'),
+        h('ol', {},
+          h('li', {}, 'Chrome vibriert nur, wenn MagicHub sichtbar ist – nicht im Hintergrund und nicht bei ausgeschaltetem Display. Darum lässt MagicHub den Bildschirm an, solange Geräte verbunden sind.'),
+          h('li', {}, 'Nach dem Öffnen einmal irgendwo auf die Seite tippen – vorher erlaubt Chrome keine Vibration.'),
+          h('li', {}, 'Android: Einstellungen → Töne & Vibration (bzw. „Vibration & Haptik“): Vibration einschalten, Stufen für Benachrichtigungen/Berührung/Medien nicht auf 0.'),
+          h('li', {}, 'Lautlos-Modus, „Nicht stören“ und starke Energiesparmodi können die Vibration unterdrücken (je nach Hersteller, z. B. Xiaomi/Samsung).'))));
     return null;
   },
 
@@ -775,7 +805,7 @@ for (const [id, d] of Object.entries(dev)) {
 let wakeLock = null;
 async function updateWakeLock() {
   if (!('wakeLock' in navigator)) return;
-  const want = settings.keepAwake !== false && document.visibilityState === 'visible' && Object.values(dev).some((d) => d.connected);
+  const want = document.visibilityState === 'visible' && (pocketActive || (settings.keepAwake !== false && Object.values(dev).some((d) => d.connected)));
   try {
     if (want && !wakeLock) {
       wakeLock = await navigator.wakeLock.request('screen');
@@ -1119,6 +1149,39 @@ function stackPicker({ withView = true } = {}) {
   const box = $('#stacks-box');
   if (!box) return;
   box.append(stackPicker().el);
+})();
+
+// ---------------------------------------------------------------- Taschenmodus
+// Display bleibt an (sonst pausiert Chrome die Seite: keine Vibration, Bluetooth bricht ab), zeigt aber nur Schwarz
+// und ignoriert Berührungen. Beenden: 2 s gedrückt halten.
+async function pocketOn() {
+  const el = $('#pocket');
+  el.hidden = false;
+  $('#pocket-hint').style.opacity = '1';
+  setTimeout(() => { $('#pocket-hint').style.opacity = '0'; }, 2500);
+  try { await document.documentElement.requestFullscreen?.({ navigationUI: 'hide' }); } catch { /* egal */ }
+  pocketActive = true;
+  updateWakeLock();
+}
+function pocketOff() {
+  $('#pocket').hidden = true;
+  pocketActive = false;
+  if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
+  updateWakeLock();
+}
+let pocketActive = false;
+(() => {
+  const el = $('#pocket');
+  let hold = null;
+  const stop = (e) => { e.preventDefault(); clearTimeout(hold); hold = null; };
+  el.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    clearTimeout(hold);
+    hold = setTimeout(() => { pocketOff(); try { navigator.vibrate?.(60); } catch { /* egal */ } }, 2000);
+  });
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach((t) => el.addEventListener(t, stop));
+  el.addEventListener('contextmenu', (e) => e.preventDefault());
+  document.addEventListener('click', (e) => { if (e.target.closest('[data-pocket]')) pocketOn(); });
 })();
 
 // ---------------------------------------------------------------- Sitzungsliste

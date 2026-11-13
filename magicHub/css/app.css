@@ -366,3 +366,7 @@ dialog .toast { display: none; }
 .session-text { font-weight: 700; margin-right: 8px; overflow-wrap: anywhere; }
 .session-meta { color: var(--muted); font-size: .8rem; }
 #list-card h2 small { color: var(--muted); font-weight: 400; font-size: .9rem; }
+
+/* ---- Taschenmodus ---- */
+.pocket { position: fixed; inset: 0; z-index: 2147483647; background: #000; touch-action: none; user-select: none; -webkit-user-select: none; cursor: none; }
+.pocket-hint { position: absolute; left: 0; right: 0; bottom: 40px; text-align: center; color: #555; font-size: .85rem; transition: opacity 1s; }
