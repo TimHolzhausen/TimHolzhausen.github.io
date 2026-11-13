@@ -14,6 +14,10 @@ const SERVICE = '6e400001-b5a3-f393-e0a9-e50e24dcca9d';
 const WRITE = '6e400002-b5a3-f393-e0a9-e50e24dcca9d';
 const NOTIFY = '6e400003-b5a3-f393-e0a9-e50e24dcca9d';
 
+// Keep-Alive: Steht eine Bildanforderung des Screens offen und wurde so lange nichts gesendet,
+// schicken wir das aktuelle Bild noch einmal (sieht identisch aus, hält die Verbindung aktiv).
+const KEEPALIVE_MS = 15000;
+
 const BUTTONS = { 2: 'Auslöser', 6: 'Kamera wechseln', 10: 'Plus', 11: 'Minus' };
 
 export class SelfieScreen extends BleDevice {
@@ -51,6 +55,10 @@ export class SelfieScreen extends BleDevice {
     this._chunk = 180;
     this._sentOnce = false;
     this._sending = false;
+    this._connectedAt = Date.now();
+    this._lastTx = Date.now();
+    this._lastRx = 0;
+    this._keepAlives = 0;
     await sleep(400); // Dual-Mode-Geräte unter Android brauchen nach dem Verbinden einen Moment
     let svc;
     try {
@@ -93,11 +101,36 @@ export class SelfieScreen extends BleDevice {
       this._send([0xaa, 0x55, 0x01, 0x01, 0x01]);
       this._firstPicture();
     }, 3000);
+    clearInterval(this._keepAliveTimer);
+    this._keepAliveTimer = setInterval(() => this._keepAlive(), 5000);
+  }
+
+  _keepAlive() {
+    if (!this.linked || this._sending || !this._jpeg) return;
+    if (Date.now() - this._lastTx < KEEPALIVE_MS) return;
+    if (!this._requested && !this._unasked) return; // Screen wartet gerade nicht auf ein Bild
+    this._keepAlives++;
+    if (this._keepAlives <= 3) this.log('info', 'Keep-Alive: aktuelles Bild erneut gesendet');
+    this._fresh = true;
+    this._pump();
+  }
+
+  /** Bei Verbindungsverlust festhalten, wann und in welcher Lage – hilft, die Ursache zu finden. */
+  _handleDisconnect() {
+    if (!this._manualDisconnect && this._connectedAt) {
+      const sec = (t) => Math.round((Date.now() - t) / 1000);
+      this.log('warn', 'Getrennt nach ' + sec(this._connectedAt) + ' s · zuletzt gesendet vor ' + sec(this._lastTx) + ' s · ' +
+        (this._lastRx ? 'zuletzt empfangen vor ' + sec(this._lastRx) + ' s' : 'nie etwas empfangen') +
+        ' · Seite ' + (document.visibilityState === 'visible' ? 'sichtbar' : 'im Hintergrund') +
+        ' · Keep-Alives: ' + this._keepAlives);
+    }
+    super._handleDisconnect();
   }
 
   teardown() {
     clearTimeout(this._sizeTimer);
     clearTimeout(this._silentTimer);
+    clearInterval(this._keepAliveTimer);
     this.notifyC?.removeEventListener('characteristicvaluechanged', this._onNotify);
   }
 
@@ -154,6 +187,7 @@ export class SelfieScreen extends BleDevice {
     const first = !this._sentOnce;
     this._send(this._jpeg).then(() => {
       this._sending = false;
+      this._lastTx = Date.now();
       this._sentOnce = true;
       this.emit('sent', {});
       if (first && !this._gotAny) {
@@ -201,6 +235,7 @@ export class SelfieScreen extends BleDevice {
   _receive(pkt) {
     if (!pkt.length) return;
     this._gotAny = true;
+    this._lastRx = Date.now();
     if (this._unasked) { this._unasked = false; clearTimeout(this._silentTimer); }
     for (let i = 0; i < pkt.length - 1; i++) this._rx.push(pkt[i]);
     if (pkt[pkt.length - 1] !== 0) return;

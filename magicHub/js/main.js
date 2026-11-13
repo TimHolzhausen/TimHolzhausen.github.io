@@ -17,7 +17,7 @@ import { buildPrint, ensureFont, normalizeLayout, FONTS, ORIENTATIONS } from './
 import { STACKS, CARD_FORMATS, cardName, stackMapText } from './stacks.js';
 import { textCanvas, drawingCanvas, fitInto, demoStrokes } from './render.js';
 
-const VERSION = '0.2.1';
+const VERSION = '0.2.2';
 const BT = hasWebBluetooth();
 
 // ---------------------------------------------------------------- Helfer
@@ -556,6 +556,8 @@ const PANELS = {
     const br = h('input', { type: 'range', min: 10, max: 100, step: 10, value: dev.selfie.brightness });
     br.addEventListener('change', () => { dev.selfie.brightness = Number(br.value); settings.selfie = { brightness: dev.selfie.brightness }; saveSettings(); });
     const info = h('p', { class: 'hint' });
+    const awake = h('input', { type: 'checkbox' }); awake.checked = settings.keepAwake !== false;
+    awake.addEventListener('change', () => { settings.keepAwake = awake.checked; saveSettings(); updateWakeLock(); });
     const file = h('input', { type: 'file', accept: 'image/*', class: 'sr-only' });
     file.addEventListener('change', async () => {
       const f = file.files[0]; if (!f) return;
@@ -569,6 +571,13 @@ const PANELS = {
       h('label', { class: 'btn btn-block' }, file, 'Foto anzeigen …'),
       field('Helligkeit (Bild abdunkeln)', br), info,
       h('p', { class: 'hint' }, 'Tasten (Auslöser, Kamera, +/−) sind als Eingabe „Selfie-Taste“ nutzbar.'),
+      h('label', { class: 'switch-row' }, awake, h('span', {}, 'Handy-Bildschirm anlassen, solange Geräte verbunden sind')),
+      h('details', {}, h('summary', {}, 'Verbindung bricht ab?'),
+        h('ol', {},
+          h('li', {}, 'App im Vordergrund lassen: Im Hintergrund oder bei ausgeschaltetem Display trennt der Browser Bluetooth oft.'),
+          h('li', {}, 'Die App schickt alle 15 s das aktuelle Bild erneut (Keep-Alive), damit der Screen nicht einschläft.'),
+          h('li', {}, 'Im Geräte-Protokoll steht bei jedem Abbruch, nach wie vielen Sekunden er kam und wann zuletzt etwas gesendet wurde – das bitte notieren, wenn es weiter passiert.'),
+          h('li', {}, 'Abstand klein halten; der Screen ist ein schwacher Sender.'))),
       h('details', {}, h('summary', {}, 'Screen wird nicht gefunden?'),
         h('ol', {},
           h('li', {}, 'Screen einschalten und in MysterSmith bzw. anderen Apps trennen (nur eine Verbindung möglich).'),
@@ -702,6 +711,25 @@ for (const [id, d] of Object.entries(dev)) {
     if (e.detail.status === 'connected' && DEV_BY_ID[id]?.ble) toast((DEV_BY_ID[id]?.name) + ' verbunden', 'ok');
   });
 }
+
+// Bildschirm anlassen, solange ein Gerät verbunden ist: Geht das Handy in den Ruhezustand,
+// pausiert der Browser die Seite und Bluetooth-Verbindungen brechen ab.
+let wakeLock = null;
+async function updateWakeLock() {
+  if (!('wakeLock' in navigator)) return;
+  const want = settings.keepAwake !== false && document.visibilityState === 'visible' && Object.values(dev).some((d) => d.connected);
+  try {
+    if (want && !wakeLock) {
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', () => { wakeLock = null; });
+    } else if (!want && wakeLock) {
+      await wakeLock.release();
+      wakeLock = null;
+    }
+  } catch { wakeLock = null; /* z. B. Energiesparmodus – dann eben nicht */ }
+}
+for (const d of Object.values(dev)) d.addEventListener('status', updateWakeLock);
+document.addEventListener('visibilitychange', updateWakeLock);
 
 // ---------------------------------------------------------------- Kombis
 function chip(srcOrTarget, extra = {}, note = '') {

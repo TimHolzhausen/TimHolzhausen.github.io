@@ -43,6 +43,7 @@ kombiniert. Ein HTTPS-Link für Android (Chrome) und iPhone (App **Bluefy**).
 - **Web Bluetooth:**
   - `requestDevice()` nur direkt aus einem Klick-Handler aufrufen.
   - Kein automatischer Reconnect; nach Verbindungsverlust „Erneut verbinden“ anbieten.
+    Gegen Abbrüche stattdessen: Selfie-Screen-Keep-Alive (aktuelles Bild alle 15 s erneut, nur bei offener Anforderung), Wake Lock solange ein Gerät verbunden ist (`settings.keepAwake`), Abbruch-Diagnose im Geräte-Protokoll.
   - Für Bluefy immer 128-Bit-UUIDs verwenden (`uuid16()`).
 - **Feature Detection** über `navigator.bluetooth?.requestDevice`, das Betriebssystem nur für Hinweise nutzen. Plattform immer auch manuell wählbar (iPadOS meldet sich als Mac).
 - **Ehrlichkeit:** Ungetestetes nicht als funktionierend darstellen. Alle iPhone-Praxistests bleiben als offen markiert (Hilfe → „Noch nicht getestet“ und README-Checkliste).
@@ -136,7 +137,7 @@ Den Code macht `webcrack@2` lesbar, z. B. mit einem kleinen Node-Skript `webcrac
   - FEF0 nutzt MysterSmith für Pitata Ultra/Chalk und den E-Ink-Tag.
   - Was das Gerät ist, ist noch ungeklärt.
 
-## Stand und offene Punkte (13.11.2026, Version 0.2.1)
+## Stand und offene Punkte (13.11.2026, version 0.2.2)
 
 - **Selfie Screen:** verbindet am PC, nachdem das Handy getrennt war. Bildübertragung und Tasten mit dem Entwickler prüfen.
 - **Alle Geräte:** auf echter Hardware in MagicHub noch ungetestet (Checkliste in README).
