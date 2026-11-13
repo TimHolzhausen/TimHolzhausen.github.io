@@ -17,7 +17,7 @@ import { buildPrint, ensureFont, normalizeLayout, FONTS, ORIENTATIONS } from './
 import { STACKS, CARD_FORMATS, cardName, stackMapText } from './stacks.js';
 import { textCanvas, drawingCanvas, fitInto, demoStrokes } from './render.js';
 
-const VERSION = '0.4.1';
+const VERSION = '0.4.3';
 const BT = hasWebBluetooth();
 
 // ---------------------------------------------------------------- Helfer
@@ -156,7 +156,7 @@ hub.registerTarget({
 hub.registerTarget({
   id: 'printer', label: 'Peripage P21', icon: 'printer', accepts: ['text', 'image'],
   async deliver(p) {
-    const { page, print } = await renderPrint(p);
+    const { page, print } = await renderPrint(p, p.font && FONTS[p.font] ? { ...printLayout, font: p.font } : printLayout);
     drawPreview(pv.print, page);
     if (dev.printer.connected) {
       await dev.printer.printJob(print, {
@@ -235,6 +235,20 @@ dev.godice.addEventListener('roll', (e) => {
 });
 dev.davinci.addEventListener('touch', (e) => hub.publish('davinci', { kind: 'text', text: e.detail.name }));
 dev.pen.addEventListener('drawing', (e) => handleDrawing(e.detail.strokes));
+
+// Live-Anzeige wie „Peek Drawing“ in MysterSmith: was gerade geschrieben wird, sofort auf den Selfie Screen.
+// Der Screen holt sich das nächste Bild erst, wenn er bereit ist – zwischendurch wird nur das neueste behalten.
+let liveTimer = null;
+dev.pen.addEventListener('point', () => {
+  if (!settings.selfie?.livePen || liveTimer) return;
+  liveTimer = setTimeout(() => {
+    liveTimer = null;
+    const s = dev.selfie;
+    const canvas = drawingCanvas(dev.pen.strokes, s.width, s.height, { bg: '#000', fg: '#fff' });
+    drawPreview(pv.selfie, canvas);
+    if (s.connected) s.showCanvas(canvas);
+  }, 250);
+});
 dev.peeksmith.addEventListener('button', (e) => hub.publish('peeksmith-buttons', { kind: 'trigger', text: e.detail.button + (e.detail.long ? ' lang' : '') }));
 dev.selfie.addEventListener('button', (e) => hub.publish('selfie-buttons', { kind: 'trigger', text: e.detail.button }));
 dev.selfie.addEventListener('needs-picture', () => hub.deliver('selfie', { kind: 'text', text: 'MagicHub' }));
@@ -595,8 +609,10 @@ const PANELS = {
     const c = connectRow('selfie');
     const txt = h('input', { type: 'text', placeholder: 'Text für den Screen', autocomplete: 'off' });
     const br = h('input', { type: 'range', min: 10, max: 100, step: 10, value: dev.selfie.brightness });
-    br.addEventListener('change', () => { dev.selfie.brightness = Number(br.value); settings.selfie = { brightness: dev.selfie.brightness }; saveSettings(); });
+    br.addEventListener('change', () => { dev.selfie.brightness = Number(br.value); settings.selfie = { ...settings.selfie, brightness: dev.selfie.brightness }; saveSettings(); });
     const info = h('p', { class: 'hint' });
+    const live = h('input', { type: 'checkbox' }); live.checked = !!settings.selfie?.livePen;
+    live.addEventListener('change', () => { settings.selfie = { ...settings.selfie, livePen: live.checked }; saveSettings(); });
     const awake = h('input', { type: 'checkbox' }); awake.checked = settings.keepAwake !== false;
     awake.addEventListener('change', () => { settings.keepAwake = awake.checked; saveSettings(); updateWakeLock(); });
     const file = h('input', { type: 'file', accept: 'image/*', class: 'sr-only' });
@@ -612,6 +628,7 @@ const PANELS = {
       h('label', { class: 'btn btn-block' }, file, 'Foto anzeigen …'),
       field('Helligkeit (Bild abdunkeln)', br), info,
       h('p', { class: 'hint' }, 'Tasten (Auslöser, Kamera, +/−) sind als Eingabe „Selfie-Taste“ nutzbar.'),
+      h('label', { class: 'switch-row' }, live, h('span', {}, 'Stift live mitzeichnen (was gerade geschrieben wird)')),
       h('label', { class: 'switch-row' }, awake, h('span', {}, 'Handy-Bildschirm anlassen, solange Geräte verbunden sind')),
       h('details', {}, h('summary', {}, 'Verbindung bricht ab?'),
         h('ol', {},
@@ -960,7 +977,14 @@ function openComboBuilder(existing = null) {
         h('div', { class: 'action-fields' },
           h('label', {}, h('span', {}, 'Was'), doSel),
           h('label', {}, h('span', {}, 'Nach … s'), delay),
-          a.do === 'show' && t?.clear ? h('label', {}, h('span', {}, 'Leeren nach … s'), hide) : null));
+          a.do === 'show' && t?.clear ? h('label', {}, h('span', {}, 'Leeren nach … s'), hide) : null,
+          a.do === 'show' && a.target === 'printer' ? (() => {
+            const f = h('select', { 'aria-label': 'Druckschrift' }, h('option', { value: '' }, 'wie Drucker-Einstellung'),
+              ...Object.entries(FONTS).map(([k, v]) => h('option', { value: k }, v.label)));
+            f.value = a.font || '';
+            f.addEventListener('change', () => { if (f.value) a.font = f.value; else delete a.font; });
+            return h('label', {}, h('span', {}, 'Schrift'), f);
+          })() : null));
     }) : [h('p', { class: 'empty' }, 'Noch keine Aktion. Ziel wählen und „+ Aktion“.')]));
     validate();
   };

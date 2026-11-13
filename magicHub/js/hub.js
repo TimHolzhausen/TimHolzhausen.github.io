@@ -14,7 +14,7 @@
 //   listN: 0 = alle, joiner: Trennzeichen     für 'list', {liste} und {letzte:N}; die Zuordnung gilt dann je Eintrag
 //   map: '1=Pik Ass\n2=Herz Dame\n*=?',       optionale Zuordnung Wert → Text (vor der Vorlage)
 //   template: '{text}',                       Text-Vorlage
-//   actions: [{ target, do: 'show'|'clear', delay, hideAfter }],   Sekunden
+//   actions: [{ target, do: 'show'|'clear', delay, hideAfter, font? }],   Sekunden; font = Druckschrift nur für diese Aktion
 //   cooldown, onlyNew, once                   Sperrzeit (s), nur bei neuem Wert, nur einmal (dann aus)
 // }
 //
@@ -75,6 +75,12 @@ export const PRESETS = [
   { name: 'Palette-Farbe ansagen & anzeigen', source: 'davinci', actions: [act('peeksmith'), act('speech')] },
   { name: 'Würfelsumme als Vibration zählen', source: 'godice', actions: [act('vibrate')] },
   { name: 'Selfie-Auslöser druckt letzten Inhalt', source: 'selfie-buttons', when: { type: 'is', value: 'Auslöser' }, content: 'last', actions: [act('printer')] },
+  { name: 'Sitzungsliste live aufs PeekSmith (z. B. 3 → 38 → 381)', source: 'list', template: '{liste}', joiner: '', actions: [act('peeksmith')] },
+  {
+    name: 'Candy Prediction: 4 Ziffern → Zahl in Handschrift drucken', source: 'ai',
+    when: { type: 'count', value: '4' }, content: 'list', listN: 4, joiner: '',
+    actions: [act('printer', { font: 'hand' }), act('list', { do: 'clear' })],
+  },
   { name: 'PeekSmith-Taste rechts lang: Display leeren', source: 'peeksmith-buttons', when: { type: 'is', value: 'Rechts lang' }, actions: [act('peeksmith', { do: 'clear' })] },
 ];
 
@@ -236,15 +242,17 @@ export class Hub extends EventTarget {
     const event = { ...payload, source: sourceId };
     this._activity({ dir: 'in', source: sourceId, label: src?.label || sourceId, payload: event });
     const recorded = payload.kind === 'text' && this.listRecords(sourceId) && String(payload.text ?? '').trim() !== '';
-    if (recorded) this.addToList(payload.text, sourceId);
-    const combos = this.combos.filter((c) => c.enabled && c.source === sourceId);
     let fired = 0;
+    if (recorded) {
+      this.addToList(payload.text, sourceId);
+      // Quelle „Sitzungsliste“ zuerst: Anzeige des neuen Stands, bevor eine Kombi die Liste z. B. leert.
+      if (this.sources.has('list')) fired += this.publish('list', { kind: 'text', text: String(payload.text).trim(), from: sourceId });
+    }
+    const combos = this.combos.filter((c) => c.enabled && c.source === sourceId);
     for (const combo of combos) if (this.fire(combo, event)) fired++;
     // Erst nach dem Auswerten merken, damit „letzter Inhalt“ wirklich der vorherige ist.
     if (payload.kind !== 'trigger') this.last = event;
     if (!combos.length && sourceId !== 'list') this.dispatchEvent(new CustomEvent('unrouted', { detail: { source: sourceId } }));
-    // Quelle „Sitzungsliste“: neuer Eintrag, egal woher
-    if (recorded && this.sources.has('list')) fired += this.publish('list', { kind: 'text', text: String(payload.text).trim(), from: sourceId });
     return fired;
   }
 
@@ -304,7 +312,7 @@ export class Hub extends EventTarget {
       : { kind: 'text', text: rendered, source: content.source };
 
     for (const a of combo.actions) {
-      const run = () => (a.do === 'clear' ? this.clear(a.target) : this.deliver(a.target, out, combo));
+      const run = () => (a.do === 'clear' ? this.clear(a.target) : this.deliver(a.target, a.font ? { ...out, font: a.font } : out, combo));
       this._later(a.delay, run);
       if (a.do !== 'clear' && a.hideAfter > 0) this._later(Number(a.delay || 0) + Number(a.hideAfter), () => this.clear(a.target));
     }
