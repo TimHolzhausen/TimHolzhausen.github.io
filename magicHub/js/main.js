@@ -12,12 +12,12 @@ import { SelfieScreen } from './ble/selfiescreen.js';
 import { PeripagePrinter } from './ble/peripage.js';
 import { InjectSource, JsonUrlSource } from './web/sources.js';
 import { AiVision, PROVIDERS, AI_TASKS, localAvailability } from './ai/vision.js';
-import { Hub, PRESETS, CONDITIONS, CONTENTS, TEMPLATE_VARS, loadStore, saveStore, comboLabel, describeWhen } from './hub.js';
+import { Hub, PRESETS, CONDITIONS, CONTENTS, TEMPLATE_VARS, LIST_MODES, loadStore, saveStore, comboLabel, describeWhen } from './hub.js';
 import { buildPrint, ensureFont, normalizeLayout, FONTS, ORIENTATIONS } from './print-layout.js';
 import { STACKS, CARD_FORMATS, cardName, stackMapText } from './stacks.js';
 import { textCanvas, drawingCanvas, fitInto, demoStrokes } from './render.js';
 
-const VERSION = '0.3.1';
+const VERSION = '0.4.0';
 const BT = hasWebBluetooth();
 
 // ---------------------------------------------------------------- Helfer
@@ -119,6 +119,7 @@ const range = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => String(a + i
   { id: 'peeksmith-buttons', label: 'PeekSmith-Taste', icon: 'button', kind: 'trigger', hint: 'Wert = Name der Taste.', values: () => ['Links', 'Rechts', 'Seite', 'Links lang', 'Rechts lang', 'Seite lang', 'Magnet'] },
   { id: 'selfie-buttons', label: 'Selfie-Taste', icon: 'button', kind: 'trigger', hint: 'Wert = Name der Taste.', values: () => ['Auslöser', 'Kamera wechseln', 'Plus', 'Minus'] },
   { id: 'manual', label: 'Manuell', icon: 'hand', kind: 'text', hint: 'Wert = Text aus „Live → Manuell senden“.' },
+  { id: 'list', label: 'Sitzungsliste', icon: 'list', kind: 'text', hint: 'Löst bei jedem neuen Listeneintrag aus – egal von welcher Quelle. Wert = neuer Eintrag. Mit Bedingung „Sitzungsliste hat genau 4 Einträge“ z. B. beim 4. Wert.' },
 ].forEach((s) => hub.registerSource(s));
 hub.init();
 
@@ -170,6 +171,16 @@ async function renderPrint(p, layout = printLayout) {
   await ensureFont(layout.font);
   return buildPrint(p, layout, dev.printer.width);
 }
+hub.registerTarget({
+  id: 'list', label: 'Sitzungsliste', icon: 'list', accepts: ['text'],
+  async deliver(p) { hub.addToList(p.text, 'combo'); },
+  clear() { hub.clearList(); },
+});
+hub.registerTarget({
+  id: 'pen-buffer', label: 'Stift-Puffer', icon: 'pen', accepts: ['text', 'image'], clearOnly: true,
+  async deliver() { dev.pen.clear(); },
+  clear() { dev.pen.clear(); },
+});
 hub.registerTarget({
   id: 'inject-send', label: 'Inject (senden)', icon: 'globe', accepts: ['text'],
   async deliver(p) {
@@ -230,7 +241,11 @@ dev.selfie.addEventListener('needs-picture', () => hub.deliver('selfie', { kind:
 dev.inject.addEventListener('value', (e) => hub.publish('inject', { kind: 'text', text: e.detail.text }));
 dev.json.addEventListener('value', (e) => hub.publish('json', { kind: 'text', text: e.detail.text }));
 
+let lastDrawing = null; // letzte weitergegebene Zeichnung (für Tests, auch wenn der Puffer schon leer ist)
 async function handleDrawing(strokes) {
+  lastDrawing = strokes;
+  // Sonst landen beim nächsten Wort die alten Striche wieder mit in der Erkennung.
+  if ((settings.pen?.clearAfter || 'send') === 'send') dev.pen.clear();
   hub.publish('pen', { kind: 'image', strokes, canvas: drawingCanvas(strokes, 384, 384) });
   if (dev.ai.auto && dev.ai.ready) {
     try {
@@ -428,15 +443,20 @@ const PANELS = {
   pen(body) {
     const c = connectRow('pen');
     const cv = h('canvas', { class: 'pen-canvas', width: 480, height: 360 });
-    const delay = h('select', { onchange: () => { dev.pen.finishDelay = Number(delay.value); settings.pen = { finishDelay: dev.pen.finishDelay }; saveSettings(); } },
+    const delay = h('select', { onchange: () => { dev.pen.finishDelay = Number(delay.value); settings.pen = { ...settings.pen, finishDelay: dev.pen.finishDelay }; saveSettings(); } },
       ...[1500, 2500, 4000, 6000].map((v) => h('option', { value: v }, (v / 1000).toLocaleString('de-DE') + ' s')));
     delay.value = String(dev.pen.finishDelay);
+    const after = h('select', { onchange: () => { settings.pen = { ...settings.pen, clearAfter: after.value }; saveSettings(); } },
+      h('option', { value: 'send' }, 'Leeren – jede Zeichnung wird einzeln erkannt'),
+      h('option', { value: 'keep' }, 'Behalten – alles zusammen, bis „Neue Zeichnung“'));
+    after.value = settings.pen?.clearAfter || 'send';
     body.append(noBt() || '', c.el, cv,
       h('div', { class: 'row' },
         h('button', { class: 'btn', type: 'button', onclick: () => dev.pen.clear() }, 'Neue Zeichnung'),
         h('button', { class: 'btn', type: 'button', onclick: () => dev.pen.strokes.length && handleDrawing(dev.pen.strokes.map((s) => s.slice())) }, 'Jetzt senden')),
       field('Zeichnung gilt als fertig nach', delay, 'Solange ohne Stiftbewegung, dann wird sie an die Kombis (und ggf. die KI) geschickt.'),
-      h('p', { class: 'hint' }, 'Kappe aufsetzen wird erkannt. Der „Neo“ wechselt bei jedem Einschalten Name und Adresse – dann einfach neu verbinden.'));
+      field('Danach den Stift-Puffer', after, 'Beim Leeren landen alte Wörter nicht noch einmal in der Erkennung. Leeren geht auch per Kombi-Aktion „Stift-Puffer“ (z. B. auf eine PeekSmith-Taste).'),
+      h('p', { class: 'hint' }, 'Der „Neo“ wechselt bei jedem Einschalten Name und Adresse – dann einfach neu verbinden.'));
     return () => { c.upd(); const d = drawingCanvas(dev.pen.strokes, cv.width, cv.height, { bg: '#fff', fg: '#111' }); cv.getContext('2d').drawImage(d, 0, 0); };
   },
 
@@ -486,7 +506,7 @@ const PANELS = {
     const test = h('button', { class: 'btn', type: 'button', onclick: async () => {
       save();
       try {
-        const strokes = dev.pen.strokes.length ? dev.pen.strokes : demoStrokes();
+        const strokes = dev.pen.strokes.length ? dev.pen.strokes : (lastDrawing || demoStrokes());
         const text = await dev.ai.recognize(drawingCanvas(strokes, 512, 512, { line: 6 }), strokes);
         hub.publish('ai', { kind: 'text', text });
         toast('KI erkannt: ' + text);
@@ -831,7 +851,7 @@ function sampleValue(combo) {
 function testCombo(combo) {
   const s = hub.sources.get(combo.source);
   const payload = s?.kind === 'image'
-    ? { kind: 'image', strokes: dev.pen.strokes.length ? dev.pen.strokes.map((x) => x.slice()) : demoStrokes(), source: combo.source }
+    ? { kind: 'image', strokes: dev.pen.strokes.length ? dev.pen.strokes.map((x) => x.slice()) : (lastDrawing || demoStrokes()), source: combo.source }
     : { kind: s?.kind === 'trigger' ? 'trigger' : 'text', text: sampleValue(combo), source: combo.source };
   hub.fire(combo, payload, { force: true });
   toast('Test: „' + comboLabel(hub, combo) + '“ ausgelöst');
@@ -918,7 +938,7 @@ function openComboBuilder(existing = null) {
   const drawActions = () => {
     actBox.replaceChildren(...(c.actions.length ? c.actions.map((a, i) => {
       const t = hub.targets.get(a.target);
-      const doSel = h('select', { 'aria-label': 'Aktion' }, h('option', { value: 'show' }, 'Anzeigen'), t?.clear ? h('option', { value: 'clear' }, 'Leeren') : null);
+      const doSel = h('select', { 'aria-label': 'Aktion' }, t?.clearOnly ? null : h('option', { value: 'show' }, a.target === 'list' ? 'Eintrag hinzufügen' : 'Anzeigen'), t?.clear ? h('option', { value: 'clear' }, 'Leeren') : null);
       doSel.value = a.do;
       const delay = h('input', { type: 'number', min: 0, max: 600, step: 0.5, value: a.delay, inputmode: 'decimal', 'aria-label': 'Verzögerung in Sekunden' });
       const hide = h('input', { type: 'number', min: 0, max: 600, step: 0.5, value: a.hideAfter, inputmode: 'decimal', 'aria-label': 'Nach Sekunden wieder leeren' });
@@ -949,10 +969,11 @@ function openComboBuilder(existing = null) {
 
   const drawCond = () => {
     const t = condType.value;
-    condValRow.hidden = !['is', 'not', 'contains'].includes(t);
+    condValRow.hidden = !['is', 'not', 'contains', 'count', 'countMin'].includes(t);
+    condVal.placeholder = t.startsWith('count') ? 'z. B. 4' : 'z. B. 6 oder Rot, Blau';
     condRangeRow.hidden = t !== 'range';
     const s = hub.sources.get(c.source);
-    const vals = s?.values?.() || [];
+    const vals = t.startsWith('count') ? ['1', '2', '3', '4', '5'] : (s?.values?.() || []);
     values.replaceChildren(...vals.map((v) => h('option', { value: v })));
     suggest.hidden = condValRow.hidden || !vals.length;
     suggest.replaceChildren(...vals.slice(0, 12).map((v) => h('button', { type: 'button', class: 'chip', onclick: () => {
@@ -987,7 +1008,7 @@ function openComboBuilder(existing = null) {
   contentSel.addEventListener('change', () => { drawAddSel(); validate(); });
   addBtn.addEventListener('click', () => {
     if (!addSel.value || addSel.selectedOptions[0]?.disabled) return;
-    c.actions.push({ target: addSel.value, do: 'show', delay: 0, hideAfter: 0 });
+    c.actions.push({ target: addSel.value, do: hub.targets.get(addSel.value)?.clearOnly ? 'clear' : 'show', delay: 0, hideAfter: 0 });
     drawActions();
   });
   save.addEventListener('click', () => {
@@ -1066,6 +1087,52 @@ function stackPicker({ withView = true } = {}) {
   const box = $('#stacks-box');
   if (!box) return;
   box.append(stackPicker().el);
+})();
+
+// ---------------------------------------------------------------- Sitzungsliste
+function renderList() {
+  const list = hub.list;
+  $('#list-count').textContent = list.length ? '(' + list.length + ')' : '';
+  $('#session-list').replaceChildren(...(list.length
+    ? list.map((e) => h('li', {}, h('span', { class: 'session-text' }, e.text),
+      h('span', { class: 'session-meta' }, (hub.sources.get(e.source)?.label || (e.source === 'combo' ? 'Kombi' : e.source)) + ' · ' +
+        new Date(e.time).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit' }))))
+    : [h('li', { class: 'empty' }, 'Noch leer. Erkannte Texte, Würfel, Inject-Wörter … erscheinen hier.')]));
+}
+hub.addEventListener('list', renderList);
+$('#list-clear').addEventListener('click', () => { hub.clearList(); toast('Sitzungsliste geleert'); });
+(() => {
+  const cfg = hub.listConfig;
+  const mode = h('select', {}, ...Object.entries(LIST_MODES).map(([k, l]) => h('option', { value: k }, l)));
+  mode.value = cfg.mode;
+  const max = h('input', { type: 'number', min: 1, max: 99, value: cfg.max, inputmode: 'numeric' });
+  const idle = h('input', { type: 'number', min: 1, max: 600, value: cfg.idleMin, inputmode: 'numeric' });
+  const maxRow = field('Einträge', max, 'Ist die Liste voll, beginnt der nächste Wert eine neue. Die Kombi für den letzten Eintrag läuft vorher noch.');
+  const idleRow = field('Minuten', idle);
+  const textSources = [...hub.sources.values()].filter((s) => s.kind === 'text' && s.id !== 'list');
+  const srcBox = h('div', { class: 'chips' });
+  const drawSrc = () => {
+    const on = hub.listConfig.sources || textSources.map((s) => s.id);
+    srcBox.replaceChildren(...textSources.map((s) => h('button', { type: 'button', class: 'chip' + (on.includes(s.id) ? ' on' : ''), 'aria-pressed': String(on.includes(s.id)), onclick: () => {
+      const cur = new Set(hub.listConfig.sources || textSources.map((x) => x.id));
+      if (cur.has(s.id)) cur.delete(s.id); else cur.add(s.id);
+      hub.setListConfig({ sources: cur.size === textSources.length ? null : [...cur] });
+      drawSrc();
+    } }, icon(s.icon), s.label)));
+  };
+  const apply = () => {
+    hub.setListConfig({ mode: mode.value, max: Math.max(1, Number(max.value) || 4), idleMin: Math.max(1, Number(idle.value) || 10) });
+    maxRow.hidden = mode.value !== 'count'; idleRow.hidden = mode.value !== 'idle';
+  };
+  [mode, max, idle].forEach((x) => x.addEventListener('change', apply));
+  maxRow.hidden = cfg.mode !== 'count'; idleRow.hidden = cfg.mode !== 'idle';
+  drawSrc();
+  $('#list-settings').append(
+    field('Wann wird die Liste geleert?', mode), maxRow, idleRow,
+    h('p', { class: 'hint' }, 'Außerdem: Knopf „Leeren“, Kombi-Aktion „Sitzungsliste → Leeren“ (z. B. auf eine Taste) und beim Neuladen der App.'),
+    h('h3', {}, 'Was kommt in die Liste?'), srcBox,
+    h('p', { class: 'hint' }, 'In Kombis: Bedingung „Sitzungsliste hat genau … Einträge“, Auslöser „Sitzungsliste“ (jeder neue Eintrag) und in Vorlagen {liste}, {anzahl}, {1} … {9}, {-1}.'));
+  renderList();
 })();
 
 // ---------------------------------------------------------------- Live

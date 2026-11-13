@@ -16,6 +16,10 @@
 //   actions: [{ target, do: 'show'|'clear', delay, hideAfter }],   Sekunden
 //   cooldown, onlyNew, once                   Sperrzeit (s), nur bei neuem Wert, nur einmal (dann aus)
 // }
+//
+// Sitzungsliste: alle Texte der gewählten Quellen in dieser Sitzung (nur im Speicher).
+//   Wird VOR dem Auswerten der Kombis ergänzt → „Liste hat 4 Einträge“ greift beim 4. Wert.
+//   listConfig: { sources: null = alle Text-Quellen | [ids], mode: 'manual'|'count'|'idle', max, idleMin }
 
 const STORE_KEY = 'magichub_v1';
 
@@ -38,6 +42,14 @@ export const CONDITIONS = {
   range: 'Zahl zwischen …',
   even: 'Zahl ist gerade',
   odd: 'Zahl ist ungerade',
+  count: 'Sitzungsliste hat genau … Einträge',
+  countMin: 'Sitzungsliste hat mindestens … Einträge',
+};
+
+export const LIST_MODES = {
+  manual: 'Nur von Hand (oder per Kombi-Aktion)',
+  count: 'Nach … Einträgen neu beginnen',
+  idle: 'Nach … Minuten ohne neuen Eintrag',
 };
 
 export const CONTENTS = {
@@ -46,7 +58,7 @@ export const CONTENTS = {
   fixed: 'Nur eigenen Text (Vorlage)',
 };
 
-export const TEMPLATE_VARS = '{text} Wert · {quelle} Auslöser · {letzter} letzter Inhalt · {zähler} wie oft ausgelöst · {uhrzeit} · {datum}';
+export const TEMPLATE_VARS = '{text} Wert · {quelle} Auslöser · {letzter} letzter Inhalt · {zähler} wie oft ausgelöst · {uhrzeit} · {datum} · Sitzungsliste: {liste} alle, {anzahl}, {1} … {9} n-ter Eintrag, {-1} neuester';
 
 const act = (target, extra = {}) => ({ target, do: 'show', delay: 0, hideAfter: 0, ...extra });
 
@@ -101,8 +113,8 @@ const num = (v) => {
   return Number.isFinite(n) ? n : null;
 };
 
-/** Prüft die Bedingung einer Kombi gegen den Wert des Ereignisses. */
-export function matches(when, value) {
+/** Prüft die Bedingung einer Kombi gegen den Wert des Ereignisses. ctx.count = Einträge der Sitzungsliste. */
+export function matches(when, value, ctx = {}) {
   const v = String(value ?? '').trim().toLowerCase();
   const list = () => String(when.value || '').split(',').map((x) => x.trim().toLowerCase()).filter(Boolean);
   switch (when.type) {
@@ -115,6 +127,8 @@ export function matches(when, value) {
     }
     case 'even': { const n = num(v); return n != null && n % 2 === 0; }
     case 'odd': { const n = num(v); return n != null && Math.abs(n % 2) === 1; }
+    case 'count': return list().map(num).includes(ctx.count ?? 0);
+    case 'countMin': { const n = num(when.value); return n != null && (ctx.count ?? 0) >= n; }
     default: return true;
   }
 }
@@ -129,7 +143,41 @@ export class Hub extends EventTarget {
     this.last = null; // letzter Text/Bild-Inhalt
     this._state = new Map(); // comboId → { count, lastValue, lastFire }
     this._timers = new Set();
+    this.list = []; // Sitzungsliste: { text, source, time }
+    this.listConfig = { sources: null, mode: 'manual', max: 4, idleMin: 10, ...(loadStore().listConfig || {}) };
   }
+
+  // ---- Sitzungsliste ----
+  setListConfig(patch) {
+    this.listConfig = { ...this.listConfig, ...patch };
+    saveStore({ listConfig: this.listConfig });
+    this._listChanged();
+  }
+
+  /** Nimmt diese Quelle an der Liste teil? (Tasten und Zeichnungen nie, die Liste selbst auch nicht.) */
+  listRecords(sourceId) {
+    const s = this.sources.get(sourceId);
+    if (!s || s.kind !== 'text' || sourceId === 'list') return false;
+    return !this.listConfig.sources || this.listConfig.sources.includes(sourceId);
+  }
+
+  addToList(text, source = 'manual') {
+    const t = String(text ?? '').trim();
+    if (!t) return;
+    const cfg = this.listConfig;
+    const prev = this.list[this.list.length - 1];
+    if (cfg.mode === 'count' && cfg.max > 0 && this.list.length >= cfg.max) this.list = [];
+    else if (cfg.mode === 'idle' && prev && Date.now() - prev.time > (Number(cfg.idleMin) || 10) * 60000) this.list = [];
+    this.list.push({ text: t, source, time: Date.now() });
+    this._listChanged();
+  }
+
+  clearList() {
+    this.list = [];
+    this._listChanged();
+  }
+
+  _listChanged() { this.dispatchEvent(new CustomEvent('list', { detail: { list: this.list } })); }
 
   /** Nach dem Registrieren der Quellen aufrufen (für die Migration alter Kombis). */
   init() {
@@ -181,12 +229,16 @@ export class Hub extends EventTarget {
     const src = this.sources.get(sourceId);
     const event = { ...payload, source: sourceId };
     this._activity({ dir: 'in', source: sourceId, label: src?.label || sourceId, payload: event });
+    const recorded = payload.kind === 'text' && this.listRecords(sourceId) && String(payload.text ?? '').trim() !== '';
+    if (recorded) this.addToList(payload.text, sourceId);
     const combos = this.combos.filter((c) => c.enabled && c.source === sourceId);
     let fired = 0;
     for (const combo of combos) if (this.fire(combo, event)) fired++;
     // Erst nach dem Auswerten merken, damit „letzter Inhalt“ wirklich der vorherige ist.
     if (payload.kind !== 'trigger') this.last = event;
-    if (!combos.length) this.dispatchEvent(new CustomEvent('unrouted', { detail: { source: sourceId } }));
+    if (!combos.length && sourceId !== 'list') this.dispatchEvent(new CustomEvent('unrouted', { detail: { source: sourceId } }));
+    // Quelle „Sitzungsliste“: neuer Eintrag, egal woher
+    if (recorded && this.sources.has('list')) fired += this.publish('list', { kind: 'text', text: String(payload.text).trim(), from: sourceId });
     return fired;
   }
 
@@ -195,7 +247,7 @@ export class Hub extends EventTarget {
     const st = this._state.get(combo.id) || { count: 0, lastValue: undefined, lastFire: 0 };
     const value = event.text ?? '';
     if (!force) {
-      if (!matches(combo.when, value)) return false;
+      if (!matches(combo.when, value, { count: this.list.length })) return false;
       if (combo.cooldown > 0 && Date.now() - st.lastFire < combo.cooldown * 1000) {
         this._activity({ dir: 'skip', label: comboLabel(this, combo), message: 'Sperrzeit läuft' });
         return false;
@@ -228,9 +280,14 @@ export class Hub extends EventTarget {
       zaehler: String(st.count),
       uhrzeit: now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }),
       datum: now.toLocaleDateString('de-DE'),
+      liste: this.list.map((e) => e.text).join(', '),
+      anzahl: String(this.list.length),
     };
+    const nth = (i) => { const n = Number(i); const e = n > 0 ? this.list[n - 1] : this.list[this.list.length + n]; return e ? e.text : ''; };
     const tpl = combo.content === 'fixed' && combo.template === '{text}' ? '' : combo.template;
-    const rendered = (tpl || '{text}').replace(/\{(text|quelle|letzter|zähler|zaehler|uhrzeit|datum)\}/g, (_, k) => vars[k]);
+    const rendered = (tpl || '{text}')
+      .replace(/\{(text|quelle|letzter|zähler|zaehler|uhrzeit|datum|liste|anzahl)\}/g, (_, k) => vars[k])
+      .replace(/\{(-?[1-9])\}/g, (_, i) => nth(i));
     const keepImage = content.kind === 'image' && (content.strokes || content.canvas);
     const out = keepImage
       ? { ...content, text: content.text != null ? rendered : undefined }
@@ -305,6 +362,8 @@ export function describeWhen(w) {
     case 'range': return (w.min !== '' ? w.min : '…') + ' bis ' + (w.max !== '' ? w.max : '…');
     case 'even': return 'gerade';
     case 'odd': return 'ungerade';
+    case 'count': return 'Liste = ' + w.value;
+    case 'countMin': return 'Liste ≥ ' + w.value;
     default: return '';
   }
 }

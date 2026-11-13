@@ -48,6 +48,8 @@ kombiniert. Ein HTTPS-Link für Android (Chrome) und iPhone (App **Bluefy**).
 - **Feature Detection** über `navigator.bluetooth?.requestDevice`, das Betriebssystem nur für Hinweise nutzen. Plattform immer auch manuell wählbar (iPadOS meldet sich als Mac).
 - **Ehrlichkeit:** Ungetestetes nicht als funktionierend darstellen. Alle iPhone-Praxistests bleiben als offen markiert (Hilfe → „Noch nicht getestet“ und README-Checkliste).
 - **Zentrale Konfiguration** in `js/config.js`: `appName`, `appUrl`, `bluefyAppStoreUrl`, `shortcutIcloudUrl`, `bluefyLinkVariant`.
+- **Sitzungsliste (0.4.0):** `hub.list` (nur Speicher) bekommt Text-Ereignisse der gewählten Quellen VOR dem Auswerten der Kombis. `listConfig` (Store `listConfig`): Quellen, Leeren manuell / nach N Einträgen (nächster Wert beginnt neu) / nach X min Pause. Bedingungen `count`/`countMin`, Vorlagen `{liste} {anzahl} {1}…{9} {-1}`, Quelle `list` (jeder neue Eintrag), Ziel `list` (Eintrag hinzufügen/Leeren).
+- **Stift-Puffer:** `settings.pen.clearAfter` 'send' (Standard: nach jeder weitergegebenen Zeichnung leeren) | 'keep'. Ziel `pen-buffer` (`clearOnly`) für Kombis. Kappen-Erkennung funktioniert beim Ultra Sharpie NICHT (Nutzer-Test 13.11.2026) – nicht dafür verwenden.
 - **Inject senden (0.3.1):** Ziel `inject-send` → `InjectSource.send()` = POST `https://11z.co/_w/<Account-Nr>/selection` mit JSON `{value}` (wie MysterSmith). Echo-Schutz: gerade empfangener Wert wird 10 s nicht zurückgeschickt; gesendeter Wert gilt als bekannt. Benutzername → Account-Nr. (inject.joshuariley.co.uk) geht im Browser nicht (kein CORS).
 - **Updates/Installation (0.3.0):** Die Update-Prüfung liest `magichub-x.y.z` aus `sw.js` am Server und vergleicht mit `VERSION` in `main.js` → beide immer gleich hochzählen (Semver-Vergleich). Geprüft wird beim Start und nach >30 min im Hintergrund; Banner „Jetzt aktualisieren“ löscht die Caches und lädt neu. Installieren über `beforeinstallprompt` (Knopf oben + Hilfe → „App, Updates & Daten“). Einstellungen nur in `localStorage` (`magichub_v1`), `navigator.storage.persist()`, Sicherung als JSON (API-Keys nur auf Wunsch).
 - Offline-Oberfläche ist keine Offline-Funktion: Der Service Worker cacht nur die App-Shell; fremde Anfragen (APIs) fasst er nicht an.
@@ -139,7 +141,7 @@ Den Code macht `webcrack@2` lesbar, z. B. mit einem kleinen Node-Skript `webcrac
   - FEF0 nutzt MysterSmith für Pitata Ultra/Chalk und den E-Ink-Tag.
   - Was das Gerät ist, ist noch ungeklärt.
 
-## Stand und offene Punkte (13.11.2026, version 0.3.1)
+## Stand und offene Punkte (13.11.2026, version 0.4.0)
 
 - **Selfie Screen:** verbindet am PC, nachdem das Handy getrennt war. Bildübertragung und Tasten mit dem Entwickler prüfen.
 - **Alle Geräte:** auf echter Hardware in MagicHub noch ungetestet (Checkliste in README).

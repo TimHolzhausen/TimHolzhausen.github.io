@@ -358,3 +358,11 @@ dialog .toast { display: none; }
 .pill.pill-accent { background: var(--grad); color: #fff; font-weight: 700; border-color: transparent; margin-left: auto; margin-right: 8px; }
 .banner-update { border-color: var(--accent); }
 #app-card h3 { margin: 14px 0 4px; font-size: 1rem; }
+
+/* ---- Sitzungsliste ---- */
+.session-list { list-style: decimal; margin: 8px 0 12px; padding-left: 2em; display: grid; gap: 4px; max-height: 300px; overflow: auto; }
+.session-list li { padding: 4px 0; border-bottom: 1px solid var(--line); }
+.session-list li.empty { list-style: none; margin-left: -2em; color: var(--muted); border: 0; }
+.session-text { font-weight: 700; margin-right: 8px; overflow-wrap: anywhere; }
+.session-meta { color: var(--muted); font-size: .8rem; }
+#list-card h2 small { color: var(--muted); font-weight: 400; font-size: .9rem; }
