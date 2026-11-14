@@ -18,7 +18,7 @@ import { buildPrint, ensureFont, normalizeLayout, FONTS, ORIENTATIONS } from './
 import { STACKS, CARD_FORMATS, cardName, stackMapText } from './stacks.js';
 import { textCanvas, drawingCanvas, fitInto, demoStrokes } from './render.js';
 
-const VERSION = '0.5.8';
+const VERSION = '0.5.9';
 const BT = hasWebBluetooth();
 
 // ---------------------------------------------------------------- Helfer
@@ -79,6 +79,7 @@ if (settings.ai) {
   dev.ai.models = a.models || {};
   if (AI_TASKS[a.task]) dev.ai.task = a.task;
   if (typeof a.auto === 'boolean') dev.ai.auto = a.auto;
+  if (typeof a.rotations === 'boolean') dev.ai.tryRotations = a.rotations;
 }
 if (settings.davinciPots) settings.davinciPots.forEach((n, i) => { if (dev.davinci.pots[i] && n) dev.davinci.pots[i].name = n; });
 if (settings.printer) {
@@ -298,7 +299,7 @@ async function handleDrawing(strokes) {
     try {
       const text = await dev.ai.recognize(drawingCanvas(strokes, 512, 512, { line: 6 }), strokes);
       hub.publish('ai', { kind: 'text', text });
-      toast('KI erkannt: ' + text);
+      toast('KI erkannt: ' + text + (dev.ai.lastRotation ? ' (Zeichnung war gedreht)' : ''));
     } catch (err) { toast(err.message, 'error'); }
   }
 }
@@ -576,6 +577,8 @@ const PANELS = {
     task.value = ai.task;
     const auto = h('input', { type: 'checkbox' });
     auto.checked = ai.auto;
+    const rots = h('input', { type: 'checkbox' });
+    rots.checked = ai.tryRotations;
     const showProvider = () => {
       const p = PROVIDERS[prov.value];
       keyField.hidden = !p.needsKey;
@@ -601,8 +604,8 @@ const PANELS = {
       if (p.needsKey) ai.keys[prov.value] = key.value.trim();
       if (p.models) ai.models[prov.value] = modelSel.value;
       else if (p.freeModel) ai.models[prov.value] = modelTxt.value.trim() || p.defaultModel;
-      ai.task = task.value; ai.auto = auto.checked;
-      settings.ai = { provider: ai.provider, keys: ai.keys, models: ai.models, task: ai.task, auto: ai.auto };
+      ai.task = task.value; ai.auto = auto.checked; ai.tryRotations = rots.checked;
+      settings.ai = { provider: ai.provider, keys: ai.keys, models: ai.models, task: ai.task, auto: ai.auto, rotations: ai.tryRotations };
       saveSettings(); ai.refreshStatus(); toast('KI-Einstellungen gespeichert', 'ok');
     };
     const test = h('button', { class: 'btn', type: 'button', onclick: async () => {
@@ -619,6 +622,8 @@ const PANELS = {
       keyField, modelField,
       field('Aufgabe', task),
       h('label', { class: 'switch-row' }, auto, h('span', {}, 'Jede fertige Stift-Zeichnung automatisch erkennen')),
+      h('label', { class: 'switch-row' }, rots, h('span', {}, 'Gedrehte Zeichnungen erkennen (seitlich, auf dem Kopf)')),
+      h('p', { class: 'hint' }, 'Claude/OpenAI/Gemini bekommen den Hinweis im Auftrag. Google Handschrift probiert bei „Spielkarte“ alle vier Lagen und nimmt die, die eine Karte ergibt; Tesseract nimmt die sicherste Lage. Bei Text mit Google Handschrift zählt die Drehung im Stift-Fenster.'),
       h('div', { class: 'row' }, h('button', { class: 'btn btn-primary', type: 'button', onclick: save }, 'Speichern'), test),
       h('p', { class: 'hint' }, 'Das Ergebnis erscheint als Eingabe „KI-Erkennung“ – z. B. mit der Vorlage „Handschrift (KI) aufs PeekSmith“.'));
     return null;

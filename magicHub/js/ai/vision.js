@@ -6,24 +6,28 @@
 // öffentlicher Doku – alles noch NICHT mit echten Keys getestet. Lokale KI ist experimentell (Chrome-Funktionen).
 
 import { parseCard, cardName, normalizeSuitSymbols } from '../stacks.js';
+import { rotateStrokes } from '../pen-rotate.js';
+
+// Hinweis für KI-Modelle: Das Blatt kann beim Schreiben quer oder verkehrt herum gelegen haben.
+const ROT_HINT = ' Die Zeichnung kann gedreht sein (um 90° seitlich oder auf dem Kopf) – lies sie in der Lage, in der sie Sinn ergibt.';
 
 export const AI_TASKS = {
   handwriting: {
     label: 'Handschrift → Text',
     prompt: 'Auf dem Bild steht etwas Handgeschriebenes (Wort, Name, Zahl oder Spielkarte). ' +
       'Antworte ausschließlich mit dem erkannten Text, ohne Anführungszeichen und ohne Erklärung. ' +
-      'Spielkarten im Format „Herz Dame“. Ist nichts lesbar, antworte mit „?“.',
+      'Spielkarten im Format „Herz Dame“. Ist nichts lesbar, antworte mit „?“.' + ROT_HINT,
   },
   card: {
     label: 'Spielkarte → Karte',
     prompt: 'Auf dem Bild ist eine handgeschriebene Spielkarte (z. B. „QH“, „HD“, „10♥“, „Herz Dame“). ' +
       'Antworte ausschließlich mit der Karte im Format „Herz Dame“ (Farben Kreuz, Pik, Herz, Karo; Werte Ass, 2–10, Bube, Dame, König), ohne Erklärung. ' +
-      'Ist nichts lesbar, antworte mit „?“.',
+      'Ist nichts lesbar, antworte mit „?“.' + ROT_HINT,
   },
   drawing: {
     label: 'Zeichnung → Begriff',
     prompt: 'Auf dem Bild ist eine schnelle Strichzeichnung. Antworte ausschließlich mit dem gezeichneten Begriff ' +
-      'als ein bis zwei deutsche Wörter, ohne Erklärung. Ist nichts erkennbar, antworte mit „?“.',
+      'als ein bis zwei deutsche Wörter, ohne Erklärung. Ist nichts erkennbar, antworte mit „?“.' + ROT_HINT,
   },
 };
 
@@ -89,6 +93,9 @@ export class AiVision extends EventTarget {
     this.models = {}; // provider → Modellname
     this.task = 'handwriting';
     this.auto = true;
+    // Gedrehte Zeichnungen: Google Handschrift (nur Spielkarte) und Tesseract probieren alle vier Lagen.
+    this.tryRotations = true;
+    this.lastRotation = 0;
     this.status = 'idle';
     this.statusMessage = 'Nicht eingerichtet';
     this.busy = false;
@@ -122,7 +129,28 @@ export class AiVision extends EventTarget {
       const b64 = canvas.toDataURL('image/png').split(',')[1];
       const prompt = AI_TASKS[this.task].prompt;
       const run = { ghand, tesseract, claude, openai, gemini, gvision, local }[this.provider];
-      let text = clean(await run({ key: this.key, model: this.model, b64, canvas, prompt, task: this.task, strokes }));
+      const args = { key: this.key, model: this.model, b64, canvas, prompt, task: this.task, strokes };
+      this.lastRotation = 0;
+      let raw;
+      if (this.tryRotations && this.provider === 'ghand' && this.task === 'card' && strokes?.length) {
+        // Alle vier Lagen gleichzeitig. Gewinnt die Lage, in der eine gültige Karte am weitesten VORNE in der
+        // Vorschlagsliste steht (Google liefert keine Sicherheitswerte). Beispiel „QH“ auf dem Kopf (Test 14.11.2026):
+        // richtige Lage „QH“ an Platz 1, falsche Lage „H10“ erst an Platz 5. Gleichstand → bisherige Lage zuerst.
+        const order = [0, 2, 1, 3];
+        const all = await Promise.all(order.map((r) => ghandCandidates({ ...args, strokes: rotateStrokes(strokes, r) }).catch(() => [])));
+        let best = -1, bestRank = Infinity;
+        all.forEach((cands, i) => { const rank = cands.findIndex((c) => parseCard(c)); if (rank >= 0 && rank < bestRank) { best = i; bestRank = rank; } });
+        if (best >= 0) { this.lastRotation = order[best]; raw = cardName(parseCard(all[best][bestRank])); } else raw = all[0][0] || '';
+      } else if (this.tryRotations && this.provider === 'tesseract') {
+        // Tesseract liefert eine Sicherheit → sicherste der vier Lagen.
+        let best = null;
+        for (const r of [0, 2, 1, 3]) {
+          const res = await tesseractRaw(rotateCanvas(canvas, r), this.task);
+          if (!best || res.confidence > best.confidence) best = { ...res, r };
+        }
+        this.lastRotation = best.r; raw = best.text;
+      } else raw = await run(args);
+      let text = clean(raw);
       if (this.task !== 'drawing') {
         // Gezeichnete Farbsymbole vereinheitlichen; eindeutige Karte mit Symbol → „Herz Dame“
         text = normalizeSuitSymbols(text);
@@ -251,7 +279,29 @@ async function local({ canvas, prompt, task }) {
 
 // --- Google Handschrift (inoffizielle Input-Tools-Schnittstelle, wie Google-Tastatur / AutoDraw) ---
 // Erwartet Striche als [[xs], [ys], [ts]]. Antwort: ["SUCCESS", [[id, [Kandidaten…], …]]].
-async function ghand({ strokes, canvas, task }) {
+async function ghand(args) {
+  const cands = await ghandCandidates(args);
+  if (args.task === 'card') { const hit = cands.find((c) => parseCard(c)); return hit ? cardName(parseCard(hit)) : cands[0] || ''; }
+  if (args.task === 'drawing') return DRAW_DE[String(cands[0] || '').toLowerCase()] || cands[0] || '';
+  return cands[0] || '';
+}
+
+/** Kanvas um r × 90° im Uhrzeigersinn drehen (passend zu rotateStrokes). */
+function rotateCanvas(src, r) {
+  if (!r) return src;
+  const c = document.createElement('canvas');
+  c.width = r % 2 ? src.height : src.width;
+  c.height = r % 2 ? src.width : src.height;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
+  ctx.translate(c.width / 2, c.height / 2);
+  ctx.rotate(-r * Math.PI / 2);
+  ctx.drawImage(src, -src.width / 2, -src.height / 2);
+  return c;
+}
+
+/** Google Handschrift: alle Vorschläge (ohne Sicherheitswerte – die liefert die Schnittstelle nicht). */
+async function ghandCandidates({ strokes, canvas, task }) {
   if (!strokes?.length) strokes = strokesFromCanvas(canvas);
   if (!strokes.length) throw new Error('Keine Striche zum Erkennen.');
   let maxX = 1, maxY = 1;
@@ -288,10 +338,7 @@ async function ghand({ strokes, canvas, task }) {
   if (!res.ok) throw new Error('Google Handschrift: Fehler ' + res.status);
   const json = await res.json();
   if (json?.[0] !== 'SUCCESS') throw new Error('Google Handschrift hat nichts erkannt.');
-  const cands = json[1]?.[0]?.[1] || [];
-  if (task === 'card') { const hit = cands.find((c) => parseCard(c)); return hit ? cardName(parseCard(hit)) : cands[0] || ''; }
-  if (drawing) return DRAW_DE[String(cands[0] || '').toLowerCase()] || cands[0] || '';
-  return cands[0] || '';
+  return json[1]?.[0]?.[1] || [];
 }
 
 // Häufige Zeichen-Begriffe (Quick-Draw-Kategorien) auf Deutsch; Rest bleibt englisch.
@@ -315,7 +362,11 @@ function strokesFromCanvas() { return []; }
 // --- Tesseract.js (lokal im Browser, lädt Bibliothek + Sprachdaten von jsDelivr) ---
 let tessWorker = null;
 async function tesseract({ canvas, task }) {
-  if (task !== 'handwriting') throw new Error('Tesseract kann nur Text erkennen, keine Zeichnungen.');
+  return (await tesseractRaw(canvas, task)).text;
+}
+
+async function tesseractRaw(canvas, task) {
+  if (task === 'drawing') throw new Error('Tesseract kann nur Text erkennen, keine Zeichnungen.');
   if (!window.Tesseract) {
     await new Promise((resolve, reject) => {
       const s = document.createElement('script');
@@ -327,5 +378,5 @@ async function tesseract({ canvas, task }) {
   }
   if (!tessWorker) tessWorker = await window.Tesseract.createWorker(['deu', 'eng']);
   const { data } = await tessWorker.recognize(canvas);
-  return (data?.text || '').replace(/\s+/g, ' ');
+  return { text: (data?.text || '').replace(/\s+/g, ' '), confidence: Number(data?.confidence) || 0 };
 }
