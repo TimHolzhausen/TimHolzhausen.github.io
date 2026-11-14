@@ -2,7 +2,7 @@
 // Offline-Oberfläche ≠ Offline-Funktion: Web-Quellen und KI brauchen Internet, Bluetooth braucht die Geräte.
 // Bei Änderungen an Dateien VERSION erhöhen, damit Nutzer die neue Fassung bekommen.
 
-const VERSION = 'magichub-0.5.0';
+const VERSION = 'magichub-0.5.1';
 const ASSETS = [
   './', './index.html', './manifest.webmanifest', './css/app.css',
   './vendor/godice.js',

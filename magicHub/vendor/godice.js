@@ -585,3 +585,6 @@ class GoDice {
 	}
 
 }
+
+// MagicHub: Klassen-Deklarationen in klassischen Scripts landen nicht auf `window` – explizit veröffentlichen.
+window.GoDice = GoDice;
