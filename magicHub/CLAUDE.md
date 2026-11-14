@@ -157,7 +157,7 @@ Kommentaren, Oberfläche, Doku noch in Commit-Nachrichten. Herkunft und Werkzeug
 
 ## Stand und offene Punkte (14.11.2026, version 0.5.5)
 
-- **Selfie Screen:** verliert laut Nutzer immer wieder die Verbindung und verbindet neu – Verbindungsprotokoll (enthält „Getrennt nach … s“-Diagnose) vom Nutzer anfordern und auswerten.
+- **Selfie Screen (0.5.6):** trennte auf Android jedes Mal 16 s nach dem Verbinden („Keine Größenangabe“, letztes Paket bei ~4 s). Ursache vermutlich: 180-Byte-Pakete ohne Bestätigung, Android kürzt sie ohne vergrößerte MTU (Browser kann MTU nicht anfordern/lesen) → Ende-Flag fehlt. Fix: Paketgröße auf Android 19 Byte (wie Referenz-App ohne bekannte MTU), Einstellung `settings.selfie.packetSize` (auto/19/180/244), Diagnose „Empfangen: …“, „Screen meldet MTU“, „Bild gesendet: … ms“. Mit Nutzer prüfen; ggf. MTU aus F7-Nachricht nutzen, um schneller zu senden.
 
 - **GoDice:** Summe und D20-Erkennung nur mit nachgebildeten Würfeln im Browser geprüft – am echten Würfel testen.
 - **ACAAN / Karten-Erkennung:** Rechnung und Ablauf im Browser geprüft (manuell eingegeben); mit echtem Stift (gezeichnete Symbole!) testen. Idee: Vorlage auch für andere Stacks, Zählweise „N-te Karte“ vs. „nach N Karten“ einstellbar.

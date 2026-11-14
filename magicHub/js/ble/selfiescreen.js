@@ -20,6 +20,14 @@ const KEEPALIVE_MS = 15000;
 
 const BUTTONS = { 2: 'Auslöser', 6: 'Kamera wechseln', 10: 'Plus', 11: 'Minus' };
 
+// Paketgröße (Nutzdaten je BLE-Schreibvorgang, dazu kommt 1 Flag-Byte).
+// Android: Ohne vergrößerte MTU passen nur 20 Byte in ein Paket; längere Schreibvorgänge ohne Bestätigung kürzt
+// Android stillschweigend → das Ende-Flag fehlt, der Screen wartet auf den Rest und trennt nach ~12 s
+// (Nutzer-Protokoll 14.11.2026: jedes Mal 16 s nach dem Verbinden getrennt). Ein Browser kann die MTU weder
+// anfordern noch auslesen → auf Android 19 Byte. Sonst (Windows/macOS handeln die MTU selbst aus, iPhone) 180.
+const IS_ANDROID = typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent || '');
+export const PACKET_SIZES = { auto: 'Automatisch (Android 19, sonst 180)', 19: '19 Byte (sicher, langsam)', 180: '180 Byte', 244: '244 Byte' };
+
 export class SelfieScreen extends BleDevice {
   constructor() {
     super('selfie', 'Selfie Screen');
@@ -28,6 +36,7 @@ export class SelfieScreen extends BleDevice {
     this.buffer = 15360;
     this.rotation = 0;
     this.brightness = 100;
+    this.packetSize = 'auto';
     this._rx = [];
     this._chunk = 180;
     this._queue = Promise.resolve();
@@ -56,7 +65,10 @@ export class SelfieScreen extends BleDevice {
 
   async setup(server) {
     this.log('info', 'Verbunden mit „' + this.deviceName + '“ – suche Selfie-Dienst …');
-    this._chunk = 180;
+    this._chunk = this.packetSize === 'auto' ? (IS_ANDROID ? 19 : 180) : Number(this.packetSize) || 19;
+    this._rxLogged = 0;
+    this._imgLogged = 0;
+    this.log('info', 'Paketgröße ' + this._chunk + ' Byte' + (this.packetSize === 'auto' ? ' (automatisch' + (IS_ANDROID ? ', Android' : '') + ')' : ''));
     this._sentOnce = false;
     this._sending = false;
     this._connectedAt = Date.now();
@@ -168,8 +180,9 @@ export class SelfieScreen extends BleDevice {
       ctx.fillStyle = 'rgba(0,0,0,' + (100 - this.brightness) / 100 + ')';
       ctx.fillRect(0, 0, c.width, c.height);
     }
+    // Kleine Pakete sind langsam → Bild stärker komprimieren (Text/Zeichnungen bleiben gut lesbar).
     const limit = this.buffer - 100;
-    for (let q = 0.85; q > 0.05; q -= 0.1) {
+    for (let q = this._chunk < 100 ? 0.6 : 0.85; q > 0.05; q -= 0.1) {
       const bin = atob(c.toDataURL('image/jpeg', q).split(',')[1]);
       if (bin.length <= limit || q < 0.15) {
         if (bin.length > limit) break;
@@ -189,7 +202,10 @@ export class SelfieScreen extends BleDevice {
     this._fresh = false;
     this._sending = true;
     const first = !this._sentOnce;
+    const t0 = Date.now();
+    const size = this._jpeg.length;
     this._send(this._jpeg).then(() => {
+      if (this._imgLogged++ < 3) this.log('info', 'Bild gesendet: ' + size + ' Byte in ' + (Date.now() - t0) + ' ms (' + Math.ceil(size / this._chunk) + ' Pakete à ' + (this._chunk + 1) + ' Byte)');
       this._sending = false;
       this._lastTx = Date.now();
       this._sentOnce = true;
@@ -232,7 +248,8 @@ export class SelfieScreen extends BleDevice {
         throw err;
       }
       i = end;
-      await sleep(10);
+      // Android: writeValueWithoutResponse wartet bereits auf das Stack-Callback → keine Pause nötig.
+      if (!IS_ANDROID) await sleep(10);
     }
   }
 
@@ -244,6 +261,7 @@ export class SelfieScreen extends BleDevice {
     for (let i = 0; i < pkt.length - 1; i++) this._rx.push(pkt[i]);
     if (pkt[pkt.length - 1] !== 0) return;
     const m = this._rx; this._rx = [];
+    if (this._rxLogged++ < 12) this.log('info', 'Empfangen: ' + m.slice(0, 16).map((b) => b.toString(16).padStart(2, '0')).join(' ') + (m.length > 16 ? ' … (' + m.length + ' Byte)' : ''));
     if (m.length < 3 || m[0] !== 0xaa || m[1] !== 0x55) { this.log('info', 'Unbekannte Daten'); return; }
     const cmd = m[2];
     if (cmd === 3) {
@@ -260,6 +278,8 @@ export class SelfieScreen extends BleDevice {
       this._sizeKnown = true;
       this.emit('info', {});
       if (firstTime) this._firstPicture();
+    } else if (cmd === 0xf7 && m.length >= 5) {
+      this.log('info', 'Screen meldet MTU ' + (m[3] | (m[4] << 8)));
     } else if (BUTTONS[cmd]) {
       this.emit('button', { button: BUTTONS[cmd], long: false });
     }

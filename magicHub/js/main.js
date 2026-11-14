@@ -8,7 +8,7 @@ import { GoDiceSet, SHELLS } from './ble/godice.js';
 import { DavinciPalette, POT_COUNT } from './ble/davinci.js';
 import { UltraSharpie } from './ble/ultrasharpie.js';
 import { PeekSmith } from './ble/peeksmith.js';
-import { SelfieScreen } from './ble/selfiescreen.js';
+import { SelfieScreen, PACKET_SIZES } from './ble/selfiescreen.js';
 import { PeripagePrinter } from './ble/peripage.js';
 import { InjectSource, JsonUrlSource } from './web/sources.js';
 import { AiVision, PROVIDERS, AI_TASKS, localAvailability } from './ai/vision.js';
@@ -17,7 +17,7 @@ import { buildPrint, ensureFont, normalizeLayout, FONTS, ORIENTATIONS } from './
 import { STACKS, CARD_FORMATS, cardName, stackMapText } from './stacks.js';
 import { textCanvas, drawingCanvas, fitInto, demoStrokes } from './render.js';
 
-const VERSION = '0.5.5';
+const VERSION = '0.5.6';
 const BT = hasWebBluetooth();
 
 // ---------------------------------------------------------------- Helfer
@@ -88,6 +88,7 @@ let printLayout = normalizeLayout(settings.printLayout);
 if (settings.pen?.finishDelay) dev.pen.finishDelay = settings.pen.finishDelay;
 if (settings.peeksmith?.brightness != null) dev.peeksmith.brightness = settings.peeksmith.brightness;
 if (settings.selfie?.brightness) dev.selfie.brightness = settings.selfie.brightness;
+if (settings.selfie?.packetSize && PACKET_SIZES[settings.selfie.packetSize]) dev.selfie.packetSize = settings.selfie.packetSize;
 const diceMode = () => settings.diceMode || 'sum';
 if (!settings.godice || typeof settings.godice !== 'object') settings.godice = {};
 if (!settings.godice.shells) settings.godice.shells = {};
@@ -679,6 +680,9 @@ const PANELS = {
     live.addEventListener('change', () => { settings.selfie = { ...settings.selfie, livePen: live.checked }; saveSettings(); });
     const awake = h('input', { type: 'checkbox' }); awake.checked = settings.keepAwake !== false;
     awake.addEventListener('change', () => { settings.keepAwake = awake.checked; saveSettings(); updateWakeLock(); });
+    const packet = h('select', { onchange: () => { dev.selfie.packetSize = packet.value; settings.selfie = { ...settings.selfie, packetSize: packet.value }; saveSettings(); } },
+      ...['auto', '19', '180', '244'].map((v) => h('option', { value: v }, PACKET_SIZES[v])));
+    packet.value = dev.selfie.packetSize;
     const file = h('input', { type: 'file', accept: 'image/*', class: 'sr-only' });
     file.addEventListener('change', async () => {
       const f = file.files[0]; if (!f) return;
@@ -696,9 +700,10 @@ const PANELS = {
       h('label', { class: 'switch-row' }, live, h('span', {}, 'Stift live mitzeichnen (was gerade geschrieben wird)')),
       h('label', { class: 'switch-row' }, awake, h('span', {}, 'Handy-Bildschirm anlassen, solange Geräte verbunden sind')),
       h('details', {}, h('summary', {}, 'Verbindung bricht ab?'),
+        field('Paketgröße', packet, 'Gilt ab der nächsten Verbindung. Trennt der Screen immer kurz nach dem ersten Bild, 19 Byte wählen.'),
         h('ol', {},
           h('li', {}, 'App im Vordergrund lassen: Im Hintergrund oder bei ausgeschaltetem Display trennt der Browser Bluetooth oft.'),
-          h('li', {}, 'Die App schickt alle 15 s das aktuelle Bild erneut (Keep-Alive), damit der Screen nicht einschläft.'),
+          h('li', {}, 'Trennt er jedes Mal gleich nach dem Verbinden bzw. ersten Bild: Paketgröße 19 Byte (auf Android automatisch).'),
           h('li', {}, 'Im Geräte-Protokoll steht bei jedem Abbruch, nach wie vielen Sekunden er kam und wann zuletzt etwas gesendet wurde – das bitte notieren, wenn es weiter passiert.'),
           h('li', {}, 'Abstand klein halten; der Screen ist ein schwacher Sender.'))),
       h('details', {}, h('summary', {}, 'Screen wird nicht gefunden?'),
