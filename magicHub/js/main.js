@@ -18,7 +18,7 @@ import { buildPrint, ensureFont, normalizeLayout, FONTS, ORIENTATIONS } from './
 import { STACKS, CARD_FORMATS, cardName, stackMapText } from './stacks.js';
 import { textCanvas, drawingCanvas, fitInto, demoStrokes } from './render.js';
 
-const VERSION = '0.5.12';
+const VERSION = '0.5.13';
 const BT = hasWebBluetooth();
 
 // ---------------------------------------------------------------- Helfer
@@ -909,7 +909,10 @@ for (const [id, d] of Object.entries(dev)) {
     if (e.detail.level === 'error') addLog('error', DEV_BY_ID[id]?.name || id, e.detail.message);
   });
   d.addEventListener('status', (e) => pushDevLog(id, 'info', 'Status: ' + e.detail.message));
+  let shown = null; // Meldung nur beim Wechsel des Status, nicht bei jeder Aktualisierung
   d.addEventListener('status', (e) => {
+    if (e.detail.status === shown) return;
+    shown = e.detail.status;
     if (e.detail.status === 'lost') toast((DEV_BY_ID[id]?.name || id) + ': Verbindung verloren', 'error');
     if (e.detail.status === 'connected' && DEV_BY_ID[id]?.ble) toast((DEV_BY_ID[id]?.name) + ' verbunden', 'ok');
   });

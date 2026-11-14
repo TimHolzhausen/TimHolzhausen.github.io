@@ -95,7 +95,11 @@ export class GoDiceSet extends EventTarget {
     this.status = n ? 'connected' : (this.dice.size ? 'lost' : 'idle');
     const waiting = [...this.dice.values()].some((d) => d.waiting);
     this.statusMessage = n ? n + ' Würfel verbunden' + (waiting ? ' · warte auf weitere' : '') : (waiting ? 'Warte auf Würfel (automatisch) …' : this.dice.size ? 'Würfel getrennt' : 'Keine Würfel');
-    this._emit('status', { status: this.status, message: this.statusMessage });
+    // Status nur bei echter Änderung melden (sonst bei jedem Wurf „GoDice verbunden“ und eine Protokollzeile).
+    if (this.status !== this._lastStatus || this.statusMessage !== this._lastMessage) {
+      this._lastStatus = this.status; this._lastMessage = this.statusMessage;
+      this._emit('status', { status: this.status, message: this.statusMessage });
+    }
     this._emit('dice', {});
   }
 
