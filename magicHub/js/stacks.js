@@ -47,7 +47,7 @@ const SYM = { C: '♣', H: '♥', S: '♠', D: '♦' };
 export const CARD_FORMATS = {
   de: { label: 'Deutsch („Herz Dame“)', fmt: (v, s) => DE_SUIT[s] + ' ' + (DE_VALUE[v] || v) },
   deShort: { label: 'Kurz deutsch („HD“, „Kr10“, „KaK“)', fmt: (v, s) => DE_SUIT_SHORT[s] + (DE_SHORT[v] || v) },
-  symbol: { label: 'Symbol („D♥“) – nicht fürs PeekSmith', fmt: (v, s) => (DE_SHORT[v] || v) + SYM[s] },
+  symbol: { label: 'Symbol („D♥“) – PeekSmith zeigt „DH“', fmt: (v, s) => (DE_SHORT[v] || v) + SYM[s] },
   en: { label: 'Englisch („Queen of Hearts“)', fmt: (v, s) => EN_VALUE[v] + ' of ' + EN_SUIT[s] },
   code: { label: 'Code („QH“)', fmt: (v, s) => v + s },
 };

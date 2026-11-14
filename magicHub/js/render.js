@@ -19,13 +19,27 @@ export function textCanvas(text, w, h, { bg = '#000', fg = '#fff', weight = 700 
     const lh = size * 1.15;
     if (lines && lines.length * lh <= h - pad * 2) {
       const top = h / 2 - (lines.length - 1) * lh / 2;
-      lines.forEach((l, i) => ctx.fillText(l, w / 2, top + i * lh));
+      lines.forEach((l, i) => fillSuits(ctx, l, w / 2, top + i * lh, fg));
       return c;
     }
   }
   ctx.font = weight + ' 10px ' + FONT;
   ctx.fillText(String(text).slice(0, 40), w / 2, h / 2);
   return c;
+}
+
+/** Wie fillText (zentriert), aber Herz und Karo rot – wie auf echten Karten. */
+function fillSuits(ctx, line, cx, y, fg) {
+  if (!/[♥♦]/.test(line)) { ctx.fillText(line, cx, y); return; }
+  let x = cx - ctx.measureText(line).width / 2;
+  ctx.textAlign = 'left';
+  for (const ch of line) {
+    ctx.fillStyle = /[♥♦]/.test(ch) ? '#ff3b30' : fg;
+    ctx.fillText(ch, x, y);
+    x += ctx.measureText(ch).width;
+  }
+  ctx.textAlign = 'center';
+  ctx.fillStyle = fg;
 }
 
 function wrap(ctx, words, maxW) {

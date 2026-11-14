@@ -17,6 +17,23 @@ const SHELL_MAX_DIST2 = 400;
 
 const getLib = () => window.GoDice || (typeof GoDice === 'function' ? GoDice : null); // eslint-disable-line no-undef
 
+const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
+
+/** Wartet auf ein Funksignal; ohne watchAdvertisements nur eine Pause. */
+async function waitForAdvertisement(device, attempt) {
+  if (typeof device.watchAdvertisements !== 'function') { await sleep(attempt ? 3000 : 300); return; }
+  const ctrl = new AbortController();
+  try {
+    await new Promise((resolve) => {
+      const t = setTimeout(resolve, 60000); // spätestens nach 60 s trotzdem versuchen
+      device.addEventListener('advertisementreceived', () => { clearTimeout(t); resolve(); }, { once: true });
+      device.watchAdvertisements({ signal: ctrl.signal }).catch(() => { clearTimeout(t); setTimeout(resolve, 3000); });
+    });
+  } finally {
+    ctrl.abort();
+  }
+}
+
 function nearest(table, xyz) {
   let key = null, dist2 = Infinity;
   for (const k in table) {
@@ -37,6 +54,7 @@ export class GoDiceSet extends EventTarget {
     this.statusMessage = 'Keine Würfel';
     // Wird von main.js durch settings.godice ersetzt (gleiches Objekt → Änderungen sind gespeichert).
     this.config = { shells: {} };
+    this.autoConnect = true;
   }
 
   shellOf(id) { return this.config.shells?.[id] || 'auto'; }
@@ -75,7 +93,8 @@ export class GoDiceSet extends EventTarget {
   _changed() {
     const n = [...this.dice.values()].filter((d) => d.online).length;
     this.status = n ? 'connected' : (this.dice.size ? 'lost' : 'idle');
-    this.statusMessage = n ? n + (n === 1 ? ' Würfel' : ' Würfel') + ' verbunden' : (this.dice.size ? 'Würfel getrennt' : 'Keine Würfel');
+    const waiting = [...this.dice.values()].some((d) => d.waiting);
+    this.statusMessage = n ? n + ' Würfel verbunden' + (waiting ? ' · warte auf weitere' : '') : (waiting ? 'Warte auf Würfel (automatisch) …' : this.dice.size ? 'Würfel getrennt' : 'Keine Würfel');
     this._emit('status', { status: this.status, message: this.statusMessage });
     this._emit('dice', {});
   }
@@ -86,16 +105,38 @@ export class GoDiceSet extends EventTarget {
     const Lib = getLib();
     if (!Lib) throw new Error('GoDice-Bibliothek nicht geladen (vendor/godice.js)');
     const die = new Lib();
+    this._wire(die);
+    try {
+      await die.requestDevice();
+      this._rememberDie(die.bluetoothDevice);
+    } catch (err) {
+      const msg = describeError(err);
+      if (!/abgebrochen/.test(msg)) this._emit('log', { level: 'error', message: msg });
+      throw err;
+    }
+  }
+
+  /** Ereignisse der Bibliothek mit diesem Würfel-Set verbinden. */
+  _wire(die) {
     die.onDiceConnected = (id) => {
-      const entry = this.dice.get(id) || { die, name: die.bluetoothDevice?.name || 'GoDice', value: null };
+      const entry = this.dice.get(id) || { die, value: null };
+      entry.die = die;
+      entry.name = die.bluetoothDevice?.name || entry.name || 'GoDice';
       entry.online = true;
+      entry.waiting = false;
+      entry.removed = false;
       this.dice.set(id, entry);
       try { die.getDiceColor(); die.getBatteryLevel(); } catch { /* egal */ }
       this._changed();
     };
     die.onDiceDisconnected = (id) => {
       const d = this.dice.get(id);
-      if (d) { d.online = false; this._changed(); }
+      if (!d || !d.online) return; // Bibliothek meldet nach Wiederverbindungen mehrfach
+      d.online = false;
+      d.rolling = false;
+      this._emit('log', { level: 'warn', message: (d.color || d.name) + ': Verbindung verloren' });
+      this._changed();
+      if (!d.removed && this.autoConnect) this._autoAttach(id, die, die.bluetoothDevice);
     };
     die.onDiceColor = (id, color) => {
       const d = this.dice.get(id);
@@ -125,13 +166,86 @@ export class GoDiceSet extends EventTarget {
     die.onStable = stable;
     die.onFakeStable = stable;
     die.onMoveStable = stable;
-    try {
-      await die.requestDevice();
-    } catch (err) {
-      const msg = describeError(err);
-      if (!/abgebrochen/.test(msg)) this._emit('log', { level: 'error', message: msg });
-      throw err;
+  }
+
+  // ---- Automatisch verbinden (bekannte Würfel; neue brauchen einmal das Auswahlfenster) ----
+
+  _savedDice() {
+    try { return JSON.parse(localStorage.getItem('magichub_godice') || '[]') || []; } catch { return []; }
+  }
+
+  _rememberDie(device) {
+    if (!device?.id) return;
+    const list = this._savedDice().filter((x) => x.id !== device.id);
+    list.push({ id: device.id, name: device.name || '' });
+    try { localStorage.setItem('magichub_godice', JSON.stringify(list)); } catch { /* egal */ }
+  }
+
+  _forgetDie(id) {
+    try { localStorage.setItem('magichub_godice', JSON.stringify(this._savedDice().filter((x) => x.id !== id))); } catch { /* egal */ }
+  }
+
+  static get canQuickConnect() {
+    return typeof navigator !== 'undefined' && typeof navigator.bluetooth?.getDevices === 'function';
+  }
+
+  get rememberedCount() { return this._savedDice().length; }
+
+  /** Beim Start: alle gemerkten Würfel suchen und verbinden, sobald sie funken (nur mit getDevices()). */
+  async autoStart() {
+    if (!this.autoConnect || !GoDiceSet.canQuickConnect) return false;
+    const saved = this._savedDice();
+    if (!saved.length) return false;
+    let devices = [];
+    try { devices = await navigator.bluetooth.getDevices(); } catch { return false; }
+    const Lib = getLib();
+    if (!Lib) return false;
+    let n = 0;
+    for (const dv of devices) {
+      if (!saved.some((x) => x.id === dv.id) || this.dice.has(dv.id)) continue;
+      const die = new Lib();
+      this._wire(die);
+      this.dice.set(dv.id, { die, name: dv.name || 'GoDice', value: null, online: false, waiting: true });
+      this._autoAttach(dv.id, die, dv);
+      n++;
     }
+    if (n) this._changed();
+    return n > 0;
+  }
+
+  /** Wartet auf das Funksignal des Würfels und verbindet dann; wiederholt, bis verbunden oder entfernt. */
+  async _autoAttach(id, die, device) {
+    const d = this.dice.get(id);
+    if (!d || !device || d.attaching) return;
+    d.attaching = true;
+    d.waiting = true;
+    this._changed();
+    try {
+      for (let attempt = 0; ; attempt++) {
+        const cur = this.dice.get(id);
+        if (!cur || cur.removed || cur.online || !this.autoConnect) break;
+        await waitForAdvertisement(device, attempt);
+        const now = this.dice.get(id);
+        if (!now || now.removed || now.online || !this.autoConnect) break;
+        try {
+          await die.attachDevice(device);
+          break; // onDiceConnected setzt online
+        } catch (err) {
+          try { if (device.gatt?.connected) device.gatt.disconnect(); } catch { /* egal */ }
+          if (attempt < 3) this._emit('log', { level: 'warn', message: (now.color || now.name) + ': automatisch verbinden fehlgeschlagen (' + (err.message || err.name) + ') – neuer Versuch' });
+          await sleep(Math.min(20000, 2000 * (attempt + 1)));
+        }
+      }
+    } finally {
+      const end = this.dice.get(id);
+      if (end) { end.attaching = false; end.waiting = !end.online && !end.removed && this.autoConnect; }
+      this._changed();
+    }
+  }
+
+  stopAuto() {
+    for (const d of this.dice.values()) d.waiting = false;
+    this._changed();
   }
 
   values() {
@@ -146,7 +260,9 @@ export class GoDiceSet extends EventTarget {
   remove(id) {
     const d = this.dice.get(id);
     if (!d) return;
+    d.removed = true;
     try { d.die.onDisconnectButtonClick(); } catch { /* egal */ }
+    this._forgetDie(id);
     this.dice.delete(id);
     this._changed();
   }

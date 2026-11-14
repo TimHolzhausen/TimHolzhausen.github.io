@@ -12,7 +12,7 @@ export function toPeekText(text) {
   return String(text ?? '')
     .replace(/Ä/g, 'AE').replace(/Ö/g, 'OE').replace(/Ü/g, 'UE')
     .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss')
-    .replace(/[♠]/g, 'S').replace(/[♥]/g, 'H').replace(/[♦]/g, 'D').replace(/[♣]/g, 'C')
+    .replace(/[♠♤]/g, 'P').replace(/[♥♡❤]/g, 'H').replace(/[♦♢]/g, 'Ka').replace(/[♣♧]/g, 'Kr') // PeekSmith kann keine Symbole – deutsche Kürzel
     .replace(/[\r\n]+/g, ' ')
     .replace(/[^\x20-\x7e]/g, '')
     .trim();

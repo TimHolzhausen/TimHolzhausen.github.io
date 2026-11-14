@@ -67,7 +67,7 @@ export const CONTENTS = {
 
 export const JOINERS = { ', ': 'Komma', ' ': 'Leerzeichen', '': 'Nichts (direkt aneinander)', ' - ': 'Bindestrich', '\n': 'Neue Zeile' };
 
-export const TEMPLATE_VARS = '{text} Wert · {quelle} Auslöser · {letzter} letzter Inhalt · {zähler} wie oft ausgelöst · {uhrzeit} · {datum} · Sitzungsliste: {liste} alle, {letzte:3} die letzten 3, {anzahl}, {1} … {9} n-ter Eintrag, {-1} neuester · ACAAN (neueste Karte und Zahl der Sitzungsliste): {karte}, {zahl}, {abheben:mnemonica} „5 von oben“, {abhebekarte:mnemonica} liegt danach oben, {position:mnemonica} – Stacks: ' + Object.keys(STACKS).join(', ') + ', Kartenformat optional: {abhebekarte:mnemonica:deShort}';
+export const TEMPLATE_VARS = '{text} Wert · {quelle} Auslöser · {letzter} letzter Inhalt · {zähler} wie oft ausgelöst · {uhrzeit} · {datum} · Sitzungsliste: {liste} alle, {letzte:3} die letzten 3, {anzahl}, {1} … {9} n-ter Eintrag, {-1} neuester · ACAAN (neueste Karte und Zahl der Sitzungsliste): {karte} bzw. {karte:symbol}, {zahl}, {abheben:mnemonica} „5 von oben“, {abhebekarte:mnemonica} liegt danach oben, {position:mnemonica} – Stacks: ' + Object.keys(STACKS).join(', ') + ', Kartenformat optional: {abhebekarte:mnemonica:deShort}';
 
 const act = (target, extra = {}) => ({ target, do: 'show', delay: 0, hideAfter: 0, ...extra });
 
@@ -87,9 +87,9 @@ export const PRESETS = [
     actions: [act('printer', { font: 'hand' }), act('list', { do: 'clear' })],
   },
   {
-    name: 'ACAAN: genannte Karte an Würfel-Position (Mnemonica) – Abheben aufs PeekSmith', source: 'list',
-    when: { type: 'cardNum' }, content: 'fixed', template: '{abheben:mnemonica} · {abhebekarte:mnemonica:deShort}',
-    actions: [act('peeksmith'), act('list', { do: 'clear' })],
+    name: 'ACAAN: Karte an Würfel-Position (Mnemonica) – PeekSmith & Selfie Screen mit Symbolen', source: 'list',
+    when: { type: 'cardNum' }, content: 'fixed', template: '{abheben:mnemonica}\n{abhebekarte:mnemonica:symbol}',
+    actions: [act('peeksmith'), act('selfie'), act('list', { do: 'clear' })],
   },
   { name: 'PeekSmith-Taste rechts lang: Display leeren', source: 'peeksmith-buttons', when: { type: 'is', value: 'Rechts lang' }, actions: [act('peeksmith', { do: 'clear' })] },
 ];
@@ -338,6 +338,7 @@ export class Hub extends EventTarget {
     const rendered = (tpl || '{text}')
       .replace(/\{(text|quelle|letzter|zähler|zaehler|uhrzeit|datum|liste|anzahl|karte|zahl)\}/g, (_, k) => vars[k])
       .replace(/\{(abheben|abhebekarte|position):(\w+)(?::(\w+))?\}/g, (_, k, st, fmt) => acaan(k, st, fmt))
+      .replace(/\{karte:(\w+)\}/g, (_, fmt) => (cn.card ? cardName(cn.card, fmt) : ''))
       .replace(/\{(-?[1-9])\}/g, (_, i) => nth(i))
       .replace(/\{letzte:(\d{1,2})\}/g, (_, n) => lastN(Number(n)).join(joiner));
     const keepImage = content.kind === 'image' && (content.strokes || content.canvas);

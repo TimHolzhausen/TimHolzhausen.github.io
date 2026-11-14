@@ -17,7 +17,7 @@ import { buildPrint, ensureFont, normalizeLayout, FONTS, ORIENTATIONS } from './
 import { STACKS, CARD_FORMATS, cardName, stackMapText } from './stacks.js';
 import { textCanvas, drawingCanvas, fitInto, demoStrokes } from './render.js';
 
-const VERSION = '0.5.4';
+const VERSION = '0.5.5';
 const BT = hasWebBluetooth();
 
 // ---------------------------------------------------------------- Helfer
@@ -471,13 +471,25 @@ const PANELS = {
       h('option', { value: 'last' }, 'Nur letzter Würfel'));
     mode.value = diceMode();
     const add = h('button', { class: 'btn btn-primary btn-block', type: 'button', disabled: !BT, onclick: () => runAction({ run: () => dev.godice.addDie() }) }, '+ Würfel hinzufügen');
-    body.append(noBt() || '', list, add, field('Gesendet wird', mode), h('p', { class: 'hint' }, 'Mehrere Würfel nacheinander hinzufügen. Gemeldet wird, sobald alle liegen. Hülle „Automatisch“ erkennt pro Wurf, ob der Würfel in einer D20-Hülle steckt.'));
+    const auto = h('input', { type: 'checkbox' });
+    auto.checked = dev.godice.autoConnect;
+    auto.addEventListener('change', () => {
+      settings.autoConnect = { ...settings.autoConnect, godice: auto.checked };
+      saveSettings();
+      dev.godice.autoConnect = auto.checked;
+      if (!auto.checked) dev.godice.stopAuto(); else dev.godice.autoStart().catch(() => {});
+    });
+    const autoHint = h('p', { class: 'hint' }, dev.godice.constructor.canQuickConnect
+      ? 'Bekannte Würfel verbinden sich beim Start und nach einem Abbruch von selbst, sobald sie funken (Würfel kurz bewegen).'
+      : 'Nach einem Abbruch verbinden sich Würfel von selbst. Beim App-Start nur, wenn Chrome bekannte Geräte kennt: chrome://flags → „Use the new permissions backend for Web Bluetooth“ (experimentell). Neue Würfel brauchen immer einmal „+ Würfel hinzufügen“.');
+    body.append(noBt() || '', list, add, field('Gesendet wird', mode),
+      h('label', { class: 'switch-row' }, auto, h('span', {}, 'Würfel automatisch verbinden (beim Start und nach Abbruch)')), autoHint, h('p', { class: 'hint' }, 'Mehrere Würfel nacheinander hinzufügen. Gemeldet wird, sobald alle liegen. Hülle „Automatisch“ erkennt pro Wurf, ob der Würfel in einer D20-Hülle steckt.'));
     return () => {
       const dice = [...dev.godice.dice.entries()];
       list.replaceChildren(...(dice.length ? dice.map(([id, d]) => h('div', { class: 'die' + (d.online ? '' : ' off') },
         h('span', { class: 'die-face', style: 'background:' + (d.colorHex || '#555') }, d.rolling ? '…' : (d.value ?? '–')),
         h('span', { class: 'die-text' }, h('strong', {}, d.color || d.name),
-          h('small', {}, d.online ? (d.battery != null ? 'Akku ' + d.battery + ' %' : 'verbunden') : 'getrennt'),
+          h('small', {}, d.online ? (d.battery != null ? 'Akku ' + d.battery + ' %' : 'verbunden') : d.waiting ? 'wartet – verbindet automatisch, sobald er funkt' : 'getrennt'),
           h('small', {}, shellInfo(id, d))),
         shellSelect(id),
         h('button', { class: 'btn btn-small btn-ghost', type: 'button', onclick: () => dev.godice.blink(id) }, 'Blinken'),
@@ -827,8 +839,10 @@ const PANELS = {
 // Automatisch verbinden (pro Gerät, Standard an)
 const autoOn = (id) => settings.autoConnect?.[id] !== false;
 for (const [id, d] of Object.entries(dev)) if (d instanceof BleDevice) d.autoConnect = autoOn(id);
+dev.godice.autoConnect = autoOn('godice');
 if (BT) setTimeout(() => {
   for (const [id, d] of Object.entries(dev)) if (d instanceof BleDevice && d.autoConnect) d.autoStart().catch(() => {});
+  if (dev.godice.autoConnect) dev.godice.autoStart().catch(() => {});
 }, 800);
 
 // Status-/Datenänderungen → Oberfläche
