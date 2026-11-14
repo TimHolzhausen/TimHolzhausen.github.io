@@ -18,7 +18,7 @@ import { buildPrint, ensureFont, normalizeLayout, FONTS, ORIENTATIONS } from './
 import { STACKS, CARD_FORMATS, cardName, stackMapText } from './stacks.js';
 import { textCanvas, drawingCanvas, fitInto, demoStrokes } from './render.js';
 
-const VERSION = '0.5.10';
+const VERSION = '0.5.11';
 const BT = hasWebBluetooth();
 
 // ---------------------------------------------------------------- Helfer
@@ -228,16 +228,25 @@ function vibrateNow(pattern) {
   return ok;
 }
 
-/** Zahl n → Impulse: Zehner lang, Einer kurz (z. B. 12 = lang, Pause, kurz, kurz). Text → ein Impuls. */
-function vibrationPattern(text) {
+/** Wert eines langen Impulses (Einstellung im Vibrations-Fenster): 10 oder 5. */
+const vibLong = () => (settings.vibrate?.long === 5 ? 5 : 10);
+
+/** Zahl n → Impulse: je „vibLong()“ ein langer, Rest kurz (bei 10: 12 = lang · kurz kurz; bei 5: lang lang · kurz kurz). Text → ein Impuls. */
+function vibrationPattern(text, unit = vibLong()) {
   const n = parseInt(String(text).trim(), 10);
   if (!Number.isFinite(n) || n <= 0 || n > 60) return [120];
   const pattern = [];
-  const tens = Math.floor(n / 10); const ones = n % 10;
-  for (let i = 0; i < tens; i++) pattern.push(600, 350);
-  if (tens && ones) pattern.push(0, 500);
-  for (let i = 0; i < ones; i++) pattern.push(150, 250);
+  const longs = Math.floor(n / unit); const shorts = n % unit;
+  for (let i = 0; i < longs; i++) pattern.push(600, 350);
+  if (longs && shorts) pattern.push(0, 500);
+  for (let i = 0; i < shorts; i++) pattern.push(150, 250);
   return pattern;
+}
+
+/** Lesbare Beschreibung eines Musters, z. B. „lang lang · kurz kurz“. */
+function vibrationText(n, unit = vibLong()) {
+  const longs = Math.floor(n / unit); const shorts = n % unit;
+  return [Array(longs).fill('lang').join(' '), Array(shorts).fill('kurz').join(' ')].filter(Boolean).join(' · ');
 }
 
 function drawPreview(canvas, src) {
@@ -848,8 +857,15 @@ const PANELS = {
         result.textContent = 'Chrome hat die Vibration angenommen. Spürst du nichts, blockiert Android sie – siehe unten.';
       } catch (err) { result.textContent = err.message; }
     } }, 'Einfacher Test: 1 Sekunde');
+    const desc = h('p', {});
+    const longSel = h('select', {}, h('option', { value: '10' }, 'Ein langer Impuls = 10'), h('option', { value: '5' }, 'Ein langer Impuls = 5'));
+    longSel.value = String(vibLong());
+    const updDesc = () => { desc.textContent = 'Lässt das Handy vibrieren. Zahlen werden gezählt: je ' + vibLong() + ' ein langer Impuls, der Rest kurz – z. B. 12 = ' + vibrationText(12) + ', 7 = ' + vibrationText(7) + '.'; };
+    longSel.addEventListener('change', () => { settings.vibrate = { ...settings.vibrate, long: Number(longSel.value) }; saveSettings(); updDesc(); });
+    updDesc();
     body.append(
-      h('p', {}, 'Lässt das Handy vibrieren. Zahlen werden gezählt: Zehner lang, Einer kurz (12 = lang · kurz kurz).'),
+      desc,
+      field('Lange Impulse', longSel, 'Gilt für alle Kombis mit der Ausgabe „Vibration“.'),
       ok ? '' : h('p', { class: 'callout' }, 'Dieser Browser kann nicht vibrieren (iPhone/Safari/Bluefy unterstützen das nicht).'),
       direct, result,
       h('p', { class: 'callout' }, 'In der Hosentasche: Bei ausgeschaltetem Display pausiert Chrome die Seite – dann vibriert nichts und Bluetooth bricht ab. Das kann eine Web-App nicht umgehen. Stattdessen den Taschenmodus nutzen: Display bleibt an, ist aber komplett schwarz (auf OLED-Displays praktisch aus) und reagiert nicht auf Berührungen. Beenden: 2 Sekunden gedrückt halten.'),
