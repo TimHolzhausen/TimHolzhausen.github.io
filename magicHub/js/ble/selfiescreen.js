@@ -16,7 +16,9 @@ const NOTIFY = '6e400003-b5a3-f393-e0a9-e50e24dcca9d';
 
 // Keep-Alive: Steht eine Bildanforderung des Screens offen und wurde so lange nichts gesendet,
 // schicken wir das aktuelle Bild noch einmal (sieht identisch aus, hält die Verbindung aktiv).
-const KEEPALIVE_MS = 15000;
+// Nutzer-Protokoll 14.11.2026: Der Screen fordert nach jedem Bild das nächste an (aa 55 03) und trennt nach
+// ~12 s ohne neues Bild (er ist für eine laufende Kamera-Vorschau gebaut). Darum spätestens alle 5 s erneut senden.
+const KEEPALIVE_MS = 5000;
 
 const BUTTONS = { 2: 'Auslöser', 6: 'Kamera wechseln', 10: 'Plus', 11: 'Minus' };
 
@@ -118,7 +120,7 @@ export class SelfieScreen extends BleDevice {
       this._firstPicture();
     }, 3000);
     clearInterval(this._keepAliveTimer);
-    this._keepAliveTimer = setInterval(() => this._keepAlive(), 5000);
+    this._keepAliveTimer = setInterval(() => this._keepAlive(), 1000);
   }
 
   _keepAlive() {

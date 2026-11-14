@@ -17,7 +17,7 @@ import { buildPrint, ensureFont, normalizeLayout, FONTS, ORIENTATIONS } from './
 import { STACKS, CARD_FORMATS, cardName, stackMapText } from './stacks.js';
 import { textCanvas, drawingCanvas, fitInto, demoStrokes } from './render.js';
 
-const VERSION = '0.5.6';
+const VERSION = '0.5.7';
 const BT = hasWebBluetooth();
 
 // ---------------------------------------------------------------- Helfer
