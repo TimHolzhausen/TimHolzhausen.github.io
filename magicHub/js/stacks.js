@@ -63,7 +63,7 @@ export function cardName(code, format = 'de') {
 function allNames(code) {
   const [v, s] = split(code);
   const names = new Set([code, cardName(code, 'de'), cardName(code, 'deShort'), cardName(code, 'symbol'), cardName(code, 'en'),
-    (DE_VALUE[v] || v) + ' ' + DE_SUIT[s]]);
+    (DE_VALUE[v] || v) + ' ' + DE_SUIT[s], (DE_SHORT[v] || v) + DE_SUIT_SHORT[s], v + SYM[s]]);
   return [...names];
 }
 
@@ -77,4 +77,68 @@ export function stackMapText(stackId, { format = 'de', direction = 'num2card' } 
   return st.cards.map((code, i) => (direction === 'card2num'
     ? allNames(code).join(',') + '=' + (i + 1)
     : (i + 1) + '=' + cardName(code, format))).join('\n');
+}
+
+// ---------------------------------------------------------------- Karte erkennen / ACAAN
+
+/**
+ * Gezeichnete Farbsymbole kommen je nach Erkennung als Umriss, Emoji oder Ersatzzeichen zurück
+ * (❤ ♡ 💜 ◇ ◊ ♤ ♧ …) → einheitlich ♥ ♦ ♠ ♣. Gilt app-weit (Erkennung, Zuordnung, Bedingungen).
+ */
+export function normalizeSuitSymbols(s) {
+  return String(s ?? '')
+    .replace(/[♡❤❥💗💓💕💖💘💙💚💛💜🖤🤍♥]️?/gu, '♥').replace(/[♢◇◆◊⬦⬥🔶🔷♦]️?/gu, '♦')
+    .replace(/[♤♠]️?/gu, '♠').replace(/[♧♣]️?/gu, '♣');
+}
+
+const normName = (s) => normalizeSuitSymbols(s).toLowerCase()
+  .replace(/[-_.:]/g, ' ').replace(/\s+/g, ' ').trim();
+let cardIndex = null;
+
+/** Text („Herz Dame“, „Dame Herz“, „HD“, „QH“, „Queen of Hearts“, „D♥“ …) → Karten-Code oder null. */
+export function parseCard(text) {
+  if (!cardIndex) {
+    cardIndex = new Map();
+    for (const v of VALUES) {
+      for (const s of ['C', 'H', 'S', 'D']) {
+        for (const n of allNames(v + s)) {
+          const k = normName(n);
+          cardIndex.set(k, v + s);
+          cardIndex.set(k.replace(/ /g, ''), v + s);
+        }
+      }
+    }
+  }
+  const t = normName(text);
+  if (!t) return null;
+  // Typische Lesefehler der Handschrift-Erkennung: „1o“/„lo“/„l0“ statt „10“, „o“ statt „0“.
+  const variants = [t, t.replace(/(^|\s)[1li|][o0](?=\s|$|[a-zäö♥♦♠♣])/g, '$110'), t.replace(/o/g, '0')];
+  for (const v of variants) {
+    const hit = cardIndex.get(v) || cardIndex.get(v.replace(/ /g, ''));
+    if (hit) return hit;
+  }
+  return null;
+}
+
+/**
+ * Any Card at Any Number: Wie muss abgehoben werden, damit `code` an Position `target` (1 = oben) liegt?
+ * Abheben = k Karten von oben unter das Spiel (bzw. 52 − k von unten nach oben – je nachdem, was weniger ist).
+ * Ergebnis: { position, target, k, fromTop, count, topCard } – topCard liegt nach dem Abheben oben.
+ */
+export function acaanCut(stackId, code, target) {
+  const st = STACKS[stackId];
+  if (!st || !code) return null;
+  const n = st.cards.length;
+  const p = st.cards.indexOf(code) + 1;
+  const t = Math.round(Number(target));
+  if (!p || !(t >= 1 && t <= n)) return null;
+  const k = (((p - t) % n) + n) % n;
+  const fromTop = k <= n / 2;
+  return { position: p, target: t, k, fromTop, count: fromTop ? k : n - k, topCard: st.cards[k] };
+}
+
+export function acaanText(cut) {
+  if (!cut) return '?';
+  if (!cut.count) return 'passt';
+  return cut.count + (cut.fromTop ? ' von oben' : ' von unten');
 }

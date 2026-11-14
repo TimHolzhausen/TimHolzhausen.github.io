@@ -22,6 +22,10 @@
 //   Wird VOR dem Auswerten der Kombis ergänzt → „Liste hat 4 Einträge“ greift beim 4. Wert.
 //   listConfig: { sources: null = alle Text-Quellen | [ids], mode: 'manual'|'count'|'idle', max, idleMin }
 
+import { STACKS, parseCard, cardName, acaanCut, acaanText } from './stacks.js';
+
+const CARD_KEY = '#karte:';
+
 const STORE_KEY = 'magichub_v1';
 
 export function loadStore() {
@@ -45,6 +49,7 @@ export const CONDITIONS = {
   odd: 'Zahl ist ungerade',
   count: 'Sitzungsliste hat genau … Einträge',
   countMin: 'Sitzungsliste hat mindestens … Einträge',
+  cardNum: 'Sitzungsliste enthält eine Karte und eine Zahl',
 };
 
 export const LIST_MODES = {
@@ -62,7 +67,7 @@ export const CONTENTS = {
 
 export const JOINERS = { ', ': 'Komma', ' ': 'Leerzeichen', '': 'Nichts (direkt aneinander)', ' - ': 'Bindestrich', '\n': 'Neue Zeile' };
 
-export const TEMPLATE_VARS = '{text} Wert · {quelle} Auslöser · {letzter} letzter Inhalt · {zähler} wie oft ausgelöst · {uhrzeit} · {datum} · Sitzungsliste: {liste} alle, {letzte:3} die letzten 3, {anzahl}, {1} … {9} n-ter Eintrag, {-1} neuester';
+export const TEMPLATE_VARS = '{text} Wert · {quelle} Auslöser · {letzter} letzter Inhalt · {zähler} wie oft ausgelöst · {uhrzeit} · {datum} · Sitzungsliste: {liste} alle, {letzte:3} die letzten 3, {anzahl}, {1} … {9} n-ter Eintrag, {-1} neuester · ACAAN (neueste Karte und Zahl der Sitzungsliste): {karte}, {zahl}, {abheben:mnemonica} „5 von oben“, {abhebekarte:mnemonica} liegt danach oben, {position:mnemonica} – Stacks: ' + Object.keys(STACKS).join(', ') + ', Kartenformat optional: {abhebekarte:mnemonica:deShort}';
 
 const act = (target, extra = {}) => ({ target, do: 'show', delay: 0, hideAfter: 0, ...extra });
 
@@ -80,6 +85,11 @@ export const PRESETS = [
     name: 'Candy Prediction: 4 Ziffern → Zahl in Handschrift drucken', source: 'ai',
     when: { type: 'count', value: '4' }, content: 'list', listN: 4, joiner: '',
     actions: [act('printer', { font: 'hand' }), act('list', { do: 'clear' })],
+  },
+  {
+    name: 'ACAAN: genannte Karte an Würfel-Position (Mnemonica) – Abheben aufs PeekSmith', source: 'list',
+    when: { type: 'cardNum' }, content: 'fixed', template: '{abheben:mnemonica} · {abhebekarte:mnemonica:deShort}',
+    actions: [act('peeksmith'), act('list', { do: 'clear' })],
   },
   { name: 'PeekSmith-Taste rechts lang: Display leeren', source: 'peeksmith-buttons', when: { type: 'is', value: 'Rechts lang' }, actions: [act('peeksmith', { do: 'clear' })] },
 ];
@@ -114,7 +124,11 @@ export function parseMap(text) {
     if (i < 1) continue;
     for (const key of line.slice(0, i).split(',')) {
       const k = key.trim().toLowerCase();
-      if (k) map.set(k, line.slice(i + 1).trim());
+      if (!k) continue;
+      map.set(k, line.slice(i + 1).trim());
+      // Karten-Schlüssel gelten in jeder Schreibweise („QH“ = „Herz Dame“ = „D♡“ …)
+      const code = parseCard(k);
+      if (code && !map.has(CARD_KEY + code)) map.set(CARD_KEY + code, line.slice(i + 1).trim());
     }
   }
   return map;
@@ -125,13 +139,19 @@ const num = (v) => {
   return Number.isFinite(n) ? n : null;
 };
 
+/** Ist v eine Karte, die (in irgendeiner Schreibweise) in der Liste steht? */
+function sameCard(v, values) {
+  const c = parseCard(v);
+  return !!c && values.some((x) => parseCard(x) === c);
+}
+
 /** Prüft die Bedingung einer Kombi gegen den Wert des Ereignisses. ctx.count = Einträge der Sitzungsliste. */
 export function matches(when, value, ctx = {}) {
   const v = String(value ?? '').trim().toLowerCase();
   const list = () => String(when.value || '').split(',').map((x) => x.trim().toLowerCase()).filter(Boolean);
   switch (when.type) {
-    case 'is': return list().includes(v);
-    case 'not': return !list().includes(v);
+    case 'is': return list().includes(v) || sameCard(v, list());
+    case 'not': return !list().includes(v) && !sameCard(v, list());
     case 'contains': return list().some((x) => v.includes(x));
     case 'range': {
       const n = num(v); const lo = num(when.min); const hi = num(when.max);
@@ -141,6 +161,7 @@ export function matches(when, value, ctx = {}) {
     case 'odd': { const n = num(v); return n != null && Math.abs(n % 2) === 1; }
     case 'count': return list().map(num).includes(ctx.count ?? 0);
     case 'countMin': { const n = num(when.value); return n != null && (ctx.count ?? 0) >= n; }
+    case 'cardNum': { const cn = ctx.cardNum?.(); return !!(cn?.card && cn.number != null); }
     default: return true;
   }
 }
@@ -261,7 +282,7 @@ export class Hub extends EventTarget {
     const st = this._state.get(combo.id) || { count: 0, lastValue: undefined, lastFire: 0 };
     const value = event.text ?? '';
     if (!force) {
-      if (!matches(combo.when, value, { count: this.list.length })) return false;
+      if (!matches(combo.when, value, { count: this.list.length, cardNum: () => this.cardAndNumber() })) return false;
       if (combo.cooldown > 0 && Date.now() - st.lastFire < combo.cooldown * 1000) {
         this._activity({ dir: 'skip', label: comboLabel(this, combo), message: 'Sperrzeit läuft' });
         return false;
@@ -276,7 +297,10 @@ export class Hub extends EventTarget {
     const mapOne = (t) => {
       if (!mapper || t == null) return t;
       const key = String(t).trim().toLowerCase();
-      return mapper.has(key) ? mapper.get(key) : mapper.has('*') ? mapper.get('*') : t;
+      if (mapper.has(key)) return mapper.get(key);
+      const code = parseCard(key);
+      if (code && mapper.has(CARD_KEY + code)) return mapper.get(CARD_KEY + code);
+      return mapper.has('*') ? mapper.get('*') : t;
     };
     const joiner = combo.joiner ?? ', ';
     const lastN = (n) => (n > 0 ? this.list.slice(-n) : this.list).map((e) => e.text);
@@ -300,10 +324,20 @@ export class Hub extends EventTarget {
       liste: lastN(0).join(joiner),
       anzahl: String(this.list.length),
     };
+    const cn = this.cardAndNumber();
+    vars.karte = cn.card ? cardName(cn.card) : '';
+    vars.zahl = cn.number != null ? String(cn.number) : '';
+    const acaan = (kind, stackId, fmt) => {
+      const cut = acaanCut(stackId, cn.card, cn.number);
+      if (kind === 'position') return cut ? String(cut.position) : '?';
+      if (kind === 'abhebekarte') return cut ? cardName(cut.topCard, fmt || 'de') : '?';
+      return acaanText(cut);
+    };
     const nth = (i) => { const n = Number(i); const e = n > 0 ? this.list[n - 1] : this.list[this.list.length + n]; return e ? e.text : ''; };
     const tpl = combo.content === 'fixed' && combo.template === '{text}' ? '' : combo.template;
     const rendered = (tpl || '{text}')
-      .replace(/\{(text|quelle|letzter|zähler|zaehler|uhrzeit|datum|liste|anzahl)\}/g, (_, k) => vars[k])
+      .replace(/\{(text|quelle|letzter|zähler|zaehler|uhrzeit|datum|liste|anzahl|karte|zahl)\}/g, (_, k) => vars[k])
+      .replace(/\{(abheben|abhebekarte|position):(\w+)(?::(\w+))?\}/g, (_, k, st, fmt) => acaan(k, st, fmt))
       .replace(/\{(-?[1-9])\}/g, (_, i) => nth(i))
       .replace(/\{letzte:(\d{1,2})\}/g, (_, n) => lastN(Number(n)).join(joiner));
     const keepImage = content.kind === 'image' && (content.strokes || content.canvas);
@@ -318,6 +352,17 @@ export class Hub extends EventTarget {
     }
     if (combo.once && !force) this.updateCombo(combo.id, { enabled: false });
     return true;
+  }
+
+  /** Neueste Karte und neueste Zahl (1–999) der Sitzungsliste – Reihenfolge egal (für ACAAN). */
+  cardAndNumber() {
+    let card = null, number = null;
+    for (let i = this.list.length - 1; i >= 0 && (!card || number == null); i--) {
+      const t = String(this.list[i].text ?? '').trim();
+      if (number == null && /^\d{1,3}$/.test(t)) { number = Number(t); continue; }
+      if (!card) card = parseCard(t);
+    }
+    return { card, number };
   }
 
   _later(seconds, fn) {
@@ -382,6 +427,7 @@ export function describeWhen(w) {
     case 'odd': return 'ungerade';
     case 'count': return 'Liste = ' + w.value;
     case 'countMin': return 'Liste ≥ ' + w.value;
+    case 'cardNum': return 'Karte + Zahl';
     default: return '';
   }
 }

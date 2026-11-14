@@ -5,12 +5,20 @@
 // Status: Claude nach aktueller API-Referenz gebaut; OpenAI, Gemini, Google Vision und lokale KI nach
 // öffentlicher Doku – alles noch NICHT mit echten Keys getestet. Lokale KI ist experimentell (Chrome-Funktionen).
 
+import { parseCard, cardName, normalizeSuitSymbols } from '../stacks.js';
+
 export const AI_TASKS = {
   handwriting: {
     label: 'Handschrift → Text',
     prompt: 'Auf dem Bild steht etwas Handgeschriebenes (Wort, Name, Zahl oder Spielkarte). ' +
       'Antworte ausschließlich mit dem erkannten Text, ohne Anführungszeichen und ohne Erklärung. ' +
       'Spielkarten im Format „Herz Dame“. Ist nichts lesbar, antworte mit „?“.',
+  },
+  card: {
+    label: 'Spielkarte → Karte',
+    prompt: 'Auf dem Bild ist eine handgeschriebene Spielkarte (z. B. „QH“, „HD“, „10♥“, „Herz Dame“). ' +
+      'Antworte ausschließlich mit der Karte im Format „Herz Dame“ (Farben Kreuz, Pik, Herz, Karo; Werte Ass, 2–10, Bube, Dame, König), ohne Erklärung. ' +
+      'Ist nichts lesbar, antworte mit „?“.',
   },
   drawing: {
     label: 'Zeichnung → Begriff',
@@ -114,7 +122,13 @@ export class AiVision extends EventTarget {
       const b64 = canvas.toDataURL('image/png').split(',')[1];
       const prompt = AI_TASKS[this.task].prompt;
       const run = { ghand, tesseract, claude, openai, gemini, gvision, local }[this.provider];
-      const text = clean(await run({ key: this.key, model: this.model, b64, canvas, prompt, task: this.task, strokes }));
+      let text = clean(await run({ key: this.key, model: this.model, b64, canvas, prompt, task: this.task, strokes }));
+      if (this.task !== 'drawing') {
+        // Gezeichnete Farbsymbole vereinheitlichen; eindeutige Karte mit Symbol → „Herz Dame“
+        text = normalizeSuitSymbols(text);
+        const code = parseCard(text);
+        if (code && (this.task === 'card' || /[♥♦♠♣]/.test(text))) text = cardName(code);
+      }
       this.refreshStatus();
       return text || '?';
     } catch (err) {
@@ -275,6 +289,7 @@ async function ghand({ strokes, canvas, task }) {
   const json = await res.json();
   if (json?.[0] !== 'SUCCESS') throw new Error('Google Handschrift hat nichts erkannt.');
   const cands = json[1]?.[0]?.[1] || [];
+  if (task === 'card') { const hit = cands.find((c) => parseCard(c)); return hit ? cardName(parseCard(hit)) : cands[0] || ''; }
   if (drawing) return DRAW_DE[String(cands[0] || '').toLowerCase()] || cands[0] || '';
   return cands[0] || '';
 }
