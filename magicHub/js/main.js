@@ -9,6 +9,7 @@ import { DavinciPalette, POT_COUNT } from './ble/davinci.js';
 import { UltraSharpie } from './ble/ultrasharpie.js';
 import { PeekSmith } from './ble/peeksmith.js';
 import { SelfieScreen, PACKET_SIZES } from './ble/selfiescreen.js';
+import { detectRotation, rotateStrokes, ROT_NAMES } from './pen-rotate.js';
 import { PeripagePrinter } from './ble/peripage.js';
 import { InjectSource, JsonUrlSource } from './web/sources.js';
 import { AiVision, PROVIDERS, AI_TASKS, localAvailability } from './ai/vision.js';
@@ -17,7 +18,7 @@ import { buildPrint, ensureFont, normalizeLayout, FONTS, ORIENTATIONS } from './
 import { STACKS, CARD_FORMATS, cardName, stackMapText } from './stacks.js';
 import { textCanvas, drawingCanvas, fitInto, demoStrokes } from './render.js';
 
-const VERSION = '0.5.7';
+const VERSION = '0.5.8';
 const BT = hasWebBluetooth();
 
 // ---------------------------------------------------------------- Helfer
@@ -261,7 +262,7 @@ dev.pen.addEventListener('point', () => {
   liveTimer = setTimeout(() => {
     liveTimer = null;
     const s = dev.selfie;
-    const canvas = drawingCanvas(dev.pen.strokes, s.width, s.height, { bg: '#000', fg: '#fff' });
+    const canvas = drawingCanvas(penView(dev.pen.strokes, { learn: true }), s.width, s.height, { bg: '#000', fg: '#fff' });
     drawPreview(pv.selfie, canvas);
     if (s.connected) s.showCanvas(canvas);
   }, 250);
@@ -272,8 +273,23 @@ dev.selfie.addEventListener('needs-picture', () => hub.deliver('selfie', { kind:
 dev.inject.addEventListener('value', (e) => hub.publish('inject', { kind: 'text', text: e.detail.text }));
 dev.json.addEventListener('value', (e) => hub.publish('json', { kind: 'text', text: e.detail.text }));
 
+// Stift-Drehung: 'auto' (aus der Schreibrichtung, wie Peekbox-Firmware) oder fest 0–3.
+let penRot = 0;
+const penRotMode = () => settings.pen?.rotate ?? 'auto';
+/** Striche in Leserichtung bringen. learn = Drehung aus diesen Strichen neu bestimmen. */
+function penView(strokes, { learn = false } = {}) {
+  const mode = penRotMode();
+  if (mode !== 'auto') return rotateStrokes(strokes, Number(mode));
+  if (learn) {
+    const r = detectRotation(strokes, penRot);
+    if (r.rot !== penRot) { penRot = r.rot; dev.pen.log('info', 'Schrift ' + ROT_NAMES[penRot] + ' – Zeichnung wird gedreht (' + r.why + ')'); }
+  }
+  return rotateStrokes(strokes, penRot);
+}
+
 let lastDrawing = null; // letzte weitergegebene Zeichnung (für Tests, auch wenn der Puffer schon leer ist)
 async function handleDrawing(strokes) {
+  strokes = penView(strokes, { learn: true });
   lastDrawing = strokes;
   // Sonst landen beim nächsten Wort die alten Striche wieder mit in der Erkennung.
   if ((settings.pen?.clearAfter || 'send') === 'send') dev.pen.clear();
@@ -529,14 +545,21 @@ const PANELS = {
       h('option', { value: 'send' }, 'Leeren – jede Zeichnung wird einzeln erkannt'),
       h('option', { value: 'keep' }, 'Behalten – alles zusammen, bis „Neue Zeichnung“'));
     after.value = settings.pen?.clearAfter || 'send';
+    const rot = h('select', { onchange: () => { settings.pen = { ...settings.pen, rotate: rot.value }; saveSettings(); if (rot.value !== 'auto') penRot = Number(rot.value); } },
+      h('option', { value: 'auto' }, 'Automatisch (an der Schreibrichtung erkennen)'),
+      ...ROT_NAMES.map((n, i) => h('option', { value: String(i) }, 'Fest: ' + n)));
+    rot.value = String(penRotMode());
+    const rotInfo = h('small', {});
     body.append(noBt() || '', c.el, cv,
       h('div', { class: 'row' },
         h('button', { class: 'btn', type: 'button', onclick: () => dev.pen.clear() }, 'Neue Zeichnung'),
         h('button', { class: 'btn', type: 'button', onclick: () => dev.pen.strokes.length && handleDrawing(dev.pen.strokes.map((s) => s.slice())) }, 'Jetzt senden')),
       field('Zeichnung gilt als fertig nach', delay, 'Solange ohne Stiftbewegung, dann wird sie an die Kombis (und ggf. die KI) geschickt.'),
+      field('Zeichnung drehen', rot, 'Liegt das Blatt quer oder auf dem Kopf, wird die Zeichnung gedreht – auch für Erkennung und Anzeige. Automatisch: aus der Schreibrichtung (Buchstaben laufen nach rechts) bzw. einer langen geraden Linie. '),
+      rotInfo,
       field('Danach den Stift-Puffer', after, 'Beim Leeren landen alte Wörter nicht noch einmal in der Erkennung. Leeren geht auch per Kombi-Aktion „Stift-Puffer“ (z. B. auf eine PeekSmith-Taste).'),
       h('p', { class: 'hint' }, 'Der „Neo“ wechselt bei jedem Einschalten Name und Adresse – dann einfach neu verbinden.'));
-    return () => { c.upd(); const d = drawingCanvas(dev.pen.strokes, cv.width, cv.height, { bg: '#fff', fg: '#111' }); cv.getContext('2d').drawImage(d, 0, 0); };
+    return () => { c.upd(); const d = drawingCanvas(penView(dev.pen.strokes, { learn: true }), cv.width, cv.height, { bg: '#fff', fg: '#111' }); cv.getContext('2d').drawImage(d, 0, 0); rotInfo.textContent = penRotMode() === 'auto' ? 'Erkannt: ' + ROT_NAMES[penRot] : ''; };
   },
 
   ai(body) {
@@ -585,7 +608,7 @@ const PANELS = {
     const test = h('button', { class: 'btn', type: 'button', onclick: async () => {
       save();
       try {
-        const strokes = dev.pen.strokes.length ? dev.pen.strokes : (lastDrawing || demoStrokes());
+        const strokes = dev.pen.strokes.length ? penView(dev.pen.strokes, { learn: true }) : (lastDrawing || demoStrokes());
         const text = await dev.ai.recognize(drawingCanvas(strokes, 512, 512, { line: 6 }), strokes);
         hub.publish('ai', { kind: 'text', text });
         toast('KI erkannt: ' + text);
@@ -964,7 +987,7 @@ function sampleValue(combo) {
 function testCombo(combo) {
   const s = hub.sources.get(combo.source);
   const payload = s?.kind === 'image'
-    ? { kind: 'image', strokes: dev.pen.strokes.length ? dev.pen.strokes.map((x) => x.slice()) : (lastDrawing || demoStrokes()), source: combo.source }
+    ? { kind: 'image', strokes: dev.pen.strokes.length ? penView(dev.pen.strokes.map((x) => x.slice())) : (lastDrawing || demoStrokes()), source: combo.source }
     : { kind: s?.kind === 'trigger' ? 'trigger' : 'text', text: sampleValue(combo), source: combo.source };
   hub.fire(combo, payload, { force: true });
   toast('Test: „' + comboLabel(hub, combo) + '“ ausgelöst');
