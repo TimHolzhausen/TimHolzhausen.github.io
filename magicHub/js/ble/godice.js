@@ -166,6 +166,9 @@ export class GoDiceSet extends EventTarget {
     die.onStable = stable;
     die.onFakeStable = stable;
     die.onMoveStable = stable;
+    // In einer Hülle liegt der Würfel schräg: Nach einem Wurf meldet er dann meist „TS“ (tilt stable) statt „S“
+    // (wie in der Peekbox-Firmware). Achtung: Die Bibliothek übergibt hier (id, xyz, wert) – andere Reihenfolge.
+    die.onTiltStable = (id, xyz, value) => stable(id, value, xyz);
   }
 
   // ---- Automatisch verbinden (bekannte Würfel; neue brauchen einmal das Auswahlfenster) ----
