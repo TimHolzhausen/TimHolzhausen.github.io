@@ -18,7 +18,7 @@ import { buildPrint, ensureFont, normalizeLayout, FONTS, ORIENTATIONS } from './
 import { STACKS, CARD_FORMATS, cardName, stackMapText } from './stacks.js';
 import { textCanvas, drawingCanvas, fitInto, demoStrokes } from './render.js';
 
-const VERSION = '0.5.9';
+const VERSION = '0.5.10';
 const BT = hasWebBluetooth();
 
 // ---------------------------------------------------------------- Helfer
@@ -123,7 +123,7 @@ const range = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => String(a + i
   { id: 'inject', label: 'Inject', icon: 'globe', kind: 'text', hint: 'Wert = neu gewähltes Wort.' },
   { id: 'json', label: 'Web-Quelle', icon: 'link', kind: 'text', hint: 'Wert = Feld aus der JSON-Antwort.' },
   { id: 'peeksmith-buttons', label: 'PeekSmith-Taste', icon: 'button', kind: 'trigger', hint: 'Wert = Name der Taste.', values: () => ['Links', 'Rechts', 'Seite', 'Links lang', 'Rechts lang', 'Seite lang', 'Magnet'] },
-  { id: 'selfie-buttons', label: 'Selfie-Taste', icon: 'button', kind: 'trigger', hint: 'Wert = Name der Taste.', values: () => ['Auslöser', 'Kamera wechseln', 'Plus', 'Minus'] },
+  { id: 'selfie-buttons', label: 'Selfie-Taste', icon: 'button', kind: 'trigger', hint: 'Wert = Name der Taste: Auslöser, Kamera wechseln, Plus (Lautstärke +), Minus (Lautstärke −).', values: () => ['Auslöser', 'Kamera wechseln', 'Plus', 'Minus'] },
   { id: 'manual', label: 'Manuell', icon: 'hand', kind: 'text', hint: 'Wert = Text aus „Live → Manuell senden“.' },
   { id: 'list', label: 'Sitzungsliste', icon: 'list', kind: 'text', hint: 'Löst bei jedem neuen Listeneintrag aus – egal von welcher Quelle. Wert = neuer Eintrag. Mit Bedingung „Sitzungsliste hat genau 4 Einträge“ z. B. beim 4. Wert.' },
 ].forEach((s) => hub.registerSource(s));
@@ -269,7 +269,11 @@ dev.pen.addEventListener('point', () => {
   }, 250);
 });
 dev.peeksmith.addEventListener('button', (e) => hub.publish('peeksmith-buttons', { kind: 'trigger', text: e.detail.button + (e.detail.long ? ' lang' : '') }));
-dev.selfie.addEventListener('button', (e) => hub.publish('selfie-buttons', { kind: 'trigger', text: e.detail.button }));
+dev.selfie.addEventListener('button', (e) => {
+  hub.publish('selfie-buttons', { kind: 'trigger', text: e.detail.button });
+  const t = document.getElementById('selfie-keytest');
+  if (t) t.textContent = 'Zuletzt gedrückt: ' + e.detail.button + ' (' + new Date().toLocaleTimeString('de-DE') + ')';
+});
 dev.selfie.addEventListener('needs-picture', () => hub.deliver('selfie', { kind: 'text', text: 'MagicHub' }));
 dev.inject.addEventListener('value', (e) => hub.publish('inject', { kind: 'text', text: e.detail.text }));
 dev.json.addEventListener('value', (e) => hub.publish('json', { kind: 'text', text: e.detail.text }));
@@ -724,7 +728,8 @@ const PANELS = {
       h('form', { class: 'row', onsubmit: (e) => { e.preventDefault(); hub.deliver('selfie', { kind: 'text', text: txt.value }); } }, txt, h('button', { class: 'btn btn-primary', type: 'submit' }, 'Anzeigen')),
       h('label', { class: 'btn btn-block' }, file, 'Foto anzeigen …'),
       field('Helligkeit (Bild abdunkeln)', br), info,
-      h('p', { class: 'hint' }, 'Tasten (Auslöser, Kamera, +/−) sind als Eingabe „Selfie-Taste“ nutzbar.'),
+      h('p', { class: 'hint' }, 'Tasten (Auslöser, Kamera wechseln, Lautstärke + und −) sind in Kombis als Eingabe „Selfie-Taste“ nutzbar – z. B. Auslöser = letzten Inhalt drucken, Plus/Minus = Sitzungsliste leeren oder Display löschen.'),
+      h('p', { class: 'keytest', id: 'selfie-keytest' }, 'Tastentest: eine Taste am Screen drücken …'),
       h('label', { class: 'switch-row' }, live, h('span', {}, 'Stift live mitzeichnen (was gerade geschrieben wird)')),
       h('label', { class: 'switch-row' }, awake, h('span', {}, 'Handy-Bildschirm anlassen, solange Geräte verbunden sind')),
       h('details', {}, h('summary', {}, 'Verbindung bricht ab?'),

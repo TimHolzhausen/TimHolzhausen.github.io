@@ -283,7 +283,11 @@ export class SelfieScreen extends BleDevice {
     } else if (cmd === 0xf7 && m.length >= 5) {
       this.log('info', 'Screen meldet MTU ' + (m[3] | (m[4] << 8)));
     } else if (BUTTONS[cmd]) {
+      this.log('info', 'Taste: ' + BUTTONS[cmd]);
       this.emit('button', { button: BUTTONS[cmd], long: false });
+    } else if (cmd !== 0x03 && cmd !== 0x01) {
+      // Unbekannt (z. B. andere Tasten-Codes, langes Drücken) – immer protokollieren, damit wir sie zuordnen können.
+      if ((this._unknownLogged = (this._unknownLogged || 0) + 1) <= 30) this.log('info', 'Unbekannte Nachricht: ' + m.slice(0, 16).map((b) => b.toString(16).padStart(2, '0')).join(' '));
     }
   }
 }
