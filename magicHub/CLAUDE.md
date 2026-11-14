@@ -28,6 +28,11 @@ kombiniert. Ein HTTPS-Link für Android (Chrome) und iPhone (App **Bluefy**).
   - Konsole auf Fehler prüfen,
   - Handybreite (390 px) prüfen.
   - Nach Änderungen kann ein Cache alte Module liefern: Dateien per `fetch(url, {cache:'reload'})` neu laden, dann `location.reload()`.
+- **Rechner „timho“ (C:Users	imhoDropbox…):** Python 3.12 und Node LTS per winget installiert (14.11.2026), aber evtl. nicht im PATH der Shell:
+  Python `%LOCALAPPDATA%ProgramsPythonPython312python.exe`, Node `C:Program Files
+odejs`. Falls das Playwright-MCP nicht verbindet:
+  Playwright für Python mit Chromium ist installiert (Skript mit `python -I` ausführen). Git im Dropbox-Ordner braucht `windows.appendAtomically false` (im Repo gesetzt).
+  Dateien haben teils CRLF – Patch-Skripte müssen das berücksichtigen.
 - **Hardware** liegt nur beim Entwickler. BLE-Fehler mit ihm über das **„Verbindungsprotokoll“** analysieren: im Gerätefenster aufklappen und kopieren.
 - **Debuggen am PC:** Chrome unter Windows kann Web Bluetooth. Mit `chrome://bluetooth-internals` lassen sich Geräte, Dienste und Characteristics ansehen.
   Häufigste Ursache für „Gerät nicht gefunden“: Es ist noch mit dem Handy bzw. mit MysterSmith verbunden.
@@ -52,6 +57,8 @@ kombiniert. Ein HTTPS-Link für Android (Chrome) und iPhone (App **Bluefy**).
 - **Letzte N kombiniert (0.4.1):** Inhalt `list` + `listN` (0 = alle) + `joiner` (`JOINERS`); Zuordnung gilt je Eintrag. Vorlage `{letzte:N}`; `{liste}` nutzt ebenfalls `joiner`.
 - **0.4.2/0.4.3:** Aktion kann `font` haben (Druckschrift nur für diese Aktion, Drucker-Ziel liest `p.font`). Vorlagen „Candy Prediction“ (KI, Liste = 4, letzte 4 ohne Trenner → Drucker Handschrift, dann Liste leeren) und „Sitzungsliste live aufs PeekSmith“. Kombis mit Quelle `list` laufen VOR den Kombis der eigentlichen Quelle (sonst leert Candy die Liste vor der Anzeige). Selfie: `settings.selfie.livePen` spiegelt Stift-Punkte alle 250 ms (wie MysterSmith „peek drawing“).
 - **Vibration/Taschenmodus (0.4.4):** `vibrateNow()` wertet den Rückgabewert von `navigator.vibrate` aus (false = Chrome verweigert: keine Nutzer-Aktivierung) und verweigert bei unsichtbarer Seite. Bei ausgeschaltetem Display pausiert Chrome die Seite → keine Vibration, BLE bricht ab; nicht umgehbar. Darum Taschenmodus (`#pocket`, `[data-pocket]`): schwarzes Vollbild + Wake Lock, ignoriert Berührungen, Ende durch 2 s Halten. Vibration auf echtem Android noch NICHT bestätigt.
+- **GoDice (0.5.1/0.5.2):** `vendor/godice.js` endet mit `window.GoDice = GoDice` (sonst „Bibliothek fehlt“). Die Bibliothek liefert Augenzahlen als STRING (`for…in`-Schlüssel) → Summe ergab „031“. Darum berechnet der Treiber den Wert selbst aus dem Lagevektor (3. Argument von `onStable`) als Zahl. Hülle je Würfel `settings.godice.shells[id]` = auto | D6 | D20 (vorerst nur diese, Wunsch des Nutzers); „auto“ wie in der Peekbox-Firmware (`peekbox_s3/src/godice.cpp`): kleinerer quadrierter Abstand D6 vs. D20 gewinnt, nur bei Abstand ≤ 400 umstellen.
+- **Selfie Screen verbinden:** Nutzer-Beobachtung: geht am besten, wenn erst die Suche läuft und dann der Screen eingeschaltet wird. Darum `powerOnHint` und `advertWaitMs = 60000` (BleDevice-Optionen) plus Hinweis im Gerätefenster.
 - **Stift-Puffer:** `settings.pen.clearAfter` 'send' (Standard: nach jeder weitergegebenen Zeichnung leeren) | 'keep'. Ziel `pen-buffer` (`clearOnly`) für Kombis. Kappen-Erkennung funktioniert beim Ultra Sharpie NICHT (Nutzer-Test 13.11.2026) – nicht dafür verwenden.
 - **Inject senden (0.3.1):** Ziel `inject-send` → `InjectSource.send()` = POST `https://11z.co/_w/<Account-Nr>/selection` mit JSON `{value}` (wie MysterSmith). Echo-Schutz: gerade empfangener Wert wird 10 s nicht zurückgeschickt; gesendeter Wert gilt als bekannt. Benutzername → Account-Nr. (inject.joshuariley.co.uk) geht im Browser nicht (kein CORS).
 - **Updates/Installation (0.3.0):** Die Update-Prüfung liest `magichub-x.y.z` aus `sw.js` am Server und vergleicht mit `VERSION` in `main.js` → beide immer gleich hochzählen (Semver-Vergleich). Geprüft wird beim Start und nach >30 min im Hintergrund; Banner „Jetzt aktualisieren“ löscht die Caches und lädt neu. Installieren über `beforeinstallprompt` (Knopf oben + Hilfe → „App, Updates & Daten“). Einstellungen nur in `localStorage` (`magichub_v1`), `navigator.storage.persist()`, Sicherung als JSON (API-Keys nur auf Wunsch).
@@ -144,7 +151,9 @@ Den Code macht `webcrack@2` lesbar, z. B. mit einem kleinen Node-Skript `webcrac
   - FEF0 nutzt MysterSmith für Pitata Ultra/Chalk und den E-Ink-Tag.
   - Was das Gerät ist, ist noch ungeklärt.
 
-## Stand und offene Punkte (13.11.2026, version 0.5.0)
+## Stand und offene Punkte (14.11.2026, version 0.5.2)
+
+- **GoDice:** Summe und D20-Erkennung nur mit nachgebildeten Würfeln im Browser geprüft – am echten Würfel testen.
 
 - **Selfie Screen:** verbindet am PC, nachdem das Handy getrennt war. Bildübertragung und Tasten mit dem Entwickler prüfen.
 - **Alle Geräte:** auf echter Hardware in MagicHub noch ungetestet (Checkliste in README).

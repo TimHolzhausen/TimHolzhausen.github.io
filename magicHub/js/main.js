@@ -4,7 +4,7 @@ import { config, resolvedAppUrl, shortcutUrl } from './config.js';
 import { buildBluefyUrl } from './bluefy.js';
 import { hasWebBluetooth, getPlatform, detectPlatform, setPlatformOverride, looksLikeBluefy, isStandalone } from './platform.js';
 import { describeError, BleDevice } from './ble/base.js';
-import { GoDiceSet } from './ble/godice.js';
+import { GoDiceSet, SHELLS } from './ble/godice.js';
 import { DavinciPalette, POT_COUNT } from './ble/davinci.js';
 import { UltraSharpie } from './ble/ultrasharpie.js';
 import { PeekSmith } from './ble/peeksmith.js';
@@ -17,7 +17,7 @@ import { buildPrint, ensureFont, normalizeLayout, FONTS, ORIENTATIONS } from './
 import { STACKS, CARD_FORMATS, cardName, stackMapText } from './stacks.js';
 import { textCanvas, drawingCanvas, fitInto, demoStrokes } from './render.js';
 
-const VERSION = '0.5.1';
+const VERSION = '0.5.2';
 const BT = hasWebBluetooth();
 
 // ---------------------------------------------------------------- Helfer
@@ -89,6 +89,9 @@ if (settings.pen?.finishDelay) dev.pen.finishDelay = settings.pen.finishDelay;
 if (settings.peeksmith?.brightness != null) dev.peeksmith.brightness = settings.peeksmith.brightness;
 if (settings.selfie?.brightness) dev.selfie.brightness = settings.selfie.brightness;
 const diceMode = () => settings.diceMode || 'sum';
+if (!settings.godice || typeof settings.godice !== 'object') settings.godice = {};
+if (!settings.godice.shells) settings.godice.shells = {};
+dev.godice.config = settings.godice; // Hülle je Würfel (auto | D6 | D20)
 dev.ai.refreshStatus();
 
 const DEVICES = [
@@ -110,7 +113,7 @@ const DEV_BY_ID = Object.fromEntries(DEVICES.map((d) => [d.id, d]));
 const hub = new Hub();
 const range = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => String(a + i));
 [
-  { id: 'godice', label: 'GoDice', icon: 'dice', kind: 'text', hint: 'Wert = Summe, Einzelwerte oder letzter Würfel (einstellbar beim Gerät).', values: () => range(1, 12) },
+  { id: 'godice', label: 'GoDice', icon: 'dice', kind: 'text', hint: 'Wert = Summe, Einzelwerte oder letzter Würfel (einstellbar beim Gerät).', values: () => range(1, 40) },
   { id: 'davinci', label: 'Davinci-Palette', icon: 'palette', kind: 'text', hint: 'Wert = Name des berührten Topfs.', values: () => dev.davinci.pots.slice(0, POT_COUNT).map((p) => p.name) },
   { id: 'pen', label: 'Ultra Sharpie', icon: 'pen', kind: 'image', hint: 'Fertige Zeichnung (Bild). Für erkannten Text „KI-Erkennung“ wählen.' },
   { id: 'ai', label: 'KI-Erkennung', icon: 'spark', kind: 'text', hint: 'Wert = erkannter Text.' },
@@ -450,6 +453,17 @@ function noBt() { return BT ? null : h('p', { class: 'callout' }, 'Dieser Browse
 
 const PANELS = {
   godice(body) {
+    const shellInfo = (id, d) => {
+      if (!d.type) return 'Hülle: ' + (dev.godice.shellOf(id) === 'auto' ? 'automatisch, noch nicht gewürfelt' : SHELLS[dev.godice.shellOf(id)]);
+      if (dev.godice.shellOf(id) !== 'auto') return 'Hülle: ' + d.type + ' (fest)';
+      return 'Erkannt: ' + (d.type === 'D20' ? 'D20-Hülle' : 'D6 ohne Hülle') + (d.clear === false ? ' (Lage unklar, bleibt)' : '');
+    };
+    const shellSelect = (id) => {
+      const sel = h('select', { class: 'die-shell', 'aria-label': 'Hülle', onchange: () => { dev.godice.setShell(id, sel.value); saveSettings(); } },
+        ...Object.entries(SHELLS).map(([v, l]) => h('option', { value: v }, l)));
+      sel.value = dev.godice.shellOf(id);
+      return sel;
+    };
     const list = h('div', { class: 'dice-list' });
     const mode = h('select', { onchange: () => { settings.diceMode = mode.value; saveSettings(); } },
       h('option', { value: 'sum' }, 'Summe aller Würfel'),
@@ -457,12 +471,15 @@ const PANELS = {
       h('option', { value: 'last' }, 'Nur letzter Würfel'));
     mode.value = diceMode();
     const add = h('button', { class: 'btn btn-primary btn-block', type: 'button', disabled: !BT, onclick: () => runAction({ run: () => dev.godice.addDie() }) }, '+ Würfel hinzufügen');
-    body.append(noBt() || '', list, add, field('Gesendet wird', mode), h('p', { class: 'hint' }, 'Mehrere Würfel nacheinander hinzufügen. Gemeldet wird, sobald alle liegen.'));
+    body.append(noBt() || '', list, add, field('Gesendet wird', mode), h('p', { class: 'hint' }, 'Mehrere Würfel nacheinander hinzufügen. Gemeldet wird, sobald alle liegen. Hülle „Automatisch“ erkennt pro Wurf, ob der Würfel in einer D20-Hülle steckt.'));
     return () => {
       const dice = [...dev.godice.dice.entries()];
       list.replaceChildren(...(dice.length ? dice.map(([id, d]) => h('div', { class: 'die' + (d.online ? '' : ' off') },
         h('span', { class: 'die-face', style: 'background:' + (d.colorHex || '#555') }, d.rolling ? '…' : (d.value ?? '–')),
-        h('span', { class: 'die-text' }, h('strong', {}, d.color || d.name), h('small', {}, d.online ? (d.battery != null ? 'Akku ' + d.battery + ' %' : 'verbunden') : 'getrennt')),
+        h('span', { class: 'die-text' }, h('strong', {}, d.color || d.name),
+          h('small', {}, d.online ? (d.battery != null ? 'Akku ' + d.battery + ' %' : 'verbunden') : 'getrennt'),
+          h('small', {}, shellInfo(id, d))),
+        shellSelect(id),
         h('button', { class: 'btn btn-small btn-ghost', type: 'button', onclick: () => dev.godice.blink(id) }, 'Blinken'),
         h('button', { class: 'btn btn-small btn-ghost', type: 'button', onclick: () => dev.godice.remove(id) }, 'Entfernen'))) : [h('p', { class: 'empty' }, 'Noch kein Würfel verbunden.')]));
       if (dice.length) list.append(h('p', { class: 'sum' }, 'Summe: ', h('strong', {}, String(dev.godice.sum))));
@@ -659,6 +676,7 @@ const PANELS = {
       hub.deliver('selfie', { kind: 'image', canvas: cv });
     });
     body.append(noBt() || '', c.el,
+      h('p', { class: 'hint' }, 'Am zuverlässigsten: erst „Verbinden“ tippen, dann den Screen einschalten. Ist er schon an: aus- und wieder einschalten, während die Suche läuft.'),
       h('form', { class: 'row', onsubmit: (e) => { e.preventDefault(); hub.deliver('selfie', { kind: 'text', text: txt.value }); } }, txt, h('button', { class: 'btn btn-primary', type: 'submit' }, 'Anzeigen')),
       h('label', { class: 'btn btn-block' }, file, 'Foto anzeigen …'),
       field('Helligkeit (Bild abdunkeln)', br), info,

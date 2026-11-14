@@ -31,6 +31,10 @@ export class SelfieScreen extends BleDevice {
     this._rx = [];
     this._chunk = 180;
     this._queue = Promise.resolve();
+    // Nutzer-Beobachtung (14.11.2026): Am zuverlässigsten verbindet er, wenn die Suche schon läuft und der
+    // Screen erst dann eingeschaltet wird – er funkt offenbar nur kurz nach dem Einschalten verbindbar.
+    this.advertWaitMs = 60000;
+    this.powerOnHint = 'Jetzt den Screen einschalten.';
     this._onNotify = (e) => this._receive(new Uint8Array(e.target.value.buffer, e.target.value.byteOffset, e.target.value.byteLength));
   }
 

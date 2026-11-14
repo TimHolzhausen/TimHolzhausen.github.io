@@ -240,6 +240,8 @@ input[type=range] { width: 100%; accent-color: var(--accent); }
 .die-face { width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center; font-weight: 800; font-size: 1.2rem; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.6); }
 .die-text { flex: 1; display: grid; }
 .die-text small { color: var(--muted); }
+.die { flex-wrap: wrap; }
+.die-shell { width: auto; max-width: 9.5rem; padding: 6px 8px; font-size: .85rem; }
 .sum { text-align: right; margin: 4px 0 0; }
 .empty { color: var(--muted); text-align: center; margin: 10px 0; }
 .pots { display: flex; gap: 10px; justify-content: space-between; flex-wrap: wrap; margin: 14px 0; }

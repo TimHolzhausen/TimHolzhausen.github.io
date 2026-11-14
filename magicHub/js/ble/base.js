@@ -71,6 +71,10 @@ export class BleDevice extends EventTarget {
     this._onDisconnected = () => this._handleDisconnect();
     this.autoConnect = true;
     this._autoCtrl = null;
+    // Wie lange beim Schnellweg auf ein Funksignal gewartet wird. Geräte, die nur kurz nach dem
+    // Einschalten verbindbar funken, setzen mehr Zeit und einen Hinweis (powerOnHint).
+    this.advertWaitMs = 10000;
+    this.powerOnHint = '';
   }
 
   get autoWaiting() { return !!this._autoCtrl; }
@@ -165,10 +169,10 @@ export class BleDevice extends EventTarget {
       const known = !showAll && !choose ? await this._knownDevice() : null;
       if (known) {
         this._attach(known);
-        this._setStatus('connecting', 'Warte auf ' + this.deviceName + ' …');
+        this._setStatus('connecting', 'Warte auf ' + this.deviceName + ' …' + (this.powerOnHint ? ' ' + this.powerOnHint : ''));
         await this._waitForAdvertisement(known);
       } else {
-        this._setStatus('connecting', 'Gerät auswählen …');
+        this._setStatus('connecting', 'Gerät auswählen …' + (this.powerOnHint ? ' ' + this.powerOnHint : ''));
         const opts = this.requestOptions();
         const device = await navigator.bluetooth.requestDevice(showAll
           ? { acceptAllDevices: true, optionalServices: opts.optionalServices || [] }
@@ -211,13 +215,13 @@ export class BleDevice extends EventTarget {
     } catch { return null; }
   }
 
-  /** Wartet (max. 10 s), bis das Gerät funkt – sonst schlägt gatt.connect() auf Android oft fehl. */
+  /** Wartet (max. advertWaitMs), bis das Gerät funkt – sonst schlägt gatt.connect() auf Android oft fehl. */
   async _waitForAdvertisement(device) {
     if (typeof device.watchAdvertisements !== 'function') return;
     const ctrl = new AbortController();
     try {
       await new Promise((resolve, reject) => {
-        const timer = setTimeout(() => reject(Object.assign(new Error(this.deviceName + ' antwortet nicht. Eingeschaltet und nicht mit einer anderen App verbunden? Sonst „Anderes Gerät wählen“.'), { name: 'NotInRange' })), 10000);
+        const timer = setTimeout(() => reject(Object.assign(new Error(this.deviceName + ' antwortet nicht. Eingeschaltet und nicht mit einer anderen App verbunden? Sonst „Anderes Gerät wählen“.'), { name: 'NotInRange' })), this.advertWaitMs);
         device.addEventListener('advertisementreceived', () => { clearTimeout(timer); resolve(); }, { once: true });
         device.watchAdvertisements({ signal: ctrl.signal }).catch(() => { clearTimeout(timer); resolve(); });
       });
