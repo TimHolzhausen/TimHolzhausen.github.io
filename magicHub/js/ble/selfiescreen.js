@@ -1,5 +1,5 @@
-// Selfie Screen (Mystersmith) – JPEG-Display mit Tasten, Nordic-UART-ähnlich (…CA9D).
-// Protokoll rekonstruiert aus MysterSmith bt_selfie_screen.js (v2.3.91):
+// Selfie Screen – JPEG-Display mit Tasten, Nordic-UART-ähnlich (…CA9D).
+// Protokoll:
 //  - Jede Übertragung (beide Richtungen) endet pro BLE-Paket mit einem Flag-Byte: 1 = es folgt mehr, 0 = Ende.
 //  - Nachrichten vom Screen beginnen mit AA 55 <cmd>:
 //      01 → Größe: w(LE16) h(LE16) rotation(1) buffer(LE32)   → Antwort AA 55 01 01 01
@@ -38,7 +38,7 @@ export class SelfieScreen extends BleDevice {
     this._onNotify = (e) => this._receive(new Uint8Array(e.target.value.buffer, e.target.value.byteOffset, e.target.value.byteLength));
   }
 
-  // MysterSmith erkennt den Screen am Namen „SelfieCom…“ (Magnetic Selfie Screen TP02, Dual-Mode-Gerät).
+  // Der Screen meldet sich meist als „SelfieCom…“ (Magnetic Selfie Screen TP02, Dual-Mode-Gerät).
   // Über BLE kann der beworbene Name abweichen → zusätzlich Dienst- und weitere Namensfilter,
   // notfalls „Alle Bluetooth-Geräte anzeigen“.
   requestOptions() {
@@ -68,7 +68,7 @@ export class SelfieScreen extends BleDevice {
     try {
       svc = await server.getPrimaryService(SERVICE);
     } catch (err) {
-      // Android hält manchmal veraltete Dienstlisten (MysterSmith frischt dafür den GATT-Cache auf).
+      // Android hält manchmal veraltete Dienstlisten (native Apps können den GATT-Cache auffrischen).
       // Im Browser geht das nicht – einmal trennen und neu verbinden hilft oft.
       this.log('warn', 'Dienst nicht gefunden (' + err.message + ') – verbinde einmal neu');
       this._manualDisconnect = true;
@@ -91,7 +91,7 @@ export class SelfieScreen extends BleDevice {
       this.notifyC.addEventListener('characteristicvaluechanged', this._onNotify);
       await this.notifyC.startNotifications();
     } catch (err) {
-      // Ohne Rückkanal trotzdem nutzbar: Bilder ohne Anforderung schicken (wie MysterSmith im Notfall).
+      // Ohne Rückkanal trotzdem nutzbar: Bilder ohne Anforderung schicken (Notbehelf).
       this.log('warn', 'Benachrichtigungen nicht möglich (' + err.message + ') – sende Bilder ohne Anforderung, Tasten gehen dann nicht');
       this._unasked = true;
     }
@@ -195,7 +195,7 @@ export class SelfieScreen extends BleDevice {
       this._sentOnce = true;
       this.emit('sent', {});
       if (first && !this._gotAny) {
-        // Antwortet der Screen nicht, Bilder ohne Anforderung schicken (wie MysterSmith).
+        // Antwortet der Screen nicht, Bilder ohne Anforderung schicken.
         this._silentTimer = setTimeout(() => {
           if (this.linked && !this._gotAny) { this._unasked = true; this.log('warn', 'Screen antwortet nicht – sende ohne Anforderung'); this._pump(); }
         }, 1500);

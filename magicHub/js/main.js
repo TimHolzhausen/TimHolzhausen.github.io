@@ -17,7 +17,7 @@ import { buildPrint, ensureFont, normalizeLayout, FONTS, ORIENTATIONS } from './
 import { STACKS, CARD_FORMATS, cardName, stackMapText } from './stacks.js';
 import { textCanvas, drawingCanvas, fitInto, demoStrokes } from './render.js';
 
-const VERSION = '0.5.3';
+const VERSION = '0.5.4';
 const BT = hasWebBluetooth();
 
 // ---------------------------------------------------------------- Helfer
@@ -102,7 +102,7 @@ const DEVICES = [
   { id: 'inject', group: 'in', name: 'Inject', desc: 'Magie-App', icon: 'globe' },
   { id: 'json', group: 'in', name: 'Web-Quelle', desc: 'Eigene JSON-URL', icon: 'link' },
   { id: 'peeksmith', group: 'out', name: 'PeekSmith', desc: 'Peek-Display', icon: 'display', ble: true },
-  { id: 'selfie', group: 'out', name: 'Selfie Screen', desc: 'Mystersmith-Display', icon: 'image', ble: true },
+  { id: 'selfie', group: 'out', name: 'Selfie Screen', desc: 'Magnet-Display', icon: 'image', ble: true },
   { id: 'printer', group: 'out', name: 'Peripage P21', desc: 'Thermodrucker', icon: 'printer', ble: true },
   { id: 'speech', group: 'out', name: 'Sprachausgabe', desc: 'Ansage übers Handy', icon: 'speaker' },
   { id: 'vibrate', group: 'out', name: 'Vibration', desc: 'Geheimes Zählen am Handy', icon: 'vibrate' },
@@ -252,7 +252,7 @@ dev.godice.addEventListener('roll', (e) => {
 dev.davinci.addEventListener('touch', (e) => hub.publish('davinci', { kind: 'text', text: e.detail.name }));
 dev.pen.addEventListener('drawing', (e) => handleDrawing(e.detail.strokes));
 
-// Live-Anzeige wie „Peek Drawing“ in MysterSmith: was gerade geschrieben wird, sofort auf den Selfie Screen.
+// Live-Anzeige („Peek Drawing“): was gerade geschrieben wird, sofort auf den Selfie Screen.
 // Der Screen holt sich das nächste Bild erst, wenn er bereit ist – zwischendurch wird nur das neueste behalten.
 let liveTimer = null;
 dev.pen.addEventListener('point', () => {
@@ -618,7 +618,7 @@ const PANELS = {
       c.el,
       h('p', { class: 'hint' }, 'Der beim Start schon vorhandene Wert wird übersprungen – gemeldet werden nur neue Auswahlen.'),
       h('h3', {}, 'An Inject senden'),
-      h('p', { class: 'hint' }, 'Wie „App Integrations“ in MysterSmith: Der Text landet in Inject als neue Auswahl. In Kombis gibt es dafür die Ausgabe „Inject (senden)“ – z. B. Zeichnung → KI-Erkennung → Inject. Senden geht auch ohne laufende Abfrage. Ein gerade von Inject empfangener Wert wird nicht sofort zurückgeschickt.'),
+      h('p', { class: 'hint' }, 'Der Text landet in Inject als neue Auswahl. In Kombis gibt es dafür die Ausgabe „Inject (senden)“ – z. B. Zeichnung → KI-Erkennung → Inject. Senden geht auch ohne laufende Abfrage. Ein gerade von Inject empfangener Wert wird nicht sofort zurückgeschickt.'),
       sendForm, sendInfo);
     return () => { c.upd(); };
   },
@@ -691,7 +691,7 @@ const PANELS = {
           h('li', {}, 'Abstand klein halten; der Screen ist ein schwacher Sender.'))),
       h('details', {}, h('summary', {}, 'Screen wird nicht gefunden?'),
         h('ol', {},
-          h('li', {}, 'Screen einschalten und in MysterSmith bzw. anderen Apps trennen (nur eine Verbindung möglich).'),
+          h('li', {}, 'Screen einschalten und in anderen Apps trennen (nur eine Verbindung möglich).'),
           h('li', {}, 'Ist er in den Bluetooth-Einstellungen des Handys gekoppelt, dort „Entkoppeln“ – gekoppelte Geräte werben oft nicht mehr per BLE.'),
           h('li', {}, '„Alle Bluetooth-Geräte anzeigen“ antippen und nach SelfieCom, TP02 oder einem unbenannten Gerät in der Nähe schauen.'),
           h('li', {}, 'Meldet die App „bietet den Dienst nicht an“, war es das falsche Gerät – oder der Screen spricht nur klassisches Bluetooth.'))));

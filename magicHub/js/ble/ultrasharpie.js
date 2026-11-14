@@ -1,5 +1,4 @@
 // Ultra Sharpie / Ultra Pen (umgelabelter NeoSmartpen).
-// Protokoll rekonstruiert aus MysterSmith bt_ultrapen.js (siehe cyd_peeksmith/ultra_sharpie_ble_protokoll.md).
 // Status: an echter Hardware über Web Bluetooth NICHT getestet.
 
 import { BleDevice, uuid16, fromHex, hex, sleep, writeChar } from './base.js';

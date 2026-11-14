@@ -35,7 +35,7 @@ odejs`. Falls das Playwright-MCP nicht verbindet:
   Dateien haben teils CRLF – Patch-Skripte müssen das berücksichtigen.
 - **Hardware** liegt nur beim Entwickler. BLE-Fehler mit ihm über das **„Verbindungsprotokoll“** analysieren: im Gerätefenster aufklappen und kopieren.
 - **Debuggen am PC:** Chrome unter Windows kann Web Bluetooth. Mit `chrome://bluetooth-internals` lassen sich Geräte, Dienste und Characteristics ansehen.
-  Häufigste Ursache für „Gerät nicht gefunden“: Es ist noch mit dem Handy bzw. mit MysterSmith verbunden.
+  Häufigste Ursache für „Gerät nicht gefunden“: Es ist noch mit dem Handy bzw. einer anderen App verbunden.
 
 ## Verbindliche Regeln (aus der ursprünglichen Projektvorgabe)
 
@@ -55,14 +55,14 @@ odejs`. Falls das Playwright-MCP nicht verbindet:
 - **Zentrale Konfiguration** in `js/config.js`: `appName`, `appUrl`, `bluefyAppStoreUrl`, `shortcutIcloudUrl`, `bluefyLinkVariant`.
 - **Sitzungsliste (0.4.0):** `hub.list` (nur Speicher) bekommt Text-Ereignisse der gewählten Quellen VOR dem Auswerten der Kombis. `listConfig` (Store `listConfig`): Quellen, Leeren manuell / nach N Einträgen (nächster Wert beginnt neu) / nach X min Pause. Bedingungen `count`/`countMin`, Vorlagen `{liste} {anzahl} {1}…{9} {-1}`, Quelle `list` (jeder neue Eintrag), Ziel `list` (Eintrag hinzufügen/Leeren).
 - **Letzte N kombiniert (0.4.1):** Inhalt `list` + `listN` (0 = alle) + `joiner` (`JOINERS`); Zuordnung gilt je Eintrag. Vorlage `{letzte:N}`; `{liste}` nutzt ebenfalls `joiner`.
-- **0.4.2/0.4.3:** Aktion kann `font` haben (Druckschrift nur für diese Aktion, Drucker-Ziel liest `p.font`). Vorlagen „Candy Prediction“ (KI, Liste = 4, letzte 4 ohne Trenner → Drucker Handschrift, dann Liste leeren) und „Sitzungsliste live aufs PeekSmith“. Kombis mit Quelle `list` laufen VOR den Kombis der eigentlichen Quelle (sonst leert Candy die Liste vor der Anzeige). Selfie: `settings.selfie.livePen` spiegelt Stift-Punkte alle 250 ms (wie MysterSmith „peek drawing“).
+- **0.4.2/0.4.3:** Aktion kann `font` haben (Druckschrift nur für diese Aktion, Drucker-Ziel liest `p.font`). Vorlagen „Candy Prediction“ (KI, Liste = 4, letzte 4 ohne Trenner → Drucker Handschrift, dann Liste leeren) und „Sitzungsliste live aufs PeekSmith“. Kombis mit Quelle `list` laufen VOR den Kombis der eigentlichen Quelle (sonst leert Candy die Liste vor der Anzeige). Selfie: `settings.selfie.livePen` spiegelt Stift-Punkte alle 250 ms.
 - **Vibration/Taschenmodus (0.4.4):** `vibrateNow()` wertet den Rückgabewert von `navigator.vibrate` aus (false = Chrome verweigert: keine Nutzer-Aktivierung) und verweigert bei unsichtbarer Seite. Bei ausgeschaltetem Display pausiert Chrome die Seite → keine Vibration, BLE bricht ab; nicht umgehbar. Darum Taschenmodus (`#pocket`, `[data-pocket]`): schwarzes Vollbild + Wake Lock, ignoriert Berührungen, Ende durch 2 s Halten. Vibration auf echtem Android noch NICHT bestätigt.
 - **GoDice (0.5.1/0.5.2):** `vendor/godice.js` endet mit `window.GoDice = GoDice` (sonst „Bibliothek fehlt“). Die Bibliothek liefert Augenzahlen als STRING (`for…in`-Schlüssel) → Summe ergab „031“. Darum berechnet der Treiber den Wert selbst aus dem Lagevektor (3. Argument von `onStable`) als Zahl. Hülle je Würfel `settings.godice.shells[id]` = auto | D6 | D20 (vorerst nur diese, Wunsch des Nutzers); „auto“ wie in der Peekbox-Firmware (`peekbox_s3/src/godice.cpp`): kleinerer quadrierter Abstand D6 vs. D20 gewinnt, nur bei Abstand ≤ 400 umstellen.
 - **Karten & ACAAN (0.5.3):** `parseCard()` in `stacks.js` erkennt jede Schreibweise (QH, HD, DH, Herz Dame, Dame Herz, Queen of Hearts, D♥, 1oH …; 361 Schreibweisen, kollisionsfrei geprüft). `normalizeSuitSymbols()` macht gezeichnete Symbole (❤ ♡ 💜 ◇ ◊ ♤ ♧ …) zu ♥ ♦ ♠ ♣ – gilt APP-WEIT (Wunsch des Nutzers): in der Erkennung (alle Aufgaben außer Zeichnung), bei Zuordnungs-Schlüsseln (`#karte:CODE`) und bei den Bedingungen ist/ist nicht. Ein Symbol oder „Herz“ allein ist KEINE Karte (Wert fehlt). KI-Aufgabe `card` („Spielkarte → Karte“): Google Handschrift nimmt den ersten Kandidaten, der eine Karte ist; Ausgabe immer „Herz Dame“.
   ACAAN: Bedingung `cardNum` (Liste enthält Karte und Zahl, Reihenfolge egal; `hub.cardAndNumber()` nimmt die neuesten). Platzhalter `{karte} {zahl} {abheben:STACK} {abhebekarte:STACK[:format]} {position:STACK}`. Abheben k = (p − N) mod 52; ≤ 26 „k von oben“ (oben nach unten legen), sonst „52−k von unten“; `abhebekarte` liegt danach oben. Vorlage „ACAAN … (Mnemonica)“. Die Karte schreibt der Zuschauer mit dem Stift.
 - **Selfie Screen verbinden:** Nutzer-Beobachtung: geht am besten, wenn erst die Suche läuft und dann der Screen eingeschaltet wird. Darum `powerOnHint` und `advertWaitMs = 60000` (BleDevice-Optionen) plus Hinweis im Gerätefenster.
 - **Stift-Puffer:** `settings.pen.clearAfter` 'send' (Standard: nach jeder weitergegebenen Zeichnung leeren) | 'keep'. Ziel `pen-buffer` (`clearOnly`) für Kombis. Kappen-Erkennung funktioniert beim Ultra Sharpie NICHT (Nutzer-Test 13.11.2026) – nicht dafür verwenden.
-- **Inject senden (0.3.1):** Ziel `inject-send` → `InjectSource.send()` = POST `https://11z.co/_w/<Account-Nr>/selection` mit JSON `{value}` (wie MysterSmith). Echo-Schutz: gerade empfangener Wert wird 10 s nicht zurückgeschickt; gesendeter Wert gilt als bekannt. Benutzername → Account-Nr. (inject.joshuariley.co.uk) geht im Browser nicht (kein CORS).
+- **Inject senden (0.3.1):** Ziel `inject-send` → `InjectSource.send()` = POST `https://11z.co/_w/<Account-Nr>/selection` mit JSON `{value}`. Echo-Schutz: gerade empfangener Wert wird 10 s nicht zurückgeschickt; gesendeter Wert gilt als bekannt. Benutzername → Account-Nr. (inject.joshuariley.co.uk) geht im Browser nicht (kein CORS).
 - **Updates/Installation (0.3.0):** Die Update-Prüfung liest `magichub-x.y.z` aus `sw.js` am Server und vergleicht mit `VERSION` in `main.js` → beide immer gleich hochzählen (Semver-Vergleich). Geprüft wird beim Start und nach >30 min im Hintergrund; Banner „Jetzt aktualisieren“ löscht die Caches und lädt neu. Installieren über `beforeinstallprompt` (Knopf oben + Hilfe → „App, Updates & Daten“). Einstellungen nur in `localStorage` (`magichub_v1`), `navigator.storage.persist()`, Sicherung als JSON (API-Keys nur auf Wunsch).
 - Offline-Oberfläche ist keine Offline-Funktion: Der Service Worker cacht nur die App-Shell; fremde Anfragen (APIs) fasst er nicht an.
 
@@ -111,7 +111,7 @@ js/config.js, platform.js, bluefy.js   Projektvorgabe (s. o.)
   - `page` ist die Leseansicht und dient als Vorschau;
   - `print` ist für „quer“ um 90° gedreht und immer 384 px breit (576 px beim P21+).
 - Einstellungen liegen in `settings.printLayout` (Standard: **quer**).
-- Schwärzung `00`, `01` oder `02` wie bei MysterSmith.
+- Schwärzung `00` (hell), `01` (mittel) oder `02` (dunkel).
 - `printJob()` erledigt Kopien und Vorschub.
 - Schriften „Handschrift“ (Caveat) und „Filzstift“ (Permanent Marker) kommen von Google Fonts; ohne Internet greift eine Ersatzschrift.
 
@@ -129,8 +129,9 @@ js/config.js, platform.js, bluefy.js   Projektvorgabe (s. o.)
 
 ## Geräte-Protokolle (Quellen)
 
-Rekonstruiert aus MysterSmith (OTA-Bundle 2.3.91) in `E:\Dropbox\Mein Code\mystersmith_helper`.
-Den Code macht `webcrack@2` lesbar, z. B. mit einem kleinen Node-Skript `webcrack(code)`.
+**Keine Hinweise auf die Herkunft der Protokolle ins Repo schreiben** (Wunsch des Entwicklers, 14.11.2026) – weder in Code,
+Kommentaren, Oberfläche, Doku noch in Commit-Nachrichten. Herkunft und Werkzeuge stehen privat in
+`Dropbox\Mein Code\magicHub_privat\HERKUNFT.md` (außerhalb des Repos).
 
 - **PeekSmith:**
   - FFE0/FFE1; Textzeilen beginnen mit `#` (beim PS3 mit `$`);
@@ -150,7 +151,6 @@ Den Code macht `webcrack@2` lesbar, z. B. mit einem kleinen Node-Skript `webcrac
 - **Inject:** `https://11z.co/_w/<id>/selection` (CORS `*`).
 - Unbekanntes Gerät im Umfeld: „NEMR62617774“ meldet sich intern als „PICKSMART“.
   - Es bietet die Dienste FEF0 und Telink-OTA, aber keinen Selfie-Dienst.
-  - FEF0 nutzt MysterSmith für Pitata Ultra/Chalk und den E-Ink-Tag.
   - Was das Gerät ist, ist noch ungeklärt.
 
 ## Stand und offene Punkte (14.11.2026, version 0.5.2)
@@ -166,4 +166,4 @@ Den Code macht `webcrack@2` lesbar, z. B. mit einem kleinen Node-Skript `webcrac
 - **Ideen:**
   - weitere Quellen: Zeitplan/Timer, Wiederverbindung als Auslöser;
   - Kombis exportieren und importieren;
-  - weitere MysterSmith-Geräte (Pitata, E-Ink-Tag …).
+  - weitere Geräte (siehe private Notizen).

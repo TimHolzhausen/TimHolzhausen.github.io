@@ -1,6 +1,5 @@
 // PeekSmith One/Two/3 (HM-10-artiger BLE-UART auf FFE0/FFE1).
-// Protokoll aus MysterSmith bt_peeksmith.js (siehe mystersmith_transfer/peeksmith_ble_protokoll.md).
-// Textdarstellung vereinfacht (kein MysterSmith-Zeilenumbruch, Umlaute werden umschrieben).
+// Textdarstellung vereinfacht (kein eigener Zeilenumbruch, Umlaute werden umschrieben).
 
 import { BleDevice, uuid16, sleep, writeChar } from './base.js';
 

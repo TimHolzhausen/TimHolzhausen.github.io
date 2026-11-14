@@ -1,6 +1,5 @@
 // Drucklayout für Thermodrucker (Peripage): Text, Zeichnungen und Bilder auf den Papierstreifen setzen.
-// Angelehnt an die Druckeinstellungen von MysterSmith (Ausrichtung, Schrift min/max, Ränder, Zeilenhöhe,
-// Neigung, Etikettenlänge, Vorschub). 203 dpi → 8 Pixel pro Millimeter.
+// Einstellungen: Ausrichtung, Schrift min/max, Ränder, Zeilenhöhe, Neigung, Etikettenlänge, Vorschub. 203 dpi → 8 Pixel pro Millimeter.
 
 export const PX_PER_MM = 8;
 

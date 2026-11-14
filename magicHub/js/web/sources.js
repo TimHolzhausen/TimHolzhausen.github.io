@@ -1,9 +1,9 @@
 // Web-Quellen, die regelmäßig abgefragt werden.
-// Inject: https://11z.co/_w/<Account-ID>/selection → { value, source } (aus MysterSmith web_polling.js).
+// Inject: https://11z.co/_w/<Account-ID>/selection → { value, source }.
 //   CORS geprüft am 13.11.2026: Access-Control-Allow-Origin: * → im Browser abfragbar.
-//   Senden (MysterSmith „App Integrations“ / index.js action_lastrec_to_inject): POST an dieselbe Adresse,
+//   Senden: POST an dieselbe Adresse,
 //   JSON { "value": "<Text>" }. Preflight erlaubt POST + content-type (geprüft 13.11.2026).
-//   Unbekannte Account-ID → HTTP 400. Die Inject-ID (Benutzername) → Account-Nummer-Abfrage von MysterSmith
+//   Unbekannte Account-ID → HTTP 400. Die Abfrage Inject-ID (Benutzername) → Account-Nummer
 //   (inject.joshuariley.co.uk/id/…) erlaubt kein CORS, daher muss die Account-Nummer eingetragen werden.
 // Eigene JSON-URL: jede HTTPS-Adresse, die CORS erlaubt; Feldpfad wie "data.word" oder "items.0.name".
 
@@ -87,7 +87,7 @@ export class InjectSource extends PollSource {
   url() { return 'https://11z.co/_w/' + encodeURIComponent(this.accountId.trim()) + '/selection'; }
 
   /**
-   * Text an Inject senden. Wie MysterSmith: Zeilenumbrüche → Leerzeichen, und ein gerade erst von
+   * Text an Inject senden. Zeilenumbrüche → Leerzeichen, und ein gerade erst von
    * Inject empfangener Wert wird nicht innerhalb von 10 s zurückgeschickt (sonst Endlosschleife).
    * Danach gilt der gesendete Wert als bekannt, damit die eigene Abfrage ihn nicht als neue Auswahl meldet.
    */

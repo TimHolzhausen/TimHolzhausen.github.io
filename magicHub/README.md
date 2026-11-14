@@ -78,9 +78,7 @@ magicHub/
 ## Herkunft der Protokolle
 
 - **Davinci-Palette, GoDice:** eigene Projekte `davinci_Landingpage/`, `GoDice/`.
-- **PeekSmith, Ultra Sharpie, Selfie Screen, Peripage P21, Inject:** rekonstruiert aus der
-  MysterSmith-App (OTA-Bundle 2.3.91, `mystersmith_helper/`), siehe auch
-  `peeksmith_ble_protokoll.md` und `ultra_sharpie_ble_protokoll.md`.
+- **PeekSmith, Ultra Sharpie, Selfie Screen, Peripage P21, Inject:** eigene Analyse der BLE- bzw. Web-Schnittstellen.
 - Inject-Server erlaubt Browser-Abfragen (CORS `*`, geprüft am 13.11.2026). Goo und viele andere
   Magie-App-Server tun das nicht und sind deshalb nicht eingebaut.
 

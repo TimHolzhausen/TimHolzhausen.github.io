@@ -1,5 +1,5 @@
 // Peripage P21 (und verwandte Peripage-Modelle) – Thermodrucker.
-// Protokoll rekonstruiert aus MysterSmith bt_peripage.js / bt_peripage_protocol.js (v2.3.91):
+// Protokoll:
 //  Service FF00, Schreiben FF02, Benachrichtigungen FF01 ("aa" = Druck fertig) und FF03
 //  (Flusssteuerung "01 nn" = Credits, "02 lo hi" = max. Paketgröße, "00 pp" = Akku %).
 //  Raster: 1D 76 30 00 wL wH hL hH + 1 Bit/Pixel, zeilenweise, MSB zuerst, 1 = schwarz.
@@ -17,7 +17,7 @@ const ZERO_96 = new Uint8Array(96);
 export class PeripagePrinter extends BleDevice {
   constructor() {
     super('printer', 'Peripage P21');
-    this.density = '02'; // MysterSmith: 00 hell, 01 mittel, 02 dunkel
+    this.density = '02'; // 00 hell, 01 mittel, 02 dunkel
     this.mode = 'official'; // 'official' (Credits) | 'safe' (Pausen)
     this.battery = null;
     this.printing = false;
