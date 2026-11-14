@@ -373,3 +373,5 @@ dialog .toast { display: none; }
 .pocket { position: fixed; inset: 0; z-index: 2147483647; background: #000; touch-action: none; user-select: none; -webkit-user-select: none; cursor: none; }
 .pocket-hint { position: absolute; left: 0; right: 0; bottom: 40px; text-align: center; color: #555; font-size: .85rem; transition: opacity 1s; }
 .keytest { padding: 10px 12px; border-radius: 12px; background: var(--card); border: 1px dashed var(--line); color: var(--muted); font-size: .9rem; }
+.die-kind { font-size: .72rem; font-weight: 700; color: var(--muted); align-self: center; }
+.die-kind.moved { color: #ff453a; }

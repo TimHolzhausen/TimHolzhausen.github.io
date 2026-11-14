@@ -8,6 +8,10 @@ const CHAR = uuid16(0xffe1);
 
 const BUTTONS = { isb0: 'Seite', isb1: 'Links', isb2: 'Rechts' };
 
+// Vibration bei neuem Text: PeekSmith-Befehl „/V=<ms>“ (Benachrichtigungs-Vibration, 0 = aus; übliche Vorgabe 50).
+// 'device' = nichts senden, das Gerät behält seine Einstellung.
+export const PEEK_VIBRATE = { device: 'Wie am Gerät eingestellt', 0: 'Aus', 50: 'Kurz', 150: 'Mittel', 300: 'Lang' };
+
 export function toPeekText(text) {
   return String(text ?? '')
     .replace(/Ä/g, 'AE').replace(/Ö/g, 'OE').replace(/Ü/g, 'UE')
@@ -22,6 +26,7 @@ export class PeekSmith extends BleDevice {
   constructor() {
     super('peeksmith', 'PeekSmith');
     this.brightness = 5; // 0..9
+    this.vibrate = 'device';
     this.batteryMv = null;
     this.version = null;
     this._queue = Promise.resolve();
@@ -53,6 +58,7 @@ export class PeekSmith extends BleDevice {
       await this.char.startNotifications();
     }
     for (const cmd of ['/B' + this.brightness, '/?b', '/?c', '/?v', '/R0']) await this.command(cmd);
+    if (this.vibrate !== 'device') await this.command('/V=' + Number(this.vibrate));
     await this.showText('MagicHub');
   }
 
@@ -71,6 +77,12 @@ export class PeekSmith extends BleDevice {
   setBrightness(n) {
     this.brightness = Math.max(0, Math.min(9, Math.round(n)));
     return this.command('/B' + this.brightness);
+  }
+
+  /** Vibration bei neuem Text einstellen ('device' = Gerät entscheidet, sonst Millisekunden, 0 = aus). */
+  setVibrate(v) {
+    this.vibrate = v;
+    if (this.connected && v !== 'device') return this.command('/V=' + Number(v));
   }
 
   command(cmd) { return this._line(cmd); }

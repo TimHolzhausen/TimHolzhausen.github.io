@@ -154,25 +154,37 @@ export class GoDiceSet extends EventTarget {
       const d = this.dice.get(id);
       if (d) { d.rolling = true; this._emit('rolling', { id }); this._changed(); }
     };
-    const stable = (id, value, xyz) => {
+    // kind: 'S' stabil (flach auf D6-Seite), 'FS' fake, 'MS' verschoben, 'TS' gekippt.
+    // Gewürfelt oder bewegt – wie in der Peekbox-Firmware: Kam vorher „R“ (Wurf beginnt), war es ein Wurf.
+    // Sonst gelten FS/MS/TS beim nackten D6 als „bewegt“ (nur umgelegt). In einer Hülle liegt der Würfel
+    // immer schräg – dort sind FS/MS/TS das normale Ergebnis, also kein „bewegt“.
+    const stable = (id, value, xyz, kind = 'S') => {
       const d = this.dice.get(id);
       if (!d) return;
+      const isThrow = !!d.rolling;
       d.rolling = false;
       if (Array.isArray(xyz)) { d.xyz = xyz; this._evaluate(d, id); } else d.value = Number(value);
+      if (!d.inBatch) { d.inBatch = true; d.batchMoved = false; }
+      d.batchMoved = isThrow ? false : (d.batchMoved || (kind !== 'S' && (d.type || 'D6') === 'D6'));
+      d.moved = d.batchMoved;
       this._changed();
       clearTimeout(this._settle);
       // Kurz warten, damit bei mehreren Würfeln alle liegen, bevor die Summe gemeldet wird.
       this._settle = setTimeout(() => {
         if ([...this.dice.values()].some((x) => x.online && x.rolling)) return;
-        this._emit('roll', { id, value: d.value, color: d.color, type: d.type, sum: this.sum, values: this.values() });
+        const batch = [...this.dice.values()].filter((x) => x.inBatch);
+        const moved = batch.length > 0 && batch.every((x) => x.batchMoved);
+        batch.forEach((x) => { x.inBatch = false; });
+        if (moved && this.config.ignoreMoves) { this._emit('log', { level: 'info', message: 'Würfel nur bewegt – nicht weitergegeben' }); return; }
+        this._emit('roll', { id, value: d.value, color: d.color, type: d.type, moved, sum: this.sum, values: this.values() });
       }, 450);
     };
-    die.onStable = stable;
-    die.onFakeStable = stable;
-    die.onMoveStable = stable;
+    die.onStable = (id, value, xyz) => stable(id, value, xyz, 'S');
+    die.onFakeStable = (id, value, xyz) => stable(id, value, xyz, 'FS');
+    die.onMoveStable = (id, value, xyz) => stable(id, value, xyz, 'MS');
     // In einer Hülle liegt der Würfel schräg: Nach einem Wurf meldet er dann meist „TS“ (tilt stable) statt „S“
     // (wie in der Peekbox-Firmware). Achtung: Die Bibliothek übergibt hier (id, xyz, wert) – andere Reihenfolge.
-    die.onTiltStable = (id, xyz, value) => stable(id, value, xyz);
+    die.onTiltStable = (id, xyz, value) => stable(id, value, xyz, 'TS');
   }
 
   // ---- Automatisch verbinden (bekannte Würfel; neue brauchen einmal das Auswahlfenster) ----
@@ -256,7 +268,7 @@ export class GoDiceSet extends EventTarget {
   }
 
   values() {
-    return [...this.dice.values()].filter((d) => d.online && d.value != null).map((d) => ({ color: d.color, value: d.value, type: d.type }));
+    return [...this.dice.values()].filter((d) => d.online && d.value != null).map((d) => ({ color: d.color, value: d.value, type: d.type, moved: !!d.moved }));
   }
 
   blink(id) {

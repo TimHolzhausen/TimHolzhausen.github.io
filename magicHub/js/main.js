@@ -7,7 +7,7 @@ import { describeError, BleDevice } from './ble/base.js';
 import { GoDiceSet, SHELLS } from './ble/godice.js';
 import { DavinciPalette, POT_COUNT } from './ble/davinci.js';
 import { UltraSharpie } from './ble/ultrasharpie.js';
-import { PeekSmith } from './ble/peeksmith.js';
+import { PeekSmith, PEEK_VIBRATE } from './ble/peeksmith.js';
 import { SelfieScreen, PACKET_SIZES } from './ble/selfiescreen.js';
 import { detectRotation, rotateStrokes, ROT_NAMES } from './pen-rotate.js';
 import { PeripagePrinter } from './ble/peripage.js';
@@ -18,7 +18,7 @@ import { buildPrint, ensureFont, normalizeLayout, FONTS, ORIENTATIONS } from './
 import { STACKS, CARD_FORMATS, cardName, stackMapText } from './stacks.js';
 import { textCanvas, drawingCanvas, fitInto, demoStrokes } from './render.js';
 
-const VERSION = '0.5.13';
+const VERSION = '0.5.14';
 const BT = hasWebBluetooth();
 
 // ---------------------------------------------------------------- Helfer
@@ -89,6 +89,7 @@ if (settings.printer) {
 let printLayout = normalizeLayout(settings.printLayout);
 if (settings.pen?.finishDelay) dev.pen.finishDelay = settings.pen.finishDelay;
 if (settings.peeksmith?.brightness != null) dev.peeksmith.brightness = settings.peeksmith.brightness;
+if (settings.peeksmith?.vibrate != null && String(settings.peeksmith.vibrate) in PEEK_VIBRATE) dev.peeksmith.vibrate = String(settings.peeksmith.vibrate);
 if (settings.selfie?.brightness) dev.selfie.brightness = settings.selfie.brightness;
 if (settings.selfie?.packetSize && PACKET_SIZES[settings.selfie.packetSize]) dev.selfie.packetSize = settings.selfie.packetSize;
 const diceMode = () => settings.diceMode || 'sum';
@@ -259,7 +260,8 @@ dev.godice.addEventListener('roll', (e) => {
   const d = e.detail;
   const mode = diceMode();
   const text = mode === 'sum' ? String(d.sum) : mode === 'list' ? d.values.map((v) => v.value).join(' ') : String(d.value);
-  hub.publish('godice', { kind: 'text', text });
+  if (!d.demo) pushDevLog('godice', 'info', (d.moved ? 'Bewegt: ' : 'Gewürfelt: ') + d.values.map((v) => v.value + (v.moved ? ' (bewegt)' : '')).join(' + ') + (d.values.length > 1 ? ' = ' + d.sum : ''));
+  hub.publish('godice', { kind: 'text', text, moved: !!d.moved });
 });
 dev.davinci.addEventListener('touch', (e) => hub.publish('davinci', { kind: 'text', text: e.detail.name }));
 dev.pen.addEventListener('drawing', (e) => handleDrawing(e.detail.strokes));
@@ -502,6 +504,9 @@ const PANELS = {
       h('option', { value: 'last' }, 'Nur letzter Würfel'));
     mode.value = diceMode();
     const add = h('button', { class: 'btn btn-primary btn-block', type: 'button', disabled: !BT, onclick: () => runAction({ run: () => dev.godice.addDie() }) }, '+ Würfel hinzufügen');
+    const onlyThrows = h('input', { type: 'checkbox' });
+    onlyThrows.checked = !!settings.godice.ignoreMoves;
+    onlyThrows.addEventListener('change', () => { settings.godice.ignoreMoves = onlyThrows.checked; saveSettings(); });
     const auto = h('input', { type: 'checkbox' });
     auto.checked = dev.godice.autoConnect;
     auto.addEventListener('change', () => {
@@ -514,11 +519,14 @@ const PANELS = {
       ? 'Bekannte Würfel verbinden sich beim Start und nach einem Abbruch von selbst, sobald sie funken (Würfel kurz bewegen).'
       : 'Nach einem Abbruch verbinden sich Würfel von selbst. Beim App-Start nur, wenn Chrome bekannte Geräte kennt: chrome://flags → „Use the new permissions backend for Web Bluetooth“ (experimentell). Neue Würfel brauchen immer einmal „+ Würfel hinzufügen“.');
     body.append(noBt() || '', list, add, field('Gesendet wird', mode),
+      h('label', { class: 'switch-row' }, onlyThrows, h('span', {}, 'Nur echte Würfe weitergeben (nur bewegte Würfel ignorieren)')),
+      h('p', { class: 'hint' }, '„BEWEGT“ = Würfel wurde nur umgelegt, nicht geworfen (wie in der Peekbox). In einer Hülle gibt es kein „bewegt“, dort liegt er immer schräg.'),
       h('label', { class: 'switch-row' }, auto, h('span', {}, 'Würfel automatisch verbinden (beim Start und nach Abbruch)')), autoHint, h('p', { class: 'hint' }, 'Mehrere Würfel nacheinander hinzufügen. Gemeldet wird, sobald alle liegen. Hülle „Automatisch“ erkennt pro Wurf, ob der Würfel in einer D20-Hülle steckt.'));
     return () => {
       const dice = [...dev.godice.dice.entries()];
       list.replaceChildren(...(dice.length ? dice.map(([id, d]) => h('div', { class: 'die' + (d.online ? '' : ' off') },
         h('span', { class: 'die-face', style: 'background:' + (d.colorHex || '#555') }, d.rolling ? '…' : (d.value ?? '–')),
+        d.value != null && !d.rolling ? h('span', { class: 'die-kind' + (d.moved ? ' moved' : '') }, d.moved ? 'BEWEGT' : 'gewürfelt') : null,
         h('span', { class: 'die-text' }, h('strong', {}, d.color || d.name),
           h('small', {}, d.online ? (d.battery != null ? 'Akku ' + d.battery + ' %' : 'verbunden') : d.waiting ? 'wartet – verbindet automatisch, sobald er funkt' : 'getrennt'),
           h('small', {}, shellInfo(id, d))),
@@ -697,12 +705,17 @@ const PANELS = {
     const c = connectRow('peeksmith');
     const txt = h('input', { type: 'text', placeholder: 'Text fürs Display', autocomplete: 'off' });
     const br = h('input', { type: 'range', min: 0, max: 9, value: dev.peeksmith.brightness });
-    br.addEventListener('change', () => { dev.peeksmith.setBrightness(Number(br.value)); settings.peeksmith = { brightness: Number(br.value) }; saveSettings(); });
+    br.addEventListener('change', () => { dev.peeksmith.setBrightness(Number(br.value)); settings.peeksmith = { ...settings.peeksmith, brightness: Number(br.value) }; saveSettings(); });
+    const vib = h('select', { onchange: () => { dev.peeksmith.setVibrate(vib.value); settings.peeksmith = { ...settings.peeksmith, vibrate: vib.value }; saveSettings(); } },
+      ...['device', '0', '50', '150', '300'].map((v) => h('option', { value: v }, PEEK_VIBRATE[v])));
+    vib.value = String(dev.peeksmith.vibrate);
     const info = h('p', { class: 'hint' });
     body.append(noBt() || '', c.el,
       h('form', { class: 'row', onsubmit: (e) => { e.preventDefault(); hub.deliver('peeksmith', { kind: 'text', text: txt.value }); } }, txt, h('button', { class: 'btn btn-primary', type: 'submit' }, 'Anzeigen')),
       h('div', { class: 'row' }, h('button', { class: 'btn', type: 'button', onclick: () => { dev.peeksmith.clear(); pv.peek.textContent = ' '; } }, 'Display leeren')),
-      field('Helligkeit', br), info,
+      field('Helligkeit', br),
+      field('Bei neuem Text vibrieren', vib, 'Wird beim Verbinden und beim Ändern ans Display geschickt (Befehl /V=). Die Peekbox braucht dafür eine aktuelle Firmware.'),
+      info,
       h('p', { class: 'hint' }, 'Tasten (links/rechts, lang) sind als Eingabe „PeekSmith-Taste“ nutzbar. Umlaute werden umschrieben (ä → ae).'));
     return () => {
       c.upd();
