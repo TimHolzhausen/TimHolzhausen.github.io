@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PeekBox – Anleitung</title>
+<meta name="description" content="Anleitung für die PeekBox: geheimes Farbdisplay, Würfel-Empfänger und Vibrationsmelder für Zauberkünstler.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='10' y='4' width='44' height='56' rx='12' fill='%23110f1c' stroke='%238c6cff' stroke-width='4'/%3E%3Ccircle cx='32' cy='30' r='9' fill='%238c6cff'/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#0b0a12; --bg2:#12101d; --card:#171427; --line:#2a2540; --ink:#ecebf5; --mut:#a4a1b8; --faint:#6d6a84;
+  --acc:#8c6cff; --acc2:#b9a6ff; --ok:#34d399; --warn:#fbbf24; --bad:#f87171;
+  --r:14px; --mono:ui-monospace,SFMono-Regular,Consolas,monospace;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){--bg:#f6f5fb;--bg2:#eeecf7;--card:#fff;--line:#dedbea;--ink:#1c1a2b;--mut:#5d5a72;--faint:#8d8aa3;--acc:#6a4ee0;--acc2:#5a3fd0}
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
+a{color:var(--acc2)}
+header.top{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+header.top .in{max-width:1140px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:14px}
+.brand{font-weight:800;font-size:20px;letter-spacing:.01em;text-decoration:none;color:var(--ink)}
+.brand span{color:var(--acc)}
+header.top select{margin-left:auto;font:inherit;font-size:15px;padding:6px 10px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);max-width:56vw}
+.wrap{max-width:1140px;margin:0 auto;padding:0 16px;display:grid;grid-template-columns:240px minmax(0,1fr);gap:40px}
+nav.toc{position:sticky;top:72px;align-self:start;max-height:calc(100vh - 90px);overflow:auto;padding:24px 0}
+nav.toc a{display:block;padding:5px 10px;border-radius:8px;color:var(--mut);text-decoration:none;font-size:15px}
+nav.toc a:hover,nav.toc a.on{color:var(--ink);background:var(--card)}
+main{padding:8px 0 80px;min-width:0}
+.hero{display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:28px;align-items:center;padding:36px 0 18px}
+.hero h1{font-size:clamp(32px,6vw,52px);line-height:1.08;margin:0 0 12px;letter-spacing:-.02em}
+.hero h1 span{color:var(--acc)}
+.hero p{color:var(--mut);font-size:19px;margin:0}
+.ver{display:inline-block;margin-top:14px;font-size:14px;color:var(--faint);border:1px solid var(--line);border-radius:99px;padding:3px 12px}
+section{padding-top:30px}
+h2{font-size:28px;margin:12px 0 10px;letter-spacing:-.01em}
+h3{font-size:20px;margin:26px 0 6px}
+p,li{color:var(--ink)}
+.mut{color:var(--mut)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;margin:14px 0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.grid2 .card{margin:0}
+.card h4{margin:0 0 6px;font-size:17px}
+.card p{margin:0;color:var(--mut);font-size:16px}
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:16px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--mut);font-weight:600;font-size:14px;letter-spacing:.03em;text-transform:uppercase}
+.tbl{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:var(--r)}
+.tbl table{margin:0}
+.tbl tr:last-child td{border-bottom:0}
+kbd{font-family:var(--mono);font-size:14px;background:var(--bg2);border:1px solid var(--line);border-bottom-width:2px;border-radius:6px;padding:1px 7px;white-space:nowrap}
+.tip,.warn{border-radius:var(--r);padding:12px 16px;margin:14px 0;border:1px solid}
+.tip{background:color-mix(in srgb,var(--acc) 10%,transparent);border-color:color-mix(in srgb,var(--acc) 35%,transparent)}
+.warn{background:color-mix(in srgb,var(--warn) 10%,transparent);border-color:color-mix(in srgb,var(--warn) 40%,transparent)}
+.tip b:first-child,.warn b:first-child{display:block;margin-bottom:2px}
+ol.steps{counter-reset:s;list-style:none;padding:0}
+ol.steps li{counter-increment:s;position:relative;padding:4px 0 10px 46px}
+ol.steps li::before{content:counter(s);position:absolute;left:0;top:2px;width:32px;height:32px;border-radius:50%;background:var(--acc);color:#fff;font-weight:700;display:grid;place-items:center;font-size:16px}
+.dev{width:100%;max-width:220px;height:auto;display:block;margin:auto}
+.pill{display:inline-block;font-size:13px;padding:1px 9px;border-radius:99px;background:var(--bg2);border:1px solid var(--line);color:var(--mut);margin-left:6px;vertical-align:2px}
+footer{border-top:1px solid var(--line);color:var(--faint);font-size:14px;padding:22px 16px;text-align:center}
+@media (max-width:860px){
+  .wrap{grid-template-columns:1fr;gap:0}
+  nav.toc{display:none}
+  .hero{grid-template-columns:1fr;text-align:left}
+  .hero svg{max-width:170px;margin:0}
+  th,td{padding:9px 10px}
+}
+@media (min-width:861px){header.top select{display:none}}
+</style>
+</head>
+<body>
+<header class="top"><div class="in">
+  <a class="brand" href="#start">Peek<span>Box</span></a>
+  <select id="jump" aria-label="Kapitel wählen"></select>
+</div></header>
+
+<div class="wrap">
+<nav class="toc" id="toc" aria-label="Inhalt"></nav>
+<main>
+
+<div class="hero" id="start">
+  <div>
+    <h1>Die <span>PeekBox</span>.<br>Ihr geheimer Helfer.</h1>
+    <p>Ein kleines Farbdisplay für die Tasche. Es zeigt Ihnen heimlich, was Ihre Zauber-App schickt, meldet Würfelwürfe und Farbwahlen per Vibration und spielt Töne ab.</p>
+    <span class="ver">Anleitung für Firmware S3 0.4</span>
+  </div>
+  <svg class="dev" viewBox="0 0 232 270" role="img" aria-label="PeekBox mit Menü auf dem Display">
+    <rect x="20" y="6" width="180" height="258" rx="34" fill="#16131f" stroke="#3a3452" stroke-width="3"/>
+    <rect x="34" y="22" width="152" height="226" rx="24" fill="#000"/>
+    <text x="110" y="52" fill="#9693a8" font-size="11" font-weight="700" text-anchor="middle" font-family="system-ui">MENÜ</text>
+    <rect x="46" y="64" width="128" height="26" rx="10" fill="#302a54"/>
+    <circle cx="58" cy="77" r="3.5" fill="#8c6cff"/>
+    <text x="70" y="82" fill="#fff" font-size="13" font-weight="700" font-family="system-ui">App</text>
+    <text x="70" y="112" fill="#9693a8" font-size="13" font-weight="700" font-family="system-ui">Würfel</text>
+    <text x="70" y="140" fill="#9693a8" font-size="13" font-weight="700" font-family="system-ui">Palette</text>
+    <text x="70" y="168" fill="#9693a8" font-size="13" font-weight="700" font-family="system-ui">Einstellungen ›</text>
+    <text x="70" y="196" fill="#9693a8" font-size="13" font-weight="700" font-family="system-ui">Sperren</text>
+    <text x="70" y="224" fill="#f87171" font-size="13" font-weight="700" font-family="system-ui">Ausschalten</text>
+    <rect x="200" y="70" width="8" height="30" rx="3" fill="#8c6cff"/>
+    <rect x="200" y="112" width="8" height="30" rx="3" fill="#6d6a84"/>
+    <text x="214" y="90" fill="#8c6cff" font-size="9" font-family="system-ui" transform="rotate(90 214 90)">BOOT</text>
+    <text x="214" y="132" fill="#6d6a84" font-size="9" font-family="system-ui" transform="rotate(90 214 132)">PWR</text>
+  </svg>
+</div>
+
+<section id="was">
+<h2>Was die PeekBox kann</h2>
+<div class="grid2">
+  <div class="card"><h4>Geheimes Display</h4><p>Texte, Spielkarten, Bilder, Zeichnungen und Emojis aus Ihrer Zauber-App, in Farbe und gut lesbar.</p></div>
+  <div class="card"><h4>Würfel-Empfänger</h4><p>Zeigt bis zu sechs Bluetooth-Würfel an (GoDice, Pitata, BLE Dice, Spotted, KMD). Gesperrt meldet sie Würfe per Vibration.</p></div>
+  <div class="card"><h4>Auslöser für die App</h4><p>Tippen, Wischen, Schütteln, Hinlegen und die Tasten können in der App Aktionen starten.</p></div>
+  <div class="card"><h4>Stift und Palette</h4><p>Zeigt, was mit dem Ultra Sharpie geschrieben wird. Meldet, welche Farbe aus der Davinci-Palette genommen wurde.</p></div>
+</div>
+</section>
+
+<section id="schnellstart">
+<h2>Schnellstart</h2>
+<ol class="steps">
+  <li><b>Laden:</b> USB-C-Kabel einstecken. Rechts oben erscheint ein Blitz im Akku-Symbol.</li>
+  <li><b>Einschalten:</b> kurz <kbd>PWR</kbd> drücken. Das Logo blendet ein, eine kleine Melodie ertönt.</li>
+  <li><b>App verbinden:</b> In Ihrer Zauber-App ein Display-Gerät vom Typ <b>MysterBox</b> hinzufügen. Die PeekBox erscheint dort unter diesem Namen. Mehr dazu im Kapitel <a href="#app">Mit der App verbinden</a>.</li>
+  <li><b>Würfel:</b> Würfel kurz schütteln, damit sie aufwachen. Die PeekBox findet sie von selbst.</li>
+  <li><b>Ausschalten:</b> <kbd>PWR</kbd> 2 Sekunden halten.</li>
+</ol>
+</section>
+
+<section id="tasten">
+<h2>Die Tasten</h2>
+<p>Die PeekBox hat zwei Tasten am Rand: <kbd>BOOT</kbd> und <kbd>PWR</kbd>. Die Namen stehen auf der Platine.</p>
+<div class="tbl"><table>
+<tr><th>Taste</th><th>Was passiert</th></tr>
+<tr><td><kbd>PWR</kbd> kurz</td><td>Ausgeschaltet: einschalten. Eingeschaltet: Display aus oder wieder an, alles andere läuft weiter.</td></tr>
+<tr><td><kbd>PWR</kbd> 2 s halten</td><td>Ausschalten</td></tr>
+<tr><td><kbd>PWR</kbd> doppelt</td><td>Sperren (siehe <a href="#sperren">Sperren</a>)</td></tr>
+<tr><td><kbd>BOOT</kbd> 1 s halten</td><td>Menü öffnen oder schließen. Entsperrt auch eine gesperrte PeekBox.</td></tr>
+<tr><td><kbd>BOOT</kbd> kurz</td><td>Geheimer Auslöser: geht als Tastendruck an die App, auch wenn die PeekBox gesperrt ist.</td></tr>
+<tr><td><kbd>BOOT</kbd> doppelt</td><td>Direkt zur Würfel-Anzeige</td></tr>
+</table></div>
+<p class="mut">Ein einzelner kurzer Druck wirkt erst nach einer Drittelsekunde. So lange wartet die PeekBox, ob ein zweiter Druck folgt. Im Menü wirkt er sofort.</p>
+</section>
+
+<section id="gesten">
+<h2>Tippen und Wischen</h2>
+<div class="tbl"><table>
+<tr><th>Geste</th><th>Was passiert</th></tr>
+<tr><td>Nach links / rechts wischen</td><td>Zum nächsten oder vorigen Modus (App, Würfel, Palette, Stift)</td></tr>
+<tr><td>Lange auf den Inhalt drücken</td><td>Anzeige leeren</td></tr>
+<tr><td>In der App-Anzeige tippen, nach oben / unten wischen</td><td>Geht als Auslöser an die App</td></tr>
+<tr><td>Auf einen GoDice tippen</td><td>Würfeltyp umschalten (D6, D20, D10 …)</td></tr>
+<tr><td>Zweimal schnell auf einen GoDice tippen</td><td>Der echte Würfel blinkt, damit Sie ihn finden</td></tr>
+</table></div>
+<div class="tip"><b>Bedienung ohne Vibration</b>Tippen, Wischen und das Menü geben einen leisen Ton. Lautstärke und Abschalten unter <i>Einstellungen › Display &amp; Ton</i>. Vibration gibt es nur für echte Meldungen: Würfe, Farben, neuer Text.</div>
+</section>
+
+<section id="menue">
+<h2>Das Menü</h2>
+<p><kbd>BOOT</kbd> 1 Sekunde halten öffnet das Menü. Es gibt drei Wege zu wählen:</p>
+<ul>
+  <li><b>Tippen</b> auf einen Eintrag.</li>
+  <li><kbd>BOOT</kbd> kurz springt zum nächsten Eintrag, <kbd>PWR</kbd> kurz wählt ihn aus. Das geht auch, ohne aufs Display zu schauen.</li>
+  <li><b>Nach oben oder unten wischen</b> bewegt die Auswahl.</li>
+</ul>
+<div class="tbl"><table>
+<tr><th>Eintrag</th><th>Bedeutung</th></tr>
+<tr><td>App · Würfel · Palette · Stift</td><td>Die eingeschalteten Modi. Der violette Punkt zeigt, wo Sie gerade sind.</td></tr>
+<tr><td>Einstellungen ›</td><td>Öffnet die Liste der Einstellungs-Gruppen</td></tr>
+<tr><td>Sperren</td><td>Display aus, Meldungen nur noch per Vibration</td></tr>
+<tr><td>Ausschalten</td><td>Schaltet die PeekBox ganz aus</td></tr>
+</table></div>
+<p class="mut">Ganz unten steht die Firmware-Version.</p>
+</section>
+
+<section id="einstellungen">
+<h2>Einstellungen</h2>
+<p>Unter <i>Menü › Einstellungen</i> sind die Einstellungen in Gruppen sortiert. Tippen Sie auf eine Gruppe, um sie zu öffnen. Tippen auf eine Zeile schaltet um oder wählt den nächsten Wert. Gespeichert wird sofort.</p>
+<p>Hat eine Gruppe mehr als drei Zeilen, blättern Sie durch Wischen nach oben oder unten. Zurück zur Gruppenliste kommen Sie durch Wischen nach rechts oder Tippen auf den Titel.</p>
+
+<h3>Geräte</h3>
+<div class="tbl"><table>
+<tr><th>Einstellung</th><th>Bedeutung</th></tr>
+<tr><td>App-Anbindung</td><td><b>Box</b> = Farbdisplay mit Bildern, Tönen und Auslösern (empfohlen). <b>Text</b> = einfaches Textdisplay mit Tastenleiste, für ältere Routinen. <b>aus</b> = keine App.</td></tr>
+<tr><td>Würfel</td><td>Bluetooth-Würfel suchen und anzeigen</td></tr>
+<tr><td>Stift (Sharpie)</td><td>Ultra Sharpie / Ultra Pen verbinden</td></tr>
+<tr><td>Davinci-Palette</td><td>Farbpalette verbinden</td></tr>
+<tr><td>Nur aktiv verbinden</td><td>Würfel, Stift und Palette nur verbinden, solange ihr Modus offen ist. Das spart Akku und Funkzeit.</td></tr>
+<tr><td>Funk-Leistung</td><td>Mehr dBm bedeutet mehr Reichweite für die Würfel. Standard 20.</td></tr>
+</table></div>
+
+<h3>Würfel</h3>
+<div class="tbl"><table>
+<tr><td>D20-Hülle erkennen</td><td>GoDice in der D20-Hülle werden automatisch erkannt</td></tr>
+<tr><td>Blinken b. Verbinden</td><td>GoDice blinken kurz, sobald sie verbunden sind</td></tr>
+<tr><td>Vib. Würfe</td><td><b>einzeln</b> = jeder Würfel nacheinander. <b>Summe</b> = nur die Summe aller Würfel.</td></tr>
+</table></div>
+
+<h3>Vibration</h3>
+<div class="tbl"><table>
+<tr><td>Tempo</td><td>langsam, mittel oder schnell</td></tr>
+<tr><td>Stärke</td><td>Kraft des Vibrationsmotors</td></tr>
+<tr><td>Zahlen</td><td><b>zählen</b> = eine 4 sind vier kurze Pulse. <b>5 = lang</b> = je fünf ein langer Puls, eine 6 ist also lang + kurz.</td></tr>
+<tr><td>Vibration testen</td><td>Spielt einen Beispielwurf ab: 3 und 6</td></tr>
+</table></div>
+
+<h3>Display &amp; Ton</h3>
+<div class="tbl"><table>
+<tr><td>Helligkeit</td><td>10 bis 100 %</td></tr>
+<tr><td>Display aus nach</td><td>Display geht nach so vielen Sekunden ohne Neues aus. Ein Tippen weckt es.</td></tr>
+<tr><td>Drehen nach Lage</td><td>Das Bild dreht sich mit: <b>alle</b> vier Lagen, nur <b>hochkant</b> oder <b>aus</b></td></tr>
+<tr><td>Ton bei Bedienung</td><td>Klicktöne beim Tippen und im Menü: aus, leise, mittel, laut</td></tr>
+</table></div>
+
+<h3>Stift · Strom · WLAN · Info</h3>
+<div class="tbl"><table>
+<tr><td>Stift: Auto-drehen</td><td>Die Schrift wird gedreht, wenn auf dem Kopf oder quer geschrieben wird</td></tr>
+<tr><td>Stift: Leeren nach</td><td>Anzeige so viele Sekunden nach dem letzten Strich leeren</td></tr>
+<tr><td>Stift ausschalten</td><td>Schaltet den verbundenen Stift aus (fragt vorher nach)</td></tr>
+<tr><td>Auto-Aus nach</td><td>Ganz ausschalten nach so vielen Minuten ohne jede Aktivität. Standard 60.</td></tr>
+<tr><td>WLAN-Setup</td><td>Einstellungs-Seite fürs Handy (siehe <a href="#wlan">WLAN-Seite</a>)</td></tr>
+<tr><td>Info</td><td>Firmware-Version, Board und der Name, unter dem die App die PeekBox findet</td></tr>
+</table></div>
+</section>
+
+<section id="app">
+<h2>Mit der App verbinden</h2>
+<p>Die PeekBox spricht zwei Display-Sprachen. Welche gilt, stellen Sie unter <i>Einstellungen › Geräte › App-Anbindung</i> ein.</p>
+<div class="grid2">
+  <div class="card"><h4>Box <span class="pill">empfohlen</span></h4><p>In der App heißt das Gerät <b>MysterBox</b>. Farbe, Bilder, Karten, Emojis, Live-Zeichnen und Töne. Tippen, Wischen, Schütteln, Hinlegen und die Tasten werden als Auslöser gemeldet.</p></div>
+  <div class="card"><h4>Text</h4><p>In der App heißt das Gerät <b>PeekSmith</b>. Einfacher Text und Schwarz-Weiß-Bilder, unten eine Tastenleiste LEFT / SIDE / RIGHT. Für Routinen, die schon damit arbeiten.</p></div>
+</div>
+<ol class="steps">
+  <li>PeekBox einschalten. Bluetooth am Handy muss an sein.</li>
+  <li>In der App das passende Display-Gerät suchen lassen und die PeekBox auswählen.</li>
+  <li>Ist sie verbunden, wird die App-Anzeige der PeekBox schwarz. Sie wartet jetzt auf Inhalte und zeigt sie als Vollbild.</li>
+</ol>
+
+<h3>Auslöser für die App <span class="pill">Box</span></h3>
+<div class="tbl"><table>
+<tr><th>Auslöser</th><th>Wie</th></tr>
+<tr><td>Tippen · nach oben/unten/links/rechts wischen</td><td>In der App-Anzeige der PeekBox</td></tr>
+<tr><td>BOOT-Taste</td><td>Immer, auch gesperrt</td></tr>
+<tr><td>PWR-Taste</td><td>Kurz drücken (schaltet außerdem das Display aus/an)</td></tr>
+<tr><td>Schütteln</td><td>Kräftig hin und her</td></tr>
+<tr><td>Lage</td><td>Display oben oder unten, aufrecht, auf dem Kopf, auf der linken oder rechten Seite</td></tr>
+</table></div>
+<div class="tip"><b>Tipp</b>Wischen nach links oder rechts wechselt auf der PeekBox zusätzlich den Modus. Für unauffällige Auslöser eignen sich Tippen, Wischen nach oben/unten, die BOOT-Taste, Schütteln und die Lage besser.</div>
+<p class="mut">Bilder und Töne behält die PeekBox, bis sie ausgeschaltet wird. Danach schickt die App sie bei Bedarf einfach neu.</p>
+</section>
+
+<section id="wuerfel">
+<h2>Würfel</h2>
+<p>Die Würfel-Anzeige zeigt bis zu sechs Würfel in ihrer Farbe. Bei mehreren steht unten die Summe. Ein <b>?</b> heißt: Der Würfel rollt noch.</p>
+<div class="tbl"><table>
+<tr><th>Würfel</th><th>Hinweise</th></tr>
+<tr><td>GoDice</td><td>Bis zu vier gleichzeitig. Hüllen (D20, D10, D12, D8, D4) durch Tippen auf den Würfel wählen. D20 wird auf Wunsch automatisch erkannt.</td></tr>
+<tr><td>Pitata Dice</td><td>Rot, Blau, Weiß. Brauchen keine Verbindung, die PeekBox liest sie im Vorbeifunken.</td></tr>
+<tr><td>BLE Dice</td><td>Wie Pitata, ohne Verbindung</td></tr>
+<tr><td>Spotted Dice</td><td>Mit Verbindung. Die Farbe kommt aus dem Namen des Würfels.</td></tr>
+<tr><td>KMD (Marc Antoine)</td><td>Ein Gerät mit drei Würfeln: weiß, schwarz, rot</td></tr>
+</table></div>
+<ul>
+  <li><b>Akku und Empfang</b> stehen unter den Würfeln. Grün ist gut, gelb knapp, rot reißt bald ab.</li>
+  <li><b>„BEWEGT“</b> auf rotem Grund: Der Würfel wurde nur gedreht oder verschoben, nicht geworfen.</li>
+  <li><b>„weg“</b>: Ein Würfel ohne Verbindung hat sich länger als eine Minute nicht gemeldet.</li>
+</ul>
+</section>
+
+<section id="sperren">
+<h2>Sperren: Würfe fühlen statt sehen</h2>
+<p>Gesperrt ist das Display dunkel, Tippen wird ignoriert. Würfe und Farbwahlen meldet die PeekBox per Vibration. So kann sie unbemerkt in der Tasche bleiben.</p>
+<ul>
+  <li><b>Sperren:</b> <kbd>PWR</kbd> doppelt drücken oder <i>Menü › Sperren</i>.</li>
+  <li><b>Entsperren:</b> 3 Sekunden aufs Display drücken oder <kbd>BOOT</kbd> 1 Sekunde halten.</li>
+  <li>Eine 4 und eine 2 fühlen sich so an: vier Pulse, Pause, zwei Pulse. Wie genau, stellen Sie unter <i>Einstellungen › Vibration</i> ein.</li>
+  <li>Ein kurzes Schnarren vor einer Zahl heißt: Dieser Würfel wurde nur bewegt.</li>
+</ul>
+<div class="warn"><b>Vibrationsmotor</b>Das 1,8″-Board hat keinen eingebauten Motor. Er wird nachgerüstet (Anschluss IO18 über einen Transistor). Das 2,06″-Board hat einen eingebauten Motor.</div>
+</section>
+
+<section id="stift">
+<h2>Stift und Palette</h2>
+<h3>Ultra Sharpie / Ultra Pen</h3>
+<p>Einschalten und kurz schreiben, dann verbindet er sich. Die PeekBox zeigt live, was geschrieben wird. Schrift auf dem Kopf oder quer dreht sie auf Wunsch automatisch. Den Stift-Akku sehen Sie in der Statuszeile.</p>
+<h3>Davinci-Palette</h3>
+<p>Nimmt jemand eine Farbe aus der Palette, zeigt die PeekBox sie groß an. Gesperrt vibriert sie die Nummer der Mulde: 1 Rot, 2 Gelb, 3 Blau, 4 Grün, 5 Schwarz.</p>
+</section>
+
+<section id="wlan">
+<h2>WLAN-Seite</h2>
+<p>Alle Einstellungen gibt es auch als Webseite fürs Handy:</p>
+<ol class="steps">
+  <li><i>Einstellungen › WLAN › WLAN-Setup</i> einschalten.</li>
+  <li>Am Handy mit dem WLAN <b>PeekBox</b> verbinden (Passwort <b>peekbox1</b>).</li>
+  <li>Die Seite öffnet sich von selbst. Falls nicht, im Browser <b>192.168.4.1</b> aufrufen.</li>
+</ol>
+<p class="mut">Die Seite zeigt außerdem Akku, verbundene Geräte und ein Ereignis-Protokoll. WLAN schaltet sich nach 10 Minuten ohne Verbindung und bei jedem Neustart wieder aus, weil es sich das Funkmodul mit Bluetooth teilt.</p>
+</section>
+
+<section id="akku">
+<h2>Akku und Laden</h2>
+<ul>
+  <li>Der Ladestand steht rechts oben. Ein Blitz bedeutet: Der Akku lädt.</li>
+  <li>Laden mit jedem USB-C-Ladegerät oder am Computer.</li>
+  <li>Nach 60 Minuten ohne Aktivität schaltet sich die PeekBox selbst aus. Das lässt sich unter <i>Einstellungen › Strom</i> ändern.</li>
+  <li>Das Display geht schon nach wenigen Sekunden aus, die Verbindungen bleiben aber bestehen. Das spart den meisten Strom.</li>
+</ul>
+</section>
+
+<section id="hilfe">
+<h2>Wenn etwas nicht klappt</h2>
+<div class="tbl"><table>
+<tr><th>Problem</th><th>Lösung</th></tr>
+<tr><td>Die App findet die PeekBox nicht</td><td>Unter <i>Einstellungen › Info</i> nachsehen, unter welchem Namen sie wirbt. In der App den passenden Gerätetyp wählen. Die PeekBox darf nicht schon mit einem anderen Handy verbunden sein.</td></tr>
+<tr><td>Würfel erscheinen nicht</td><td>Würfel schütteln, damit sie aufwachen. Prüfen, ob <i>Geräte › Würfel</i> an ist. Bei „Nur aktiv verbinden“ muss die Würfel-Anzeige offen sein.</td></tr>
+<tr><td>Würfe kommen spät oder brechen ab</td><td>Funk-Leistung auf 20 dBm stellen. Die PeekBox nicht hinter Metall oder direkt am Körper tragen.</td></tr>
+<tr><td>Keine Töne</td><td><i>Display &amp; Ton › Ton bei Bedienung</i> prüfen. Töne der App regelt die App selbst.</td></tr>
+<tr><td>Das Display dreht sich ungewollt</td><td><i>Display &amp; Ton › Drehen nach Lage</i> auf „hochkant“ oder „aus“ stellen</td></tr>
+<tr><td>Die PeekBox reagiert nicht mehr</td><td><kbd>PWR</kbd> 10 Sekunden halten. Dann schaltet der Strom-Chip hart ab. Danach mit <kbd>PWR</kbd> wieder einschalten.</td></tr>
+</table></div>
+</section>
+
+</main>
+</div>
+<footer>PeekBox · Anleitung für Firmware S3 0.4 · Tim Holzhausen</footer>
+
+<script>
+(() => {
+  const secs = [...document.querySelectorAll('main section, #start')];
+  const toc = document.getElementById('toc'), jump = document.getElementById('jump');
+  secs.forEach(s => {
+    const h = s.id === 'start' ? 'Überblick' : s.querySelector('h2').textContent;
+    const a = document.createElement('a'); a.href = '#' + s.id; a.textContent = h; toc.appendChild(a);
+    const o = document.createElement('option'); o.value = s.id; o.textContent = h; jump.appendChild(o);
+  });
+  jump.addEventListener('change', () => location.hash = jump.value);
+  const links = [...toc.querySelectorAll('a')];
+  const io = new IntersectionObserver(es => es.forEach(e => {
+    if (!e.isIntersecting) return;
+    links.forEach(l => l.classList.toggle('on', l.hash === '#' + e.target.id));
+    jump.value = e.target.id;
+  }), { rootMargin: '-20% 0px -70% 0px' });
+  secs.forEach(s => io.observe(s));
+})();
+</script>
+</body>
+</html>
