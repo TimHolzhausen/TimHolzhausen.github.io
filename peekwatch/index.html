@@ -84,8 +84,8 @@ footer{border-top:1px solid var(--line);color:var(--faint);font-size:14px;paddin
 <div class="hero" id="start">
   <div>
     <h1>Die <span>PeekWatch</span>.<br>Ihre Uhr, Ihre Nachrichten.</h1>
-    <p>Eine kleine Smartwatch mit großem, leuchtendem Display. Sie zeigt die Uhrzeit und Nachrichten von Ihrem Handy, mit Android und mit dem iPhone.</p>
-    <span class="ver">Anleitung für Firmware 0.1</span>
+    <p>Eine kleine Smartwatch mit großem, leuchtendem Display. Sie zeigt die Uhrzeit und Nachrichten von Ihrem Handy, mit Android und mit dem iPhone. Und sie kann alles, was die <a href="../peekbox/">PeekBox</a> kann: geheimes Display für die Zauber-App, Würfel, Stift und Palette.</p>
+    <span class="ver">Anleitung für Firmware S3 0.4</span>
   </div>
   <svg class="dev" viewBox="0 0 220 280" role="img" aria-label="PeekWatch mit großem Zifferblatt">
     <rect x="70" y="0" width="80" height="34" rx="8" fill="#1b1830"/>
@@ -111,6 +111,7 @@ footer{border-top:1px solid var(--line);color:var(--faint);font-size:14px;paddin
   <div class="card"><h4>Uhrzeit</h4><p>Drei Zifferblätter zur Wahl: groß und gut lesbar, klassisch mit Zeigern oder mit Ringen für Sekunden und Akku.</p></div>
   <div class="card"><h4>Nachrichten</h4><p>WhatsApp, SMS, Mails und mehr erscheinen auf der Uhr, die Uhr vibriert dazu. Die letzten 20 bleiben in einer Liste.</p></div>
   <div class="card"><h4>Android und iPhone</h4><p>Android über die freie App Gadgetbridge, das iPhone ganz ohne Zusatz-App.</p></div>
+  <div class="card"><h4>Alles von der PeekBox</h4><p>Display für die Zauber-App, Würfel-Empfänger, Ultra Sharpie, Davinci-Palette und Taschenmodus. Die Bedienung dafür steht in der <a href="../peekbox/">PeekBox-Anleitung</a>.</p></div>
   <div class="card"><h4>Läuft weiter</h4><p>Das Handy stellt die Uhrzeit. Eine eingebaute Uhr hält sie, auch wenn die PeekWatch ausgeschaltet ist.</p></div>
 </div>
 </section>
@@ -121,7 +122,7 @@ footer{border-top:1px solid var(--line);color:var(--faint);font-size:14px;paddin
   <li><b>Laden:</b> USB-C-Kabel einstecken.</li>
   <li><b>Einschalten:</b> kurz die obere Taste <kbd>PWR</kbd> drücken. Das Logo blendet ein, das Auge öffnet sich.</li>
   <li><b>Mit dem Handy verbinden:</b> siehe <a href="#android">Android</a> oder <a href="#iphone">iPhone</a>. Danach stimmt auch die Uhrzeit.</li>
-  <li><b>Zifferblatt wählen:</b> auf dem Display nach links oder rechts wischen.</li>
+  <li><b>Zifferblatt wählen:</b> aufs Zifferblatt tippen.</li>
 </ol>
 </section>
 
@@ -155,16 +156,24 @@ footer{border-top:1px solid var(--line);color:var(--faint);font-size:14px;paddin
 <h2>Bedienung</h2>
 <div class="tbl"><table>
 <tr><th>Was</th><th>Was passiert</th></tr>
-<tr><td>Zifferblatt: nach links / rechts wischen</td><td>Nächstes oder voriges Zifferblatt</td></tr>
+<tr><td>Nach links / rechts wischen</td><td>Zum nächsten oder vorigen Modus: Uhr, Nachrichten, App, Würfel, Palette, Stift, Taschenmodus</td></tr>
+<tr><td>Aufs Zifferblatt tippen</td><td>Nächstes Zifferblatt</td></tr>
 <tr><td>Zifferblatt: nach oben wischen</td><td>Liste der Nachrichten</td></tr>
+<tr><td><kbd>BOOT</kbd> 1 Sekunde halten</td><td>Menü: Modi, Einstellungen, Sichtschutz, Ausschalten</td></tr>
 <tr><td><kbd>PWR</kbd> kurz</td><td>Display an oder aus</td></tr>
+<tr><td><kbd>PWR</kbd> doppelt</td><td>Taschenmodus (Display aus, Meldungen nur per Vibration)</td></tr>
 <tr><td><kbd>PWR</kbd> 2 Sekunden halten</td><td>Ausschalten. Einschalten wieder mit <kbd>PWR</kbd>.</td></tr>
-<tr><td><kbd>BOOT</kbd> kurz</td><td>Nächstes Zifferblatt</td></tr>
-<tr><td><kbd>BOOT</kbd> 1 Sekunde halten</td><td>Liste der Nachrichten</td></tr>
-<tr><td>Handgelenk heben</td><td>Display geht an</td></tr>
-<tr><td>Tippen aufs dunkle Display</td><td>Display geht an</td></tr>
+<tr><td>Handgelenk heben / aufs dunkle Display tippen</td><td>Display geht an</td></tr>
 </table></div>
-<p class="mut">Das Display geht nach 8 Sekunden ohne Bedienung aus, das spart Akku. Die Uhr läuft weiter und empfängt Nachrichten.</p>
+<p class="mut">Das Display geht nach einigen Sekunden ohne Bedienung aus (einstellbar unter <i>Einstellungen › Display &amp; Ton</i>). Die Uhr läuft weiter und empfängt Nachrichten.</p>
+<h3>Einstellungen › Uhr</h3>
+<div class="tbl"><table>
+<tr><th>Einstellung</th><th>Bedeutung</th></tr>
+<tr><td>Uhr (Zifferblatt)</td><td>Uhr als Modus an oder aus</td></tr>
+<tr><td>Zifferblatt</td><td>groß, analog oder Ringe</td></tr>
+<tr><td>Handy-Nachrichten</td><td>Verbindung mit Gadgetbridge bzw. iPhone an oder aus</td></tr>
+<tr><td>Handgelenk heben</td><td>Display beim Anheben einschalten</td></tr>
+</table></div>
 </section>
 
 <section id="ziffer">
@@ -181,12 +190,12 @@ footer{border-top:1px solid var(--line);color:var(--faint);font-size:14px;paddin
 <h2>Nachrichten</h2>
 <p>Kommt eine Nachricht, vibriert die Uhr zweimal und zeigt sie groß an: oben die App, darunter Absender und Text. Nach 10 Sekunden geht das Display aus.</p>
 <ul>
-  <li><b>Liste:</b> auf dem Zifferblatt nach oben wischen. Die neueste steht oben.</li>
-  <li><b>Öffnen:</b> eine Nachricht in der Liste antippen. <b>Zurück:</b> antippen oder nach rechts wischen.</li>
+  <li><b>Liste:</b> auf dem Zifferblatt nach oben wischen oder zum Modus <i>Nachrichten</i> wischen. Die neueste steht oben.</li>
+  <li><b>Öffnen:</b> eine Nachricht in der Liste antippen. <b>Zurück:</b> nochmal antippen.</li>
   <li><b>Blättern:</b> in der Liste nach oben oder unten wischen.</li>
   <li><b>Alle löschen:</b> lange auf die Liste drücken.</li>
 </ul>
-<p class="mut">Liest oder löscht man eine Nachricht auf dem Handy, verschwindet sie auch auf der Uhr. Bei Anrufen vibriert die Uhr länger.</p>
+<p class="mut">Liest oder löscht man eine Nachricht auf dem Handy, verschwindet sie auch auf der Uhr. Bei Anrufen vibriert die Uhr länger. Im Taschenmodus vibriert sie nur.</p>
 </section>
 
 <section id="akku">
@@ -210,7 +219,7 @@ footer{border-top:1px solid var(--line);color:var(--faint);font-size:14px;paddin
 </main>
 </div>
 
-<footer>PeekWatch · Anleitung für Firmware 0.1 · Tim Holzhausen</footer>
+<footer>PeekWatch · Anleitung für Firmware S3 0.4 · Tim Holzhausen</footer>
 
 
 <script>
