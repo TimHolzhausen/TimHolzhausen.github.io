@@ -108,7 +108,7 @@ footer{border-top:1px solid var(--line);color:var(--faint);font-size:14px;paddin
 <h2>Was die PeekBox kann</h2>
 <div class="grid2">
   <div class="card"><h4>Geheimes Display</h4><p>Texte, Spielkarten, Bilder, Zeichnungen und Emojis aus Ihrer Zauber-App, in Farbe und gut lesbar.</p></div>
-  <div class="card"><h4>Würfel-Empfänger</h4><p>Zeigt bis zu sechs Bluetooth-Würfel an (GoDice, Pitata, BLE Dice, Spotted, KMD). Gesperrt meldet sie Würfe per Vibration.</p></div>
+  <div class="card"><h4>Würfel-Empfänger</h4><p>Zeigt bis zu sechs Bluetooth-Würfel an (GoDice, Pitata, BLE Dice, Spotted, KMD). Im Taschenmodus meldet sie Würfe per Vibration.</p></div>
   <div class="card"><h4>Auslöser für die App</h4><p>Tippen, Wischen, Schütteln, Hinlegen und die Tasten können in der App Aktionen starten.</p></div>
   <div class="card"><h4>Stift und Palette</h4><p>Zeigt, was mit dem Ultra Sharpie geschrieben wird. Meldet, welche Farbe aus der Davinci-Palette genommen wurde.</p></div>
 </div>
@@ -132,9 +132,9 @@ footer{border-top:1px solid var(--line);color:var(--faint);font-size:14px;paddin
 <tr><th>Taste</th><th>Was passiert</th></tr>
 <tr><td><kbd>PWR</kbd> kurz</td><td>Ausgeschaltet: einschalten. Eingeschaltet: Display aus oder wieder an, alles andere läuft weiter.</td></tr>
 <tr><td><kbd>PWR</kbd> 2 s halten</td><td>Ausschalten</td></tr>
-<tr><td><kbd>PWR</kbd> doppelt</td><td>Sperren (siehe <a href="#sperren">Sperren</a>)</td></tr>
-<tr><td><kbd>BOOT</kbd> 1 s halten</td><td>Menü öffnen oder schließen. Entsperrt auch eine gesperrte PeekBox.</td></tr>
-<tr><td><kbd>BOOT</kbd> kurz</td><td>Geheimer Auslöser: geht als Tastendruck an die App, auch wenn die PeekBox gesperrt ist.</td></tr>
+<tr><td><kbd>PWR</kbd> doppelt</td><td>Taschenmodus starten (siehe <a href="#tasche">Taschenmodus</a>)</td></tr>
+<tr><td><kbd>BOOT</kbd> 1 s halten</td><td>Menü öffnen oder schließen. Beendet auch den Taschenmodus.</td></tr>
+<tr><td><kbd>BOOT</kbd> kurz</td><td>Geheimer Auslöser: geht als Tastendruck an die App, auch im Taschenmodus.</td></tr>
 <tr><td><kbd>BOOT</kbd> doppelt</td><td>Direkt zur Würfel-Anzeige</td></tr>
 </table></div>
 <p class="mut">Ein einzelner kurzer Druck wirkt erst nach einer Drittelsekunde. So lange wartet die PeekBox, ob ein zweiter Druck folgt. Im Menü wirkt er sofort.</p>
@@ -144,7 +144,7 @@ footer{border-top:1px solid var(--line);color:var(--faint);font-size:14px;paddin
 <h2>Tippen und Wischen</h2>
 <div class="tbl"><table>
 <tr><th>Geste</th><th>Was passiert</th></tr>
-<tr><td>Nach links / rechts wischen</td><td>Zum nächsten oder vorigen Modus (App, Würfel, Palette, Stift)</td></tr>
+<tr><td>Nach links / rechts wischen</td><td>Zum nächsten oder vorigen Modus (App, Würfel, Palette, Stift, Taschenmodus)</td></tr>
 <tr><td>Lange auf den Inhalt drücken</td><td>Anzeige leeren</td></tr>
 <tr><td>In der App-Anzeige tippen, nach oben / unten wischen</td><td>Geht als Auslöser an die App</td></tr>
 <tr><td>Auf einen GoDice tippen</td><td>Würfeltyp umschalten (D6, D20, D10 …)</td></tr>
@@ -163,9 +163,8 @@ footer{border-top:1px solid var(--line);color:var(--faint);font-size:14px;paddin
 </ul>
 <div class="tbl"><table>
 <tr><th>Eintrag</th><th>Bedeutung</th></tr>
-<tr><td>App · Würfel · Palette · Stift</td><td>Die eingeschalteten Modi. Der Modus, in dem Sie gerade sind, hat einen violetten Rahmen und den Hinweis „aktiv“.</td></tr>
+<tr><td>App · Würfel · Palette · Stift · Taschenmodus</td><td>Die eingeschalteten Modi. Der Modus, in dem Sie gerade sind, hat einen violetten Rahmen und den Hinweis „aktiv“.</td></tr>
 <tr><td>Einstellungen ›</td><td>Öffnet die Liste der Einstellungs-Gruppen</td></tr>
-<tr><td>Sperren</td><td>Display aus, Meldungen nur noch per Vibration</td></tr>
 <tr><td>Ausschalten</td><td>Schaltet die PeekBox ganz aus</td></tr>
 </table></div>
 <p class="mut">Die Firmware-Version steht unter <i>Einstellungen › Info</i>.</p>
@@ -238,7 +237,7 @@ footer{border-top:1px solid var(--line);color:var(--faint);font-size:14px;paddin
 <div class="tbl"><table>
 <tr><th>Auslöser</th><th>Wie</th></tr>
 <tr><td>Tippen · nach oben/unten/links/rechts wischen</td><td>In der App-Anzeige der PeekBox</td></tr>
-<tr><td>BOOT-Taste</td><td>Immer, auch gesperrt</td></tr>
+<tr><td>BOOT-Taste</td><td>Immer, auch im Taschenmodus</td></tr>
 <tr><td>PWR-Taste</td><td>Kurz drücken (schaltet außerdem das Display aus/an)</td></tr>
 <tr><td>Schütteln</td><td>Kräftig hin und her</td></tr>
 <tr><td>Lage</td><td>Display oben oder unten, aufrecht, auf dem Kopf, auf der linken oder rechten Seite</td></tr>
@@ -265,12 +264,12 @@ footer{border-top:1px solid var(--line);color:var(--faint);font-size:14px;paddin
 </ul>
 </section>
 
-<section id="sperren">
-<h2>Sperren: Würfe fühlen statt sehen</h2>
-<p>Gesperrt ist das Display dunkel, Tippen wird ignoriert. Würfe und Farbwahlen meldet die PeekBox per Vibration. So kann sie unbemerkt in der Tasche bleiben.</p>
+<section id="tasche">
+<h2>Taschenmodus: Würfe fühlen statt sehen</h2>
+<p>Im Taschenmodus ist das Display dunkel, Tippen wird ignoriert. Würfe und Farbwahlen meldet die PeekBox per Vibration. So kann sie unbemerkt in der Tasche bleiben.</p>
 <ul>
-  <li><b>Sperren:</b> <kbd>PWR</kbd> doppelt drücken oder <i>Menü › Sperren</i>.</li>
-  <li><b>Entsperren:</b> 3 Sekunden aufs Display drücken oder <kbd>BOOT</kbd> 1 Sekunde halten.</li>
+  <li><b>Starten:</b> <kbd>PWR</kbd> doppelt drücken oder im Menü <i>Taschenmodus</i> wählen. Oder durch die Modi wischen bis „Taschenmodus“ und aufs Display tippen.</li>
+  <li><b>Beenden:</b> 3 Sekunden aufs Display drücken oder <kbd>BOOT</kbd> 1 Sekunde halten.</li>
   <li>Eine 4 und eine 2 fühlen sich so an: vier Pulse, Pause, zwei Pulse. Wie genau, stellen Sie unter <i>Einstellungen › Vibration</i> ein.</li>
   <li>Ein kurzes Schnarren vor einer Zahl heißt: Dieser Würfel wurde nur bewegt.</li>
 </ul>
@@ -282,7 +281,7 @@ footer{border-top:1px solid var(--line);color:var(--faint);font-size:14px;paddin
 <h3>Ultra Sharpie / Ultra Pen</h3>
 <p>Einschalten und kurz schreiben, dann verbindet er sich. Die PeekBox zeigt live, was geschrieben wird. Schrift auf dem Kopf oder quer dreht sie auf Wunsch automatisch. Den Stift-Akku sehen Sie in der Statuszeile.</p>
 <h3>Davinci-Palette</h3>
-<p>Nimmt jemand eine Farbe aus der Palette, zeigt die PeekBox sie groß an. Gesperrt vibriert sie die Nummer der Mulde: 1 Rot, 2 Gelb, 3 Blau, 4 Grün, 5 Schwarz.</p>
+<p>Nimmt jemand eine Farbe aus der Palette, zeigt die PeekBox sie groß an. Im Taschenmodus vibriert sie die Nummer der Mulde: 1 Rot, 2 Gelb, 3 Blau, 4 Grün, 5 Schwarz.</p>
 </section>
 
 <section id="wlan">
