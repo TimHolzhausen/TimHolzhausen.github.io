@@ -1,0 +1,49 @@
+- generic [active] [ref=f7e1]:
+  - banner [ref=f7e2]:
+    - link "MagicHub Start" [ref=f7e3] [cursor=pointer]:
+      - /url: "#devices"
+      - generic [ref=f7e4]: MagicHub
+    - button "●1 aktiv" [ref=f7e5] [cursor=pointer]
+  - main [ref=f7e6]:
+    - region "Hilfe" [ref=f7e7]:
+      - heading "Hilfe" [level=1] [ref=f7e8]
+      - generic [ref=f7e9]:
+        - group [ref=f7e10]:
+          - generic "Schnellstart" [ref=f7e11] [cursor=pointer]
+          - list [ref=f7e12]:
+            - listitem [ref=f7e13]:
+              - strong [ref=f7e14]: Geräte
+              - text: ": Gerät antippen →"
+              - emphasis [ref=f7e15]: Verbinden
+              - text: → im Browser-Dialog auswählen.
+            - listitem [ref=f7e16]:
+              - strong [ref=f7e17]: Kombis
+              - text: ": Vorlage übernehmen oder eigene Regel bauen – Auslöser, Bedingung (z. B. „Wert ist 6“), Inhalt mit Zuordnung (z. B. „3=Karo Drei“) und beliebig viele Aktionen mit Verzögerung und Ausblenden. „Testen“ löst die Kombi mit einem Beispielwert aus."
+            - listitem [ref=f7e18]:
+              - strong [ref=f7e19]: Live
+              - text: ": ausprobieren – auch ohne Hardware über „Simulieren“."
+        - group [ref=f7e20]:
+          - generic "Installation auf Android" [ref=f7e21] [cursor=pointer]
+        - group [ref=f7e22]:
+          - generic "Einrichtung auf iPhone" [ref=f7e23] [cursor=pointer]
+        - group [ref=f7e24]:
+          - generic "Bluefy direkt öffnen" [ref=f7e25] [cursor=pointer]
+        - group [ref=f7e26]:
+          - generic "Bluetooth-Probleme" [ref=f7e27] [cursor=pointer]
+        - group [ref=f7e28]:
+          - generic "KI & API-Key" [ref=f7e29] [cursor=pointer]
+        - group [ref=f7e30]:
+          - generic "App, Updates & Daten" [ref=f7e31] [cursor=pointer]
+        - group [ref=f7e32]:
+          - generic "Teststatus" [ref=f7e33] [cursor=pointer]
+      - paragraph [ref=f7e34]: MagicHub 0.3.0
+  - navigation "Hauptnavigation" [ref=f7e35]:
+    - link "Geräte" [ref=f7e36] [cursor=pointer]:
+      - /url: "#devices"
+    - link "Kombis" [ref=f7e40] [cursor=pointer]:
+      - /url: "#combos"
+    - link "Live" [ref=f7e44] [cursor=pointer]:
+      - /url: "#live"
+    - link "Hilfe" [ref=f7e48] [cursor=pointer]:
+      - /url: "#help"
+  - status

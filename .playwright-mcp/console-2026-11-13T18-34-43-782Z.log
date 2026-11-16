@@ -1,0 +1,2 @@
+[     192ms] [INFO] Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner. @ http://127.0.0.1:8791/magicHub/?v=031b:1
+[    6574ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://11z.co/_w/magichub-invalid-test/selection:1

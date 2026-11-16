@@ -1,0 +1,12 @@
+[     119ms] The requested module './hub.js' does not provide an export named 'LIST_MODES'
+[   13772ms] [INFO] Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner. @ http://127.0.0.1:8791/magicHub/?v=040#live:1
+[   24897ms] [INFO] Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner. @ http://127.0.0.1:8791/magicHub/?v=040#live:1
+[  268594ms] [INFO] Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner. @ http://127.0.0.1:8791/magicHub/?v=040#live:1
+[  584737ms] [INFO] Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner. @ http://127.0.0.1:8791/magicHub/?v=040#combos:1
+[  645044ms] [INFO] Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner. @ http://127.0.0.1:8791/magicHub/?v=040#combos:1
+[  865680ms] [INFO] Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner. @ http://127.0.0.1:8791/magicHub/?v=040#live:1
+[ 1356838ms] [INFO] Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner. @ http://127.0.0.1:8791/magicHub/?v=040#live:1
+[ 1358286ms] [LOG] [fake] Fake: Verbindung verloren @ http://127.0.0.1:8791/magicHub/js/ble/base.js:317
+[ 1358800ms] [LOG] [fake] Verbindungsversuch 1 fehlgeschlagen (GATT 133) – neuer Versuch @ http://127.0.0.1:8791/magicHub/js/ble/base.js:317
+[ 1359608ms] [LOG] [fake] Automatisch verbunden @ http://127.0.0.1:8791/magicHub/js/ble/base.js:317
+[ 1364292ms] [LOG] [fake] Fake: Verbindung verloren @ http://127.0.0.1:8791/magicHub/js/ble/base.js:317
