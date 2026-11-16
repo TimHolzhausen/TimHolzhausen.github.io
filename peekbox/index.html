@@ -90,15 +90,13 @@ footer{border-top:1px solid var(--line);color:var(--faint);font-size:14px;paddin
   <svg class="dev" viewBox="0 0 232 270" role="img" aria-label="PeekBox mit Menü auf dem Display">
     <rect x="20" y="6" width="180" height="258" rx="34" fill="#16131f" stroke="#3a3452" stroke-width="3"/>
     <rect x="34" y="22" width="152" height="226" rx="24" fill="#000"/>
-    <text x="110" y="52" fill="#9693a8" font-size="11" font-weight="700" text-anchor="middle" font-family="system-ui">MENÜ</text>
-    <rect x="46" y="64" width="128" height="26" rx="10" fill="#302a54"/>
-    <circle cx="58" cy="77" r="3.5" fill="#8c6cff"/>
-    <text x="70" y="82" fill="#fff" font-size="13" font-weight="700" font-family="system-ui">App</text>
-    <text x="70" y="112" fill="#9693a8" font-size="13" font-weight="700" font-family="system-ui">Würfel</text>
-    <text x="70" y="140" fill="#9693a8" font-size="13" font-weight="700" font-family="system-ui">Palette</text>
-    <text x="70" y="168" fill="#9693a8" font-size="13" font-weight="700" font-family="system-ui">Einstellungen ›</text>
-    <text x="70" y="196" fill="#9693a8" font-size="13" font-weight="700" font-family="system-ui">Sperren</text>
-    <text x="70" y="224" fill="#f87171" font-size="13" font-weight="700" font-family="system-ui">Ausschalten</text>
+    <text x="110" y="46" fill="#6d6a84" font-size="10" font-weight="700" text-anchor="middle" font-family="system-ui">MENÜ</text>
+    <text x="110" y="82" fill="#6d6a84" font-size="13" font-weight="700" text-anchor="middle" font-family="system-ui">App</text>
+    <rect x="44" y="98" width="132" height="74" rx="14" fill="#302a54" stroke="#8c6cff" stroke-width="1.5"/>
+    <text x="110" y="136" fill="#fff" font-size="19" font-weight="700" text-anchor="middle" font-family="system-ui">Würfel</text>
+    <text x="110" y="156" fill="#8c6cff" font-size="9" text-anchor="middle" font-family="system-ui">aktiv</text>
+    <text x="110" y="204" fill="#6d6a84" font-size="13" font-weight="700" text-anchor="middle" font-family="system-ui">Palette</text>
+    <circle cx="180" cy="122" r="1.5" fill="#6d6a84"/><circle cx="180" cy="129" r="2.5" fill="#fff"/><circle cx="180" cy="136" r="1.5" fill="#6d6a84"/><circle cx="180" cy="143" r="1.5" fill="#6d6a84"/><circle cx="180" cy="150" r="1.5" fill="#6d6a84"/>
     <rect x="200" y="70" width="8" height="30" rx="3" fill="#8c6cff"/>
     <rect x="200" y="112" width="8" height="30" rx="3" fill="#6d6a84"/>
     <text x="214" y="90" fill="#8c6cff" font-size="9" font-family="system-ui" transform="rotate(90 214 90)">BOOT</text>
@@ -120,7 +118,7 @@ footer{border-top:1px solid var(--line);color:var(--faint);font-size:14px;paddin
 <h2>Schnellstart</h2>
 <ol class="steps">
   <li><b>Laden:</b> USB-C-Kabel einstecken. Rechts oben erscheint ein Blitz im Akku-Symbol.</li>
-  <li><b>Einschalten:</b> kurz <kbd>PWR</kbd> drücken. Das Logo blendet ein, eine kleine Melodie ertönt.</li>
+  <li><b>Einschalten:</b> kurz <kbd>PWR</kbd> drücken. Das Logo blendet ein, das Auge öffnet sich, eine kleine Melodie ertönt.</li>
   <li><b>App verbinden:</b> In Ihrer Zauber-App ein Display-Gerät vom Typ <b>MysterBox</b> hinzufügen. Die PeekBox erscheint dort unter diesem Namen. Mehr dazu im Kapitel <a href="#app">Mit der App verbinden</a>.</li>
   <li><b>Würfel:</b> Würfel kurz schütteln, damit sie aufwachen. Die PeekBox findet sie von selbst.</li>
   <li><b>Ausschalten:</b> <kbd>PWR</kbd> 2 Sekunden halten.</li>
@@ -157,25 +155,25 @@ footer{border-top:1px solid var(--line);color:var(--faint);font-size:14px;paddin
 
 <section id="menue">
 <h2>Das Menü</h2>
-<p><kbd>BOOT</kbd> 1 Sekunde halten öffnet das Menü. Es gibt drei Wege zu wählen:</p>
+<p><kbd>BOOT</kbd> 1 Sekunde halten öffnet das Menü. In der Mitte steht immer ein großer Eintrag, darüber und darunter klein der vorige und der nächste. Die Punkte rechts zeigen, wo Sie in der Liste sind.</p>
 <ul>
-  <li><b>Tippen</b> auf einen Eintrag.</li>
-  <li><kbd>BOOT</kbd> kurz springt zum nächsten Eintrag, <kbd>PWR</kbd> kurz wählt ihn aus. Das geht auch, ohne aufs Display zu schauen.</li>
-  <li><b>Nach oben oder unten wischen</b> bewegt die Auswahl.</li>
+  <li><b>Nach oben oder unten wischen</b> blättert zum nächsten oder vorigen Eintrag.</li>
+  <li><b>Tippen auf den großen Eintrag</b> wählt ihn aus. Tippen auf den kleinen Eintrag darüber oder darunter blättert dorthin.</li>
+  <li><kbd>BOOT</kbd> kurz blättert weiter, <kbd>PWR</kbd> kurz wählt aus. Das geht auch, ohne aufs Display zu schauen.</li>
 </ul>
 <div class="tbl"><table>
 <tr><th>Eintrag</th><th>Bedeutung</th></tr>
-<tr><td>App · Würfel · Palette · Stift</td><td>Die eingeschalteten Modi. Der violette Punkt zeigt, wo Sie gerade sind.</td></tr>
+<tr><td>App · Würfel · Palette · Stift</td><td>Die eingeschalteten Modi. Der Modus, in dem Sie gerade sind, hat einen violetten Rahmen und den Hinweis „aktiv“.</td></tr>
 <tr><td>Einstellungen ›</td><td>Öffnet die Liste der Einstellungs-Gruppen</td></tr>
 <tr><td>Sperren</td><td>Display aus, Meldungen nur noch per Vibration</td></tr>
 <tr><td>Ausschalten</td><td>Schaltet die PeekBox ganz aus</td></tr>
 </table></div>
-<p class="mut">Ganz unten steht die Firmware-Version.</p>
+<p class="mut">Die Firmware-Version steht unter <i>Einstellungen › Info</i>.</p>
 </section>
 
 <section id="einstellungen">
 <h2>Einstellungen</h2>
-<p>Unter <i>Menü › Einstellungen</i> sind die Einstellungen in Gruppen sortiert. Tippen Sie auf eine Gruppe, um sie zu öffnen. Tippen auf eine Zeile schaltet um oder wählt den nächsten Wert. Gespeichert wird sofort.</p>
+<p>Unter <i>Menü › Einstellungen</i> sind die Einstellungen in Gruppen sortiert. Die Gruppen blättern Sie genauso durch wie das Menü und öffnen eine durch Tippen. Nach rechts wischen führt zurück zum Hauptmenü. Tippen auf eine Zeile schaltet um oder wählt den nächsten Wert. Gespeichert wird sofort.</p>
 <p>Hat eine Gruppe mehr als drei Zeilen, blättern Sie durch Wischen nach oben oder unten. Zurück zur Gruppenliste kommen Sie durch Wischen nach rechts oder Tippen auf den Titel.</p>
 
 <h3>Geräte</h3>
