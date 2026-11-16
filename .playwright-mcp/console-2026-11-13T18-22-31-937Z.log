@@ -1,4 +1,0 @@
-[     809ms] [INFO] Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner. @ http://127.0.0.1:8791/magicHub/?v=022:1
-[    5709ms] [LOG] [selfie] Keep-Alive: aktuelles Bild erneut gesendet @ http://127.0.0.1:8791/magicHub/js/ble/base.js:242
-[    5925ms] [LOG] [selfie] Getrennt nach 60 s · zuletzt gesendet vor 0 s · zuletzt empfangen vor 5 s · Seite sichtbar · Keep-Alives: 1 @ http://127.0.0.1:8791/magicHub/js/ble/base.js:242
-[    5925ms] [LOG] [selfie] Selfie Screen: Verbindung verloren @ http://127.0.0.1:8791/magicHub/js/ble/base.js:242
