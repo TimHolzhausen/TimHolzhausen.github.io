@@ -270,6 +270,42 @@ footer { margin-top: 80px; padding-top: 24px; border-top: 1px solid var(--rule);
           </ul>
         </details>
       </section>
+
+      <section class="group" aria-labelledby="h-online">
+        <h2 id="h-online" data-i18n="online.h">Back for online printers <span>1 card per file</span></h2>
+        <p class="note" data-i18n="online.intro">Ordering from an online print shop such as Vistaprint? Download the backs as separate files and upload them there as the back design. Uses the dot strength chosen above.</p>
+        <div class="row">
+          <label for="ofmt" data-i18n="online.fmt">Format</label>
+          <select id="ofmt">
+            <option value="85x55-1.5" selected data-i18n="online.f1">85 × 55 mm · bleed 1.5 mm (Vistaprint)</option>
+            <option value="85x55-2" data-i18n="online.f2">85 × 55 mm · bleed 2 mm</option>
+            <option value="85x55-3" data-i18n="online.f3">85 × 55 mm · bleed 3 mm</option>
+            <option value="85x54-3" data-i18n="online.f4">85 × 54 mm · bleed 3 mm</option>
+          </select>
+        </div>
+        <div class="seg" role="radiogroup" aria-label="File type" data-i18n-aria="online.type">
+          <label><input type="radio" name="otype" value="pdf" checked><span data-i18n="online.pdf">PDF<small>recommended, 100 % K</small></span></label>
+          <label><input type="radio" name="otype" value="png"><span data-i18n="online.png">PNG<small>600 dpi, black and white</small></span></label>
+        </div>
+        <div class="row">
+          <label for="ocard" data-i18n="online.card">Card</label>
+          <select id="ocard"></select>
+          <button type="button" id="odownload" data-i18n="online.one">Download back</button>
+        </div>
+        <button type="button" id="ozip" data-i18n="online.zip">All 10 backs as ZIP</button>
+        <div class="status" id="ostatus" role="status"></div>
+        <details class="hints">
+          <summary data-i18n="online.hints">Before you order</summary>
+          <ul data-i18n="online.hints.list">
+            <li><b>Order a small test run first.</b> Whether the pen reads the cards depends on the shop's press and ink, which you cannot see beforehand.</li>
+            <li><b>The dots must stay 100 % black (K).</b> If the shop converts the file to RGB or rich black (C, M, Y and K mixed), the pen cannot see the code. The PDF sets the colour to pure K.</li>
+            <li><b>No scaling, no downsampling.</b> The code needs the full 600 dpi. If the upload tool resizes the image or asks you to “fit” it, the dots get lost. PDF is the safest choice.</li>
+            <li><b>Matte, uncoated paper reads best.</b> Glossy coating or lamination on the back can block the pen.</li>
+            <li><b>Normal strength</b> is the safest bet for a press you have not tested yet.</li>
+            <li><b>One code per card design.</b> Each of the 10 files carries a different code. Use a different one for every card set you order.</li>
+          </ul>
+        </details>
+      </section>
     </div>
 
     <div class="mat">
@@ -344,6 +380,27 @@ const DE_STATIC = {
     <li><b>Schneiden, Schritt 1:</b> Vorderseite nach oben. Alle waagerechten Linien an den seitlichen Marken schneiden, von unten nach oben. So bleiben die Marken am Reststück, bis der letzte Streifen ab ist.</li>
     <li><b>Schritt 2:</b> Die Streifen so stapeln, dass der oberste Streifen (der mit den Marken an der Oberkante) obenauf liegt. Die linke Papierkante bündig an den Anschlag legen und senkrecht an den oberen Marken schneiden.</li>
     <li><b>Jeder Bogen trägt dieselben Codes.</b> Wenn du mehrere Bögen druckst, kommt jeder Code mehrfach vor.</li>`,
+  "online.h": "Rückseite für Online-Druckereien <span>1 Karte pro Datei</span>",
+  "online.intro": "Du bestellst bei einer Online-Druckerei wie Vistaprint? Lade die Rückseiten als einzelne Dateien herunter und lade sie dort als Rückseitenmotiv hoch. Es gilt die oben gewählte Punktstärke.",
+  "online.fmt": "Format",
+  "online.f1": "85 × 55 mm · Beschnitt 1,5 mm (Vistaprint)",
+  "online.f2": "85 × 55 mm · Beschnitt 2 mm",
+  "online.f3": "85 × 55 mm · Beschnitt 3 mm",
+  "online.f4": "85 × 54 mm · Beschnitt 3 mm",
+  "online.type": "Dateityp",
+  "online.pdf": "PDF<small>empfohlen, 100 % K</small>",
+  "online.png": "PNG<small>600 dpi, schwarz-weiß</small>",
+  "online.card": "Karte",
+  "online.one": "Rückseite herunterladen",
+  "online.zip": "Alle 10 Rückseiten als ZIP",
+  "online.hints": "Vor der Bestellung",
+  "online.hints.list": `
+    <li><b>Erst eine kleine Testauflage bestellen.</b> Ob der Stift die Karten liest, hängt von Druckmaschine und Farbe der Druckerei ab, und die kennst du vorher nicht.</li>
+    <li><b>Die Punkte müssen 100 % Schwarz (K) bleiben.</b> Wandelt die Druckerei die Datei in RGB oder Tiefschwarz (C, M, Y und K gemischt) um, sieht der Stift den Code nicht. Im PDF ist die Farbe als reines K angelegt.</li>
+    <li><b>Nicht skalieren, nicht herunterrechnen.</b> Der Code braucht die vollen 600 dpi. Verkleinert das Upload-Tool das Bild oder will es „einpassen“, gehen die Punkte verloren. PDF ist die sicherste Wahl.</li>
+    <li><b>Mattes, ungestrichenes Papier liest sich am besten.</b> Glanzlack oder Folienkaschierung auf der Rückseite kann den Stift blockieren.</li>
+    <li><b>Stärke „Normal“</b> ist bei einer Druckerei, die du noch nicht getestet hast, die sicherste Wahl.</li>
+    <li><b>Ein Code pro Kartenmotiv.</b> Jede der 10 Dateien trägt einen anderen Code. Nimm für jedes Kartenset, das du bestellst, einen anderen.</li>`,
   "card.h": "Karte <span id=\"cardDims\">Datenformat 91 × 60 mm · Bild zum Verschieben ziehen</span>",
   "card": "Vorschau der Vorderseite",
   "legend.bleed": "<i></i>Beschnitt, wird abgeschnitten",
@@ -377,6 +434,11 @@ const T = {
     fileName: (short, strength, tail) => `nCode business cards ${short} ${strength}${tail ? " - " + tail : ""}.pdf`,
     pdfBack: (strength, b) => `Back: Ncode ${strength} \xB7 bleed ${b} mm`,
     pdfPrint: "Print at 100 % / actual size",
+    cardOpt: (i) => `Card ${i}`,
+    oCreating: "Creating files …",
+    backName: (i, strength, fmt, ext) => `ncode-back-${String(i).padStart(2, "0")}-${strength.replace(/ /g, "-")}-${fmt}.${ext}`,
+    zipName: (strength, fmt) => `ncode-backs-${strength.replace(/ /g, "-")}-${fmt}.zip`,
+    oDone: (name, w, h) => `Done: ${name} · ${w} × ${h} mm incl. bleed. Upload it as the back design, without scaling.`,
   },
   de: {
     names: { normal: "normal", light: "hell", extralight: "sehr hell" },
@@ -398,6 +460,11 @@ const T = {
     fileName: (short, strength, tail) => `nCode-Visitenkarten ${short} ${strength}${tail ? " - " + tail : ""}.pdf`,
     pdfBack: (strength, b) => `R\xFCckseite: Ncode ${strength} \xB7 Beschnitt ${b} mm`,
     pdfPrint: "Mit 100 % (tats\xE4chliche Gr\xF6\xDFe) drucken",
+    cardOpt: (i) => `Karte ${i}`,
+    oCreating: "Dateien werden erstellt …",
+    backName: (i, strength, fmt, ext) => `ncode-rueckseite-${String(i).padStart(2, "0")}-${strength.replace(/ /g, "-")}-${fmt}.${ext}`,
+    zipName: (strength, fmt) => `ncode-rueckseiten-${strength.replace(/ /g, "-")}-${fmt}.zip`,
+    oDone: (name, w, h) => `Fertig: ${name} · ${String(w).replace(".", ",")} × ${String(h).replace(".", ",")} mm inkl. Beschnitt. Als Rückseite hochladen, ohne Skalieren.`,
   },
 }[LANG];
 
@@ -775,6 +842,135 @@ $("download").addEventListener("click", async () => {
   } catch (e) { console.error(e); setStatus(T.failed(e.message), true); }
   btn.disabled = false;
 });
+
+// ---------- Single backs for online printers ----------
+// One file per card: trim size plus bleed, the Ncode bitmap centred on it at 600 dpi.
+// The stored bitmaps are 85 x 54 mm + 3 mm; for other formats they are cropped or padded with white
+// (only inside the bleed, the trim area stays fully covered for every format offered).
+function onlineFormat() {
+  const [size, b] = $("ofmt").value.split("-"), [tw, th] = size.split("x").map(Number), bleed = +b;
+  const w = tw + 2 * bleed, h = th + 2 * bleed;
+  const px = (mm) => Math.round(mm / 25.4 * NCODE.dpi);
+  const W = px(w), H = px(h);
+  return { tw, th, bleed, w, h, W, H, offX: Math.round((NW - W) / 2), offY: Math.round((NH - H) / 2), tag: `${tw}x${th}mm-bleed${bleed}` };
+}
+const CRC = (() => { const t = new Uint32Array(256); for (let i = 0; i < 256; i++) { let c = i; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[i] = c >>> 0; } return t; })();
+function crc32(bytes, crc = 0xFFFFFFFF) { for (let i = 0; i < bytes.length; i++) crc = CRC[(crc ^ bytes[i]) & 255] ^ (crc >>> 8); return crc; }
+async function deflate(bytes) {
+  const s = new Blob([bytes]).stream().pipeThrough(new CompressionStream("deflate"));
+  return new Uint8Array(await new Response(s).arrayBuffer());
+}
+const concat = (list) => { const out = new Uint8Array(list.reduce((s, a) => s + a.length, 0)); let o = 0; for (const a of list) { out.set(a, o); o += a.length; } return out; };
+const u32be = (v) => [v >>> 24, (v >>> 16) & 255, (v >>> 8) & 255, v & 255];
+
+// PDF: page = bleed box, TrimBox marks the card. The dots are an image mask filled with 100 % K.
+function backPdf(i, F) {
+  const k = 72 / NCODE.dpi, Wpt = F.w * PT, Hpt = F.h * PT;
+  const x = -F.offX * k, y = Hpt + F.offY * k - NH * k;
+  const content = latin1(`q 0 0 0 1 k ${n(NW * k)} 0 0 ${n(NH * k)} ${n(x)} ${n(y)} cm /N Do Q\n`);
+  const parts = [], offs = [];
+  let len = 0;
+  const push = (u) => { if (typeof u === "string") u = latin1(u); parts.push(u); len += u.length; };
+  const obj = (num, body) => { offs[num] = len; push(`${num} 0 obj\n${body}\nendobj\n`); };
+  const sobj = (num, dict, data) => { offs[num] = len; push(`${num} 0 obj\n<< ${dict} /Length ${data.length} >>\nstream\n`); push(data); push("\nendstream\nendobj\n"); };
+  const box = (x0, y0, x1, y1) => `[${[x0, y0, x1, y1].map(n).join(" ")}]`;
+  const b = F.bleed * PT;
+  push("%PDF-1.4\n%\xE2\xE3\xCF\xD3\n");
+  obj(1, "<< /Type /Catalog /Pages 2 0 R >>");
+  obj(2, "<< /Type /Pages /Kids [3 0 R] /Count 1 >>");
+  obj(3, `<< /Type /Page /Parent 2 0 R /MediaBox ${box(0, 0, Wpt, Hpt)} /BleedBox ${box(0, 0, Wpt, Hpt)} /TrimBox ${box(b, b, Wpt - b, Hpt - b)} /Resources << /XObject << /N 5 0 R >> >> /Contents 4 0 R >>`);
+  sobj(4, "", content);
+  sobj(5, `/Type /XObject /Subtype /Image /Width ${NW} /Height ${NH} /ImageMask true /BitsPerComponent 1 /Decode [1 0] /Interpolate false /Filter /FlateDecode`, zlib[S.strength][i]);
+  const xref = len;
+  let xr = "xref\n0 6\n0000000000 65535 f \n";
+  for (let j = 1; j < 6; j++) xr += String(offs[j]).padStart(10, "0") + " 00000 n \n";
+  push(xr + `trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`);
+  return concat(parts);
+}
+
+// PNG: 1-bit greyscale at exactly 600 dpi (pHYs), dots black, everything else white.
+async function backPng(i, F) {
+  const bits = await inflate(zlib[S.strength][i]);
+  const rowLen = Math.ceil(F.W / 8) + 1, raw = new Uint8Array(rowLen * F.H);
+  for (let y = 0; y < F.H; y++) {
+    const r = y * rowLen, sy = y + F.offY;
+    raw.fill(255, r + 1, r + rowLen);                      // filter byte 0, then white
+    if (sy < 0 || sy >= NH) continue;
+    const src = sy * STRIDE;
+    for (let x = 0; x < F.W; x++) {
+      const sx = x + F.offX;
+      if (sx < 0 || sx >= NW) continue;
+      if ((bits[src + (sx >> 3)] >> (7 - (sx & 7))) & 1) raw[r + 1 + (x >> 3)] &= ~(0x80 >> (x & 7));
+    }
+  }
+  const chunk = (type, data) => {
+    const td = concat([latin1(type), data]);
+    return concat([new Uint8Array(u32be(data.length)), td, new Uint8Array(u32be((crc32(td) ^ 0xFFFFFFFF) >>> 0))]);
+  };
+  const ppm = Math.round(NCODE.dpi / 0.0254);
+  return concat([
+    new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]),
+    chunk("IHDR", new Uint8Array([...u32be(F.W), ...u32be(F.H), 1, 0, 0, 0, 0])),
+    chunk("pHYs", new Uint8Array([...u32be(ppm), ...u32be(ppm), 1])),
+    chunk("IDAT", await deflate(raw)),
+    chunk("IEND", new Uint8Array(0)),
+  ]);
+}
+
+// ZIP without compression (the files are already compressed)
+function zip(files) {
+  const d = new Date();
+  const time = (d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1);
+  const date = ((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate();
+  const le = (v, bytes) => Array.from({ length: bytes }, (_, i) => (v >>> (8 * i)) & 255);
+  const local = [], central = [];
+  let off = 0;
+  for (const f of files) {
+    const name = latin1(f.name), crc = (crc32(f.data) ^ 0xFFFFFFFF) >>> 0, sz = f.data.length;
+    const common = [...le(20, 2), ...le(0, 2), ...le(0, 2), ...le(time, 2), ...le(date, 2), ...le(crc, 4), ...le(sz, 4), ...le(sz, 4), ...le(name.length, 2), ...le(0, 2)];
+    const lh = new Uint8Array([...le(0x04034b50, 4), ...common]);
+    local.push(lh, name, f.data);
+    central.push(new Uint8Array([...le(0x02014b50, 4), ...le(20, 2), ...common, ...le(0, 2), ...le(0, 2), ...le(0, 2), ...le(0, 4), ...le(off, 4)]), name);
+    off += lh.length + name.length + sz;
+  }
+  const cd = concat(central);
+  const end = new Uint8Array([...le(0x06054b50, 4), 0, 0, 0, 0, ...le(files.length, 2), ...le(files.length, 2), ...le(cd.length, 4), ...le(off, 4), 0, 0]);
+  return new Blob([...local, cd, end], { type: "application/zip" });
+}
+
+function saveBlob(blob, name) {
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+}
+async function backFile(i, F, type) {
+  const name = T.backName(i + 1, NAMES[S.strength], F.tag, type);
+  const data = type === "pdf" ? backPdf(i, F) : await backPng(i, F);
+  return { name, data };
+}
+async function onlineExport(all) {
+  const btns = [$("odownload"), $("ozip")], st = $("ostatus");
+  btns.forEach((b) => (b.disabled = true)); st.classList.remove("err"); st.textContent = T.oCreating;
+  try {
+    const F = onlineFormat(), type = document.querySelector('input[name="otype"]:checked').value;
+    let name;
+    if (all) {
+      const files = [];
+      for (let i = 0; i < zlib[S.strength].length; i++) files.push(await backFile(i, F, type));
+      name = T.zipName(NAMES[S.strength], F.tag);
+      saveBlob(zip(files), name);
+    } else {
+      const f = await backFile(+$("ocard").value, F, type);
+      name = f.name;
+      saveBlob(new Blob([f.data], { type: type === "pdf" ? "application/pdf" : "image/png" }), name);
+    }
+    st.textContent = T.oDone(name, F.w, F.h);
+  } catch (e) { console.error(e); st.textContent = T.failed(e.message); st.classList.add("err"); }
+  btns.forEach((b) => (b.disabled = false));
+}
+for (let i = 0; i < NCODE.codes.normal.length; i++) $("ocard").add(new Option(T.cardOpt(i + 1), i));
+$("odownload").addEventListener("click", () => onlineExport(false));
+$("ozip").addEventListener("click", () => onlineExport(true));
 
 // Start
 S.img = sampleImage();

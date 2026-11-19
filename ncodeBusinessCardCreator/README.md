@@ -22,6 +22,14 @@ Ncode dot pattern on the back, ready for a Neo smartpen.
 4. Download the PDF: A4, page 1 = fronts, page 2 = Ncode backs, crop marks
    on the outside of the sheet.
 
+5. Or, for online print shops such as Vistaprint: download single back
+   files (one card per file, or all ten as a ZIP) and upload them as the
+   back design. Formats: 85 × 55 mm with 1.5 mm bleed (88 × 58 mm,
+   Vistaprint), 2 mm or 3 mm bleed, or 85 × 54 mm with 3 mm bleed. PDF
+   (image mask filled with 100 % K, TrimBox set) or PNG (1-bit, 600 dpi).
+   Order a small test run first: the pen only reads pure carbon black, and
+   any downsampling or RGB/rich-black conversion by the shop breaks the code.
+
 Everything runs locally in the browser. Images are never uploaded anywhere.
 
 ## Printing
