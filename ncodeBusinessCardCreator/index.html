@@ -107,7 +107,10 @@ button, select {
   font: 600 .9rem var(--font-ui); color: var(--ink); background: transparent;
   border: 1.5px solid var(--rule); border-radius: 10px; padding: 7px 13px; cursor: pointer;
 }
-select { background: var(--sheet); }
+select { background: var(--sheet); max-width: 100%; min-width: 0; }
+#ofmt { width: 100%; }
+.disclaimer { font-size: .86rem; line-height: 1.45; margin: 0; padding: 10px 12px; border-left: 3px solid var(--warn); background: color-mix(in srgb, var(--warn) 9%, transparent); border-radius: 0 8px 8px 0; }
+.disclaimer b { color: var(--warn); }
 button:hover, select:hover { border-color: var(--muted); }
 
 .strengths, .layouts { display: grid; gap: 8px; }
@@ -273,16 +276,26 @@ footer { margin-top: 80px; padding-top: 24px; border-top: 1px solid var(--rule);
 
       <section class="group" aria-labelledby="h-online">
         <h2 id="h-online" data-i18n="online.h">Back for online printers <span>1 card per file</span></h2>
-        <p class="note" data-i18n="online.intro">Ordering from an online print shop such as Vistaprint? Download the backs as separate files and upload them there as the back design. Uses the dot strength chosen above.</p>
-        <div class="row">
-          <label for="ofmt" data-i18n="online.fmt">Format</label>
+        <p class="note" data-i18n="online.intro">Ordering from an online print shop such as Vistaprint? Download the backs as separate files and upload them there as the back design.</p>
+        <div style="display:grid;gap:6px">
+          <label for="ofmt" style="font-size:.9rem" data-i18n="online.fmt">Format</label>
           <select id="ofmt">
-            <option value="85x55-1.5" selected data-i18n="online.f1">85 × 55 mm · bleed 1.5 mm (Vistaprint)</option>
-            <option value="85x55-2" data-i18n="online.f2">85 × 55 mm · bleed 2 mm</option>
-            <option value="85x55-3" data-i18n="online.f3">85 × 55 mm · bleed 3 mm</option>
-            <option value="85x54-3" data-i18n="online.f4">85 × 54 mm · bleed 3 mm</option>
+            <option value="85x55-1.5" selected data-i18n="online.f1">Vistaprint: card 85 × 55, file 88 × 58 mm</option>
+            <option value="85x55-2" data-i18n="online.f2">Card 85 × 55, file 89 × 59 mm (2 mm bleed)</option>
+            <option value="85x55-3" data-i18n="online.f3">Card 85 × 55, file 91 × 61 mm (3 mm bleed)</option>
+            <option value="85x54-3" data-i18n="online.f4">Card 85 × 54, file 91 × 60 mm (3 mm bleed)</option>
           </select>
         </div>
+        <p class="note" id="ofmtNote"></p>
+        <div class="row">
+          <label for="ostrength" data-i18n="online.strength">Dot strength</label>
+          <select id="ostrength">
+            <option value="normal" selected data-i18n="online.sNormal">Normal (recommended)</option>
+            <option value="light" data-i18n="online.sLight">Light</option>
+            <option value="extralight" data-i18n="online.sExtralight">Extra light (experimental)</option>
+          </select>
+        </div>
+        <p class="disclaimer" data-i18n="online.disclaimer"><b>No guarantee on dot strength.</b> All three strengths were tested on office laser printers only, not at any online print shop. Presses, inks and papers differ: dots can bleed together or break away, and the pen may then not read the card. Order a small test run first, ideally one card per strength, and check it with your pen before ordering more.</p>
         <div class="seg" role="radiogroup" aria-label="File type" data-i18n-aria="online.type">
           <label><input type="radio" name="otype" value="pdf" checked><span data-i18n="online.pdf">PDF<small>recommended, 100 % K</small></span></label>
           <label><input type="radio" name="otype" value="png"><span data-i18n="online.png">PNG<small>600 dpi, black and white</small></span></label>
@@ -381,12 +394,17 @@ const DE_STATIC = {
     <li><b>Schritt 2:</b> Die Streifen so stapeln, dass der oberste Streifen (der mit den Marken an der Oberkante) obenauf liegt. Die linke Papierkante bündig an den Anschlag legen und senkrecht an den oberen Marken schneiden.</li>
     <li><b>Jeder Bogen trägt dieselben Codes.</b> Wenn du mehrere Bögen druckst, kommt jeder Code mehrfach vor.</li>`,
   "online.h": "Rückseite für Online-Druckereien <span>1 Karte pro Datei</span>",
-  "online.intro": "Du bestellst bei einer Online-Druckerei wie Vistaprint? Lade die Rückseiten als einzelne Dateien herunter und lade sie dort als Rückseitenmotiv hoch. Es gilt die oben gewählte Punktstärke.",
+  "online.intro": "Du bestellst bei einer Online-Druckerei wie Vistaprint? Lade die Rückseiten als einzelne Dateien herunter und lade sie dort als Rückseitenmotiv hoch.",
   "online.fmt": "Format",
-  "online.f1": "85 × 55 mm · Beschnitt 1,5 mm (Vistaprint)",
-  "online.f2": "85 × 55 mm · Beschnitt 2 mm",
-  "online.f3": "85 × 55 mm · Beschnitt 3 mm",
-  "online.f4": "85 × 54 mm · Beschnitt 3 mm",
+  "online.strength": "Punktstärke",
+  "online.sNormal": "Normal (empfohlen)",
+  "online.sLight": "Hell",
+  "online.sExtralight": "Sehr hell (experimentell)",
+  "online.disclaimer": "<b>Keine Gewähr für die Punktstärke.</b> Alle drei Stärken sind nur auf Bürolaserdruckern getestet, nicht bei einer Online-Druckerei. Druckmaschinen, Farben und Papiere unterscheiden sich: Punkte können zulaufen oder wegbrechen, und der Stift liest die Karte dann nicht. Bestell zuerst eine kleine Testauflage, am besten eine Karte pro Stärke, und prüfe sie mit deinem Stift, bevor du mehr bestellst.",
+  "online.f1": "Vistaprint: Karte 85 × 55, Datei 88 × 58 mm",
+  "online.f2": "Karte 85 × 55, Datei 89 × 59 mm (2 mm Beschnitt)",
+  "online.f3": "Karte 85 × 55, Datei 91 × 61 mm (3 mm Beschnitt)",
+  "online.f4": "Karte 85 × 54, Datei 91 × 60 mm (3 mm Beschnitt)",
   "online.type": "Dateityp",
   "online.pdf": "PDF<small>empfohlen, 100 % K</small>",
   "online.png": "PNG<small>600 dpi, schwarz-weiß</small>",
@@ -436,6 +454,7 @@ const T = {
     pdfPrint: "Print at 100 % / actual size",
     cardOpt: (i) => `Card ${i}`,
     oCreating: "Creating files …",
+    oFmtNote: (F) => `Trim size ${F.tw} × ${F.th} mm: the finished card after cutting. Bleed ${F.bleed} mm: an extra margin on every side that the shop cuts off, so no white edge remains. The file is therefore ${F.w} × ${F.h} mm (${F.W} × ${F.H} px at 600 dpi). If the shop asks for “size with bleed”, this is it.`,
     backName: (i, strength, fmt, ext) => `ncode-back-${String(i).padStart(2, "0")}-${strength.replace(/ /g, "-")}-${fmt}.${ext}`,
     zipName: (strength, fmt) => `ncode-backs-${strength.replace(/ /g, "-")}-${fmt}.zip`,
     oDone: (name, w, h) => `Done: ${name} · ${w} × ${h} mm incl. bleed. Upload it as the back design, without scaling.`,
@@ -462,6 +481,7 @@ const T = {
     pdfPrint: "Mit 100 % (tats\xE4chliche Gr\xF6\xDFe) drucken",
     cardOpt: (i) => `Karte ${i}`,
     oCreating: "Dateien werden erstellt …",
+    oFmtNote: (F) => { const d = (v) => String(v).replace(".", ","); return `Endformat ${F.tw} × ${F.th} mm: die fertige Karte nach dem Schneiden. Beschnitt ${d(F.bleed)} mm: ein zusätzlicher Rand an jeder Seite, den die Druckerei abschneidet, damit garantiert kein weißer Rand bleibt. Die Datei ist deshalb ${F.w} × ${F.h} mm groß (${F.W} × ${F.H} px bei 600 dpi). Fragt die Druckerei nach dem „Format mit Beschnitt“ oder „Datenformat“, ist das dieser Wert.`; },
     backName: (i, strength, fmt, ext) => `ncode-rueckseite-${String(i).padStart(2, "0")}-${strength.replace(/ /g, "-")}-${fmt}.${ext}`,
     zipName: (strength, fmt) => `ncode-rueckseiten-${strength.replace(/ /g, "-")}-${fmt}.zip`,
     oDone: (name, w, h) => `Fertig: ${name} · ${String(w).replace(".", ",")} × ${String(h).replace(".", ",")} mm inkl. Beschnitt. Als Rückseite hochladen, ohne Skalieren.`,
@@ -847,6 +867,7 @@ $("download").addEventListener("click", async () => {
 // One file per card: trim size plus bleed, the Ncode bitmap centred on it at 600 dpi.
 // The stored bitmaps are 85 x 54 mm + 3 mm; for other formats they are cropped or padded with white
 // (only inside the bleed, the trim area stays fully covered for every format offered).
+const oStrength = () => $("ostrength").value;
 function onlineFormat() {
   const [size, b] = $("ofmt").value.split("-"), [tw, th] = size.split("x").map(Number), bleed = +b;
   const w = tw + 2 * bleed, h = th + 2 * bleed;
@@ -880,7 +901,7 @@ function backPdf(i, F) {
   obj(2, "<< /Type /Pages /Kids [3 0 R] /Count 1 >>");
   obj(3, `<< /Type /Page /Parent 2 0 R /MediaBox ${box(0, 0, Wpt, Hpt)} /BleedBox ${box(0, 0, Wpt, Hpt)} /TrimBox ${box(b, b, Wpt - b, Hpt - b)} /Resources << /XObject << /N 5 0 R >> >> /Contents 4 0 R >>`);
   sobj(4, "", content);
-  sobj(5, `/Type /XObject /Subtype /Image /Width ${NW} /Height ${NH} /ImageMask true /BitsPerComponent 1 /Decode [1 0] /Interpolate false /Filter /FlateDecode`, zlib[S.strength][i]);
+  sobj(5, `/Type /XObject /Subtype /Image /Width ${NW} /Height ${NH} /ImageMask true /BitsPerComponent 1 /Decode [1 0] /Interpolate false /Filter /FlateDecode`, zlib[oStrength()][i]);
   const xref = len;
   let xr = "xref\n0 6\n0000000000 65535 f \n";
   for (let j = 1; j < 6; j++) xr += String(offs[j]).padStart(10, "0") + " 00000 n \n";
@@ -890,7 +911,7 @@ function backPdf(i, F) {
 
 // PNG: 1-bit greyscale at exactly 600 dpi (pHYs), dots black, everything else white.
 async function backPng(i, F) {
-  const bits = await inflate(zlib[S.strength][i]);
+  const bits = await inflate(zlib[oStrength()][i]);
   const rowLen = Math.ceil(F.W / 8) + 1, raw = new Uint8Array(rowLen * F.H);
   for (let y = 0; y < F.H; y++) {
     const r = y * rowLen, sy = y + F.offY;
@@ -944,7 +965,7 @@ function saveBlob(blob, name) {
   setTimeout(() => URL.revokeObjectURL(a.href), 60000);
 }
 async function backFile(i, F, type) {
-  const name = T.backName(i + 1, NAMES[S.strength], F.tag, type);
+  const name = T.backName(i + 1, NAMES[oStrength()], F.tag, type);
   const data = type === "pdf" ? backPdf(i, F) : await backPng(i, F);
   return { name, data };
 }
@@ -956,8 +977,8 @@ async function onlineExport(all) {
     let name;
     if (all) {
       const files = [];
-      for (let i = 0; i < zlib[S.strength].length; i++) files.push(await backFile(i, F, type));
-      name = T.zipName(NAMES[S.strength], F.tag);
+      for (let i = 0; i < zlib[oStrength()].length; i++) files.push(await backFile(i, F, type));
+      name = T.zipName(NAMES[oStrength()], F.tag);
       saveBlob(zip(files), name);
     } else {
       const f = await backFile(+$("ocard").value, F, type);
@@ -969,6 +990,9 @@ async function onlineExport(all) {
   btns.forEach((b) => (b.disabled = false));
 }
 for (let i = 0; i < NCODE.codes.normal.length; i++) $("ocard").add(new Option(T.cardOpt(i + 1), i));
+const fmtNote = () => { $("ofmtNote").textContent = T.oFmtNote(onlineFormat()); };
+$("ofmt").addEventListener("change", fmtNote);
+fmtNote();
 $("odownload").addEventListener("click", () => onlineExport(false));
 $("ozip").addEventListener("click", () => onlineExport(true));
 
