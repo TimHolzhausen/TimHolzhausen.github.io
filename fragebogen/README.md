@@ -12,8 +12,14 @@ Interaktive, verschlüsselte Fassung eines Partner-Fragebogens.
 - Wer den Fragebogen ausfüllt, bekommt am Ende einen **Antwortcode**
   (`PF1.…`). Er ist mit dem öffentlichen Auswertungsschlüssel verschlüsselt
   (ECDH P-256 + AES-GCM). Lesen kann ihn nur, wer das Auswertungspasswort kennt.
-- Es gibt keinen Server. Entwürfe, gesammelte Codes und Verabredungen liegen
-  verschlüsselt im `localStorage` des jeweiligen Browsers.
+- „Verschlüsselt absenden“ legt den Antwortcode in einer Supabase-Tabelle ab
+  (Einrichtung: `supabase.sql`). Der Server sieht nur Chiffretext. Die
+  Auswertung lädt alle Codes und entschlüsselt sie erst im Browser. Erlaubt
+  sind nur Lesen und Anlegen; gelöscht wird über `antwort_loeschen()`, das ein
+  Löschmerkmal verlangt, das nur im verschlüsselten Code steckt.
+- Ohne Server geht es weiterhin über Code, Link oder Datei.
+- Entwürfe, lokal gesammelte Codes und Verabredungen liegen verschlüsselt im
+  `localStorage` des jeweiligen Browsers.
 - Antworten mit „nur für mich“ kommen nicht in den Antwortcode.
 
 ## Passwörter ändern / neu bauen

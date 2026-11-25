@@ -288,7 +288,7 @@ details.box[open] > summary::after { content: "–"; }
       <div class="card choice">
         <div class="num">2</div>
         <h2>Auswertung</h2>
-        <p class="muted">Legt eure beiden Antwortcodes nebeneinander: Unterschiede, Überraschungen, Wünsche – und Platz für eure Verabredungen.</p>
+        <p class="muted">Eure abgesendeten Antworten nebeneinander: Unterschiede, Überraschungen, Wünsche – und Platz für eure Verabredungen.</p>
         <button class="btn" type="button" data-go="eval">Zur Auswertung</button>
       </div>
     </div>
@@ -356,10 +356,10 @@ details.box[open] > summary::after { content: "–"; }
     <div class="evalgrid">
       <section class="card sources-card noprint">
         <h2>Antworten</h2>
-        <p class="muted">Füge die Antwortcodes von euch beiden ein. Sie bleiben verschlüsselt auf diesem Gerät gespeichert.</p>
+        <div class="row" style="justify-content:space-between"><p class="muted">Abgesendete Antworten werden automatisch vom Server geladen und erst hier entschlüsselt.</p><button class="btn small" type="button" id="reloadSrc">Aktualisieren</button></div>
         <div class="sources" id="sources"></div>
         <div class="grid2" style="margin-top:16px">
-          <label class="field"><span>Antwortcode einfügen</span><textarea id="codeIn" class="codebox" placeholder="PF1.…" style="min-height:80px"></textarea></label>
+          <label class="field"><span>Code ohne Server einfügen</span><textarea id="codeIn" class="codebox" placeholder="PF1.…" style="min-height:80px"></textarea></label>
           <div class="field" style="align-content:start"><span>oder als Datei</span>
             <input type="file" id="codeFile" accept=".txt,text/plain">
             <div class="row" style="margin-top:8px"><button class="btn primary small" type="button" id="codeAdd">Übernehmen</button><span class="err" id="codeErr"></span></div>
@@ -415,6 +415,31 @@ async function readCode(code, priv) {
   return JSON.parse(dec.decode(await pipe(data, new DecompressionStream("deflate-raw"))));
 }
 const findCodes = (text) => [...new Set(String(text).match(/PF1\.[A-Za-z0-9_-]{40,}/g) || [])];
+const sha256hex = async (s) => [...new Uint8Array(await crypto.subtle.digest("SHA-256", enc.encode(s)))].map((b) => b.toString(16).padStart(2, "0")).join("");
+
+// =====================================================================================
+// Server (Supabase). Dort liegen nur die verschlüsselten Antwortcodes.
+// Löschen geht nur mit dem Löschmerkmal, das im verschlüsselten Code steckt.
+// =====================================================================================
+const SB = { url: "https://sthknipquiveovlgnqks.supabase.co", key: "sb_publishable_lDIC8tCtpYIs5sLoKFstfg_OmpPbrpg" };
+async function sb(path, opts = {}) {
+  const r = await fetch(SB.url + "/rest/v1/" + path, {
+    ...opts, headers: { apikey: SB.key, "Content-Type": "application/json", ...(opts.headers || {}) },
+  });
+  const text = await r.text();
+  if (!r.ok) { let m = text; try { m = JSON.parse(text).message || text; } catch (e) {} throw new Error(m || "HTTP " + r.status); }
+  return text ? JSON.parse(text) : null;
+}
+async function uploadCode(code, tok) {
+  const body = { code, del_hash: await sha256hex(tok) };
+  try { await sb("antworten", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify(body) }); }
+  catch (e) {
+    if (!/del_hash/.test(e.message)) throw e;     // ältere Tabelle ohne Löschspalte
+    await sb("antworten", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ code }) });
+  }
+}
+const fetchServerCodes = () => sb("antworten?select=id,code,created_at&order=created_at.asc&limit=1000");
+const deleteServerCode = (id, tok) => sb("rpc/antwort_loeschen", { method: "POST", body: JSON.stringify({ p_id: id, p_token: tok }) });
 
 // =====================================================================================
 // Helfer
@@ -642,7 +667,8 @@ function exportResult() {
     if (a.w) o.w = a.w.map((w) => w ? { t: (w.t || "").trim(), r: w.r ?? null } : { t: "", r: null });
     if (Object.keys(o).length) answers[id] = o;
   }
-  return { v: 1, name: D.me, partner: D.partner, created: Date.now(), started: D.started, answers, private: Object.values(D.answers).filter((a) => a.priv).length };
+  return { v: 1, name: D.me, partner: D.partner, created: Date.now(), started: D.started, answers, private: Object.values(D.answers).filter((a) => a.priv).length,
+    tok: b64u(crypto.getRandomValues(new Uint8Array(16))) };
 }
 function renderFinish(box) {
   const c1 = counts(1), c2 = counts(2), priv = Object.values(D.answers).filter((a) => a.priv).length;
@@ -653,11 +679,15 @@ function renderFinish(box) {
       <div class="stat"><b>${priv}</b><span>bleiben nur für dich</span></div>
     </div>
     <div class="card" style="display:grid;gap:14px">
-      <h3 style="font-size:1.3rem">Dein Antwortcode</h3>
-      <p class="muted">Der Code enthält deine geteilten Antworten, verschlüsselt. Lesen kann ihn nur, wer das <strong>Auswertungspasswort</strong> kennt – auch du selbst nicht ohne es. Schick ihn an die Person, die die Auswertung öffnet, oder füge ihn dort selbst ein.</p>
+      <h3 style="font-size:1.3rem">Antworten absenden</h3>
+      <p class="muted">Deine geteilten Antworten werden hier im Browser verschlüsselt und dann abgelegt. Lesen kann sie nur, wer das <strong>Auswertungspasswort</strong> kennt – auch der Server nicht, und du selbst nicht ohne das Passwort.</p>
       <div class="banner" style="margin:0">Gebot 5: Lasst mindestens einen Tag vergehen, bevor ihr gemeinsam auswertet.</div>
-      <div class="row"><button class="btn accent" type="button" id="mkCode">Antwortcode erzeugen</button></div>
-      <div id="codeOut" hidden style="display:grid;gap:10px">
+      <div class="row"><button class="btn accent" type="button" id="sendBtn">Verschlüsselt absenden</button><span class="saved" id="sendNote" role="status"></span></div>
+      ${D.sent ? `<p class="muted" style="font-size:.9rem">Zuletzt abgesendet: ${new Date(D.sent).toLocaleString("de-DE", { dateStyle: "long", timeStyle: "short" })}. Erneutes Absenden legt eine neue Fassung an; die Auswertung zeigt die neueste.</p>` : ""}
+      <details class="box" id="manualBox" style="margin-top:4px">
+        <summary><span style="font-weight:600">Ohne Server weitergeben (Code, Link, Datei)</span></summary>
+      <div class="row" style="margin-top:12px"><button class="btn small" type="button" id="mkCode">Antwortcode erzeugen</button></div>
+      <div id="codeOut" hidden style="display:grid;gap:10px;margin-top:10px">
         <textarea class="codebox" id="codeText" readonly></textarea>
         <div class="row">
           <button class="btn small" type="button" id="copyCode">Code kopieren</button>
@@ -667,14 +697,30 @@ function renderFinish(box) {
           <span class="saved" id="copyNote"></span>
         </div>
       </div>
+      </details>
     </div>
     <div class="card" style="margin-top:18px;display:grid;gap:10px">
       <h3 style="font-size:1.2rem">Gerät weitergeben?</h3>
-      <p class="muted">Wenn dein Partner auf diesem Gerät ausfüllen soll: erst deinen Code erzeugen und sichern, dann hier deinen Entwurf löschen.</p>
+      <p class="muted">Wenn dein Partner auf diesem Gerät ausfüllen soll: erst deine Antworten absenden, dann hier deinen Entwurf löschen.</p>
       <div class="row"><button class="btn small" type="button" id="wipe">Meinen Entwurf löschen</button><span class="err" id="wipeNote"></span></div>
     </div>
     <div class="navrow"><button class="btn" type="button" id="backTo2">← Zurück zu Durchgang 2</button></div>`;
   let code = "";
+  $("#sendBtn").addEventListener("click", async () => {
+    const btn = $("#sendBtn"); btn.disabled = true; $("#sendNote").textContent = "Wird verschlüsselt und gesendet …";
+    try {
+      const res = exportResult(), c = await makeCode(res);
+      await uploadCode(c, res.tok);
+      addStoredCode(c);
+      D.sent = Date.now(); save();
+      $("#sendNote").innerHTML = `<strong style="color:var(--good)">✓ Sicher abgelegt.</strong> Die Auswertung findet deine Antworten automatisch.`;
+    } catch (e) {
+      console.error(e);
+      $("#sendNote").innerHTML = `<span style="color:var(--danger)">Senden hat nicht geklappt (${esc(e.message)}). Nutze unten „Ohne Server weitergeben“.</span>`;
+      $("#manualBox").open = true;
+    }
+    btn.disabled = false;
+  });
   $("#mkCode").addEventListener("click", async () => {
     code = await makeCode(exportResult());
     $("#codeText").value = code; $("#codeOut").hidden = false;
@@ -728,13 +774,25 @@ $("#evalForm").addEventListener("submit", async (e) => {
   btn.disabled = false;
 });
 
-let SOURCES = [], SEL = { a: null, b: null }, FILTER = "all", AGREE = [];
+let SOURCES = [], OLDER = [], SEL = { a: null, b: null }, FILTER = "all", AGREE = [], SERVER = { ok: null, n: 0, msg: "" };
 async function loadSources() {
-  SOURCES = [];
-  for (const code of storedCodes()) {
-    try { const r = await readCode(code, PRIV); SOURCES.push({ key: code.slice(4, 24), code, r }); } catch (e) { /* fremder oder beschädigter Code */ }
+  const all = new Map();                      // code -> { code, id? }
+  for (const code of storedCodes()) all.set(code, { code });
+  try {
+    const rows = await fetchServerCodes();
+    for (const row of rows) all.set(row.code, { code: row.code, id: row.id });
+    SERVER = { ok: true, n: rows.length, msg: "" };
+  } catch (e) { SERVER = { ok: false, n: 0, msg: e.message }; }
+  const list = [];
+  for (const s of all.values()) {
+    try { const r = await readCode(s.code, PRIV); list.push({ key: s.code.slice(4, 24), code: s.code, id: s.id ?? null, r }); } catch (e) { /* fremder oder beschädigter Code */ }
   }
-  SOURCES.sort((x, y) => (x.r.created || 0) - (y.r.created || 0));
+  list.sort((x, y) => (x.r.created || 0) - (y.r.created || 0));
+  // pro Person (Name + Partner) nur die neueste Fassung zeigen
+  const latest = new Map();
+  for (const s of list) latest.set((s.r.name + "|" + s.r.partner).toLowerCase(), s);
+  SOURCES = list.filter((s) => latest.get((s.r.name + "|" + s.r.partner).toLowerCase()) === s);
+  OLDER = list.filter((s) => !SOURCES.includes(s));
   const keys = SOURCES.map((s) => s.key);
   if (!keys.includes(SEL.a)) SEL.a = keys[0] || null;
   if (!keys.includes(SEL.b) || SEL.b === SEL.a) {
@@ -761,20 +819,32 @@ async function addCodesFrom(text) {
   await loadSources(); renderEval();
 }
 $("#codeAdd").addEventListener("click", () => addCodesFrom($("#codeIn").value));
+$("#reloadSrc").addEventListener("click", async () => { $("#reloadSrc").disabled = true; await loadSources(); renderEval(); $("#reloadSrc").disabled = false; });
 $("#codeFile").addEventListener("change", async (e) => { const f = e.target.files[0]; if (f) await addCodesFrom(await f.text()); e.target.value = ""; });
 $("#pickA").addEventListener("change", (e) => { SEL.a = e.target.value || null; renderEval(); });
 $("#pickB").addEventListener("change", (e) => { SEL.b = e.target.value || null; renderEval(); });
 
 function renderSources() {
   const box = $("#sources");
-  if (!SOURCES.length) { box.innerHTML = `<p class="muted">Noch keine Antwortcodes auf diesem Gerät.</p>`; }
-  else box.innerHTML = SOURCES.map((s) => `<div class="src"><div><strong>${esc(s.r.name)}</strong> <small>über ${esc(s.r.partner)} · ${fmtDate(s.r.created)} · ${Object.keys(s.r.answers).length} Antworten${s.r.private ? ` · ${s.r.private} privat` : ""}</small></div>
-    <button class="btn ghost small" type="button" data-del="${esc(s.key)}">Entfernen</button></div>`).join("");
+  const srv = SERVER.ok ? `<p class="muted" style="font-size:.88rem">✓ ${SERVER.n} verschlüsselte ${SERVER.n === 1 ? "Antwort" : "Antworten"} vom Server geladen.</p>`
+    : `<p class="err" style="font-size:.88rem">Server nicht erreichbar (${esc(SERVER.msg)}). Es werden nur die Codes auf diesem Gerät gezeigt.</p>`;
+  const row = (s, old) => `<div class="src"${old ? ' style="opacity:.65"' : ""}><div><strong>${esc(s.r.name)}</strong> <small>über ${esc(s.r.partner)} · ${fmtDate(s.r.created)} · ${Object.keys(s.r.answers).length} Antworten${s.r.private ? ` · ${s.r.private} privat` : ""}${s.id != null ? " · auf dem Server" : " · nur auf diesem Gerät"}${old ? " · ältere Fassung" : ""}</small></div>
+    <button class="btn ghost small" type="button" data-del="${esc(s.key)}">Löschen</button></div>`;
+  box.innerHTML = srv + (SOURCES.length ? SOURCES.map((s) => row(s, false)).join("") : `<p class="muted">Noch keine Antworten.</p>`)
+    + (OLDER.length ? `<details style="margin-top:6px"><summary class="muted" style="cursor:pointer;font-size:.88rem">${OLDER.length} ältere ${OLDER.length === 1 ? "Fassung" : "Fassungen"}</summary><div class="sources" style="margin-top:8px">${OLDER.map((s) => row(s, true)).join("")}</div></details>` : "");
   box.querySelectorAll("[data-del]").forEach((b) => {
     let armed = false;
     b.addEventListener("click", async () => {
-      if (!armed) { armed = true; b.textContent = "Sicher?"; setTimeout(() => { armed = false; b.textContent = "Entfernen"; }, 4000); return; }
-      const s = SOURCES.find((x) => x.key === b.dataset.del);
+      if (!armed) { armed = true; b.textContent = "Endgültig löschen?"; setTimeout(() => { armed = false; b.textContent = "Löschen"; }, 4000); return; }
+      const s = [...SOURCES, ...OLDER].find((x) => x.key === b.dataset.del);
+      b.disabled = true;
+      if (s.id != null) {
+        try {
+          if (!s.r.tok) throw new Error("Diese Antwort hat kein Löschmerkmal. Bitte im Supabase-Dashboard löschen.");
+          const ok = await deleteServerCode(s.id, s.r.tok);
+          if (!ok) throw new Error("Der Server hat das Löschen abgelehnt.");
+        } catch (e) { $("#codeErr").textContent = e.message; b.disabled = false; return; }
+      }
       store.set("pf.codes", JSON.stringify(storedCodes().filter((c) => c !== s.code)));
       await loadSources(); renderEval();
     });
