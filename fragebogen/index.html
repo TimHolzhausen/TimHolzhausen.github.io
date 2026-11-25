@@ -1,0 +1,901 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="referrer" content="no-referrer">
+<title>Privat</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2312305a'/%3E%3Cpath d='M16 23s-7-4.3-7-9a4 4 0 0 1 7-2.6A4 4 0 0 1 23 14c0 4.7-7 9-7 9z' fill='%23f08a3c'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+:root {
+  --bg: #f8f4ef;
+  --card: #ffffff;
+  --ink: #1a2433;
+  --muted: #667085;
+  --line: #e7e0d7;
+  --navy: #12305a;
+  --navy-soft: #e5ebf4;
+  --orange: #e8742a;
+  --orange-soft: #fcebdc;
+  --a: #2b5ea7;
+  --b: #e0762c;
+  --good: #2f8a5b;
+  --warn: #b45309;
+  --danger: #c2410c;
+  --shadow: 0 1px 2px rgba(18, 48, 90, .05), 0 10px 30px rgba(18, 48, 90, .08);
+  --serif: "Fraunces", Georgia, serif;
+  --sans: "Inter", "Segoe UI", system-ui, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11151c; --card: #1a202a; --ink: #e9edf3; --muted: #9aa4b2; --line: #2a323e;
+    --navy: #9db8e6; --navy-soft: #1f2b3d; --orange: #f39a5b; --orange-soft: #3a2a1e;
+    --a: #7ea6e6; --b: #f39a5b; --good: #5cc28f; --warn: #f0ad55; --danger: #f08a5b;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px rgba(0,0,0,.35);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11151c; --card: #1a202a; --ink: #e9edf3; --muted: #9aa4b2; --line: #2a323e;
+  --navy: #9db8e6; --navy-soft: #1f2b3d; --orange: #f39a5b; --orange-soft: #3a2a1e;
+  --a: #7ea6e6; --b: #f39a5b; --good: #5cc28f; --warn: #f0ad55; --danger: #f08a5b;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px rgba(0,0,0,.35);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 16px/1.6 var(--sans); padding: 0 20px 80px; }
+@media (max-width: 560px) { body { padding-inline: 16px; } }
+h1, h2, h3 { font-family: var(--serif); font-weight: 600; letter-spacing: -.01em; line-height: 1.15; margin: 0; }
+p { margin: 0; }
+a { color: var(--navy); }
+:focus-visible { outline: 2px solid var(--orange); outline-offset: 3px; border-radius: 6px; }
+.wrap { max-width: 1120px; margin: 0 auto; }
+.muted { color: var(--muted); }
+.eyebrow { font-size: .74rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--orange); }
+button, input, textarea, select { font: inherit; color: inherit; }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;
+  border: 1.5px solid var(--line); background: var(--card); border-radius: 999px; padding: 9px 18px; font-weight: 600; font-size: .93rem;
+  transition: border-color .15s, background .15s, transform .15s;
+}
+.btn:hover { border-color: var(--muted); }
+.btn.primary { background: var(--navy); border-color: var(--navy); color: var(--card); }
+.btn.primary:hover { transform: translateY(-1px); }
+.btn.accent { background: var(--orange); border-color: var(--orange); color: #fff; }
+.btn.ghost { background: transparent; border-color: transparent; }
+.btn.small { padding: 6px 12px; font-size: .85rem; }
+.btn:disabled { opacity: .5; cursor: default; transform: none; }
+input[type="text"], input[type="password"], textarea, select {
+  width: 100%; border: 1.5px solid var(--line); background: var(--card); border-radius: 12px; padding: 11px 14px;
+}
+textarea { min-height: 96px; resize: vertical; line-height: 1.5; }
+input:focus, textarea:focus, select:focus { outline: none; border-color: var(--navy); box-shadow: 0 0 0 3px var(--navy-soft); }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 24px; box-shadow: var(--shadow); }
+.err { color: var(--danger); font-size: .9rem; min-height: 1.4em; }
+
+/* Lock screens */
+.lock { min-height: 100vh; display: grid; place-items: center; padding: 40px 0; }
+.lock .card { width: min(420px, 100%); display: grid; gap: 16px; text-align: center; padding: 34px 28px; }
+.lock .icon { width: 56px; height: 56px; border-radius: 16px; background: var(--navy-soft); display: grid; place-items: center; margin: 0 auto; color: var(--navy); }
+.lock h1 { font-size: 1.7rem; }
+.lock form { display: grid; gap: 12px; }
+
+/* Top bar */
+.top { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 18px 0; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 10px; font-family: var(--serif); font-weight: 600; font-size: 1.1rem; color: var(--ink); text-decoration: none; }
+.brand i { width: 30px; height: 30px; border-radius: 9px; background: var(--navy); display: grid; place-items: center; }
+.nav { display: flex; gap: 4px; flex-wrap: wrap; }
+.nav button { border: 0; background: transparent; padding: 8px 14px; border-radius: 999px; cursor: pointer; font-weight: 500; color: var(--muted); }
+.nav button:hover { color: var(--ink); }
+.nav button[aria-current="page"] { background: var(--card); color: var(--ink); box-shadow: var(--shadow); }
+
+/* Home */
+.hero { padding: 36px 0 30px; display: grid; gap: 14px; max-width: 760px; }
+.hero h1 { font-size: clamp(2.1rem, 5vw, 3.4rem); color: var(--navy); }
+.hero .sub { font-family: var(--serif); font-size: clamp(1.3rem, 2.6vw, 1.75rem); color: var(--orange); font-weight: 400; }
+.hero p.lead { font-size: 1.08rem; color: var(--muted); max-width: 62ch; }
+.choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; margin: 10px 0 34px; }
+.choice { display: grid; gap: 10px; align-content: start; }
+.choice h2 { font-size: 1.45rem; }
+.choice .btn { justify-self: start; margin-top: 6px; }
+.choice .num { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; font-weight: 700; background: var(--orange-soft); color: var(--orange); }
+.gebote { counter-reset: g; list-style: none; padding: 0; margin: 16px 0 0; display: grid; gap: 12px; }
+.gebote li { counter-increment: g; display: grid; grid-template-columns: 34px 1fr; gap: 12px; color: var(--ink); }
+.gebote li::before { content: counter(g); font-family: var(--serif); font-weight: 700; font-size: 1.2rem; color: var(--orange); text-align: right; }
+details.box { margin-top: 18px; }
+details.box > summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+details.box > summary::-webkit-details-marker { display: none; }
+details.box > summary h2 { font-size: 1.35rem; }
+details.box > summary::after { content: "+"; font-size: 1.6rem; color: var(--orange); line-height: 1; }
+details.box[open] > summary::after { content: "–"; }
+.steps-list { margin: 14px 0 0; padding-left: 20px; display: grid; gap: 8px; }
+.quote { font-family: var(--serif); font-style: italic; font-size: clamp(1.4rem, 3vw, 2rem); color: var(--navy); text-align: center; padding: 40px 10px 10px; max-width: 700px; margin: 0 auto; }
+.credit { text-align: center; color: var(--muted); font-size: .82rem; margin-top: 30px; }
+
+/* Fill */
+.fill { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 28px; align-items: start; padding-top: 10px; }
+@media (max-width: 880px) {
+  .fill { grid-template-columns: minmax(0, 1fr); } .side { position: static !important; }
+  #secnavCard { display: none; }
+  .phases { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .phase { flex-direction: column; text-align: center; gap: 4px; padding: 8px 4px; font-size: .8rem; line-height: 1.3; }
+}
+.side { position: sticky; top: 16px; display: grid; gap: 14px; }
+.phases { display: grid; gap: 6px; }
+.phase { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; cursor: pointer; border: 1.5px solid transparent; background: transparent; text-align: left; width: 100%; }
+.phase b { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: .82rem; background: var(--line); flex: none; }
+.phase[aria-current="step"] { background: var(--card); border-color: var(--line); box-shadow: var(--shadow); }
+.phase[aria-current="step"] b { background: var(--navy); color: var(--card); }
+.phase.done b { background: var(--good); color: #fff; }
+.secnav { display: grid; gap: 2px; }
+.secnav button { display: flex; justify-content: space-between; gap: 8px; padding: 7px 12px; border: 0; background: transparent; border-radius: 10px; cursor: pointer; font-size: .9rem; text-align: left; color: var(--muted); }
+.secnav button:hover { color: var(--ink); }
+.secnav button[aria-current="true"] { background: var(--navy-soft); color: var(--navy); font-weight: 600; }
+.secnav small { font-variant-numeric: tabular-nums; }
+.progress { height: 6px; border-radius: 99px; background: var(--line); overflow: hidden; }
+.progress i { display: block; height: 100%; background: linear-gradient(90deg, var(--navy), var(--orange)); border-radius: 99px; transition: width .3s; }
+.sechead { display: grid; gap: 6px; margin-bottom: 18px; }
+.sechead h2 { font-size: clamp(1.6rem, 3vw, 2.1rem); color: var(--navy); }
+.banner { background: var(--orange-soft); border-radius: 14px; padding: 14px 18px; font-size: .95rem; margin-bottom: 18px; }
+.banner.blue { background: var(--navy-soft); }
+.q { display: grid; gap: 14px; margin-bottom: 14px; padding: 22px 24px; }
+.q.answered { border-color: color-mix(in srgb, var(--good) 35%, var(--line)); }
+.qhead { display: grid; grid-template-columns: auto 1fr auto; gap: 14px; align-items: start; }
+.qnum { font-family: var(--serif); font-weight: 700; color: var(--orange); font-size: 1.2rem; min-width: 30px; }
+.qtext { font-size: 1.06rem; line-height: 1.5; }
+.priv { border: 1.5px solid var(--line); background: transparent; border-radius: 999px; padding: 4px 10px; font-size: .78rem; cursor: pointer; color: var(--muted); display: flex; gap: 5px; align-items: center; white-space: nowrap; }
+.priv[aria-pressed="true"] { border-color: var(--navy); color: var(--navy); background: var(--navy-soft); }
+.scale { display: grid; gap: 6px; }
+.scale .opts { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 6px; }
+.scale button {
+  aspect-ratio: 1; max-height: 46px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--card); cursor: pointer; font-weight: 600; font-size: .92rem;
+  transition: background .12s, border-color .12s, transform .12s; position: relative; padding: 0;
+}
+.scale button:hover { border-color: var(--navy); }
+.scale button.on { background: var(--navy); border-color: var(--navy); color: var(--card); transform: scale(1.06); }
+.scale.guess button.on { background: var(--orange); border-color: var(--orange); color: #fff; }
+.scale button.ref::after { content: ""; position: absolute; left: 50%; bottom: -7px; width: 6px; height: 6px; border-radius: 50%; background: var(--navy); transform: translateX(-50%); opacity: .5; }
+.scale .ends { display: flex; justify-content: space-between; font-size: .8rem; color: var(--muted); gap: 10px; }
+@media (max-width: 480px) { .scale .opts { gap: 4px; } .scale button { border-radius: 9px; font-size: .82rem; } .q { padding: 18px 16px; } }
+.wish { display: grid; gap: 8px; padding: 14px 0; border-top: 1px dashed var(--line); }
+.wish:first-of-type { border-top: 0; padding-top: 0; }
+.wish label { font-weight: 600; font-size: .92rem; }
+.wish .rate { font-size: .88rem; color: var(--muted); }
+.navrow { display: flex; justify-content: space-between; gap: 12px; margin-top: 22px; flex-wrap: wrap; }
+.saved { font-size: .8rem; color: var(--muted); }
+.codebox { font-family: ui-monospace, Consolas, monospace; font-size: .78rem; word-break: break-all; min-height: 120px; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 640px) { .grid2 { grid-template-columns: 1fr; } }
+.field { display: grid; gap: 6px; }
+.field > span { font-size: .88rem; font-weight: 600; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; }
+.stat { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 18px; display: grid; gap: 4px; }
+.stat b { font-family: var(--serif); font-size: 2rem; font-weight: 600; color: var(--navy); line-height: 1.1; }
+.stat span { font-size: .86rem; color: var(--muted); }
+.stat .pair { display: flex; gap: 14px; align-items: baseline; }
+.stat .pair b.a { color: var(--a); } .stat .pair b.b { color: var(--b); }
+.stat .pair b { white-space: nowrap; font-size: 1.7rem; }
+
+/* Evaluation */
+.evalgrid { display: grid; gap: 22px; padding-top: 10px; }
+.evalgrid > section > h2 { font-size: 1.6rem; color: var(--navy); margin-bottom: 6px; }
+.evalgrid > section > p.muted { margin-bottom: 14px; }
+.sources { display: grid; gap: 8px; }
+.src { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 12px; }
+.src small { color: var(--muted); }
+.who { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
+.who i { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+.who.a i { background: var(--a); } .who.b i { background: var(--b); }
+.legend { display: flex; gap: 18px; flex-wrap: wrap; font-size: .85rem; color: var(--muted); align-items: center; }
+.legend .dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; vertical-align: -1px; margin-right: 6px; }
+.legend .ring { width: 12px; height: 12px; border-radius: 50%; display: inline-block; vertical-align: -1px; margin-right: 6px; border: 2.5px solid; background: transparent; }
+.item { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(220px, 1fr) 54px; gap: 18px; align-items: center; padding: 14px 0; border-top: 1px solid var(--line); }
+.item:first-child { border-top: 0; }
+@media (max-width: 760px) { .item { grid-template-columns: minmax(0, 1fr) 54px; } .item .plot { grid-column: 1 / -1; grid-row: 2; } }
+.item .lbl { font-size: .95rem; }
+.item .lbl small { color: var(--orange); font-weight: 700; margin-right: 6px; font-family: var(--serif); }
+.plot { position: relative; height: 54px; }
+.plot .lane { position: absolute; left: 10px; right: 10px; height: 2px; background: var(--line); }
+.plot .lane.la { top: 15px; } .plot .lane.lb { top: 39px; }
+.plot .tick { position: absolute; top: 0; bottom: 0; width: 1px; background: color-mix(in srgb, var(--line) 60%, transparent); }
+.plot .m { position: absolute; width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%; display: grid; place-items: center; font-size: .7rem; font-weight: 700; color: #fff; z-index: 2; }
+.plot .m.a { background: var(--a); } .plot .m.b { background: var(--b); }
+.plot .r { position: absolute; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; border: 3px solid; background: var(--card); z-index: 1; }
+.plot .r.a { border-color: var(--a); } .plot .r.b { border-color: var(--b); }
+.plot .na { position: absolute; font-size: .72rem; color: var(--muted); left: 10px; }
+.diff { justify-self: end; min-width: 44px; text-align: center; font-weight: 700; font-size: .85rem; border-radius: 999px; padding: 3px 8px; background: var(--line); }
+.diff.d0 { background: color-mix(in srgb, var(--good) 18%, transparent); color: var(--good); }
+.diff.d1 { background: var(--orange-soft); color: var(--warn); }
+.diff.d2 { background: color-mix(in srgb, var(--danger) 18%, transparent); color: var(--danger); }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+.chip { border: 1.5px solid var(--line); background: var(--card); border-radius: 999px; padding: 5px 13px; cursor: pointer; font-size: .86rem; font-weight: 500; }
+.chip[aria-pressed="true"] { border-color: var(--navy); background: var(--navy-soft); color: var(--navy); }
+.secblock h3 { font-size: 1.15rem; margin: 18px 0 2px; color: var(--navy); }
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 700px) { .cols { grid-template-columns: 1fr; } }
+.ans { border-radius: 14px; padding: 14px 16px; background: var(--bg); display: grid; gap: 6px; }
+.ans.a { border-left: 4px solid var(--a); } .ans.b { border-left: 4px solid var(--b); }
+.ans p { white-space: pre-wrap; }
+.ans .empty { color: var(--muted); font-style: italic; }
+.wishes { display: grid; gap: 10px; }
+.wishline { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: start; }
+.pill { font-size: .78rem; font-weight: 600; border-radius: 999px; padding: 2px 9px; background: var(--card); border: 1px solid var(--line); white-space: nowrap; }
+.openq { display: grid; gap: 8px; padding: 16px 0; border-top: 1px solid var(--line); }
+.openq:first-child { border-top: 0; padding-top: 0; }
+.agree { display: grid; gap: 8px; }
+.agree li { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; padding: 10px 14px; border: 1px solid var(--line); border-radius: 12px; }
+.agree ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.toplist { display: grid; gap: 0; }
+@media print {
+  body { background: #fff; padding: 0; }
+  .top, .noprint, .chips, .sources-card { display: none !important; }
+  .card { box-shadow: none; break-inside: avoid; }
+  .item { break-inside: avoid; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<!-- ====== Zugang ====== -->
+<div class="lock" id="lockView">
+  <div class="card">
+    <div class="icon" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>
+    <h1>Privater Bereich</h1>
+    <p class="muted">Bitte gib das Passwort ein.</p>
+    <form id="lockForm" autocomplete="off">
+      <input type="password" id="lockPw" aria-label="Passwort" placeholder="Passwort" autocomplete="current-password" required>
+      <button class="btn primary" type="submit" id="lockBtn">Öffnen</button>
+      <div class="err" id="lockErr" role="alert"></div>
+    </form>
+  </div>
+</div>
+
+<div class="wrap" id="app" hidden>
+  <header class="top">
+    <a class="brand" href="#" id="brand"><i aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24"><path d="M12 21s-8-5-8-11a4.5 4.5 0 0 1 8-2.9A4.5 4.5 0 0 1 20 10c0 6-8 11-8 11z" fill="#f08a3c"/></svg></i>Partner-Fragebogen</a>
+    <nav class="nav" aria-label="Bereiche">
+      <button type="button" data-view="home">Start</button>
+      <button type="button" data-view="fill">Ausfüllen</button>
+      <button type="button" data-view="eval">Auswertung</button>
+      <button type="button" id="lockNow" title="Seite sperren">Sperren</button>
+    </nav>
+  </header>
+
+  <!-- ====== Start ====== -->
+  <main id="homeView" hidden>
+    <div class="hero">
+      <p class="eyebrow" id="kind"></p>
+      <h1 id="title"></h1>
+      <p class="sub" id="subtitle"></p>
+      <p class="lead">Jeder von euch füllt den Fragebogen für sich aus: zuerst die eigenen Antworten, dann, was er vom anderen vermutet. Danach legt ihr eure Antworten in der Auswertung nebeneinander – mit eigenem Passwort, sodass niemand sonst sie sehen kann.</p>
+    </div>
+    <div class="choices">
+      <div class="card choice">
+        <div class="num">1</div>
+        <h2>Fragebogen ausfüllen</h2>
+        <p class="muted">Etwa 30 Minuten. Deine Antworten werden laufend verschlüsselt auf diesem Gerät gespeichert, du kannst jederzeit unterbrechen.</p>
+        <button class="btn primary" type="button" data-go="fill" id="homeFillBtn">Los geht’s</button>
+      </div>
+      <div class="card choice">
+        <div class="num">2</div>
+        <h2>Auswertung</h2>
+        <p class="muted">Legt eure beiden Antwortcodes nebeneinander: Unterschiede, Überraschungen, Wünsche – und Platz für eure Verabredungen.</p>
+        <button class="btn" type="button" data-go="eval">Zur Auswertung</button>
+      </div>
+    </div>
+    <div class="card">
+      <details class="box" open>
+        <summary><h2>Die „10 Gebote“</h2></summary>
+        <p class="muted" style="margin-top:10px" id="geboteIntro"></p>
+        <ol class="gebote" id="gebote"></ol>
+      </details>
+    </div>
+    <div class="card" style="margin-top:18px">
+      <details class="box">
+        <summary><h2>So funktioniert’s</h2></summary>
+        <ol class="steps-list" id="anleitung"></ol>
+      </details>
+    </div>
+    <p class="quote" id="quote"></p>
+    <p class="credit" id="credit"></p>
+  </main>
+
+  <!-- ====== Ausfüllen ====== -->
+  <main id="fillView" hidden>
+    <div id="setup" class="card" style="max-width:620px;margin:20px auto;display:grid;gap:16px" hidden>
+      <p class="eyebrow">Bevor es losgeht</p>
+      <h2 style="font-size:1.8rem;color:var(--navy)">Wer füllt aus?</h2>
+      <div class="grid2">
+        <label class="field"><span>Dein Vorname</span><input type="text" id="meName" maxlength="40" autocomplete="off"></label>
+        <label class="field"><span>Vorname deines Partners</span><input type="text" id="partnerName" maxlength="40" autocomplete="off"></label>
+      </div>
+      <p class="muted" style="font-size:.92rem">Die Namen erscheinen nur in der Auswertung. Tipp: Lies vorher die „10 Gebote“ auf der Startseite.</p>
+      <div class="row"><button class="btn primary" type="button" id="startBtn">Fragebogen beginnen</button><span class="err" id="setupErr"></span></div>
+    </div>
+
+    <div class="fill" id="fillMain" hidden>
+      <aside class="side">
+        <div class="card" style="padding:16px;display:grid;gap:12px">
+          <div class="phases" id="phases"></div>
+          <div class="progress" aria-hidden="true"><i id="progBar" style="width:0"></i></div>
+          <div class="saved" id="savedNote"></div>
+        </div>
+        <div class="card" style="padding:12px" id="secnavCard"><div class="secnav" id="secnav"></div></div>
+      </aside>
+      <div id="fillContent"></div>
+    </div>
+  </main>
+
+  <!-- ====== Auswertung: Passwort ====== -->
+  <main id="evalLockView" hidden>
+    <div class="lock" style="min-height:60vh">
+      <div class="card">
+        <div class="icon" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg></div>
+        <h1>Auswertung</h1>
+        <p class="muted">Die Antwortcodes lassen sich nur mit dem Auswertungspasswort öffnen.</p>
+        <form id="evalForm" autocomplete="off">
+          <input type="password" id="evalPw" aria-label="Auswertungspasswort" placeholder="Auswertungspasswort" required>
+          <button class="btn primary" type="submit" id="evalBtn">Auswertung öffnen</button>
+          <div class="err" id="evalErr" role="alert"></div>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <!-- ====== Auswertung ====== -->
+  <main id="evalView" hidden>
+    <div class="evalgrid">
+      <section class="card sources-card noprint">
+        <h2>Antworten</h2>
+        <p class="muted">Füge die Antwortcodes von euch beiden ein. Sie bleiben verschlüsselt auf diesem Gerät gespeichert.</p>
+        <div class="sources" id="sources"></div>
+        <div class="grid2" style="margin-top:16px">
+          <label class="field"><span>Antwortcode einfügen</span><textarea id="codeIn" class="codebox" placeholder="PF1.…" style="min-height:80px"></textarea></label>
+          <div class="field" style="align-content:start"><span>oder als Datei</span>
+            <input type="file" id="codeFile" accept=".txt,text/plain">
+            <div class="row" style="margin-top:8px"><button class="btn primary small" type="button" id="codeAdd">Übernehmen</button><span class="err" id="codeErr"></span></div>
+          </div>
+        </div>
+        <div class="grid2" style="margin-top:16px" id="pickers">
+          <label class="field"><span><span class="who a"><i></i>Person A</span></span><select id="pickA"></select></label>
+          <label class="field"><span><span class="who b"><i></i>Person B</span></span><select id="pickB"></select></label>
+        </div>
+      </section>
+      <div id="evalOut" style="display:grid;gap:22px"></div>
+    </div>
+  </main>
+</div>
+
+<script src="data.js"></script>
+<script>
+"use strict";
+// =====================================================================================
+// Kryptografie. Inhalt: AES-GCM mit PBKDF2-Schlüssel aus dem Zugangspasswort.
+// Antwortcodes: ECDH (P-256) an den öffentlichen Auswertungsschlüssel + AES-GCM.
+// Den privaten Schlüssel öffnet nur das Auswertungspasswort.
+// =====================================================================================
+const enc = new TextEncoder(), dec = new TextDecoder();
+const ub64 = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+const b64 = (u8) => { let s = ""; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode(...u8.subarray(i, i + 0x8000)); return btoa(s); };
+const b64u = (u8) => b64(u8).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+const ub64u = (s) => ub64(s.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((s.length + 3) % 4));
+async function pwKey(password, saltB64) {
+  const base = await crypto.subtle.importKey("raw", enc.encode(password), "PBKDF2", false, ["deriveKey"]);
+  return crypto.subtle.deriveKey({ name: "PBKDF2", salt: ub64(saltB64), iterations: VAULT.iter, hash: "SHA-256" }, base, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]);
+}
+async function openBox(box, key) { return dec.decode(await crypto.subtle.decrypt({ name: "AES-GCM", iv: ub64(box.i) }, key, ub64(box.c))); }
+async function sealBox(text, key) { const iv = crypto.getRandomValues(new Uint8Array(12)); return { i: b64(iv), c: b64(new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, enc.encode(text)))) }; }
+async function pipe(bytes, stream) { return new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(stream)).arrayBuffer()); }
+const EC = { name: "ECDH", namedCurve: "P-256" };
+async function makeCode(result) {
+  const pub = await crypto.subtle.importKey("jwk", C.pub, EC, false, []);
+  const eph = await crypto.subtle.generateKey(EC, true, ["deriveKey"]);
+  const key = await crypto.subtle.deriveKey({ name: "ECDH", public: pub }, eph.privateKey, { name: "AES-GCM", length: 256 }, false, ["encrypt"]);
+  const raw = new Uint8Array(await crypto.subtle.exportKey("raw", eph.publicKey));
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const data = await pipe(enc.encode(JSON.stringify(result)), new CompressionStream("deflate-raw"));
+  const ct = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, data));
+  const all = new Uint8Array(65 + 12 + ct.length); all.set(raw); all.set(iv, 65); all.set(ct, 77);
+  return "PF1." + b64u(all);
+}
+async function readCode(code, priv) {
+  const all = ub64u(code.slice(4));
+  const eph = await crypto.subtle.importKey("raw", all.slice(0, 65), EC, false, []);
+  const key = await crypto.subtle.deriveKey({ name: "ECDH", public: eph }, priv, { name: "AES-GCM", length: 256 }, false, ["decrypt"]);
+  const data = new Uint8Array(await crypto.subtle.decrypt({ name: "AES-GCM", iv: all.slice(65, 77) }, key, all.slice(77)));
+  return JSON.parse(dec.decode(await pipe(data, new DecompressionStream("deflate-raw"))));
+}
+const findCodes = (text) => [...new Set(String(text).match(/PF1\.[A-Za-z0-9_-]{40,}/g) || [])];
+
+// =====================================================================================
+// Helfer
+// =====================================================================================
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const md = (s) => esc(s).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+const store = {
+  get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); return true; } catch (e) { return false; } },
+  del(k) { try { localStorage.removeItem(k); } catch (e) {} },
+};
+const fmtDate = (t) => t ? new Date(t).toLocaleDateString("de-DE", { day: "numeric", month: "long", year: "numeric" }) : "";
+const initial = (n) => (String(n || "?").trim()[0] || "?").toUpperCase();
+
+let C = null, ACCESS = null, EVALKEY = null, PRIV = null;
+let D = null;                    // Entwurf: { me, partner, phase, sec, answers, started }
+const ITEMS = {};                // id -> Frage
+const valLabel = (it, v) => v == null ? "–" : it && it.pct ? v * 10 + " %" : String(v);
+
+// =====================================================================================
+// Zugang
+// =====================================================================================
+$("#lockForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const btn = $("#lockBtn"); btn.disabled = true; $("#lockErr").textContent = "";
+  try {
+    if (!window.VAULT) throw new Error("data");
+    const key = await pwKey($("#lockPw").value, VAULT.content.s);
+    C = JSON.parse(await openBox(VAULT.content, key));
+    ACCESS = key;
+    $("#lockPw").value = "";
+    start();
+  } catch (err) {
+    $("#lockErr").textContent = window.VAULT ? "Das Passwort stimmt nicht." : "Die Daten fehlen (data.js).";
+  }
+  btn.disabled = false;
+});
+$("#lockNow").addEventListener("click", () => { location.hash = ""; location.reload(); });
+
+async function start() {
+  document.title = "Partner-Fragebogen";
+  for (const s of C.sections) for (const it of s.items) ITEMS[it.id] = it;
+  $("#kind").textContent = C.kind;
+  $("#title").textContent = C.title;
+  $("#subtitle").textContent = C.subtitle;
+  $("#geboteIntro").textContent = C.gebote_intro;
+  $("#gebote").innerHTML = C.gebote.map((g) => `<li><span>${md(g)}</span></li>`).join("");
+  $("#anleitung").innerHTML = C.anleitung.map((g) => `<li>${md(g)}</li>`).join("");
+  $("#quote").textContent = "„" + C.quote + "“";
+  $("#credit").textContent = C.credit;
+  await loadDraft();
+  $("#lockView").hidden = true; $("#app").hidden = false;
+  takeHashCode();
+  show(D && D.started ? "fill" : "home");
+}
+
+// =====================================================================================
+// Ansichten
+// =====================================================================================
+let VIEW = "home";
+function show(v) {
+  VIEW = v;
+  for (const id of ["homeView", "fillView", "evalLockView", "evalView"]) $("#" + id).hidden = true;
+  if (v === "home") $("#homeView").hidden = false;
+  if (v === "fill") { $("#fillView").hidden = false; renderFill(); }
+  if (v === "eval") { if (PRIV) { $("#evalView").hidden = false; renderEval(); } else { $("#evalLockView").hidden = false; setTimeout(() => $("#evalPw").focus(), 50); } }
+  document.querySelectorAll(".nav [data-view]").forEach((b) => { if (b.dataset.view === v) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
+  window.scrollTo({ top: 0 });
+}
+document.querySelectorAll("[data-view]").forEach((b) => b.addEventListener("click", () => show(b.dataset.view)));
+document.querySelectorAll("[data-go]").forEach((b) => b.addEventListener("click", () => show(b.dataset.go)));
+$("#brand").addEventListener("click", (e) => { e.preventDefault(); show("home"); });
+
+// =====================================================================================
+// Entwurf (verschlüsselt im Browser)
+// =====================================================================================
+async function loadDraft() {
+  const raw = store.get("pf.entwurf");
+  D = null;
+  if (raw) { try { D = JSON.parse(await openBox(JSON.parse(raw), ACCESS)); } catch (e) { D = null; } }
+  if (!D) D = { me: "", partner: "", phase: 1, sec: 0, answers: {}, started: false };
+  $("#homeFillBtn").textContent = D.started ? "Weiter ausfüllen" : "Los geht’s";
+}
+let saveTimer = 0;
+function save() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async () => {
+    D.updated = Date.now();
+    const ok = store.set("pf.entwurf", JSON.stringify(await sealBox(JSON.stringify(D), ACCESS)));
+    $("#savedNote").textContent = ok ? "Verschlüsselt gespeichert · " + new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }) : "Speichern im Browser nicht möglich – bitte nicht neu laden.";
+  }, 300);
+}
+const A = (id) => (D.answers[id] = D.answers[id] || {});
+
+// =====================================================================================
+// Ausfüllen
+// =====================================================================================
+const P = () => D.partner || "dein Partner";
+function phaseSections(phase) {
+  if (phase === 2) return C.sections.map((s) => ({ ...s, items: s.items.filter((i) => i.guess) })).filter((s) => s.items.length);
+  return C.sections;
+}
+function isAnswered(it, phase) {
+  const a = D.answers[it.id]; if (!a) return false;
+  if (phase === 2) return a.guess != null;
+  if (it.type === "scale") return a.own != null;
+  if (it.type === "text") return !!(a.text && a.text.trim());
+  if (it.type === "wishes") return (a.w || []).some((w) => w && w.t && w.t.trim());
+  return false;
+}
+function counts(phase) { let n = 0, done = 0; for (const s of phaseSections(phase)) for (const it of s.items) { n++; if (isAnswered(it, phase)) done++; } return { n, done }; }
+
+function renderFill() {
+  if (!D.started) {
+    $("#setup").hidden = false; $("#fillMain").hidden = true;
+    $("#meName").value = D.me; $("#partnerName").value = D.partner;
+    return;
+  }
+  $("#setup").hidden = true; $("#fillMain").hidden = false;
+  renderSide();
+  renderSection();
+}
+$("#startBtn").addEventListener("click", () => {
+  const me = $("#meName").value.trim(), pa = $("#partnerName").value.trim();
+  if (!me || !pa) { $("#setupErr").textContent = "Bitte beide Namen eintragen."; return; }
+  D.me = me; D.partner = pa; D.started = Date.now(); D.phase = 1; D.sec = 0; save(); renderFill();
+});
+function renderSide() {
+  const c1 = counts(1), c2 = counts(2);
+  const phases = [[1, "Deine Antworten", c1], [2, "Was antwortet " + P() + "?", c2], [3, "Abschließen", null]];
+  $("#phases").innerHTML = phases.map(([p, label, c]) => `<button type="button" class="phase${c && c.done === c.n ? " done" : ""}" data-phase="${p}" ${D.phase === p ? 'aria-current="step"' : ""}>
+    <b>${c && c.done === c.n ? "✓" : p}</b><span>${esc(label)}${c ? `<br><small class="muted">${c.done} von ${c.n}</small>` : ""}</span></button>`).join("");
+  $("#phases").querySelectorAll("[data-phase]").forEach((b) => b.addEventListener("click", () => { D.phase = +b.dataset.phase; D.sec = 0; save(); renderFill(); window.scrollTo({ top: 0 }); }));
+  const total = c1.n + c2.n, done = c1.done + c2.done;
+  $("#progBar").style.width = (total ? done / total * 100 : 0) + "%";
+  if (D.phase === 3) { $("#secnavCard").hidden = true; return; }
+  $("#secnavCard").hidden = false;
+  const secs = phaseSections(D.phase);
+  $("#secnav").innerHTML = secs.map((s, i) => {
+    const d = s.items.filter((it) => isAnswered(it, D.phase)).length;
+    return `<button type="button" data-sec="${i}" aria-current="${i === D.sec}">${esc(s.title)}<small>${d}/${s.items.length}</small></button>`;
+  }).join("");
+  $("#secnav").querySelectorAll("[data-sec]").forEach((b) => b.addEventListener("click", () => { D.sec = +b.dataset.sec; save(); renderFill(); window.scrollTo({ top: 0 }); }));
+}
+function scaleHtml(it, value, guess, ref) {
+  const lo = it.pct ? "10 %" : (it.lo || "trifft nicht zu"), hi = it.pct ? "100 %" : (it.hi || "trifft voll zu");
+  let b = "";
+  for (let v = 1; v <= 10; v++) b += `<button type="button" data-v="${v}" class="${value === v ? "on" : ""}${ref === v ? " ref" : ""}" aria-pressed="${value === v}" aria-label="${it.pct ? v * 10 + " Prozent" : v}">${v}</button>`;
+  return `<div class="scale${guess ? " guess" : ""}" role="group" aria-label="Skala 1 bis 10"><div class="opts">${b}</div><div class="ends"><span>1 = ${esc(lo)}</span><span>10 = ${esc(hi)}</span></div></div>`;
+}
+function privBtn(it) {
+  const on = !!(D.answers[it.id] && D.answers[it.id].priv);
+  return `<button type="button" class="priv" data-priv="${it.id}" aria-pressed="${on}" title="Diese Antwort kommt nicht in den Antwortcode">${on ? "🔒 nur für mich" : "🔓 teilen"}</button>`;
+}
+function qCard(it, phase) {
+  const a = D.answers[it.id] || {};
+  let body = "";
+  if (phase === 2) body = scaleHtml(it, a.guess ?? null, true, a.own ?? null);
+  else if (it.type === "scale") body = scaleHtml(it, a.own ?? null, false, null);
+  else if (it.type === "text") body = (it.ref && D.answers[it.ref] && D.answers[it.ref].own != null ? `<p class="muted" style="font-size:.9rem">Deine Antwort zu Frage ${it.ref}: <strong>${valLabel(ITEMS[it.ref], D.answers[it.ref].own)}</strong></p>` : "")
+    + `<textarea data-text="${it.id}" placeholder="Deine Antwort …">${esc(a.text || "")}</textarea>`;
+  else if (it.type === "wishes") {
+    const w = a.w || [];
+    body = ["Erster", "Zweiter", "Dritter"].map((n, k) => `<div class="wish"><label for="w${it.id}${k}">${n} Wunsch</label>
+      <textarea id="w${it.id}${k}" data-wish="${it.id}" data-k="${k}" style="min-height:70px" placeholder="${it.own ? "Mein Wunsch …" : "Ich vermute …"}">${esc(w[k] && w[k].t || "")}</textarea>
+      <span class="rate">${esc(it.rate)}</span>${scaleHtml({ id: it.id }, w[k] ? w[k].r ?? null : null, false, null).replace('class="scale"', `class="scale" data-wishrate="${it.id}" data-k="${k}"`)}</div>`).join("");
+  }
+  const text = phase === 2 ? `<span class="muted" style="font-size:.85rem;display:block;margin-bottom:2px">Was antwortet ${esc(P())}?</span>${md(it.text)}` : md(it.text);
+  return `<article class="card q${isAnswered(it, phase) ? " answered" : ""}" data-item="${it.id}">
+    <div class="qhead"><span class="qnum">${it.id}</span><div class="qtext">${text}</div>${phase === 1 ? privBtn(it) : ""}</div>${body}</article>`;
+}
+function renderSection() {
+  const box = $("#fillContent");
+  if (D.phase === 3) return renderFinish(box);
+  const secs = phaseSections(D.phase);
+  D.sec = Math.max(0, Math.min(secs.length - 1, D.sec));
+  const s = secs[D.sec];
+  const intro = D.phase === 1
+    ? (D.sec === 0 ? `<div class="banner">Beantworte jede Frage ehrlich für dich selbst. Mit <strong>🔓 teilen / 🔒 nur für mich</strong> legst du fest, ob eine Antwort in die Auswertung kommt.</div>` : "")
+    : (D.sec === 0 ? `<div class="banner blue">Jetzt der zweite Durchgang: Kreuze an, was <strong>${esc(P())}</strong> deiner Meinung nach antwortet. Der kleine Punkt unter einer Zahl zeigt deine eigene Antwort.</div>` : "");
+  const last = D.sec === secs.length - 1;
+  box.innerHTML = `<div class="sechead"><p class="eyebrow">${D.phase === 1 ? "Durchgang 1 · deine Antworten" : "Durchgang 2 · deine Einschätzung von " + esc(P())} · Teil ${D.sec + 1} von ${secs.length}</p><h2>${esc(s.title)}</h2></div>
+    ${intro}${s.items.map((it) => qCard(it, D.phase)).join("")}
+    <div class="navrow"><button class="btn" type="button" id="prevSec" ${D.sec === 0 && D.phase === 1 ? "disabled" : ""}>← Zurück</button>
+    <button class="btn primary" type="button" id="nextSec">${last ? (D.phase === 1 ? "Weiter zu Durchgang 2 →" : "Abschließen →") : "Weiter →"}</button></div>`;
+  wireCards(box);
+  $("#prevSec").addEventListener("click", () => { if (D.sec > 0) D.sec--; else if (D.phase === 2) { D.phase = 1; D.sec = phaseSections(1).length - 1; } save(); renderFill(); window.scrollTo({ top: 0 }); });
+  $("#nextSec").addEventListener("click", () => { if (!last) D.sec++; else { D.phase++; D.sec = 0; } save(); renderFill(); window.scrollTo({ top: 0 }); });
+}
+function wireCards(box) {
+  box.querySelectorAll(".scale").forEach((sc) => sc.addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-v]"); if (!b) return;
+    const v = +b.dataset.v, card = sc.closest("[data-item]"), id = card.dataset.item, a = A(id);
+    if (sc.dataset.wishrate) { a.w = a.w || []; const k = +sc.dataset.k; a.w[k] = a.w[k] || { t: "" }; a.w[k].r = a.w[k].r === v ? null : v; }
+    else if (D.phase === 2) a.guess = a.guess === v ? null : v;
+    else a.own = a.own === v ? null : v;
+    const cur = sc.dataset.wishrate ? a.w[+sc.dataset.k].r : D.phase === 2 ? a.guess : a.own;
+    sc.querySelectorAll("button[data-v]").forEach((x) => { const on = +x.dataset.v === cur; x.classList.toggle("on", on); x.setAttribute("aria-pressed", on); });
+    card.classList.toggle("answered", isAnswered(ITEMS[id], D.phase));
+    save(); renderSide();
+  }));
+  box.querySelectorAll("[data-text]").forEach((t) => t.addEventListener("input", () => {
+    A(t.dataset.text).text = t.value; t.closest("[data-item]").classList.toggle("answered", isAnswered(ITEMS[t.dataset.text], 1)); save(); renderSide();
+  }));
+  box.querySelectorAll("[data-wish]").forEach((t) => t.addEventListener("input", () => {
+    const a = A(t.dataset.wish); a.w = a.w || []; const k = +t.dataset.k; a.w[k] = a.w[k] || { r: null }; a.w[k].t = t.value;
+    t.closest("[data-item]").classList.toggle("answered", isAnswered(ITEMS[t.dataset.wish], 1)); save(); renderSide();
+  }));
+  box.querySelectorAll("[data-priv]").forEach((b) => b.addEventListener("click", () => togglePriv(b)));
+}
+function togglePriv(b) {
+  const id = b.dataset.priv, a = A(id); a.priv = !a.priv;
+  const nb = document.createElement("div"); nb.innerHTML = privBtn(ITEMS[id]); const el = nb.firstElementChild;
+  b.replaceWith(el); el.addEventListener("click", () => togglePriv(el)); save();
+}
+function exportResult() {
+  const answers = {};
+  for (const [id, a] of Object.entries(D.answers)) {
+    if (!ITEMS[id] || a.priv) continue;
+    const o = {};
+    if (a.own != null) o.own = a.own;
+    if (a.guess != null) o.guess = a.guess;
+    if (a.text && a.text.trim()) o.text = a.text.trim();
+    if (a.w) o.w = a.w.map((w) => w ? { t: (w.t || "").trim(), r: w.r ?? null } : { t: "", r: null });
+    if (Object.keys(o).length) answers[id] = o;
+  }
+  return { v: 1, name: D.me, partner: D.partner, created: Date.now(), started: D.started, answers, private: Object.values(D.answers).filter((a) => a.priv).length };
+}
+function renderFinish(box) {
+  const c1 = counts(1), c2 = counts(2), priv = Object.values(D.answers).filter((a) => a.priv).length;
+  box.innerHTML = `<div class="sechead"><p class="eyebrow">Durchgang 3</p><h2>Abschließen</h2></div>
+    <div class="stats" style="margin-bottom:18px">
+      <div class="stat"><b>${c1.done}/${c1.n}</b><span>eigene Antworten</span></div>
+      <div class="stat"><b>${c2.done}/${c2.n}</b><span>Einschätzungen von ${esc(P())}</span></div>
+      <div class="stat"><b>${priv}</b><span>bleiben nur für dich</span></div>
+    </div>
+    <div class="card" style="display:grid;gap:14px">
+      <h3 style="font-size:1.3rem">Dein Antwortcode</h3>
+      <p class="muted">Der Code enthält deine geteilten Antworten, verschlüsselt. Lesen kann ihn nur, wer das <strong>Auswertungspasswort</strong> kennt – auch du selbst nicht ohne es. Schick ihn an die Person, die die Auswertung öffnet, oder füge ihn dort selbst ein.</p>
+      <div class="banner" style="margin:0">Gebot 5: Lasst mindestens einen Tag vergehen, bevor ihr gemeinsam auswertet.</div>
+      <div class="row"><button class="btn accent" type="button" id="mkCode">Antwortcode erzeugen</button></div>
+      <div id="codeOut" hidden style="display:grid;gap:10px">
+        <textarea class="codebox" id="codeText" readonly></textarea>
+        <div class="row">
+          <button class="btn small" type="button" id="copyCode">Code kopieren</button>
+          <button class="btn small" type="button" id="copyLink">Link kopieren</button>
+          <button class="btn small" type="button" id="saveCode">Als Datei speichern</button>
+          <button class="btn small" type="button" id="shareCode" hidden>Teilen …</button>
+          <span class="saved" id="copyNote"></span>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:18px;display:grid;gap:10px">
+      <h3 style="font-size:1.2rem">Gerät weitergeben?</h3>
+      <p class="muted">Wenn dein Partner auf diesem Gerät ausfüllen soll: erst deinen Code erzeugen und sichern, dann hier deinen Entwurf löschen.</p>
+      <div class="row"><button class="btn small" type="button" id="wipe">Meinen Entwurf löschen</button><span class="err" id="wipeNote"></span></div>
+    </div>
+    <div class="navrow"><button class="btn" type="button" id="backTo2">← Zurück zu Durchgang 2</button></div>`;
+  let code = "";
+  $("#mkCode").addEventListener("click", async () => {
+    code = await makeCode(exportResult());
+    $("#codeText").value = code; $("#codeOut").hidden = false;
+    $("#shareCode").hidden = !navigator.share;
+    addStoredCode(code);
+  });
+  const note = (t) => { $("#copyNote").textContent = t; setTimeout(() => $("#copyNote").textContent = "", 2500); };
+  const link = () => location.origin + location.pathname + "#code=" + code;
+  $("#copyCode").addEventListener("click", async () => { try { await navigator.clipboard.writeText(code); note("Kopiert."); } catch (e) { $("#codeText").select(); note("Bitte manuell kopieren."); } });
+  $("#copyLink").addEventListener("click", async () => { try { await navigator.clipboard.writeText(link()); note("Link kopiert."); } catch (e) { note("Kopieren nicht möglich."); } });
+  $("#saveCode").addEventListener("click", () => {
+    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([code + "\n"], { type: "text/plain" }));
+    a.download = `Antwortcode ${D.me}.txt`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 30000);
+  });
+  $("#shareCode").addEventListener("click", () => navigator.share({ title: "Antwortcode", text: link() }).catch(() => {}));
+  let armed = false;
+  $("#wipe").addEventListener("click", () => {
+    if (!armed) { armed = true; $("#wipeNote").textContent = "Wirklich? Noch einmal klicken zum Löschen."; setTimeout(() => { armed = false; $("#wipeNote").textContent = ""; }, 5000); return; }
+    store.del("pf.entwurf"); D = { me: "", partner: "", phase: 1, sec: 0, answers: {}, started: false }; $("#homeFillBtn").textContent = "Los geht’s"; show("home");
+  });
+  $("#backTo2").addEventListener("click", () => { D.phase = 2; D.sec = phaseSections(2).length - 1; save(); renderFill(); });
+}
+
+// =====================================================================================
+// Codes sammeln (Link, Einfügen, Datei)
+// =====================================================================================
+function storedCodes() { try { return JSON.parse(store.get("pf.codes") || "[]"); } catch (e) { return []; } }
+function addStoredCode(code) { const list = storedCodes(); if (!list.includes(code)) { list.push(code); store.set("pf.codes", JSON.stringify(list)); } }
+function takeHashCode() {
+  const m = location.hash.match(/code=(PF1\.[A-Za-z0-9_-]+)/);
+  if (!m) return;
+  addStoredCode(m[1]);
+  history.replaceState(null, "", location.pathname);
+  setTimeout(() => show("eval"), 0);
+}
+
+// =====================================================================================
+// Auswertung
+// =====================================================================================
+$("#evalForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const btn = $("#evalBtn"); btn.disabled = true; $("#evalErr").textContent = "";
+  try {
+    const key = await pwKey($("#evalPw").value, VAULT.priv.s);
+    const jwk = JSON.parse(await openBox(VAULT.priv, key));
+    PRIV = await crypto.subtle.importKey("jwk", jwk, EC, false, ["deriveKey"]);
+    EVALKEY = key; $("#evalPw").value = "";
+    await loadSources(); await loadAgreements();
+    show("eval");
+  } catch (err) { $("#evalErr").textContent = "Das Auswertungspasswort stimmt nicht."; }
+  btn.disabled = false;
+});
+
+let SOURCES = [], SEL = { a: null, b: null }, FILTER = "all", AGREE = [];
+async function loadSources() {
+  SOURCES = [];
+  for (const code of storedCodes()) {
+    try { const r = await readCode(code, PRIV); SOURCES.push({ key: code.slice(4, 24), code, r }); } catch (e) { /* fremder oder beschädigter Code */ }
+  }
+  SOURCES.sort((x, y) => (x.r.created || 0) - (y.r.created || 0));
+  const keys = SOURCES.map((s) => s.key);
+  if (!keys.includes(SEL.a)) SEL.a = keys[0] || null;
+  if (!keys.includes(SEL.b) || SEL.b === SEL.a) {
+    // Partner automatisch finden: wessen Name zum "partner" von A passt
+    const A0 = SOURCES.find((s) => s.key === SEL.a);
+    const match = A0 && SOURCES.find((s) => s.key !== SEL.a && s.r.name.toLowerCase() === (A0.r.partner || "").toLowerCase());
+    SEL.b = match ? match.key : (keys.find((k) => k !== SEL.a) || null);
+  }
+}
+async function loadAgreements() {
+  AGREE = [];
+  const raw = store.get("pf.verabredungen");
+  if (raw) { try { AGREE = JSON.parse(await openBox(JSON.parse(raw), EVALKEY)); } catch (e) { AGREE = []; } }
+}
+async function saveAgreements() { store.set("pf.verabredungen", JSON.stringify(await sealBox(JSON.stringify(AGREE), EVALKEY))); }
+
+async function addCodesFrom(text) {
+  const codes = findCodes(text);
+  if (!codes.length) { $("#codeErr").textContent = "Kein Antwortcode gefunden."; return; }
+  let ok = 0;
+  for (const c of codes) { try { await readCode(c, PRIV); addStoredCode(c); ok++; } catch (e) {} }
+  $("#codeErr").textContent = ok ? "" : "Dieser Code passt nicht zu diesem Fragebogen.";
+  $("#codeIn").value = "";
+  await loadSources(); renderEval();
+}
+$("#codeAdd").addEventListener("click", () => addCodesFrom($("#codeIn").value));
+$("#codeFile").addEventListener("change", async (e) => { const f = e.target.files[0]; if (f) await addCodesFrom(await f.text()); e.target.value = ""; });
+$("#pickA").addEventListener("change", (e) => { SEL.a = e.target.value || null; renderEval(); });
+$("#pickB").addEventListener("change", (e) => { SEL.b = e.target.value || null; renderEval(); });
+
+function renderSources() {
+  const box = $("#sources");
+  if (!SOURCES.length) { box.innerHTML = `<p class="muted">Noch keine Antwortcodes auf diesem Gerät.</p>`; }
+  else box.innerHTML = SOURCES.map((s) => `<div class="src"><div><strong>${esc(s.r.name)}</strong> <small>über ${esc(s.r.partner)} · ${fmtDate(s.r.created)} · ${Object.keys(s.r.answers).length} Antworten${s.r.private ? ` · ${s.r.private} privat` : ""}</small></div>
+    <button class="btn ghost small" type="button" data-del="${esc(s.key)}">Entfernen</button></div>`).join("");
+  box.querySelectorAll("[data-del]").forEach((b) => {
+    let armed = false;
+    b.addEventListener("click", async () => {
+      if (!armed) { armed = true; b.textContent = "Sicher?"; setTimeout(() => { armed = false; b.textContent = "Entfernen"; }, 4000); return; }
+      const s = SOURCES.find((x) => x.key === b.dataset.del);
+      store.set("pf.codes", JSON.stringify(storedCodes().filter((c) => c !== s.code)));
+      await loadSources(); renderEval();
+    });
+  });
+  const opts = (sel) => `<option value="">– niemand –</option>` + SOURCES.map((s) => `<option value="${esc(s.key)}"${s.key === sel ? " selected" : ""}>${esc(s.r.name)} (${fmtDate(s.r.created)})</option>`).join("");
+  $("#pickA").innerHTML = opts(SEL.a); $("#pickB").innerHTML = opts(SEL.b);
+  $("#pickers").hidden = !SOURCES.length;
+}
+
+function renderEval() {
+  renderSources();
+  const out = $("#evalOut");
+  const sa = SOURCES.find((s) => s.key === SEL.a), sb = SOURCES.find((s) => s.key === SEL.b && s.key !== SEL.a);
+  if (!sa && !sb) { out.innerHTML = ""; return; }
+  const a = sa ? sa.r : null, b = sb ? sb.r : null;
+  const nA = a ? a.name : "A", nB = b ? b.name : (a ? a.partner : "B");
+  const get = (r, id) => r && r.answers[id] || {};
+  const scaleItems = Object.values(ITEMS).filter((it) => it.type === "scale");
+
+  // Kennzahlen
+  const rows = scaleItems.map((it) => {
+    const x = get(a, it.id), y = get(b, it.id);
+    return { it, a: x.own ?? null, b: y.own ?? null, ga: x.guess ?? null, gb: y.guess ?? null };
+  });
+  const both = rows.filter((r) => r.a != null && r.b != null);
+  const agree = both.length ? Math.round(both.filter((r) => Math.abs(r.a - r.b) <= 2).length / both.length * 100) : null;
+  const know = (pairs) => pairs.length ? Math.round(100 - pairs.reduce((s, [g, v]) => s + Math.abs(g - v), 0) / pairs.length / 9 * 100) : null;
+  const kA = know(rows.filter((r) => r.ga != null && r.b != null).map((r) => [r.ga, r.b]));
+  const kB = know(rows.filter((r) => r.gb != null && r.a != null).map((r) => [r.gb, r.a]));
+  const sat = (id) => `<div class="pair"><b class="a">${valLabel(ITEMS[id], get(a, id).own ?? null)}</b><b class="b">${valLabel(ITEMS[id], get(b, id).own ?? null)}</b></div>`;
+
+  const legend = `<div class="legend"><span><i class="dot" style="background:var(--a)"></i>${esc(nA)}</span><span><i class="dot" style="background:var(--b)"></i>${esc(nB)}</span>
+    <span><i class="ring" style="border-color:var(--b)"></i>${esc(nB)}s Vermutung über ${esc(nA)}</span><span><i class="ring" style="border-color:var(--a)"></i>${esc(nA)}s Vermutung über ${esc(nB)}</span></div>`;
+  const itemRow = (r) => {
+    const d = r.a != null && r.b != null ? Math.abs(r.a - r.b) : null;
+    return `<div class="item"><div class="lbl"><small>${r.it.id}</small>${esc(r.it.short)}</div>${plot(r, nA, nB)}<span class="diff ${d == null ? "" : d <= 1 ? "d0" : d <= 3 ? "d1" : "d2"}" title="Unterschied">${d == null ? "–" : "Δ " + d}</span></div>`;
+  };
+  const top = both.filter((r) => Math.abs(r.a - r.b) >= 3).sort((x, y) => Math.abs(y.a - y.b) - Math.abs(x.a - x.b)).slice(0, 8);
+  const surpA = rows.filter((r) => r.ga != null && r.b != null && Math.abs(r.ga - r.b) >= 3).sort((x, y) => Math.abs(y.ga - y.b) - Math.abs(x.ga - x.b)).slice(0, 5);
+  const surpB = rows.filter((r) => r.gb != null && r.a != null && Math.abs(r.gb - r.a) >= 3).sort((x, y) => Math.abs(y.gb - y.a) - Math.abs(x.gb - x.a)).slice(0, 5);
+  const filt = (r) => FILTER === "all" ? true : FILTER === "diff" ? (r.a != null && r.b != null && Math.abs(r.a - r.b) >= 3)
+    : ((r.ga != null && r.b != null && Math.abs(r.ga - r.b) >= 3) || (r.gb != null && r.a != null && Math.abs(r.gb - r.a) >= 3));
+
+  const wishCol = (owner, other, nOwner, nOther, cls) => {
+    const own = get(owner, "44").w || [], guess = get(other, "45").w || [];
+    const list = (arr, rateLabel) => arr.filter((w) => w && w.t).length
+      ? arr.map((w, k) => w && w.t ? `<div class="wishline"><p>${k + 1}. ${esc(w.t)}</p>${w.r != null ? `<span class="pill" title="${esc(rateLabel)}">${w.r}/10</span>` : ""}</div>` : "").join("")
+      : `<p class="empty">keine Angabe</p>`;
+    return `<div class="ans ${cls}"><strong>Wünsche von ${esc(nOwner)}</strong><div class="wishes">${list(own, nOwner + " glaubt, " + nOther + " erfüllt ihn gern")}</div>
+      <hr style="border:0;border-top:1px dashed var(--line);width:100%">
+      <span class="muted" style="font-size:.88rem">${esc(nOther)} hat vermutet:</span><div class="wishes">${list(guess, nOther + " erfüllt ihn gern")}</div></div>`;
+  };
+  const openIds = ["47", "49", "50", "51", "52", "53"];
+  const openBlock = openIds.map((id) => {
+    const t = (r) => { const v = get(r, id).text; return v ? `<p>${esc(v)}</p>` : `<p class="empty">${r ? "keine Angabe" : "–"}</p>`; };
+    return `<div class="openq"><div class="lbl"><strong style="color:var(--orange);font-family:var(--serif)">${id}</strong> ${md(ITEMS[id].text)}</div>
+      <div class="cols"><div class="ans a"><span class="who a"><i></i>${esc(nA)}</span>${t(a)}</div><div class="ans b"><span class="who b"><i></i>${esc(nB)}</span>${t(b)}</div></div></div>`;
+  }).join("");
+
+  out.innerHTML = `
+    <div class="banner noprint" style="margin:0"><strong>Bevor ihr loslegt:</strong> Unterschiede sind positiv (Gebot 2). Und wenn euch eine Antwort frustriert oder schockiert: nicht sofort reagieren, Bedenkzeit nehmen, später darüber sprechen (Gebot 7).</div>
+    <section class="card">
+      <div class="row" style="justify-content:space-between">
+        <div><p class="eyebrow">Auswertung</p><h2 style="font-size:2rem;color:var(--navy)"><span style="color:var(--a)">${esc(nA)}</span> &amp; <span style="color:var(--b)">${esc(nB)}</span></h2>
+        <p class="muted">${a ? esc(nA) + ": " + fmtDate(a.created) : ""}${a && b ? " · " : ""}${b ? esc(nB) + ": " + fmtDate(b.created) : ""}${!b ? " · zweiter Antwortcode fehlt noch" : ""}</p></div>
+        <button class="btn small noprint" type="button" id="printBtn">Drucken / PDF</button>
+      </div>
+      <div class="stats" style="margin-top:18px">
+        <div class="stat">${sat("1")}<span>Zufrieden mit der Menge (1)</span></div>
+        <div class="stat">${sat("2")}<span>Zufrieden mit der Qualität (2)</span></div>
+        <div class="stat">${sat("3")}<span>Bereitschaft, sich einzubringen (3)</span></div>
+        <div class="stat"><b>${agree == null ? "–" : agree + " %"}</b><span>Übereinstimmung (höchstens 2 Punkte auseinander)</span></div>
+        <div class="stat"><b style="color:var(--a)">${kA == null ? "–" : kA + " %"}</b><span>So gut kennt ${esc(nA)} ${esc(nB)}</span></div>
+        <div class="stat"><b style="color:var(--b)">${kB == null ? "–" : kB + " %"}</b><span>So gut kennt ${esc(nB)} ${esc(nA)}</span></div>
+      </div>
+    </section>
+    ${a && b ? `<section class="card"><h2>Eure spannendsten Unterschiede</h2><p class="muted">Hier liegt ihr mindestens 3 Punkte auseinander. Genau hier lohnt sich das Gespräch.</p>${legend}
+      <div class="toplist" style="margin-top:8px">${top.length ? top.map(itemRow).join("") : `<p class="muted" style="padding:12px 0">Keine großen Unterschiede – ihr tickt erstaunlich ähnlich.</p>`}</div></section>
+    <section class="card"><h2>Überraschungen</h2><p class="muted">Wo die Vermutung über den anderen am weitesten danebenlag.</p>
+      <div class="cols" style="margin-top:12px">
+        <div class="ans a"><strong>${esc(nA)} hat ${esc(nB)} falsch eingeschätzt</strong>${surpA.length ? surpA.map((r) => `<p>${esc(r.it.short)}: vermutet <strong>${valLabel(r.it, r.ga)}</strong>, tatsächlich <strong>${valLabel(r.it, r.b)}</strong></p>`).join("") : `<p class="empty">Nichts Großes – gut beobachtet!</p>`}</div>
+        <div class="ans b"><strong>${esc(nB)} hat ${esc(nA)} falsch eingeschätzt</strong>${surpB.length ? surpB.map((r) => `<p>${esc(r.it.short)}: vermutet <strong>${valLabel(r.it, r.gb)}</strong>, tatsächlich <strong>${valLabel(r.it, r.a)}</strong></p>`).join("") : `<p class="empty">Nichts Großes – gut beobachtet!</p>`}</div>
+      </div></section>` : ""}
+    <section class="card"><h2>Alle Antworten</h2>
+      <div class="chips noprint" role="group" aria-label="Filter">
+        <button class="chip" type="button" data-f="all" aria-pressed="${FILTER === "all"}">Alle</button>
+        <button class="chip" type="button" data-f="diff" aria-pressed="${FILTER === "diff"}">Unterschied ab 3</button>
+        <button class="chip" type="button" data-f="guess" aria-pressed="${FILTER === "guess"}">Falsch vermutet</button>
+      </div>${legend}
+      ${C.sections.map((s) => { const rs = rows.filter((r) => s.items.includes(r.it) && filt(r)); return rs.length ? `<div class="secblock"><h3>${esc(s.title)}</h3><div>${rs.map(itemRow).join("")}</div></div>` : ""; }).join("") || `<p class="muted">Keine Antworten für diesen Filter.</p>`}
+    </section>
+    <section class="card"><h2>Wünsche</h2><p class="muted">Die drei wichtigsten Wünsche – und was der andere vermutet hat. Die Zahl zeigt, wie gern der Wunsch erfüllt wird.</p>
+      <div class="cols" style="margin-top:12px">${wishCol(a, b, nA, nB, "a")}${wishCol(b, a, nB, nA, "b")}</div></section>
+    <section class="card"><h2>Rollen, Spiele, An und Ab</h2><div style="margin-top:12px">${openBlock}</div></section>
+    <section class="card"><h2>Eure Verabredungen</h2><p class="muted">„Ich bin bereit, das zu geben oder auszuprobieren.“ Haltet fest, worauf ihr euch einigt – achtet auf eine Win-win-Situation.</p>
+      <div class="agree" style="margin-top:12px"><ul id="agreeList">${AGREE.map((x, i) => `<li><span>${esc(x.t)}</span><button class="btn ghost small noprint" type="button" data-rm="${i}">Entfernen</button></li>`).join("")}</ul>
+      <div class="row noprint"><input type="text" id="agreeIn" placeholder="Wir verabreden …" style="flex:1;min-width:200px"><button class="btn primary small" type="button" id="agreeAdd">Hinzufügen</button></div></div></section>
+    <section class="card"><h2>Letzte Aufgabe</h2><p style="margin-top:8px">${md(C.letzte_aufgabe)}</p></section>
+    <p class="quote">„${esc(C.quote)}“</p>`;
+
+  out.querySelectorAll("[data-f]").forEach((bt) => bt.addEventListener("click", () => { FILTER = bt.dataset.f; renderEval(); }));
+  $("#printBtn").addEventListener("click", () => window.print());
+  const addAgree = async () => { const v = $("#agreeIn").value.trim(); if (!v) return; AGREE.push({ t: v, at: Date.now() }); await saveAgreements(); renderEval(); setTimeout(() => $("#agreeIn") && $("#agreeIn").focus(), 0); };
+  $("#agreeAdd").addEventListener("click", addAgree);
+  $("#agreeIn").addEventListener("keydown", (e) => { if (e.key === "Enter") addAgree(); });
+  out.querySelectorAll("[data-rm]").forEach((bt) => bt.addEventListener("click", async () => { AGREE.splice(+bt.dataset.rm, 1); await saveAgreements(); renderEval(); }));
+}
+// Punktdiagramm: obere Spur A (mit Bs Vermutung über A), untere Spur B (mit As Vermutung über B)
+function plot(r, nA, nB) {
+  const x = (v) => `calc(10px + (100% - 20px) * ${(v - 1) / 9})`;
+  let h = `<div class="plot" role="img" aria-label="${esc(nA)}: ${valLabel(r.it, r.a)}, ${esc(nB)}: ${valLabel(r.it, r.b)}">`;
+  for (let v = 1; v <= 10; v++) h += `<i class="tick" style="left:${x(v)}"></i>`;
+  h += `<i class="lane la"></i><i class="lane lb"></i>`;
+  if (r.gb != null) h += `<i class="r b" style="left:${x(r.gb)};top:16px" title="${esc(nB)} vermutet: ${valLabel(r.it, r.gb)}"></i>`;
+  if (r.a != null) h += `<i class="m a" style="left:${x(r.a)};top:16px" title="${esc(nA)}: ${valLabel(r.it, r.a)}">${esc(initial(nA))}</i>`;
+  else h += `<span class="na" style="top:8px">${esc(nA)}: –</span>`;
+  if (r.ga != null) h += `<i class="r a" style="left:${x(r.ga)};top:40px" title="${esc(nA)} vermutet: ${valLabel(r.it, r.ga)}"></i>`;
+  if (r.b != null) h += `<i class="m b" style="left:${x(r.b)};top:40px" title="${esc(nB)}: ${valLabel(r.it, r.b)}">${esc(initial(nB))}</i>`;
+  else h += `<span class="na" style="top:32px">${esc(nB)}: –</span>`;
+  return h + "</div>";
+}
+</script>
+</body>
+</html>

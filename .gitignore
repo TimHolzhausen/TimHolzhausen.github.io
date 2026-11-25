@@ -1,1 +1,4 @@
 .playwright-mcp/
+
+# Partner-Fragebogen: Klartext und Schlüssel nie pushen
+fragebogen/_privat/
