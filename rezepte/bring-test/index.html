@@ -59,6 +59,22 @@ ol { margin: 0; padding-left: 1.2em; color: var(--muted); }
       <a href="https://www.getbring.com">Bring! Einkaufsliste App für iPhone und Android</a>
     </div>
   </section>
+
+  <h1 style="font-size:1.25rem;margin-top:10px">Runde 2</h1>
+  <p>Gleiche Seite B, aber als <strong>reiner Text</strong> ausgeliefert (so, wie es ein Supabase-Server täte). Zutaten: Kartoffeln, Paprika, Feta, Schmand, Gurke, Kirschtomaten.</p>
+
+  <section class="card">
+    <h2>E · Bring-Link, Seite B als Text</h2>
+    <a class="btn" id="btnE">E in Bring öffnen</a>
+  </section>
+
+  <section class="card">
+    <h2>F · Bring-Widget, Seite B als Text</h2>
+    <small>Der Knopf erscheint hier, wenn das Widget lädt.</small>
+    <div id="widgetF" data-bring-import="" data-bring-language="de" data-bring-theme="light" data-bring-base-quantity="4" data-bring-requested-quantity="4" style="display:none">
+      <a href="https://www.getbring.com">Bring! Einkaufsliste App für iPhone und Android</a>
+    </div>
+  </section>
 </main>
 <script>
 const base = new URL(".", location.href).href;
@@ -72,6 +88,10 @@ document.getElementById("btnC").href = deeplink(urlC);
 document.getElementById("seeC").href = urlC;
 // D: Widget für Seite A
 document.getElementById("widget").dataset.bringImport = base + "a-mikrodaten.html";
+// E/F: dieselbe Seite B, aber von raw.githubusercontent.com (Content-Type text/plain, wie bei Supabase)
+const rawB = "https://raw.githubusercontent.com/TimHolzhausen/TimHolzhausen.github.io/main/rezepte/bring-test/b-jsonld.html";
+document.getElementById("btnE").href = deeplink(rawB);
+document.getElementById("widgetF").dataset.bringImport = rawB;
 const s = document.createElement("script"); s.async = true; s.src = "https://platform.getbring.com/widgets/import.js"; document.head.appendChild(s);
 </script>
 </body>
