@@ -86,10 +86,14 @@ nav.tabs button[aria-current="page"] { color: var(--accent); }
 .stepper span { min-width: 2.6em; text-align: center; font-weight: 700; }
 
 /* Editor */
-.irow { display: grid; grid-template-columns: 4.6em 5.2em minmax(0, 1fr) auto; gap: 6px; align-items: center; }
-.irow select.cat { grid-column: 3 / 4; font-size: .82rem; padding: 6px 8px; }
-.irow .rm { grid-row: 1; grid-column: 4; }
-@media (max-width: 520px) { .irow { grid-template-columns: 4.2em 4.6em minmax(0, 1fr) auto; } }
+/* Zutatenzeile: breit = Menge | Einheit | Zutat | ✕, darunter Kategorie; schmal = Zutat | ✕, darunter Menge | Einheit | Kategorie */
+.irow { display: grid; grid-template-columns: 4.6em 6.4em minmax(0, 1fr) auto; grid-template-areas: "qty unit name rm" ". . cat ."; gap: 6px; align-items: center;
+  padding-bottom: 10px; border-bottom: 1px dashed var(--line); }
+.irow .qty { grid-area: qty; } .irow .unit { grid-area: unit; } .irow .name { grid-area: name; } .irow .rm { grid-area: rm; }
+.irow .cat { grid-area: cat; font-size: .82rem; padding: 6px 8px; }
+@media (max-width: 560px) {
+  .irow { grid-template-columns: 4.4em 6.2em minmax(0, 1fr) auto; grid-template-areas: "name name name rm" "qty unit cat cat"; }
+}
 .imgbox { display: flex; gap: 12px; align-items: center; }
 .imgbox .thumb { width: 96px; height: 96px; }
 .toast { position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom)); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 12px; font-size: .9rem; z-index: 20; opacity: 0; transition: opacity .2s; pointer-events: none; }
@@ -148,7 +152,8 @@ const DEFAULT_SETTINGS = {
 };
 // Kategorie aus dem Zutatennamen raten (nur Vorschlag, im Editor änderbar)
 const CAT_HINTS = [
-  [/hack|fleisch|schnitzel|hähnchen|huhn|pute|rind|schwein|speck|schinken|wurst|lachs|fisch|thunfisch|garnele|gulasch/i, "Fleisch & Fisch"],
+  // "gehackte Tomaten" ist kein Fleisch: "hack" nur am Wortanfang oder als Hackfleisch
+  [/hackfleisch|\bhack\b|fleisch|schnitzel|hähnchen|huhn|pute|rinder|schwein|speck|schinken|wurst|lachs|fisch|thunfisch|garnele|gulasch/i, "Fleisch & Fisch"],
   [/milch|sahne|butter|käse|quark|joghurt|schmand|crème|creme|ei(er)?\b|mozzarella|parmesan|feta|frischkäse/i, "Milch & Eier"],
   [/brot|brötchen|toast|baguette|wrap|tortilla|blätterteig|pizzateig/i, "Brot & Backwaren"],
   [/nudel|spaghetti|pasta|reis|couscous|bulgur|quinoa|haferflocken|linsen|lasagne/i, "Nudeln, Reis & Getreide"],
@@ -165,6 +170,18 @@ const guessCat = (name) => (CAT_HINTS.find(([re]) => re.test(name)) || [, "Sonst
 const $ = (s, el = document) => el.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const fmtQty = (q) => q == null || q === "" ? "" : (Math.round(q * 100) / 100).toLocaleString("de-DE");
+// Anzeige umgerechneter Mengen: Gewichte/Volumen als sinnvoll gerundete Zahl, sonst Brüche (¾ Bund, 1½ Dosen)
+const FRACS = [[0, ""], [0.25, "¼"], [1 / 3, "⅓"], [0.5, "½"], [2 / 3, "⅔"], [0.75, "¾"], [1, ""]];
+function niceQty(q, unit) {
+  if (q == null) return "";
+  if (["g", "ml"].includes(unit)) return (q >= 100 ? Math.round(q / 5) * 5 : Math.round(q)).toLocaleString("de-DE");
+  if (["kg", "l"].includes(unit)) return (Math.round(q * 100) / 100).toLocaleString("de-DE");
+  let whole = Math.floor(q), rest = q - whole;
+  const [v, sym] = FRACS.reduce((best, f) => Math.abs(f[0] - rest) < Math.abs(best[0] - rest) ? f : best);
+  if (v === 1) { whole++; return String(whole); }
+  if (Math.abs(v - rest) > 0.05) return fmtQty(q);   // passt zu keinem Bruch → Dezimalzahl
+  return (whole ? whole : "") + sym || "0";
+}
 function toast(t) { const el = $("#toast"); el.textContent = t; el.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove("show"), 2600); }
 const parseQty = (s) => {
   s = String(s || "").trim().replace(",", ".").replace("½", ".5").replace("¼", ".25").replace("¾", ".75");
@@ -183,7 +200,7 @@ function parseIngredientLine(line) {
   const unitMap = { el: "EL", tl: "TL", prise: "Prise", prisen: "Prise", stück: "Stück", stk: "Stück", bund: "Bund", dose: "Dose", dosen: "Dose", becher: "Becher", packung: "Packung", packungen: "Packung", pck: "Packung", zehe: "Zehe", zehen: "Zehe", scheibe: "Scheibe", scheiben: "Scheibe", glas: "Glas", gläser: "Glas", tasse: "Tasse", tassen: "Tasse" };
   const unit = unitMap[unitRaw] || (m[2] ? unitRaw : "");
   const name = m[3].trim();
-  return { qty: parseQty(m[1]), unit, name, cat: guessCat(name) };
+  return { qty: parseQty(m[1]), unit, name, cat: unit === "Dose" || unit === "Glas" ? "Konserven & Gläser" : guessCat(name) };
 }
 async function resizeImage(file, max = 1600) {
   const bmp = await createImageBitmap(file, { imageOrientation: "from-image" });
@@ -395,7 +412,7 @@ async function renderRecipe(id) {
   let portions = r.servings;
   const ingHtml = () => (r.ingredients || []).map((i) => {
     const q = i.qty != null ? i.qty * portions / r.servings : null;
-    return `<li><span class="q">${esc([fmtQty(q), i.unit].filter(Boolean).join(" "))}</span><span>${esc(i.name)}</span></li>`;
+    return `<li><span class="q">${esc([niceQty(q, i.unit), i.unit].filter(Boolean).join(" "))}</span><span>${esc(i.name)}</span></li>`;
   }).join("") || `<li class="muted">Keine Zutaten eingetragen.</li>`;
   $("#view").innerHTML = `<div class="stack">
     ${r.image_path ? `<div class="hero" id="hero"></div>` : ""}
@@ -486,7 +503,6 @@ function renderEditor(id) {
       <select class="unit" aria-label="Einheit">${[...new Set([...UNITS, i.unit || ""])].map((u) => `<option ${u === (i.unit || "") ? "selected" : ""}>${esc(u)}</option>`).join("")}</select>
       <input class="name" placeholder="Zutat" value="${esc(i.name)}" aria-label="Zutat">
       <button type="button" class="btn ghost small rm" aria-label="Zutat entfernen">✕</button>
-      <span></span><span></span>
       <select class="cat" aria-label="Kategorie">${CATS.map((c) => `<option ${c === i.cat ? "selected" : ""}>${esc(c)}</option>`).join("")}</select>`;
     d.querySelector(".rm").onclick = () => d.remove();
     const nameEl = d.querySelector(".name"), catEl = d.querySelector(".cat");
