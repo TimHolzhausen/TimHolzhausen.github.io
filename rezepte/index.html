@@ -134,6 +134,9 @@ const SUPABASE_URL = "https://lbncpooefucucqxvifib.supabase.co";
 const SUPABASE_KEY = "sb_publishable_d2eEo3czxTozSiVCPOb90Q_nZRe4nN8";
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
 const APP_URL = location.origin + location.pathname;
+// Interner Name (Slug) der Edge Function, die die Einkaufsliste für Bring ausliefert.
+// Im Dashboard heißt sie „bring-liste“, Supabase hat ihr aber den Slug „clever-handler“ gegeben (Adresszeile).
+const BRING_FUNCTION = "clever-handler";
 
 // =====================================================================================
 // Grunddaten
@@ -834,7 +837,7 @@ function drawShopping() {
     const { data, error } = await sb.from("shopping_lists").insert({ family_id: FAMILY.id, title, items: list }).select("id").single();
     $("#toBring").disabled = false;
     if (error) return toast("Liste nicht gespeichert: " + error.message);
-    showBring(`${SUPABASE_URL}/functions/v1/bring-liste?id=${data.id}`, list.length);
+    showBring(`${SUPABASE_URL}/functions/v1/${BRING_FUNCTION}?id=${data.id}`, list.length);
   };
 }
 // Bring-Widget (offizieller Import-Knopf) + einfacher Link als Rückfalloption

@@ -1,6 +1,7 @@
-// Supabase Edge Function "bring-liste"
+// Supabase Edge Function "bring-liste" (Slug im Projekt: "clever-handler" – so steht es in der Adresse)
 // Liefert eine Einkaufsliste als Rezeptseite (schema.org/Recipe), die die Bring-App importieren kann:
-//   https://lbncpooefucucqxvifib.supabase.co/functions/v1/bring-liste?id=<UUID der Liste>
+//   https://lbncpooefucucqxvifib.supabase.co/functions/v1/clever-handler?id=<UUID der Liste>
+// Wird die Funktion neu angelegt, den Slug in rezepte/index.html (BRING_FUNCTION) anpassen.
 //
 // Einrichtung im Supabase-Dashboard: Edge Functions → "Deploy a new function" → "Via Editor",
 // Name "bring-liste", diesen Code einfügen, "Deploy". Danach in den Einstellungen der Funktion
