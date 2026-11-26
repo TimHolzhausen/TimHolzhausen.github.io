@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bring-Test C · Einkaufsliste</title>
+<meta name="robots" content="noindex">
+<style>body{font:16px/1.5 system-ui,sans-serif;max-width:640px;margin:24px auto;padding:0 16px;color:#16181d;background:#fff}</style>
+<script>
+// Variante C: Die Zutaten stehen nur in der Adresse (?d=…, Base64url-JSON) und werden per JavaScript
+// als JSON-LD und Mikrodaten eingesetzt. Klappt der Import, braucht die Rezept-App keinen Server für Bring.
+(function () {
+  var p = new URLSearchParams(location.search).get("d");
+  var data = { n: "Einkaufsliste Test C", i: ["Kein Inhalt in der Adresse"] };
+  try {
+    var s = p.replace(/-/g, "+").replace(/_/g, "/");
+    data = JSON.parse(decodeURIComponent(escape(atob(s + "===".slice((s.length + 3) % 4)))));
+  } catch (e) { /* Beispieldaten */ }
+  var ld = document.createElement("script");
+  ld.type = "application/ld+json";
+  ld.textContent = JSON.stringify({ "@context": "https://schema.org", "@type": "Recipe", name: data.n, recipeYield: String(data.y || 4),
+    image: "https://timholzhausen.github.io/ncodeSheets/favicon.svg", recipeIngredient: data.i });
+  document.head.appendChild(ld);
+  window.__data = data;
+})();
+</script>
+</head>
+<body>
+<div itemscope itemtype="http://schema.org/Recipe">
+  <h1 itemprop="name" id="name"></h1>
+  <p>Bring-Test C: dynamisch per JavaScript.</p>
+  <ul id="list"></ul>
+</div>
+<script>
+document.getElementById("name").textContent = window.__data.n;
+var ul = document.getElementById("list");
+window.__data.i.forEach(function (t) { var li = document.createElement("li"); li.setAttribute("itemprop", "ingredients"); li.textContent = t; ul.appendChild(li); });
+</script>
+</body>
+</html>

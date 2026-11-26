@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bring-Test</title>
+<meta name="robots" content="noindex">
+<style>
+:root { --ink: #16181d; --muted: #5d6470; --line: #dde0e6; --bg: #f4f5f7; --card: #fff; --pen: #2346c8; color-scheme: light dark; }
+@media (prefers-color-scheme: dark) { :root { --ink: #e8eaee; --muted: #9aa2ae; --line: #2b3039; --bg: #111318; --card: #1a1d24; --pen: #8ea6ff; } }
+* { box-sizing: border-box; }
+body { margin: 0; padding: 20px 16px 48px; font: 16px/1.5 system-ui, sans-serif; color: var(--ink); background: var(--bg); }
+main { max-width: 560px; margin: 0 auto; display: grid; gap: 14px; }
+h1 { margin: 0; font-size: 1.6rem; }
+p { margin: 0; color: var(--muted); }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: grid; gap: 10px; }
+.card h2 { margin: 0; font-size: 1.05rem; }
+.card small { color: var(--muted); }
+a.btn { display: block; text-align: center; padding: 12px; border-radius: 10px; background: var(--pen); color: #fff; font-weight: 600; text-decoration: none; }
+a.plain { color: var(--pen); font-size: .9rem; }
+ol { margin: 0; padding-left: 1.2em; color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Bring-Test</h1>
+  <p>Öffne diese Seite auf dem Handy mit installierter Bring-App. Tippe nacheinander auf die vier Knöpfe und notiere, was passiert.</p>
+  <ol>
+    <li>Öffnet sich die Bring-App?</li>
+    <li>Werden die Zutaten angezeigt (welche)?</li>
+    <li>Lassen sie sich in deine Liste übernehmen?</li>
+  </ol>
+
+  <section class="card">
+    <h2>A · statisch, Mikrodaten</h2>
+    <small>Hackfleisch, Tomaten, Zwiebeln, Spaghetti, Basilikum, Parmesan</small>
+    <a class="btn" data-page="a-mikrodaten.html">A in Bring öffnen</a>
+    <a class="plain" href="a-mikrodaten.html">Testseite A ansehen</a>
+  </section>
+
+  <section class="card">
+    <h2>B · statisch, JSON-LD</h2>
+    <small>Kartoffeln, Paprika, Feta, Schmand, Gurke, Kirschtomaten</small>
+    <a class="btn" data-page="b-jsonld.html">B in Bring öffnen</a>
+    <a class="plain" href="b-jsonld.html">Testseite B ansehen</a>
+  </section>
+
+  <section class="card">
+    <h2>C · dynamisch (Zutaten nur in der Adresse)</h2>
+    <small>Eier, Sahne, Brokkoli, Räuchertofu, Lauch</small>
+    <a class="btn" id="btnC">C in Bring öffnen</a>
+    <a class="plain" id="seeC">Testseite C ansehen</a>
+  </section>
+
+  <section class="card">
+    <h2>D · offizielles Bring-Widget (Seite A)</h2>
+    <small>Der Knopf erscheint hier, wenn das Widget lädt.</small>
+    <div id="widget" data-bring-import="" data-bring-language="de" data-bring-theme="light" data-bring-base-quantity="4" data-bring-requested-quantity="4" style="display:none">
+      <a href="https://www.getbring.com">Bring! Einkaufsliste App für iPhone und Android</a>
+    </div>
+  </section>
+</main>
+<script>
+const base = new URL(".", location.href).href;
+const deeplink = (url) => "https://api.getbring.com/rest/bringrecipes/deeplink?url=" + encodeURIComponent(url) + "&source=web&baseQuantity=4&requestedQuantity=4";
+for (const a of document.querySelectorAll("a[data-page]")) a.href = deeplink(base + a.dataset.page);
+// C: Zutaten als Base64url-JSON in der Adresse
+const c = { n: "Einkaufsliste Test C", y: 4, i: ["6 Eier", "200 ml Sahne", "1 Brokkoli", "200 g Räuchertofu", "1 Stange Lauch"] };
+const b64u = btoa(unescape(encodeURIComponent(JSON.stringify(c)))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+const urlC = base + "c-dynamisch.html?d=" + b64u;
+document.getElementById("btnC").href = deeplink(urlC);
+document.getElementById("seeC").href = urlC;
+// D: Widget für Seite A
+document.getElementById("widget").dataset.bringImport = base + "a-mikrodaten.html";
+const s = document.createElement("script"); s.async = true; s.src = "https://platform.getbring.com/widgets/import.js"; document.head.appendChild(s);
+</script>
+</body>
+</html>
