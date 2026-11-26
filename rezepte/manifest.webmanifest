@@ -1,0 +1,12 @@
+{
+  "name": "Unsere Rezepte",
+  "short_name": "Rezepte",
+  "description": "Rezepte, Wochenplan und Einkaufsliste für die Familie",
+  "lang": "de",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#faf6f0",
+  "theme_color": "#c8553d",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}
