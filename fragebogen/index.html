@@ -282,7 +282,7 @@ details.box[open] > summary::after { content: "–"; }
       <div class="card choice">
         <div class="num">1</div>
         <h2>Fragebogen ausfüllen</h2>
-        <p class="muted">Etwa 30 Minuten. Deine Antworten werden laufend verschlüsselt auf diesem Gerät gespeichert, du kannst jederzeit unterbrechen.</p>
+        <p class="muted">Etwa 30 Minuten. Deine Antworten werden laufend verschlüsselt auf diesem Gerät gespeichert, du kannst jederzeit unterbrechen – und auch nach dem Absenden noch ändern.</p>
         <button class="btn primary" type="button" data-go="fill" id="homeFillBtn">Los geht’s</button>
       </div>
       <div class="card choice">
@@ -291,6 +291,19 @@ details.box[open] > summary::after { content: "–"; }
         <p class="muted">Eure abgesendeten Antworten nebeneinander: Unterschiede, Überraschungen, Wünsche – und Platz für eure Verabredungen.</p>
         <button class="btn" type="button" data-go="eval">Zur Auswertung</button>
       </div>
+    </div>
+    <div class="card" style="margin-bottom:18px">
+      <details class="box" id="resumeBox">
+        <summary><h2>Abgesendeten Fragebogen bearbeiten</h2></summary>
+        <div style="display:grid;gap:14px;margin-top:12px">
+          <p class="muted">Auf einem anderen Gerät oder nachdem dein Entwurf gelöscht wurde: Gib deinen Vornamen und das <strong>Bearbeitungspasswort</strong> ein, das du beim Abschließen festgelegt hast. Dann kannst du alle Antworten wieder ändern und neu absenden.</p>
+          <div class="grid2">
+            <label class="field"><span>Dein Vorname</span><input type="text" id="resumeName" maxlength="40" autocomplete="off"></label>
+            <label class="field"><span>Bearbeitungspasswort</span><input type="password" id="resumePw" autocomplete="current-password"></label>
+          </div>
+          <div class="row"><button class="btn primary" type="button" id="resumeBtn">Fragebogen öffnen</button><span class="err" id="resumeErr" role="status"></span></div>
+        </div>
+      </details>
     </div>
     <div class="card">
       <details class="box" open>
@@ -415,6 +428,32 @@ async function readCode(code, priv) {
   return JSON.parse(dec.decode(await pipe(data, new DecompressionStream("deflate-raw"))));
 }
 const findCodes = (text) => [...new Set(String(text).match(/PF1\.[A-Za-z0-9_-]{40,}/g) || [])];
+// Bearbeitungskopie: der ganze Entwurf (auch „nur für mich“), verschlüsselt mit einem eigenen Bearbeitungspasswort.
+// Liegt in derselben Tabelle als "PF1.E.<tag>.<daten>". Der tag (PBKDF2 aus Vorname + Passwort) macht die Kopie
+// auffindbar, ohne Name oder Passwort preiszugeben. Die Auswertung blendet diese Zeilen aus.
+const EDIT_PREFIX = "PF1.E.";
+async function pbkdf2Bits(text, salt) {
+  const base = await crypto.subtle.importKey("raw", enc.encode(text), "PBKDF2", false, ["deriveBits"]);
+  return new Uint8Array(await crypto.subtle.deriveBits({ name: "PBKDF2", salt, iterations: VAULT.iter, hash: "SHA-256" }, base, 256));
+}
+async function editTag(name, pw) {
+  const bits = await pbkdf2Bits(name.trim().toLowerCase() + "\n" + pw, enc.encode("pf-bearbeitung-v1"));
+  return [...bits.slice(0, 12)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+const aesKey = (rawB64, use) => crypto.subtle.importKey("raw", ub64(rawB64), "AES-GCM", false, use);
+async function sealEdit(draft, E) {                        // E: { tag, salt, k } – k = AES-Schlüssel aus dem Passwort
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const data = await pipe(enc.encode(JSON.stringify(draft)), new CompressionStream("deflate-raw"));
+  const ct = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv }, await aesKey(E.k, ["encrypt"]), data));
+  const all = new Uint8Array(28 + ct.length); all.set(ub64(E.salt)); all.set(iv, 16); all.set(ct, 28);
+  return EDIT_PREFIX + E.tag + "." + b64u(all);
+}
+async function openEdit(code, pw) {
+  const all = ub64u(code.slice(code.lastIndexOf(".") + 1)), salt = all.slice(0, 16);
+  const k = b64(await pbkdf2Bits(pw, salt));
+  const data = new Uint8Array(await crypto.subtle.decrypt({ name: "AES-GCM", iv: all.slice(16, 28) }, await aesKey(k, ["decrypt"]), all.slice(28)));
+  return { draft: JSON.parse(dec.decode(await pipe(data, new DecompressionStream("deflate-raw")))), salt: b64(salt), k };
+}
 const sha256hex = async (s) => [...new Uint8Array(await crypto.subtle.digest("SHA-256", enc.encode(s)))].map((b) => b.toString(16).padStart(2, "0")).join("");
 
 // =====================================================================================
@@ -430,16 +469,35 @@ async function sb(path, opts = {}) {
   if (!r.ok) { let m = text; try { m = JSON.parse(text).message || text; } catch (e) {} throw new Error(m || "HTTP " + r.status); }
   return text ? JSON.parse(text) : null;
 }
+// Legt eine Zeile an und gibt ihre ID zurück (für späteres Ersetzen per Löschmerkmal)
 async function uploadCode(code, tok) {
-  const body = { code, del_hash: await sha256hex(tok) };
-  try { await sb("antworten", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify(body) }); }
+  const ins = (body) => sb("antworten?select=id", { method: "POST", headers: { Prefer: "return=representation" }, body: JSON.stringify(body) });
+  let rows;
+  try { rows = await ins({ code, del_hash: await sha256hex(tok) }); }
   catch (e) {
     if (!/del_hash/.test(e.message)) throw e;     // ältere Tabelle ohne Löschspalte
-    await sb("antworten", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ code }) });
+    rows = await ins({ code });
   }
+  return rows && rows[0] ? rows[0].id : null;
 }
-const fetchServerCodes = () => sb("antworten?select=id,code,created_at&order=created_at.asc&limit=1000");
-const deleteServerCode = (id, tok) => sb("rpc/antwort_loeschen", { method: "POST", body: JSON.stringify({ p_id: id, p_token: tok }) });
+const fetchServerCodes = () => sb("antworten?select=id,code,created_at&code=not.like." + EDIT_PREFIX + "*&order=created_at.asc&limit=1000");
+const fetchEditCopies = (tag) => sb("antworten?select=id,code,created_at&code=like." + EDIT_PREFIX + tag + ".*&order=created_at.desc&limit=5");
+// Alte Fassung entfernen, nachdem die neue sicher abgelegt ist. Fehler sind nicht schlimm: die Auswertung zeigt ohnehin die neueste.
+async function removeOld(ref) {
+  if (!ref || ref.id == null || !ref.tok) return;
+  try { await deleteServerCode(ref.id, ref.tok); } catch (e) { console.warn("Alte Fassung nicht gelöscht:", e.message); }
+}
+// Bearbeitungskopie neu ablegen (Entwurf ohne Schlüsselmaterial), danach die alte löschen
+async function saveEditCopy() {
+  const E = D.edit, tok = b64u(crypto.getRandomValues(new Uint8Array(16)));
+  const { edit, sentCode, ...rest } = D;
+  const code = await sealEdit({ ...rest, editTok: tok }, E);
+  if (code.length > 19900) throw new Error("Der Entwurf ist zu groß für die Bearbeitungskopie.");
+  const id = await uploadCode(code, tok);
+  const old = E.ref; E.ref = { id, tok }; save();
+  if (old && old.id !== id) await removeOld(old);
+}
+function deleteServerCode(id, tok) { return sb("rpc/antwort_loeschen", { method: "POST", body: JSON.stringify({ p_id: id, p_token: tok }) }); }
 
 // =====================================================================================
 // Helfer
@@ -618,9 +676,11 @@ function renderSection() {
   const secs = phaseSections(D.phase);
   D.sec = Math.max(0, Math.min(secs.length - 1, D.sec));
   const s = secs[D.sec];
-  const intro = D.phase === 1
+  const fromEval = D.phase === 1 && D.sec === 0 && D.fromEval
+    ? `<div class="banner blue">Aus der Auswertung zum Bearbeiten geladen.${D.fromEval.priv ? ` ${D.fromEval.priv} „nur für mich“-${D.fromEval.priv === 1 ? "Antwort war" : "Antworten waren"} nicht abgesendet und ${D.fromEval.priv === 1 ? "fehlt" : "fehlen"} hier.` : ""} Beim erneuten Absenden wird die alte Fassung ersetzt.</div>` : "";
+  const intro = fromEval + (D.phase === 1
     ? (D.sec === 0 ? `<div class="banner">Beantworte jede Frage ehrlich für dich selbst. Mit <strong>🔓 teilen / 🔒 nur für mich</strong> legst du fest, ob eine Antwort in die Auswertung kommt.</div>` : "")
-    : (D.sec === 0 ? `<div class="banner blue">Jetzt der zweite Durchgang: Kreuze an, was <strong>${esc(P())}</strong> deiner Meinung nach antwortet. Der kleine Punkt unter einer Zahl zeigt deine eigene Antwort.</div>` : "");
+    : (D.sec === 0 ? `<div class="banner blue">Jetzt der zweite Durchgang: Kreuze an, was <strong>${esc(P())}</strong> deiner Meinung nach antwortet. Der kleine Punkt unter einer Zahl zeigt deine eigene Antwort.</div>` : ""));
   const last = D.sec === secs.length - 1;
   box.innerHTML = `<div class="sechead"><p class="eyebrow">${D.phase === 1 ? "Durchgang 1 · deine Antworten" : "Durchgang 2 · deine Einschätzung von " + esc(P())} · Teil ${D.sec + 1} von ${secs.length}</p><h2>${esc(s.title)}</h2></div>
     ${intro}${s.items.map((it) => qCard(it, D.phase)).join("")}
@@ -683,7 +743,7 @@ function renderFinish(box) {
       <p class="muted">Deine geteilten Antworten werden hier im Browser verschlüsselt und dann abgelegt. Lesen kann sie nur, wer das <strong>Auswertungspasswort</strong> kennt – auch der Server nicht, und du selbst nicht ohne das Passwort.</p>
       <div class="banner" style="margin:0">Gebot 5: Lasst mindestens einen Tag vergehen, bevor ihr gemeinsam auswertet.</div>
       <div class="row"><button class="btn accent" type="button" id="sendBtn">Verschlüsselt absenden</button><span class="saved" id="sendNote" role="status"></span></div>
-      ${D.sent ? `<p class="muted" style="font-size:.9rem">Zuletzt abgesendet: ${new Date(D.sent).toLocaleString("de-DE", { dateStyle: "long", timeStyle: "short" })}. Erneutes Absenden legt eine neue Fassung an; die Auswertung zeigt die neueste.</p>` : ""}
+      ${D.sent ? `<p class="muted" style="font-size:.9rem">Zuletzt abgesendet: ${new Date(D.sent).toLocaleString("de-DE", { dateStyle: "long", timeStyle: "short" })}. Du kannst deine Antworten weiter ändern; erneutes Absenden ersetzt diese Fassung.</p>` : ""}
       <details class="box" id="manualBox" style="margin-top:4px">
         <summary><span style="font-weight:600">Ohne Server weitergeben (Code, Link, Datei)</span></summary>
       <div class="row" style="margin-top:12px"><button class="btn small" type="button" id="mkCode">Antwortcode erzeugen</button></div>
@@ -699,9 +759,20 @@ function renderFinish(box) {
       </div>
       </details>
     </div>
+    <div class="card" style="margin-top:18px;display:grid;gap:12px">
+      <h3 style="font-size:1.2rem">Später weiter bearbeiten</h3>
+      ${D.edit ? `<p class="muted"><strong style="color:var(--good)">✓ Bearbeitungskopie aktiv.</strong> Sie wird bei jedem Absenden aktualisiert. Auf einem anderen Gerät: Startseite → „Abgesendeten Fragebogen bearbeiten“, dann <strong>${esc(D.me)}</strong> und dein Bearbeitungspasswort eingeben.</p>
+      <div class="row"><button class="btn small" type="button" id="editSave">Kopie jetzt aktualisieren</button><button class="btn ghost small" type="button" id="editOff">Bearbeitungskopie löschen</button><span class="saved" id="editNote" role="status"></span></div>`
+      : `<p class="muted">Leg ein Bearbeitungspasswort fest, dann kannst du deine Antworten auch auf einem anderen Gerät oder nach dem Löschen des Entwurfs wieder öffnen und ändern. Die Kopie enthält auch deine „nur für mich“-Antworten und lässt sich nur mit diesem Passwort öffnen – auch nicht mit dem Auswertungspasswort.</p>
+      <div class="grid2">
+        <label class="field"><span>Bearbeitungspasswort</span><input type="password" id="editPw" autocomplete="new-password"></label>
+        <label class="field"><span>Wiederholen</span><input type="password" id="editPw2" autocomplete="new-password"></label>
+      </div>
+      <div class="row"><button class="btn primary small" type="button" id="editOn">Bearbeitungskopie anlegen</button><span class="saved" id="editNote" role="status"></span></div>`}
+    </div>
     <div class="card" style="margin-top:18px;display:grid;gap:10px">
       <h3 style="font-size:1.2rem">Gerät weitergeben?</h3>
-      <p class="muted">Wenn dein Partner auf diesem Gerät ausfüllen soll: erst deine Antworten absenden, dann hier deinen Entwurf löschen.</p>
+      <p class="muted">Wenn dein Partner auf diesem Gerät ausfüllen soll: erst deine Antworten absenden, dann hier deinen Entwurf löschen. Eine Bearbeitungskopie bleibt erhalten.</p>
       <div class="row"><button class="btn small" type="button" id="wipe">Meinen Entwurf löschen</button><span class="err" id="wipeNote"></span></div>
     </div>
     <div class="navrow"><button class="btn" type="button" id="backTo2">← Zurück zu Durchgang 2</button></div>`;
@@ -710,10 +781,15 @@ function renderFinish(box) {
     const btn = $("#sendBtn"); btn.disabled = true; $("#sendNote").textContent = "Wird verschlüsselt und gesendet …";
     try {
       const res = exportResult(), c = await makeCode(res);
-      await uploadCode(c, res.tok);
+      const id = await uploadCode(c, res.tok);
       addStoredCode(c);
-      D.sent = Date.now(); save();
-      $("#sendNote").innerHTML = `<strong style="color:var(--good)">✓ Sicher abgelegt.</strong> Die Auswertung findet deine Antworten automatisch.`;
+      const oldRef = D.sentRef, oldCode = D.sentCode;
+      D.sentRef = { id, tok: res.tok }; D.sentCode = c; D.sent = Date.now(); D.fromEval = null; save();
+      if (oldRef && oldRef.id !== id) await removeOld(oldRef);                          // alte Fassung ersetzen
+      if (oldCode && oldCode !== c) store.set("pf.codes", JSON.stringify(storedCodes().filter((x) => x !== oldCode)));
+      let extra = "";
+      if (D.edit) { try { await saveEditCopy(); extra = " Bearbeitungskopie aktualisiert."; } catch (e) { extra = ` Bearbeitungskopie nicht aktualisiert (${esc(e.message)}).`; } }
+      $("#sendNote").innerHTML = `<strong style="color:var(--good)">✓ Sicher abgelegt.</strong> Die Auswertung findet deine Antworten automatisch.${extra}`;
     } catch (e) {
       console.error(e);
       $("#sendNote").innerHTML = `<span style="color:var(--danger)">Senden hat nicht geklappt (${esc(e.message)}). Nutze unten „Ohne Server weitergeben“.</span>`;
@@ -742,7 +818,66 @@ function renderFinish(box) {
     store.del("pf.entwurf"); D = { me: "", partner: "", phase: 1, sec: 0, answers: {}, started: false }; $("#homeFillBtn").textContent = "Los geht’s"; show("home");
   });
   $("#backTo2").addEventListener("click", () => { D.phase = 2; D.sec = phaseSections(2).length - 1; save(); renderFill(); });
+  // Bearbeitungskopie
+  const editNote = (t, err) => { $("#editNote").innerHTML = err ? `<span style="color:var(--danger)">${esc(t)}</span>` : t; };
+  if ($("#editOn")) $("#editOn").addEventListener("click", async () => {
+    const pw = $("#editPw").value, pw2 = $("#editPw2").value;
+    if (pw.length < 6) return editNote("Bitte mindestens 6 Zeichen.", true);
+    if (pw !== pw2) return editNote("Die beiden Passwörter sind verschieden.", true);
+    const btn = $("#editOn"); btn.disabled = true; editNote("Wird verschlüsselt und abgelegt …");
+    try {
+      const salt = crypto.getRandomValues(new Uint8Array(16));
+      D.edit = { tag: await editTag(D.me, pw), salt: b64(salt), k: b64(await pbkdf2Bits(pw, salt)) };
+      await saveEditCopy();
+      renderFill();
+    } catch (e) { D.edit = null; save(); btn.disabled = false; editNote("Das hat nicht geklappt: " + e.message, true); }
+  });
+  if ($("#editSave")) $("#editSave").addEventListener("click", async () => {
+    $("#editSave").disabled = true; editNote("Wird aktualisiert …");
+    try { await saveEditCopy(); editNote(`<strong style="color:var(--good)">✓ Aktualisiert.</strong>`); } catch (e) { editNote("Das hat nicht geklappt: " + e.message, true); }
+    $("#editSave").disabled = false;
+  });
+  if ($("#editOff")) {
+    let off = false;
+    $("#editOff").addEventListener("click", async () => {
+      if (!off) { off = true; editNote("Wirklich? Noch einmal klicken zum Löschen."); setTimeout(() => { off = false; }, 5000); return; }
+      await removeOld(D.edit.ref); D.edit = null; save(); renderFill();
+    });
+  }
 }
+
+// =====================================================================================
+// Abgesendeten Fragebogen wieder öffnen
+// =====================================================================================
+const hasLocalDraft = () => !!(D && D.started && Object.keys(D.answers || {}).length);
+let resumeArmed = false;
+$("#resumeBtn").addEventListener("click", async () => {
+  const name = $("#resumeName").value.trim(), pw = $("#resumePw").value, err = $("#resumeErr");
+  err.style.color = ""; err.textContent = "";
+  if (!name || !pw) { err.textContent = "Bitte Vorname und Bearbeitungspasswort eingeben."; return; }
+  if (hasLocalDraft() && !resumeArmed) {
+    resumeArmed = true; setTimeout(() => { resumeArmed = false; }, 6000);
+    err.textContent = `Auf diesem Gerät gibt es schon einen Entwurf von ${D.me}. Er wird ersetzt – noch einmal klicken zum Öffnen.`; return;
+  }
+  const btn = $("#resumeBtn"); btn.disabled = true; err.style.color = "var(--muted)"; err.textContent = "Wird gesucht und entschlüsselt …";
+  try {
+    const tag = await editTag(name, pw);
+    const rows = await fetchEditCopies(tag);
+    if (!rows.length) throw new Error("Keine Bearbeitungskopie gefunden. Stimmen Vorname und Bearbeitungspasswort?");
+    let got = null;
+    for (const row of rows) { try { got = { ...(await openEdit(row.code, pw)), row }; break; } catch (e) { /* andere Kopie */ } }
+    if (!got) throw new Error("Das Bearbeitungspasswort passt nicht.");
+    const d = got.draft;
+    d.edit = { tag, salt: got.salt, k: got.k, ref: { id: got.row.id, tok: d.editTok } };
+    delete d.editTok;
+    d.phase = 1; d.sec = 0; d.started = d.started || Date.now();
+    D = d; save();
+    $("#resumeName").value = ""; $("#resumePw").value = ""; err.textContent = ""; $("#resumeBox").open = false;
+    $("#homeFillBtn").textContent = "Weiter ausfüllen";
+    show("fill");
+  } catch (e) { err.style.color = ""; err.textContent = e.message; }
+  btn.disabled = false; resumeArmed = false;
+});
 
 // =====================================================================================
 // Codes sammeln (Link, Einfügen, Datei)
@@ -829,7 +964,7 @@ function renderSources() {
   const srv = SERVER.ok ? `<p class="muted" style="font-size:.88rem">✓ ${SERVER.n} verschlüsselte ${SERVER.n === 1 ? "Antwort" : "Antworten"} vom Server geladen.</p>`
     : `<p class="err" style="font-size:.88rem">Server nicht erreichbar (${esc(SERVER.msg)}). Es werden nur die Codes auf diesem Gerät gezeigt.</p>`;
   const row = (s, old) => `<div class="src"${old ? ' style="opacity:.65"' : ""}><div><strong>${esc(s.r.name)}</strong> <small>über ${esc(s.r.partner)} · ${fmtDate(s.r.created)} · ${Object.keys(s.r.answers).length} Antworten${s.r.private ? ` · ${s.r.private} privat` : ""}${s.id != null ? " · auf dem Server" : " · nur auf diesem Gerät"}${old ? " · ältere Fassung" : ""}</small></div>
-    <button class="btn ghost small" type="button" data-del="${esc(s.key)}">Löschen</button></div>`;
+    <span class="row" style="gap:6px;flex-wrap:nowrap"><button class="btn small" type="button" data-edit="${esc(s.key)}">Bearbeiten</button><button class="btn ghost small" type="button" data-del="${esc(s.key)}">Löschen</button></span></div>`;
   box.innerHTML = srv + (SOURCES.length ? SOURCES.map((s) => row(s, false)).join("") : `<p class="muted">Noch keine Antworten.</p>`)
     + (OLDER.length ? `<details style="margin-top:6px"><summary class="muted" style="cursor:pointer;font-size:.88rem">${OLDER.length} ältere ${OLDER.length === 1 ? "Fassung" : "Fassungen"}</summary><div class="sources" style="margin-top:8px">${OLDER.map((s) => row(s, true)).join("")}</div></details>` : "");
   box.querySelectorAll("[data-del]").forEach((b) => {
@@ -849,9 +984,40 @@ function renderSources() {
       await loadSources(); renderEval();
     });
   });
+  box.querySelectorAll("[data-edit]").forEach((b) => {
+    let armed = false;
+    b.addEventListener("click", () => {
+      const s = [...SOURCES, ...OLDER].find((x) => x.key === b.dataset.edit);
+      if (!s) return;
+      if (hasLocalDraft() && !armed) {
+        armed = true; b.textContent = "Entwurf ersetzen?"; b.title = `Auf diesem Gerät liegt ein Entwurf von ${D.me}. Er wird durch ${s.r.name}s abgesendete Antworten ersetzt.`;
+        setTimeout(() => { armed = false; b.textContent = "Bearbeiten"; b.title = ""; }, 4000); return;
+      }
+      D = draftFromResult(s); save();
+      $("#homeFillBtn").textContent = "Weiter ausfüllen";
+      show("fill");
+    });
+  });
   const opts = (sel) => `<option value="">– niemand –</option>` + SOURCES.map((s) => `<option value="${esc(s.key)}"${s.key === sel ? " selected" : ""}>${esc(s.r.name)} (${fmtDate(s.r.created)})</option>`).join("");
   $("#pickA").innerHTML = opts(SEL.a); $("#pickB").innerHTML = opts(SEL.b);
   $("#pickers").hidden = !SOURCES.length;
+}
+
+// Abgesendete Antworten wieder als Entwurf ("nur für mich" fehlt, die wurde nie abgesendet)
+function draftFromResult(s) {
+  const r = s.r, answers = {};
+  for (const [id, a] of Object.entries(r.answers || {})) {
+    const o = {};
+    if (a.own != null) o.own = a.own;
+    if (a.guess != null) o.guess = a.guess;
+    if (a.text) o.text = a.text;
+    if (a.w) o.w = a.w.map((w) => ({ t: (w && w.t) || "", r: w ? w.r ?? null : null }));
+    answers[id] = o;
+  }
+  return {
+    me: r.name, partner: r.partner, phase: 1, sec: 0, answers, started: r.started || r.created, sent: r.created,
+    sentRef: s.id != null && r.tok ? { id: s.id, tok: r.tok } : null, sentCode: s.code, fromEval: { priv: r.private || 0 },
+  };
 }
 
 function renderEval() {
