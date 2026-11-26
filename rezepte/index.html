@@ -353,8 +353,8 @@ function route() {
   if (view === "rezept" && id) return renderRecipe(id);
   if (view === "neu") return renderEditor(null);
   if (view === "bearbeiten" && id) return renderEditor(id);
-  if (view === "plan") return renderSoon("Wochenplan", "plan", "Hier entsteht als Nächstes der Wochenplan: per Knopf aus euren markierten Rezepten zusammengestellt, ohne Wiederholungen, tageweise tauschbar.");
-  if (view === "einkauf") return renderSoon("Einkauf", "einkauf", "Hier kommt die Einkaufsliste aus dem Wochenplan hin – umgerechnet auf eure Personenzahl, ohne euren Vorrat, mit vegetarischem Ersatz – und der Knopf, der alles in die Bring-App schickt.");
+  if (view === "plan") return renderPlan();
+  if (view === "einkauf") return renderShopping();
   if (view === "familie") return renderFamily();
   return renderList();
 }
@@ -565,6 +565,295 @@ function renderEditor(id) {
       location.replace("#/rezept/" + saved.id);
     } catch (err) { $("#edMsg").textContent = err.message || String(err); $("#save").disabled = false; }
   };
+}
+
+// =====================================================================================
+// Wochenplan
+// =====================================================================================
+const WD = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
+const WD_SHORT = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
+const isoDate = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const fromIso = (s) => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
+const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+function mondayOf(d) { const x = new Date(d.getFullYear(), d.getMonth(), d.getDate()); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return x; }
+function weekNo(d) { const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const day = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - day); const y0 = new Date(Date.UTC(t.getUTCFullYear(), 0, 1)); return Math.ceil(((t - y0) / 864e5 + 1) / 7); }
+const fmtDay = (d) => d.toLocaleDateString("de-DE", { day: "numeric", month: "numeric" }) ;
+let WEEK = isoDate(mondayOf(new Date()));       // gerade angezeigte Woche (Montag), gilt für Plan und Einkauf
+let PLAN = null;                                  // { week_start, days: [...] }
+const recipeById = (id) => RECIPES.find((r) => r.id === id);
+
+function emptyPlan(week) {
+  const mon = fromIso(week);
+  return { week_start: week, days: WD.map((_, i) => ({ date: isoDate(addDays(mon, i)), recipe_id: null, servings: settings().persons || 4, locked: false })) };
+}
+async function loadPlan(week) {
+  const { data, error } = await sb.from("meal_plans").select("week_start, days").eq("family_id", FAMILY.id).eq("week_start", week).maybeSingle();
+  if (error) toast("Plan konnte nicht geladen werden: " + error.message);
+  const p = data && Array.isArray(data.days) && data.days.length === 7 ? data : emptyPlan(week);
+  // gelöschte Rezepte aus dem Plan entfernen
+  p.days.forEach((d) => { if (d.recipe_id && !recipeById(d.recipe_id)) d.recipe_id = null; });
+  return p;
+}
+let planTimer = 0;
+function savePlan() {
+  clearTimeout(planTimer);
+  const p = PLAN;
+  planTimer = setTimeout(async () => {
+    const { error } = await sb.from("meal_plans").upsert({ family_id: FAMILY.id, week_start: p.week_start, days: p.days });
+    if (error) toast("Plan nicht gespeichert: " + error.message);
+  }, 400);
+}
+// Rezepte der letzten drei Wochen (nicht wiederholen)
+async function recentRecipeIds(week) {
+  const from = isoDate(addDays(fromIso(week), -21));
+  const { data } = await sb.from("meal_plans").select("week_start, days").eq("family_id", FAMILY.id).gte("week_start", from).lt("week_start", week);
+  return new Set((data || []).flatMap((p) => (p.days || []).map((d) => d.recipe_id)).filter(Boolean));
+}
+// Regeln + Zufall: unter der Woche lieber schnell, am Wochenende darf es aufwendiger sein,
+// nichts doppelt in der Woche, Gerichte der letzten Wochen nur notfalls.
+function pickRecipe(dayIdx, usedIds, recent, prevId) {
+  const pool = RECIPES.filter((r) => r.for_plan);
+  if (!pool.length) return null;
+  const s = settings(), vegShare = (s.vegetarians || 0) / (s.persons || 1), weekend = dayIdx >= 5;
+  const weights = pool.map((r) => {
+    if (usedIds.has(r.id)) return 0;
+    let w = recent.has(r.id) ? 0.12 : 1;
+    const m = r.prep_minutes;
+    if (m) {
+      if (!weekend && m <= 30) w *= 2;
+      if (!weekend && m > 60) w *= 0.35;
+      if (weekend && m > 45) w *= 1.6;
+    }
+    if (vegShare > 0 && r.vegetarian) w *= 1 + vegShare;     // mehr vegetarische Gerichte, je mehr Vegetarier
+    return w;
+  });
+  let total = weights.reduce((a, b) => a + b, 0);
+  if (!total) {                                              // zu wenige Rezepte: Wiederholung erlauben, aber nicht direkt hintereinander
+    const alt = pool.filter((r) => r.id !== prevId);
+    return (alt.length ? alt : pool)[Math.floor(Math.random() * (alt.length || pool.length))].id;
+  }
+  let x = Math.random() * total;
+  for (let i = 0; i < pool.length; i++) { x -= weights[i]; if (x <= 0) return pool[i].id; }
+  return pool[pool.length - 1].id;
+}
+async function fillPlan({ all = false } = {}) {
+  const recent = await recentRecipeIds(PLAN.week_start);
+  const days = settings().planDays || [0, 1, 2, 3, 4, 5, 6];
+  const used = new Set(PLAN.days.filter((d, i) => d.recipe_id && (d.locked || (!all && d.recipe_id)) && days.includes(i)).map((d) => d.recipe_id));
+  PLAN.days.forEach((d, i) => {
+    if (!days.includes(i) || d.locked) return;
+    if (!all && d.recipe_id) return;
+    d.recipe_id = pickRecipe(i, used, recent, i ? PLAN.days[i - 1].recipe_id : null);
+    if (d.recipe_id) used.add(d.recipe_id);
+  });
+  savePlan();
+}
+
+async function renderPlan() {
+  setChrome("Wochenplan", "plan");
+  $("#view").innerHTML = `<p class="muted">Lädt …</p>`;
+  PLAN = await loadPlan(WEEK);
+  drawPlan();
+}
+function weekHead(onChange) {
+  const mon = fromIso(WEEK), sun = addDays(mon, 6), thisWeek = WEEK === isoDate(mondayOf(new Date()));
+  return { html: `<div class="row" style="justify-content:space-between">
+      <button class="btn small" data-wk="-1" aria-label="Vorherige Woche">‹</button>
+      <div style="text-align:center"><strong>KW ${weekNo(mon)}${thisWeek ? " · diese Woche" : ""}</strong><br><span class="muted small">${fmtDay(mon)} – ${fmtDay(sun)}${sun.getFullYear()}</span></div>
+      <button class="btn small" data-wk="1" aria-label="Nächste Woche">›</button></div>`,
+    wire: () => document.querySelectorAll("[data-wk]").forEach((b) => b.onclick = () => { WEEK = isoDate(addDays(fromIso(WEEK), 7 * +b.dataset.wk)); onChange(); }) };
+}
+function drawPlan() {
+  const s = settings(), days = s.planDays || [0, 1, 2, 3, 4, 5, 6];
+  const planPool = RECIPES.filter((r) => r.for_plan);
+  const head = weekHead(renderPlan);
+  const filled = PLAN.days.some((d) => d.recipe_id);
+  const opts = (sel) => `<option value="">– frei –</option>` + [...planPool, ...RECIPES.filter((r) => !r.for_plan)].map((r, i) =>
+    (i === planPool.length && planPool.length ? `<option disabled>──────────</option>` : "") + `<option value="${r.id}" ${r.id === sel ? "selected" : ""}>${esc(r.title)}</option>`).join("");
+  $("#view").innerHTML = `<div class="stack">
+    <section class="card stack">${head.html}
+      ${planPool.length ? "" : `<p class="err" style="margin:0">Noch keine Rezepte für den Essensplan markiert. Öffne ein Rezept und setze den Haken „Für Essensplan-Vorschläge nutzen“.</p>`}
+      <div class="row">
+        <button class="btn primary grow" id="fill" ${planPool.length ? "" : "disabled"}>${filled ? "Freie Tage füllen" : "Woche planen"}</button>
+        ${filled ? `<button class="btn" id="reroll" ${planPool.length ? "" : "disabled"}>Alles neu</button>` : ""}
+      </div>
+      <p class="muted small" style="margin:0">Gesperrte Tage (🔒) bleiben beim Neuwürfeln erhalten. ${planPool.length} Rezepte stehen zur Auswahl.</p>
+    </section>
+    <div class="stack" id="days">${PLAN.days.map((d, i) => {
+      const r = recipeById(d.recipe_id), dt = fromIso(d.date), off = !days.includes(i);
+      return `<section class="card stack" style="gap:8px;${off ? "opacity:.6" : ""}" data-day="${i}">
+        <div class="row"><strong style="min-width:5.6em">${WD[i]}</strong><span class="muted small">${fmtDay(dt)}</span><span class="grow"></span>
+          ${r ? `<button class="btn ghost small" data-act="lock" aria-pressed="${!!d.locked}" title="Beim Neuwürfeln behalten">${d.locked ? "🔒" : "🔓"}</button>
+          <button class="btn ghost small" data-act="roll" title="Anderes Rezept">🎲</button>` : (off ? `<span class="muted small">nicht geplant</span>` : `<button class="btn ghost small" data-act="roll" title="Zufälliges Rezept">🎲</button>`)}</div>
+        ${r ? `<button class="btn ghost" data-act="open" style="text-align:left;padding:4px 0;font-size:1.05rem">${r.vegetarian ? "🥗 " : ""}${esc(r.title)}${r.prep_minutes ? ` <span class="muted small">· ${r.prep_minutes} min</span>` : ""}</button>` : ""}
+        <div class="row">
+          <select class="grow" data-act="pick" aria-label="Rezept für ${WD[i]}">${opts(d.recipe_id)}</select>
+          ${r ? `<span class="stepper" aria-label="Portionen"><button type="button" data-act="minus" aria-label="Weniger">−</button><span>${d.servings}</span><button type="button" data-act="plus" aria-label="Mehr">+</button></span>` : ""}
+        </div>
+      </section>`; }).join("")}</div>
+    <details class="card"><summary style="cursor:pointer;font-weight:600">An welchen Tagen planen?</summary>
+      <div class="chips" style="margin-top:10px" id="pdays">${WD_SHORT.map((t, i) => `<label class="chip ${days.includes(i) ? "green" : ""}" style="cursor:pointer"><input type="checkbox" data-pd="${i}" ${days.includes(i) ? "checked" : ""} style="width:auto"> ${t}</label>`).join("")}</div>
+      <p class="muted small">Gilt für „Woche planen“. Z. B. Freitag frei für Pizza-Abend.</p>
+    </details>
+    <button class="btn primary" id="toShop" ${filled ? "" : "disabled"}>Einkaufsliste für diese Woche →</button>
+  </div>`;
+  head.wire();
+  if ($("#fill")) $("#fill").onclick = async () => { await fillPlan(); drawPlan(); toast("Woche geplant."); };
+  if ($("#reroll")) $("#reroll").onclick = async () => { await fillPlan({ all: true }); drawPlan(); toast("Neu gewürfelt – gesperrte Tage sind geblieben."); };
+  $("#toShop").onclick = () => { location.hash = "#/einkauf"; };
+  document.querySelectorAll("[data-day]").forEach((card) => {
+    const i = +card.dataset.day, d = PLAN.days[i];
+    card.querySelectorAll("[data-act]").forEach((el) => {
+      const act = el.dataset.act;
+      if (act === "pick") el.onchange = () => { d.recipe_id = el.value || null; d.locked = !!el.value; savePlan(); drawPlan(); };
+      else el.onclick = async () => {
+        if (act === "open") { location.hash = "#/rezept/" + d.recipe_id; return; }
+        if (act === "lock") d.locked = !d.locked;
+        if (act === "minus" && d.servings > 1) d.servings--;
+        if (act === "plus" && d.servings < 30) d.servings++;
+        if (act === "roll") {
+          const recent = await recentRecipeIds(PLAN.week_start);
+          const used = new Set(PLAN.days.filter((x, j) => j !== i && x.recipe_id).map((x) => x.recipe_id));
+          d.recipe_id = pickRecipe(i, used, recent, i ? PLAN.days[i - 1].recipe_id : null); d.locked = false;
+        }
+        savePlan(); drawPlan();
+      };
+    });
+  });
+  document.querySelectorAll("[data-pd]").forEach((cb) => cb.onchange = () => {
+    const sel = [...document.querySelectorAll("[data-pd]")].filter((x) => x.checked).map((x) => +x.dataset.pd);
+    saveSettings({ planDays: sel }, true); drawPlan();
+  });
+}
+
+// =====================================================================================
+// Einkaufsliste
+// =====================================================================================
+const DISCRETE = ["", "Stück", "Dose", "Becher", "Packung", "Glas", "Bund", "Zehe", "Scheibe"];
+// Einkaufsmenge: Stückzahlen aufrunden, Gramm/Milliliter auf 10 aufrunden
+function shopQty(q, unit) {
+  if (q == null) return null;
+  if (DISCRETE.includes(unit)) return Math.ceil(q - 0.05);
+  if (unit === "g" || unit === "ml") return Math.ceil(q / 10) * 10;
+  if (unit === "kg" || unit === "l") return Math.ceil(q * 20) / 20;
+  return Math.round(q * 4) / 4;
+}
+function itemText(it) {
+  let q = it.qty, unit = it.unit;
+  if (q != null && (unit === "g" || unit === "ml") && q >= 1000) { q /= 1000; unit = unit === "g" ? "kg" : "l"; }   // 1.000 ml → 1 l
+  return [q != null ? fmtQty(shopQty(q, unit)) : "", unit, it.name].filter(Boolean).join(" ");
+}
+const norm = (s) => String(s || "").toLowerCase().replace(/\s+/g, " ").trim();
+function isPantry(name, pantry) {
+  const n = norm(name);
+  return pantry.some((p) => { const w = norm(p); return w && (n === w || n.split(/[\s,-]+/).includes(w) || (w.length >= 4 && n.endsWith(w))); });
+}
+// Zutaten aller geplanten Essen der Woche: umgerechnet, zusammengefasst, Fleisch anteilig ersetzt
+function buildShopping(plan) {
+  const s = settings(), p = Math.max(1, s.persons || 1), v = Math.min(p, s.vegetarians || 0);
+  const subs = (s.substitutions || []).filter((x) => x.from && x.to);
+  const map = new Map(), meals = [];
+  const add = (ing, qty, recipe, extra = {}) => {
+    const key = norm(ing.name) + "|" + (ing.unit || "");
+    const cur = map.get(key) || { name: ing.name, unit: ing.unit || "", cat: ing.cat || guessCat(ing.name), qty: null, open: false, from: new Set(), ...extra };
+    if (qty == null) cur.open = true; else cur.qty = (cur.qty || 0) + qty;
+    cur.from.add(recipe.title);
+    map.set(key, cur);
+  };
+  for (const d of plan.days) {
+    const r = recipeById(d.recipe_id);
+    if (!r) continue;
+    meals.push(r.title);
+    const f = (d.servings || p) / (r.servings || 1);
+    for (const ing of r.ingredients || []) {
+      if (!ing.name) continue;
+      const q = ing.qty != null ? ing.qty * f : null;
+      const sub = !r.vegetarian && v > 0 ? subs.find((x) => norm(ing.name).includes(norm(x.from))) : null;
+      if (sub) {
+        if (p - v > 0) add(ing, q != null ? q * (p - v) / p : null, r);
+        add({ ...ing, name: sub.to }, q != null ? q * v / p : null, r, { veg: true });
+      } else add(ing, q, r);
+    }
+  }
+  const items = [...map.values()].map((it) => ({ ...it, from: [...it.from], pantry: isPantry(it.name, s.pantry || []) }));
+  return { items, meals, p, v };
+}
+const extraKey = () => `rz-extra-${FAMILY.id}-${WEEK}`;
+const offKey = () => `rz-off-${FAMILY.id}-${WEEK}`;
+const lsGet = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* egal */ } };
+
+async function renderShopping() {
+  setChrome("Einkauf", "einkauf");
+  $("#view").innerHTML = `<p class="muted">Lädt …</p>`;
+  PLAN = await loadPlan(WEEK);
+  drawShopping();
+}
+function drawShopping() {
+  const head = weekHead(renderShopping);
+  const { items, meals, p, v } = buildShopping(PLAN);
+  const extra = lsGet(extraKey(), []);
+  // abgewählt: standardmäßig alles aus dem Vorrat; Nutzer kann umschalten (gemerkt je Woche)
+  const offStored = lsGet(offKey(), null);
+  const keyOf = (it) => norm(it.name) + "|" + it.unit;
+  const off = new Set(offStored ?? items.filter((it) => it.pantry).map(keyOf));
+  const byCat = new Map();
+  for (const it of items.filter((x) => !x.pantry).sort((a, b) => a.name.localeCompare(b.name, "de"))) { if (!byCat.has(it.cat)) byCat.set(it.cat, []); byCat.get(it.cat).push(it); }
+  const pantryItems = items.filter((x) => x.pantry);
+  const line = (it) => `<label class="check" style="padding:6px 0;border-bottom:1px dashed var(--line);align-items:flex-start">
+      <input type="checkbox" data-k="${esc(keyOf(it))}" ${off.has(keyOf(it)) ? "" : "checked"} style="margin-top:4px">
+      <span class="grow"><span>${esc(itemText(it))}${it.open ? ` <span class="muted small">+ etwas</span>` : ""}${it.veg ? ` <span class="chip green" style="padding:1px 7px">veggie</span>` : ""}</span><br><span class="muted small">${esc(it.from.join(", "))}</span></span></label>`;
+  $("#view").innerHTML = `<div class="stack">
+    <section class="card stack">${head.html}
+      <p class="muted small" style="margin:0">${meals.length ? `${meals.length} geplante Essen · ${p} ${p === 1 ? "Person" : "Personen"}${v ? `, davon ${v} vegetarisch (Fleisch wird anteilig ersetzt)` : ""}` : "In dieser Woche ist noch nichts geplant."}</p>
+      ${meals.length ? "" : `<button class="btn primary" id="toPlan">Zum Wochenplan</button>`}
+    </section>
+    ${meals.length ? [...byCat.entries()].sort((a, b) => CATS.indexOf(a[0]) - CATS.indexOf(b[0])).map(([cat, list]) => `<section class="card"><h3 style="margin-bottom:4px">${esc(cat)}</h3>${list.map(line).join("")}</section>`).join("") : ""}
+    <section class="card stack"><h3>Eigene Einträge</h3>
+      <div id="extras">${extra.map((t, i) => `<div class="row" style="padding:4px 0;border-bottom:1px dashed var(--line)"><span class="grow">${esc(t)}</span><button class="btn ghost small" data-xrm="${i}" aria-label="Entfernen">✕</button></div>`).join("") || `<p class="muted small" style="margin:0">z. B. Milch, Brot, Spülmittel</p>`}</div>
+      <div class="row"><input class="grow" id="xin" placeholder="Eintrag hinzufügen" aria-label="Eintrag hinzufügen"><button class="btn small" id="xadd">Hinzufügen</button></div>
+    </section>
+    ${pantryItems.length ? `<section class="card"><h3>Habt ihr vermutlich da</h3><p class="muted small" style="margin:2px 0 6px">Aus eurem Vorrat – nur anhaken, wenn es fehlt.</p>${pantryItems.map(line).join("")}</section>` : ""}
+    <section class="card stack" id="bringBox">
+      <button class="btn primary" id="toBring" ${items.length || extra.length ? "" : "disabled"}>Liste für Bring vorbereiten</button>
+      <div id="bringOut" class="stack" hidden></div>
+    </section>
+  </div>`;
+  head.wire();
+  if ($("#toPlan")) $("#toPlan").onclick = () => { location.hash = "#/plan"; };
+  document.querySelectorAll("[data-k]").forEach((cb) => cb.onchange = () => { if (cb.checked) off.delete(cb.dataset.k); else off.add(cb.dataset.k); lsSet(offKey(), [...off]); });
+  const addExtra = () => { const t = $("#xin").value.trim(); if (!t) return; lsSet(extraKey(), [...extra, t]); drawShopping(); setTimeout(() => $("#xin")?.focus(), 0); };
+  $("#xadd").onclick = addExtra;
+  $("#xin").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); addExtra(); } });
+  document.querySelectorAll("[data-xrm]").forEach((b) => b.onclick = () => { extra.splice(+b.dataset.xrm, 1); lsSet(extraKey(), extra); drawShopping(); });
+  $("#toBring").onclick = async () => {
+    const list = [...items.filter((it) => !off.has(keyOf(it))).map(itemText), ...extra];
+    if (!list.length) return toast("Die Liste ist leer.");
+    $("#toBring").disabled = true;
+    const title = `Einkauf KW ${weekNo(fromIso(WEEK))}`;
+    const { data, error } = await sb.from("shopping_lists").insert({ family_id: FAMILY.id, title, items: list }).select("id").single();
+    $("#toBring").disabled = false;
+    if (error) return toast("Liste nicht gespeichert: " + error.message);
+    showBring(`${SUPABASE_URL}/functions/v1/bring-liste?id=${data.id}`, list.length);
+  };
+}
+// Bring-Widget (offizieller Import-Knopf) + einfacher Link als Rückfalloption
+function showBring(url, n) {
+  const out = $("#bringOut"); out.hidden = false;
+  const deeplink = "https://api.getbring.com/rest/bringrecipes/deeplink?url=" + encodeURIComponent(url) + "&source=web&baseQuantity=4&requestedQuantity=4";
+  out.innerHTML = `<p class="ok" style="margin:0">✓ ${n} Einträge bereit. Tippe auf den Bring-Knopf und übernimm die Zutaten in der Bring-App.</p>
+    <div id="bringWidget" data-bring-import="${esc(url)}" data-bring-language="de" data-bring-theme="light" data-bring-base-quantity="4" data-bring-requested-quantity="4" style="display:none">
+      <a href="https://www.getbring.com">Bring! Einkaufsliste App für iPhone und Android</a></div>
+    <a class="btn" href="${esc(deeplink)}" target="_blank" rel="noopener">In Bring öffnen (falls der Knopf nicht erscheint)</a>`;
+  // Das Widget-Skript sucht nur beim ersten Laden nach Knöpfen → für nachträglich eingefügte Knöpfe render() aufrufen
+  const el = $("#bringWidget");
+  const go = () => window.bringwidgets.import.render(el, { url, language: "de", theme: "light", baseQuantity: 4, requestedQuantity: 4 });
+  if (window.bringwidgets?.import?.render) go();
+  else {
+    let s = document.querySelector('script[src*="platform.getbring.com"]');
+    if (!s) { s = document.createElement("script"); s.async = true; s.src = "https://platform.getbring.com/widgets/import.js"; document.head.appendChild(s); }
+    s.addEventListener("load", go, { once: true });
+  }
 }
 
 // =====================================================================================
