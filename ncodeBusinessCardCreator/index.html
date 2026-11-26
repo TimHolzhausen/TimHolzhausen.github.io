@@ -147,7 +147,7 @@ details.hints li b { color: var(--ink); font-weight: 600; }
 
 /* Work surface, like the result box of the sheet finder */
 .mat {
-  position: sticky; top: 16px; background: var(--sheet); border: 1px solid var(--rule); border-radius: 16px;
+  position: sticky; top: 76px; background: var(--sheet); border: 1px solid var(--rule); border-radius: 16px;
   padding: 20px; box-shadow: var(--shadow); display: grid; gap: 22px; min-width: 0;
 }
 @media (max-width: 900px) { .mat { position: static; } }
@@ -172,21 +172,59 @@ details.hints li b { color: var(--ink); font-weight: 600; }
 .sheet { background: var(--paper); border-radius: 12px; padding: 14px; }
 .sheet canvas { width: 100%; height: auto; aspect-ratio: 210 / 297; background: #fff; display: block; box-shadow: var(--shadow); }
 .note { font-size: .86rem; color: var(--muted); margin: 0; }
+/* ---- v2: steps, panels, back design ---- */
+.steps { display: flex; gap: 8px; margin: 0 0 18px; position: sticky; top: 0; z-index: 5; background: var(--paper); padding-block: 8px; }
+.step { flex: 1; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 10px 12px; border-radius: 12px; background: var(--sheet); font-size: 1rem; }
+.step b { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--rule); font-size: .85rem; flex: none; }
+.step[aria-current="step"] { border-color: var(--pen); background: color-mix(in srgb, var(--pen) 8%, var(--sheet)); }
+.step[aria-current="step"] b { background: var(--pen); color: var(--pen-ink); }
+.panel { background: var(--sheet); border: 1px solid var(--rule); border-radius: 14px; padding: 20px; display: grid; gap: 20px; min-width: 0; }
+.panel h2 { margin: 0; font-size: 1.2rem; font-weight: 700; }
+.field { display: grid; gap: 8px; min-width: 0; }
+.lbl { font-size: .76rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
+.lbl small { text-transform: none; letter-spacing: 0; font-weight: 500; font-size: .8rem; }
+.tip { font-size: .86rem; color: var(--muted); margin: 0; }
+.navrow { display: flex; gap: 10px; align-items: stretch; }
+.navrow .primary { width: auto; flex: 1; }
+.tools { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.tool { display: grid; justify-items: center; gap: 4px; padding: 12px 6px; border: 1.5px solid var(--rule); border-radius: 12px; cursor: pointer; font: 600 .9rem var(--font-ui); color: var(--ink); background: transparent; position: relative; }
+.tool:hover { border-color: var(--pen); color: var(--pen); }
+.tool svg { width: 22px; height: 22px; }
+.tool input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.layers { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.layers li { display: flex; gap: 6px; min-width: 0; }
+.layers .sel { flex: 1; display: flex; gap: 10px; align-items: center; text-align: left; min-width: 0; font-weight: 500; }
+.layers .sel i { font-style: normal; width: 20px; text-align: center; color: var(--muted); flex: none; }
+.layers .sel span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.layers .sel[aria-pressed="true"] { border-color: var(--pen); background: color-mix(in srgb, var(--pen) 8%, transparent); }
+.layers .del { padding-inline: 12px; color: var(--muted); }
+.inspector { border: 1.5px solid var(--pen); border-radius: 12px; padding: 14px; display: grid; gap: 12px; background: color-mix(in srgb, var(--pen) 4%, var(--sheet)); }
+.insp-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.insp-head b { font-size: .95rem; }
+.kv { display: grid; grid-template-columns: 5.6em minmax(0, 1fr) auto; gap: 10px; align-items: center; }
+.kv > :first-child { font-size: .88rem; }
+.kv .val { font: .85rem var(--font-mono); min-width: 4.4em; text-align: right; }
+.kv input[type="range"] { min-width: 0; }
+.segbtn { justify-self: start; display: inline-flex; border: 1.5px solid var(--rule); border-radius: 10px; overflow: hidden; }
+.segbtn button { border: 0; border-radius: 0; padding: 6px 11px; }
+.segbtn button + button { border-left: 1.5px solid var(--rule); }
+.segbtn button[aria-pressed="true"] { background: color-mix(in srgb, var(--pen) 14%, transparent); color: var(--pen); }
+.inspector textarea { font: 1rem var(--font-ui); color: var(--ink); background: var(--sheet); border: 1.5px solid var(--rule); border-radius: 10px; padding: 8px 10px; resize: vertical; width: 100%; }
+.inspector input[type="color"] { width: 44px; height: 34px; padding: 2px; border: 1.5px solid var(--rule); border-radius: 8px; background: var(--sheet); }
+.inspector input[type="number"] { width: 5.4em; font: .9rem var(--font-mono); padding: 6px 8px; border: 1.5px solid var(--rule); border-radius: 8px; background: var(--sheet); color: var(--ink); }
+.xy { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.xy label { font: 600 .8rem var(--font-mono); color: var(--muted); }
+.xy input[type="number"] { width: 0; flex: 1; min-width: 3.6em; }
+.callout { font-size: .86rem; margin: 0; padding: 10px 12px; border-radius: 10px; background: color-mix(in srgb, var(--warn) 10%, transparent); display: grid; gap: 8px; justify-items: start; }
+.viewtabs { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+.viewtabs button[aria-selected="true"] { border-color: var(--pen); color: var(--pen); background: color-mix(in srgb, var(--pen) 8%, transparent); }
 #backCanvas {
   width: 100%; max-width: 620px; height: auto; aspect-ratio: 91 / 60; touch-action: none; cursor: grab;
   box-shadow: var(--shadow); background: #fff;
 }
 #backCanvas.dragging { cursor: grabbing; }
-.bd-list { display: flex; gap: 8px; flex-wrap: wrap; }
-.bd-list button { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.bd-list button[aria-pressed="true"] { border-color: var(--pen); background: color-mix(in srgb, var(--pen) 8%, transparent); }
-.bd-edit[hidden] { display: none; }
-.bd-edit { display: grid; gap: 10px; padding: 12px; border: 1.5px dashed var(--rule); border-radius: 10px; }
-.bd-edit textarea { font: 1rem var(--font-ui); color: var(--ink); background: var(--sheet); border: 1.5px solid var(--rule); border-radius: 10px; padding: 8px 10px; resize: vertical; width: 100%; box-sizing: border-box; }
-.bd-edit input[type="color"] { width: 44px; height: 34px; padding: 2px; border: 1.5px solid var(--rule); border-radius: 8px; background: var(--sheet); }
-.filebtn { font: 600 .9rem var(--font-ui); border: 1.5px solid var(--rule); border-radius: 10px; padding: 7px 13px; cursor: pointer; }
-.filebtn:hover { border-color: var(--muted); }
-.filebtn input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.mat { display: grid; gap: 16px; }
+@media (max-width: 900px) { .mat { order: -1; padding: 12px; } .mat .cardview { padding: 10px; } .steps { gap: 6px; } .step { min-width: 0; padding: 8px 6px; font-size: .88rem; gap: 6px; } .step b { width: 22px; height: 22px; } .step span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } }
 
 footer { margin-top: 80px; padding-top: 24px; border-top: 1px solid var(--rule); color: var(--muted); font-size: .86rem; display: grid; gap: 6px; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
@@ -209,99 +247,88 @@ footer { margin-top: 80px; padding-top: 24px; border-top: 1px solid var(--rule);
 <div class="intro">
   <p class="eyebrow" data-i18n="eyebrow">Business Card Creator</p>
   <h1 data-i18n="h1">Business cards with <span class="hl">your own front</span>.</h1>
-  <p data-i18n="intro">Upload an image, pick the dot strength for the back, and download a print-ready A4 sheet: front with bleed, Ncode on the back, crop marks on the outside for your paper cutter.</p>
+  <p data-i18n="intro2">Three steps: your image on the front, the Ncode on the back (with your own text, lines or logo if you like), then print at home or order online.</p>
 </div>
+
+<nav class="steps" aria-label="Steps" data-i18n-aria="steps">
+  <button type="button" class="step" data-step="1" aria-current="step"><b>1</b><span data-i18n="step1">Front</span></button>
+  <button type="button" class="step" data-step="2"><b>2</b><span data-i18n="step2">Back</span></button>
+  <button type="button" class="step" data-step="3"><b>3</b><span data-i18n="step3">Print</span></button>
+</nav>
 
   <div class="app">
     <div class="controls">
-      <section class="group" aria-labelledby="h-front">
-        <h2 id="h-front" data-i18n="front.h">Front <span>85 × 54 mm</span></h2>
+      <!-- 1 · Front -->
+      <section class="panel" data-panel="1" aria-labelledby="h-front">
+        <h2 id="h-front" data-i18n="front.h2">Front image</h2>
         <label class="drop" id="drop" for="file">
           <strong data-i18n="drop.title">Choose an image or drop it here</strong>
           <small data-i18n="drop.hint">JPG, PNG or WebP. Ideal: 91 × 60 mm at 300–600 dpi</small>
           <input type="file" id="file" accept="image/*">
         </label>
         <div class="filename" id="filename" data-i18n="filename">Sample design loaded. Replace it with your own image.</div>
-        <div class="seg" role="radiogroup" aria-label="How was the image designed?" data-i18n-aria="fit">
-          <label><input type="radio" name="fit" id="fit-bleed" value="bleed" checked><span data-i18n="fit.bleed">Designed with bleed<small>fills 91 × 60 mm</small></span></label>
-          <label><input type="radio" name="fit" id="fit-trim" value="trim"><span data-i18n="fit.trim">Designed at trim size<small>85 × 54, edges mirrored</small></span></label>
+        <div class="field">
+          <span class="lbl" data-i18n="fit.q">How is your image laid out?</span>
+          <div class="seg" role="radiogroup" aria-label="How was the image designed?" data-i18n-aria="fit">
+            <label><input type="radio" name="fit" id="fit-bleed" value="bleed" checked><span data-i18n="fit.bleed">Designed with bleed<small>fills 91 × 60 mm</small></span></label>
+            <label><input type="radio" name="fit" id="fit-trim" value="trim"><span data-i18n="fit.trim">Designed at trim size<small>85 × 54, edges mirrored</small></span></label>
+          </div>
         </div>
-        <div class="row">
-          <label for="zoom">Zoom</label>
-          <input type="range" id="zoom" min="100" max="300" value="100" step="1">
-          <span class="mono" id="zoomVal" style="width:3.2em;text-align:right">100 %</span>
+        <div class="field">
+          <span class="lbl" data-i18n="pos.q">Position</span>
+          <div class="kv"><label for="zoom">Zoom</label><input type="range" id="zoom" min="100" max="300" value="100" step="1"><span class="val" id="zoomVal">100 %</span></div>
+          <div class="row">
+            <button type="button" id="rotate" data-i18n="rotate">Rotate 90°</button>
+            <button type="button" id="center" data-i18n="center">Center</button>
+          </div>
+          <p class="tip" data-i18n="front.tip">Drag the image in the preview to move it.</p>
         </div>
-        <div class="row">
-          <button type="button" id="rotate" data-i18n="rotate">Rotate 90°</button>
-          <button type="button" id="center" data-i18n="center">Center</button>
-        </div>
+        <div class="navrow"><button type="button" class="primary" data-goto="2" data-i18n="next2">Next: back →</button></div>
       </section>
 
-      <section class="group" aria-labelledby="h-back">
-        <h2 id="h-back" data-i18n="back.h">Back: Ncode <span>1:1 zoom at 600 dpi</span></h2>
-        <div class="strengths" role="radiogroup" aria-labelledby="h-back">
-          <label class="strength"><input type="radio" name="strength" id="s-normal" value="normal"><span>
-            <canvas width="32" height="32" data-swatch="normal"></canvas>
-            <span data-i18n="s.normal"><b>Normal</b><small>Original dot size. Most robust, visibly grey.</small></span>
-            <span class="toner">100 %</span></span></label>
-          <label class="strength"><input type="radio" name="strength" id="s-light" value="light" checked><span>
-            <canvas width="32" height="32" data-swatch="light"></canvas>
-            <span data-i18n="s.light"><b>Light</b><small>Half the dot area. Tested and working.</small></span>
-            <span class="toner">50 %</span></span></label>
-          <label class="strength"><input type="radio" name="strength" id="s-extralight" value="extralight"><span>
-            <canvas width="32" height="32" data-swatch="extralight"></canvas>
-            <span data-i18n="s.extralight"><b>Extra light<span class="tag">experimental</span></b><small>Barely visible. Test it on your printer first.</small></span>
-            <span class="toner">33 %</span></span></label>
+      <!-- 2 · Back -->
+      <section class="panel" data-panel="2" aria-labelledby="h-back" hidden>
+        <h2 id="h-back" data-i18n="back.h2">Back</h2>
+        <div class="field">
+          <span class="lbl" id="l-strength" data-i18n="strength.q">Dot strength of the code</span>
+          <div class="strengths" role="radiogroup" aria-labelledby="l-strength">
+            <label class="strength"><input type="radio" name="strength" id="s-normal" value="normal"><span>
+              <canvas width="32" height="32" data-swatch="normal"></canvas>
+              <span data-i18n="s.normal"><b>Normal</b><small>Original dot size. Most robust, visibly grey.</small></span>
+              <span class="toner">100 %</span></span></label>
+            <label class="strength"><input type="radio" name="strength" id="s-light" value="light" checked><span>
+              <canvas width="32" height="32" data-swatch="light"></canvas>
+              <span data-i18n="s.light"><b>Light</b><small>Half the dot area. Tested and working.</small></span>
+              <span class="toner">50 %</span></span></label>
+            <label class="strength"><input type="radio" name="strength" id="s-extralight" value="extralight"><span>
+              <canvas width="32" height="32" data-swatch="extralight"></canvas>
+              <span data-i18n="s.extralight"><b>Extra light<span class="tag">experimental</span></b><small>Barely visible. Test it on your printer first.</small></span>
+              <span class="toner">33 %</span></span></label>
+          </div>
         </div>
-      </section>
+        <div class="field">
+          <span class="lbl" data-i18n="bd.q">Design on top of the code <small>optional</small></span>
+          <div class="tools">
+            <button type="button" class="tool" id="bdAddText"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14M12 5v15M9 20h6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span data-i18n="bd.addText">Text</span></button>
+            <button type="button" class="tool" id="bdAddLine"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19 20 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="4" cy="19" r="2" fill="currentColor"/><circle cx="20" cy="5" r="2" fill="currentColor"/></svg><span data-i18n="bd.addLine">Line</span></button>
+            <label class="tool"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="m5 17 5-5 4 4 2-2 3 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="16" cy="9" r="1.6" fill="currentColor"/></svg><input type="file" id="bdAddImg" accept="image/*"><span data-i18n="bd.addImg">Image</span></label>
+          </div>
+          <ul class="layers" id="bdList"></ul>
+          <p class="tip" id="bdEmpty" data-i18n="bd.empty">Nothing added yet. Text, lines and images are printed without black, so the pen still reads the code underneath.</p>
+        </div>
 
-      <section class="group" aria-labelledby="h-out">
-        <h2 id="h-out" data-i18n="out.h">Print sheet <span>A4 · 2 pages</span></h2>
-        <div class="layouts" role="radiogroup" aria-label="Sheet layout" data-i18n-aria="layouts">
-          <label class="layout"><input type="radio" name="layout" id="l-bleed9" value="bleed9" checked><span data-i18n="l.bleed9">
-            <b>9 cards · bleed all around</b><small>3 × 3, upright on the sheet. Two cuts between cards.</small></span></label>
-          <label class="layout"><input type="radio" name="layout" id="l-bleed8" value="bleed8"><span data-i18n="l.bleed8">
-            <b>8 cards · bleed all around</b><small>2 × 4, landscape. Two cuts between cards.</small></span></label>
-          <label class="layout"><input type="radio" name="layout" id="l-butt10" value="butt10"><span data-i18n="l.butt10">
-            <b>10 cards · edge to edge</b><small>2 × 5, landscape. One cut between cards, bleed on the outer edges only.</small></span></label>
-        </div>
-        <div class="row">
-          <label for="bleed" data-i18n="bleed">Bleed</label>
-          <select id="bleed">
-            <option value="3" selected>3 mm</option>
-            <option value="2">2 mm</option>
-            <option value="1">1 mm</option>
-            <option value="0" data-i18n="bleed.none">none</option>
-          </select>
-        </div>
-        <button type="button" class="primary" id="download" data-i18n="download">Download PDF</button>
-        <div class="status" id="status" role="status"></div>
-        <details class="hints">
-          <summary data-i18n="hints">Printing and cutting</summary>
-          <ul data-i18n="hints.list">
-            <li><b>100 % / Actual size.</b> Never “Fit to page”, no borderless printing.</li>
-            <li><b>Double-sided</b> flipping on the long or short edge, both work: the layout is symmetric. Without duplex, print page 1, turn the paper over, then print page 2.</li>
-            <li><b>Laser printer, black as K.</b> The pen only sees carbon black. A PostScript driver passes the dots through most cleanly.</li>
-            <li><b>Cutting, step 1:</b> Front side up. Cut all horizontal lines at the side marks, working from the bottom up. That way the marks stay on the remaining piece until the last strip is off.</li>
-            <li><b>Step 2:</b> Stack the strips with the top strip (the one with marks along its top edge) on top. Put the left paper edge flush against the guide, then cut vertically at the top marks.</li>
-            <li><b>Every sheet carries the same codes.</b> If you print several sheets, each code appears more than once.</li>
-          </ul>
-        </details>
-      </section>
-
-      <section class="group" aria-labelledby="h-bd">
-        <h2 id="h-bd" data-i18n="bd.h">Back design <span>optional</span></h2>
-        <p class="note" data-i18n="bd.intro">Add your name, a line of text or a logo on top of the code. The design is printed in cyan, magenta and yellow only, without black. The pen only sees black, so it reads the code right through the design.</p>
-        <div class="row">
-          <button type="button" id="bdAddText" data-i18n="bd.addText">+ Text</button>
-          <label class="filebtn"><input type="file" id="bdAddImg" accept="image/*"><span data-i18n="bd.addImg">+ Logo / image</span></label>
-        </div>
-        <div class="bd-list" id="bdList"></div>
-        <div class="bd-edit" id="bdEdit" hidden>
-          <div id="bdTextPart" style="display:grid;gap:10px">
-            <textarea id="bdText" rows="2" aria-label="Text" data-i18n-aria="bd.text"></textarea>
+        <div class="inspector" id="bdEdit" hidden>
+          <div class="insp-head">
+            <b id="bdEditTitle"></b>
             <div class="row">
-              <label for="bdFont" data-i18n="bd.font">Font</label>
+              <button type="button" id="bdUp" title="Bring forward" data-i18n-title="bd.up" aria-label="Bring forward" data-i18n-aria="bd.up">↑</button>
+              <button type="button" id="bdDown" title="Send backward" data-i18n-title="bd.down" aria-label="Send backward" data-i18n-aria="bd.down">↓</button>
+              <button type="button" id="bdDelete" data-i18n="bd.delete">Delete</button>
+            </div>
+          </div>
+          <div id="bdTextPart" class="field">
+            <textarea id="bdText" rows="2" aria-label="Text" data-i18n-aria="bd.text"></textarea>
+            <div class="kv"><label for="bdFont" data-i18n="bd.font">Font</label>
               <select id="bdFont">
                 <option value="grotesk">Grotesk</option>
                 <option value="sans">Arial</option>
@@ -311,91 +338,156 @@ footer { margin-top: 80px; padding-top: 24px; border-top: 1px solid var(--rule);
               </select>
               <label><input type="checkbox" id="bdBold"> <span data-i18n="bd.bold">Bold</span></label>
             </div>
-            <div class="row">
-              <label for="bdSize" data-i18n="bd.size">Size</label>
-              <input type="range" id="bdSize" min="5" max="30" step="0.5">
-              <span class="mono" id="bdSizeVal" style="width:3.6em;text-align:right"></span>
-            </div>
-            <div class="row">
-              <label for="bdAlign" data-i18n="bd.align">Alignment</label>
-              <select id="bdAlign">
-                <option value="left" data-i18n="bd.left">left</option>
-                <option value="center" data-i18n="bd.center">centred</option>
-                <option value="right" data-i18n="bd.right">right</option>
-              </select>
-              <label for="bdColor" data-i18n="bd.color">Colour</label>
-              <input type="color" id="bdColor">
+            <div class="kv"><label for="bdSize" data-i18n="bd.size">Size</label><input type="range" id="bdSize" min="5" max="30" step="0.5"><span class="val" id="bdSizeVal"></span></div>
+            <div class="kv"><span data-i18n="bd.align">Alignment</span>
+              <span class="segbtn" id="bdAlign">
+                <button type="button" data-align="left" aria-label="left" data-i18n-aria="bd.left">⇤</button>
+                <button type="button" data-align="center" aria-label="centred" data-i18n-aria="bd.center">↔</button>
+                <button type="button" data-align="right" aria-label="right" data-i18n-aria="bd.right">⇥</button>
+              </span><span></span>
             </div>
           </div>
-          <div id="bdImgPart" style="display:grid;gap:10px">
-            <div class="row">
-              <label for="bdWidth" data-i18n="bd.width">Width</label>
-              <input type="range" id="bdWidth" min="5" max="91" step="0.5">
-              <span class="mono" id="bdWidthVal" style="width:4.2em;text-align:right"></span>
+          <div id="bdLinePart" class="field">
+            <div class="kv"><label for="bdLen" data-i18n="bd.len">Length</label><input type="range" id="bdLen" min="2" max="91" step="0.5"><span class="val" id="bdLenVal"></span></div>
+            <div class="kv"><label for="bdAngle" data-i18n="bd.angle">Angle</label><input type="range" id="bdAngle" min="-90" max="90" step="1"><span class="val" id="bdAngleVal"></span></div>
+            <div class="kv"><span></span>
+              <span class="segbtn" id="bdAngles">
+                <button type="button" data-angle="0" aria-label="horizontal">─</button>
+                <button type="button" data-angle="90" aria-label="vertical">│</button>
+                <button type="button" data-angle="45">╱</button>
+                <button type="button" data-angle="-45">╲</button>
+              </span><span></span>
             </div>
+            <div class="kv"><label for="bdThick" data-i18n="bd.thick">Thickness</label><input type="range" id="bdThick" min="0.1" max="3" step="0.05"><span class="val" id="bdThickVal"></span></div>
+            <div class="kv"><span></span><label><input type="checkbox" id="bdDashed"> <span data-i18n="bd.dashed">Dashed</span></label><span></span></div>
           </div>
-          <div class="row">
-            <label for="bdOpacity" data-i18n="bd.opacity">Strength</label>
-            <input type="range" id="bdOpacity" min="10" max="100" step="5">
-            <span class="mono" id="bdOpacityVal" style="width:3.2em;text-align:right"></span>
+          <div id="bdImgPart" class="field">
+            <div class="kv"><label for="bdWidth" data-i18n="bd.width">Width</label><input type="range" id="bdWidth" min="5" max="91" step="0.5"><span class="val" id="bdWidthVal"></span></div>
+            <div class="row"><button type="button" id="bdFill" data-i18n="bd.fill">Fill the whole card (background)</button></div>
+          </div>
+          <div class="kv" id="bdColorRow"><label for="bdColor" data-i18n="bd.color">Colour</label><input type="color" id="bdColor"><span></span></div>
+          <div class="kv"><label for="bdOpacity" data-i18n="bd.opacity">Opacity</label><input type="range" id="bdOpacity" min="10" max="100" step="5"><span class="val" id="bdOpacityVal"></span></div>
+          <div class="kv"><span data-i18n="bd.pos">Position</span>
+            <span class="xy">
+              <label for="bdX">X</label><input type="number" id="bdX" step="0.5">
+              <label for="bdY">Y</label><input type="number" id="bdY" step="0.5">
+            </span>
+            <span class="val">mm</span>
           </div>
           <div class="row">
             <button type="button" id="bdCenterH" data-i18n="bd.centerH">Centre horizontally</button>
-            <button type="button" id="bdDelete" data-i18n="bd.delete">Remove</button>
+            <button type="button" id="bdCenterV" data-i18n="bd.centerV">Centre vertically</button>
           </div>
+          <p class="tip" data-i18n="bd.dragTip">Drag in the preview to move. Drag the ends of a line to turn or lengthen it. Arrow keys nudge, Delete removes.</p>
         </div>
-        <p class="disclaimer" data-i18n="bd.disclaimer"><b>Not tested at print shops yet.</b> It only works if the shop prints the colours as they are in the PDF. If it converts them and adds black, the pen cannot read the code under the design. White cannot be printed. The design goes into the PDFs (A4 sheet and single backs); PNG backs stay without it. Order a test card first.</p>
+
+        <details class="hints">
+          <summary data-i18n="bd.how">Why does the pen read through the design?</summary>
+          <p class="note" data-i18n="bd.howText">The design is printed in cyan, magenta and yellow only, without black (K = 0). The pen only sees carbon black, so the code underneath stays readable. Dark text is therefore mixed from three colours and looks very dark brown rather than deep black. White cannot be printed.</p>
+          <p class="disclaimer" data-i18n="bd.disclaimer"><b>Not tested at print shops yet.</b> It only works if the shop prints the colours as they are in the PDF. If it converts them and adds black, the pen cannot read the code under the design. The design goes into the PDFs; PNG backs stay without it. Order a test card first.</p>
+        </details>
+        <div class="navrow">
+          <button type="button" data-goto="1" data-i18n="prev1">← Front</button>
+          <button type="button" class="primary" data-goto="3" data-i18n="next3">Next: print →</button>
+        </div>
       </section>
 
-      <section class="group" aria-labelledby="h-online">
-        <h2 id="h-online" data-i18n="online.h">Back for online printers <span>1 card per file</span></h2>
-        <p class="note" data-i18n="online.intro">Ordering from an online print shop such as Vistaprint? Download the backs as separate files and upload them there as the back design.</p>
-        <div style="display:grid;gap:6px">
-          <label for="ofmt" style="font-size:.9rem" data-i18n="online.fmt">Format</label>
-          <select id="ofmt">
-            <option value="85x55-1.5" selected data-i18n="online.f1">Vistaprint: card 85 × 55, file 88 × 58 mm</option>
-            <option value="85x55-2" data-i18n="online.f2">Card 85 × 55, file 89 × 59 mm (2 mm bleed)</option>
-            <option value="85x55-3" data-i18n="online.f3">Card 85 × 55, file 91 × 61 mm (3 mm bleed)</option>
-            <option value="85x54-3" data-i18n="online.f4">Card 85 × 54, file 91 × 60 mm (3 mm bleed)</option>
-          </select>
+      <!-- 3 · Print -->
+      <section class="panel" data-panel="3" aria-labelledby="h-print" hidden>
+        <h2 id="h-print" data-i18n="print.h">How do you print?</h2>
+        <div class="seg" role="radiogroup" aria-labelledby="h-print">
+          <label><input type="radio" name="mode" value="home" checked><span data-i18n="mode.home">Print it myself<small>A4 sheet · laser printer</small></span></label>
+          <label><input type="radio" name="mode" value="online"><span data-i18n="mode.online">Online print shop<small>one file per card</small></span></label>
         </div>
-        <p class="note" id="ofmtNote"></p>
-        <div class="row">
-          <label for="ostrength" data-i18n="online.strength">Dot strength</label>
-          <select id="ostrength">
-            <option value="normal" selected data-i18n="online.sNormal">Normal (recommended)</option>
-            <option value="light" data-i18n="online.sLight">Light</option>
-            <option value="extralight" data-i18n="online.sExtralight">Extra light (experimental)</option>
-          </select>
+
+        <div id="modeHome" class="field" style="gap:16px">
+          <div class="field">
+            <span class="lbl" data-i18n="layout.q">Cards per sheet</span>
+            <div class="layouts" role="radiogroup" aria-label="Sheet layout" data-i18n-aria="layouts">
+              <label class="layout"><input type="radio" name="layout" id="l-bleed9" value="bleed9" checked><span data-i18n="l.bleed9">
+                <b>9 cards · bleed all around</b><small>3 × 3, upright on the sheet. Two cuts between cards.</small></span></label>
+              <label class="layout"><input type="radio" name="layout" id="l-bleed8" value="bleed8"><span data-i18n="l.bleed8">
+                <b>8 cards · bleed all around</b><small>2 × 4, landscape. Two cuts between cards.</small></span></label>
+              <label class="layout"><input type="radio" name="layout" id="l-butt10" value="butt10"><span data-i18n="l.butt10">
+                <b>10 cards · edge to edge</b><small>2 × 5, landscape. One cut between cards, bleed on the outer edges only.</small></span></label>
+            </div>
+          </div>
+          <div class="kv"><label for="bleed" data-i18n="bleed">Bleed</label>
+            <select id="bleed">
+              <option value="3" selected>3 mm</option>
+              <option value="2">2 mm</option>
+              <option value="1">1 mm</option>
+              <option value="0" data-i18n="bleed.none">none</option>
+            </select><span></span>
+          </div>
+          <button type="button" class="primary" id="download" data-i18n="download">Download PDF</button>
+          <div class="status" id="status" role="status"></div>
+          <details class="hints">
+            <summary data-i18n="hints">Printing and cutting</summary>
+            <ul data-i18n="hints.list">
+              <li><b>100 % / Actual size.</b> Never “Fit to page”, no borderless printing.</li>
+              <li><b>Double-sided</b> flipping on the long or short edge, both work: the layout is symmetric. Without duplex, print page 1, turn the paper over, then print page 2.</li>
+              <li><b>Laser printer, black as K.</b> The pen only sees carbon black. A PostScript driver passes the dots through most cleanly.</li>
+              <li><b>Cutting, step 1:</b> Front side up. Cut all horizontal lines at the side marks, working from the bottom up. That way the marks stay on the remaining piece until the last strip is off.</li>
+              <li><b>Step 2:</b> Stack the strips with the top strip (the one with marks along its top edge) on top. Put the left paper edge flush against the guide, then cut vertically at the top marks.</li>
+              <li><b>Every sheet carries the same codes.</b> If you print several sheets, each code appears more than once.</li>
+            </ul>
+          </details>
         </div>
-        <p class="disclaimer" data-i18n="online.disclaimer"><b>No guarantee on dot strength.</b> All three strengths were tested on office laser printers only, not at any online print shop. Presses, inks and papers differ: dots can bleed together or break away, and the pen may then not read the card. Order a small test run first, ideally one card per strength, and check it with your pen before ordering more.</p>
-        <div class="seg" role="radiogroup" aria-label="File type" data-i18n-aria="online.type">
-          <label><input type="radio" name="otype" value="pdf" checked><span data-i18n="online.pdf">PDF<small>recommended, 100 % K</small></span></label>
-          <label><input type="radio" name="otype" value="png"><span data-i18n="online.png">PNG<small>600 dpi, black and white</small></span></label>
+
+        <div id="modeOnline" class="field" style="gap:16px" hidden>
+          <p class="note" data-i18n="online.intro">Ordering from an online print shop such as Vistaprint? Download the backs as separate files and upload them there as the back design.</p>
+          <div class="callout" id="oStrengthNote" hidden>
+            <span data-i18n="online.strengthWarn">For a print shop you have not tested yet, “Normal” dot strength is the safest choice.</span>
+            <button type="button" id="oUseNormal" data-i18n="online.useNormal">Switch to Normal</button>
+          </div>
+          <div class="field">
+            <label class="lbl" for="ofmt" data-i18n="online.fmt">Format</label>
+            <select id="ofmt">
+              <option value="85x55-1.5" selected data-i18n="online.f1">Vistaprint: card 85 × 55, file 88 × 58 mm</option>
+              <option value="85x55-2" data-i18n="online.f2">Card 85 × 55, file 89 × 59 mm (2 mm bleed)</option>
+              <option value="85x55-3" data-i18n="online.f3">Card 85 × 55, file 91 × 61 mm (3 mm bleed)</option>
+              <option value="85x54-3" data-i18n="online.f4">Card 85 × 54, file 91 × 60 mm (3 mm bleed)</option>
+            </select>
+            <p class="note" id="ofmtNote"></p>
+          </div>
+          <div class="field">
+            <span class="lbl" data-i18n="online.type">File type</span>
+            <div class="seg" role="radiogroup" aria-label="File type" data-i18n-aria="online.type">
+              <label><input type="radio" name="otype" value="pdf" checked><span data-i18n="online.pdf">PDF<small>recommended, 100 % K</small></span></label>
+              <label><input type="radio" name="otype" value="png"><span data-i18n="online.png">PNG<small>600 dpi, black and white</small></span></label>
+            </div>
+          </div>
+          <div class="kv"><label for="ocard" data-i18n="online.card">Card</label><select id="ocard"></select><span></span></div>
+          <div class="row">
+            <button type="button" class="primary" id="odownload" data-i18n="online.one" style="width:auto;flex:1">Download back</button>
+            <button type="button" id="ozip" data-i18n="online.zip">All 10 backs as ZIP</button>
+          </div>
+          <div class="status" id="ostatus" role="status"></div>
+          <details class="hints">
+            <summary data-i18n="online.hints">Before you order</summary>
+            <p class="disclaimer" data-i18n="online.disclaimer"><b>No guarantee on dot strength.</b> All three strengths were tested on office laser printers only, not at any online print shop. Presses, inks and papers differ: dots can bleed together or break away, and the pen may then not read the card. Order a small test run first, ideally one card per strength, and check it with your pen before ordering more.</p>
+            <ul data-i18n="online.hints.list">
+              <li><b>Order a small test run first.</b> Whether the pen reads the cards depends on the shop's press and ink, which you cannot see beforehand.</li>
+              <li><b>The dots must stay 100 % black (K).</b> If the shop converts the file to RGB or rich black (C, M, Y and K mixed), the pen cannot see the code. The PDF sets the colour to pure K.</li>
+              <li><b>No scaling, no downsampling.</b> The code needs the full 600 dpi. If the upload tool resizes the image or asks you to “fit” it, the dots get lost. PDF is the safest choice.</li>
+              <li><b>Matte, uncoated paper reads best.</b> Glossy coating or lamination on the back can block the pen.</li>
+              <li><b>Normal strength</b> is the safest bet for a press you have not tested yet.</li>
+              <li><b>One code per card design.</b> Each of the 10 files carries a different code. Use a different one for every card set you order.</li>
+            </ul>
+          </details>
         </div>
-        <div class="row">
-          <label for="ocard" data-i18n="online.card">Card</label>
-          <select id="ocard"></select>
-          <button type="button" id="odownload" data-i18n="online.one">Download back</button>
-        </div>
-        <button type="button" id="ozip" data-i18n="online.zip">All 10 backs as ZIP</button>
-        <div class="status" id="ostatus" role="status"></div>
-        <details class="hints">
-          <summary data-i18n="online.hints">Before you order</summary>
-          <ul data-i18n="online.hints.list">
-            <li><b>Order a small test run first.</b> Whether the pen reads the cards depends on the shop's press and ink, which you cannot see beforehand.</li>
-            <li><b>The dots must stay 100 % black (K).</b> If the shop converts the file to RGB or rich black (C, M, Y and K mixed), the pen cannot see the code. The PDF sets the colour to pure K.</li>
-            <li><b>No scaling, no downsampling.</b> The code needs the full 600 dpi. If the upload tool resizes the image or asks you to “fit” it, the dots get lost. PDF is the safest choice.</li>
-            <li><b>Matte, uncoated paper reads best.</b> Glossy coating or lamination on the back can block the pen.</li>
-            <li><b>Normal strength</b> is the safest bet for a press you have not tested yet.</li>
-            <li><b>One code per card design.</b> Each of the 10 files carries a different code. Use a different one for every card set you order.</li>
-          </ul>
-        </details>
+        <div class="navrow"><button type="button" data-goto="2" data-i18n="prev2">← Back</button></div>
       </section>
     </div>
 
     <div class="mat">
-      <div class="cardview">
+      <div class="viewtabs" role="tablist" aria-label="Preview" data-i18n-aria="view">
+        <button type="button" role="tab" data-view="front" aria-selected="true" data-i18n="view.front">Front</button>
+        <button type="button" role="tab" data-view="back" aria-selected="false" data-i18n="view.back">Back</button>
+        <button type="button" role="tab" data-view="sheet" aria-selected="false" data-i18n="view.sheet">A4 sheet</button>
+      </div>
+      <div class="cardview" id="viewFront">
         <h3 style="width:100%;max-width:620px" data-i18n="card.h">Card <span id="cardDims">Bleed box 91 × 60 mm · drag the image to move it</span></h3>
         <canvas id="cardCanvas" width="910" height="600" aria-label="Front preview" data-i18n-aria="card"></canvas>
         <div class="legend">
@@ -404,15 +496,22 @@ footer { margin-top: 80px; padding-top: 24px; border-top: 1px solid var(--rule);
           <span class="l3" data-i18n="legend.safe"><i></i>Safe margin 3 mm</span>
         </div>
       </div>
-      <div class="cardview">
-        <h3 style="width:100%;max-width:620px" data-i18n="bd.preview">Back <span>drag text or logo to move it</span></h3>
-        <canvas id="backCanvas" width="910" height="600" aria-label="Back preview" data-i18n-aria="bd.previewAria"></canvas>
+      <div class="cardview" id="viewBack" hidden>
+        <h3 style="width:100%;max-width:620px" data-i18n="bd.preview">Back <span>drag text, lines or images to move them</span></h3>
+        <canvas id="backCanvas" width="910" height="600" tabindex="0" aria-label="Back preview" data-i18n-aria="bd.previewAria"></canvas>
+        <div class="legend">
+          <span class="l1" data-i18n="legend.bleed"><i></i>Bleed, gets cut off</span>
+          <span class="l2" data-i18n="legend.trim"><i></i>Trim line 85 × 54 mm</span>
+          <span class="l3" data-i18n="legend.safe"><i></i>Safe margin 3 mm</span>
+        </div>
       </div>
-      <div class="sheets">
-        <div class="sheet"><h3 data-i18n="sheet.front">Page 1 · Front <span>210 × 297 mm</span></h3><canvas id="sheetFront" width="525" height="743"></canvas></div>
-        <div class="sheet"><h3 data-i18n="sheet.back">Page 2 · Back <span id="backLabel">Ncode light</span></h3><canvas id="sheetBack" width="525" height="743"></canvas></div>
+      <div id="viewSheet" hidden>
+        <div class="sheets">
+          <div class="sheet"><h3 data-i18n="sheet.front">Page 1 · Front <span>210 × 297 mm</span></h3><canvas id="sheetFront" width="525" height="743"></canvas></div>
+          <div class="sheet"><h3 data-i18n="sheet.back">Page 2 · Back <span id="backLabel">Ncode light</span></h3><canvas id="sheetBack" width="525" height="743"></canvas></div>
+        </div>
+        <p class="note" id="layoutNote" style="margin-top:12px"></p>
       </div>
-      <p class="note" id="layoutNote"></p>
     </div>
   </div>
 
@@ -504,10 +603,26 @@ const DE_STATIC = {
   "sheet.front": "Seite 1 · Vorderseite <span>210 × 297 mm</span>",
   "sheet.back": "Seite 2 · Rückseite <span id=\"backLabel\">Ncode hell</span>",
   "foot.local": "Dein Bild verlässt nie deinen Browser: Das PDF entsteht direkt hier auf deinem Gerät.",
-  "bd.h": "Rückseite gestalten <span>optional</span>",
-  "bd.intro": "Setz deinen Namen, eine Textzeile oder ein Logo über den Code. Das Design wird nur in Cyan, Magenta und Gelb gedruckt, ohne Schwarz. Der Stift sieht nur Schwarz und liest den Code deshalb auch unter dem Design.",
-  "bd.addText": "+ Text",
-  "bd.addImg": "+ Logo / Bild",
+  "intro2": "Drei Schritte: dein Bild auf die Vorderseite, der Ncode auf die Rückseite (wenn du willst, mit eigenem Text, Linien oder Logo), dann zu Hause drucken oder online bestellen.",
+  "steps": "Schritte",
+  "step1": "Vorderseite",
+  "step2": "Rückseite",
+  "step3": "Drucken",
+  "front.h2": "Bild für die Vorderseite",
+  "fit.q": "Wie ist dein Bild angelegt?",
+  "pos.q": "Ausschnitt",
+  "front.tip": "Zieh das Bild in der Vorschau, um es zu verschieben.",
+  "next2": "Weiter: Rückseite →",
+  "back.h2": "Rückseite",
+  "strength.q": "Punktstärke des Codes",
+  "bd.q": "Gestaltung über dem Code <small>optional</small>",
+  "bd.addText": "Text",
+  "bd.addLine": "Linie",
+  "bd.addImg": "Bild",
+  "bd.empty": "Noch nichts hinzugefügt. Text, Linien und Bilder werden ohne Schwarz gedruckt, der Stift liest den Code darunter weiterhin.",
+  "bd.up": "Nach vorne",
+  "bd.down": "Nach hinten",
+  "bd.delete": "Löschen",
   "bd.text": "Text",
   "bd.font": "Schrift",
   "bd.bold": "Fett",
@@ -516,13 +631,35 @@ const DE_STATIC = {
   "bd.left": "links",
   "bd.center": "mittig",
   "bd.right": "rechts",
-  "bd.color": "Farbe",
+  "bd.len": "Länge",
+  "bd.angle": "Winkel",
+  "bd.thick": "Dicke",
+  "bd.dashed": "Gestrichelt",
   "bd.width": "Breite",
+  "bd.fill": "Ganze Karte füllen (Hintergrund)",
+  "bd.color": "Farbe",
   "bd.opacity": "Deckkraft",
+  "bd.pos": "Position",
   "bd.centerH": "Waagerecht mittig",
-  "bd.delete": "Entfernen",
-  "bd.disclaimer": "<b>Noch nicht bei Druckereien getestet.</b> Es klappt nur, wenn die Druckerei die Farben so druckt, wie sie im PDF stehen. Rechnet sie sie um und mischt Schwarz dazu, kann der Stift den Code unter dem Design nicht lesen. Weiß lässt sich nicht drucken. Das Design kommt in die PDFs (A4-Bogen und einzelne Rückseiten), PNG-Rückseiten bleiben ohne. Erst eine Testkarte bestellen.",
-  "bd.preview": "Rückseite <span>Text oder Logo zum Verschieben ziehen</span>",
+  "bd.centerV": "Senkrecht mittig",
+  "bd.dragTip": "In der Vorschau ziehen zum Verschieben. Die Enden einer Linie ziehen, um sie zu drehen oder zu verlängern. Pfeiltasten schieben fein, Entf löscht.",
+  "bd.how": "Warum liest der Stift durch die Gestaltung?",
+  "bd.howText": "Die Gestaltung wird nur in Cyan, Magenta und Gelb gedruckt, ohne Schwarz (K = 0). Der Stift sieht nur Rußschwarz, der Code darunter bleibt also lesbar. Dunkler Text wird deshalb aus drei Farben gemischt und wirkt sehr dunkelbraun statt tiefschwarz. Weiß lässt sich nicht drucken.",
+  "bd.disclaimer": "<b>Noch nicht bei Druckereien getestet.</b> Es klappt nur, wenn die Druckerei die Farben so druckt, wie sie im PDF stehen. Rechnet sie sie um und mischt Schwarz dazu, kann der Stift den Code unter der Gestaltung nicht lesen. Die Gestaltung kommt in die PDFs, PNG-Rückseiten bleiben ohne. Erst eine Testkarte bestellen.",
+  "prev1": "← Vorderseite",
+  "next3": "Weiter: Drucken →",
+  "print.h": "Wie druckst du?",
+  "mode.home": "Selbst drucken<small>A4-Bogen · Laserdrucker</small>",
+  "mode.online": "Online-Druckerei<small>eine Datei pro Karte</small>",
+  "layout.q": "Karten pro Bogen",
+  "online.strengthWarn": "Bei einer Druckerei, die du noch nicht getestet hast, ist die Punktstärke „Normal“ die sicherste Wahl.",
+  "online.useNormal": "Auf Normal umstellen",
+  "prev2": "← Rückseite",
+  "view": "Vorschau",
+  "view.front": "Vorderseite",
+  "view.back": "Rückseite",
+  "view.sheet": "A4-Bogen",
+  "bd.preview": "Rückseite <span>Text, Linien oder Bilder zum Verschieben ziehen</span>",
   "bd.previewAria": "Vorschau Rückseite",
   "foot.about": "Ein Community-Projekt von Tim Holzhausen. Steht in keiner Verbindung zu den Erfindern des Tricks oder zu NeoLab.",
 };
@@ -559,6 +696,8 @@ const T = {
     bdLogo: "Logo",
     bdNoPng: "The back design only goes into PDF files. Choose PDF, or remove the design for PNG backs.",
     bdSizeVal: (pt) => `${pt} pt`,
+    bdText: "Text", bdLine: "Line", bdImage: "Image",
+    bdLineName: (len, ang) => `Line · ${len} mm · ${ang}°`,
   },
   de: {
     names: { normal: "normal", light: "hell", extralight: "sehr hell" },
@@ -590,6 +729,8 @@ const T = {
     bdLogo: "Logo",
     bdNoPng: "Das Rückseiten-Design kommt nur in PDF-Dateien. Wähle PDF oder entferne das Design für PNG-Rückseiten.",
     bdSizeVal: (pt) => `${String(pt).replace(".", ",")} pt`,
+    bdText: "Text", bdLine: "Linie", bdImage: "Bild",
+    bdLineName: (len, ang) => `Linie · ${String(len).replace(".", ",")} mm · ${ang}°`,
   },
 }[LANG];
 
@@ -599,6 +740,7 @@ if (LANG === "de") {
   document.querySelector('meta[name="description"]').content = DE_STATIC.description;
   for (const el of document.querySelectorAll("[data-i18n]")) if (el.dataset.i18n in DE_STATIC) el.innerHTML = DE_STATIC[el.dataset.i18n];
   for (const el of document.querySelectorAll("[data-i18n-aria]")) if (el.dataset.i18nAria in DE_STATIC) el.setAttribute("aria-label", DE_STATIC[el.dataset.i18nAria]);
+  for (const el of document.querySelectorAll("[data-i18n-title]")) if (el.dataset.i18nTitle in DE_STATIC) el.title = DE_STATIC[el.dataset.i18nTitle];
 }
 </script>
 <script src="ncode_data.js"></script>
@@ -841,8 +983,8 @@ function refresh(all = true) {
 }
 
 // ---------- Back design ----------
-// Text and images on top of the code. In the PDF they become a CMYK image with K = 0 (C = 1 - R, M = 1 - G,
-// Y = 1 - B) plus a soft mask: the pen only sees carbon black (K), so it reads the code through the design.
+// Text, lines and images on top of the code. In the PDF they become a CMYK image with K = 0 (C = 1 - R,
+// M = 1 - G, Y = 1 - B) plus a soft mask: the pen only sees carbon black (K), so it reads the code through it.
 // Positions in mm, relative to the card centre (y downwards); the same for every card and every format.
 const BD_FONTS = {
   grotesk: '"Schibsted Grotesk", "Segoe UI", sans-serif', sans: 'Arial, Helvetica, sans-serif',
@@ -850,16 +992,26 @@ const BD_FONTS = {
 };
 const BD = { items: [], sel: -1 };
 const MASK_W = NW / NCODE.dpi * 25.4, MASK_H = NH / NCODE.dpi * 25.4;   // the code bitmap: 91 x 60 mm, card centred
-const bdActive = () => BD.items.some((it) => it.type === "image" || String(it.text || "").trim());
+const BD_KEY = "ncodecard_back";
+const bdActive = () => BD.items.some((it) => it.type !== "text" || String(it.text || "").trim());
+// Text and lines are remembered in the browser; images are not (too large for localStorage).
 function bdSave() {
-  try { localStorage.setItem("ncodecard_back", JSON.stringify(BD.items.filter((it) => it.type === "text").map(({ _bb, ...r }) => r))); } catch { /* private mode */ }
+  try { localStorage.setItem(BD_KEY, JSON.stringify(BD.items.filter((it) => it.type !== "image").map(({ _bb, ...r }) => r))); } catch { /* private mode */ }
 }
 function bdLoad() {
-  try { const s = JSON.parse(localStorage.getItem("ncodecard_back") || "null"); if (Array.isArray(s)) BD.items = s.filter((it) => it && it.type === "text"); } catch { /* ignore */ }
+  try {
+    const s = JSON.parse(localStorage.getItem(BD_KEY) || "null");
+    if (Array.isArray(s)) BD.items = s.filter((it) => it && (it.type === "text" || it.type === "line"));
+  } catch { /* ignore */ }
 }
 const bdFontCss = (it) => `${it.bold ? 700 : 400} ${(it.size * 25.4 / 72).toFixed(3)}px ${BD_FONTS[it.font] || BD_FONTS.sans}`;
 async function bdFontsReady() {
   try { await Promise.all(BD.items.filter((it) => it.type === "text").map((it) => document.fonts.load(`${it.bold ? 700 : 400} 20px ${BD_FONTS[it.font] || BD_FONTS.sans}`))); } catch { /* system font */ }
+}
+// Line: centre (x, y), length len, angle in degrees (counter-clockwise, 0 = horizontal), width in mm
+function lineEnds(it) {
+  const a = it.angle * Math.PI / 180, dx = Math.cos(a) * it.len / 2, dy = -Math.sin(a) * it.len / 2;
+  return [[it.x - dx, it.y - dy], [it.x + dx, it.y + dy]];
 }
 // Draws the design into g, whose units are mm, with the card centre at (cx, cy). Stores each item's box (_bb).
 function bdDraw(g, cx, cy) {
@@ -874,6 +1026,12 @@ function bdDraw(g, cx, cy) {
       lines.forEach((l, i) => { g.fillText(l, cx + it.x, cy + top + i * lh); w = Math.max(w, g.measureText(l).width); });
       const x0 = it.align === "left" ? it.x : it.align === "right" ? it.x - w : it.x - w / 2;
       it._bb = { x: x0, y: it.y - lines.length * lh / 2, w: Math.max(w, 2), h: lines.length * lh };
+    } else if (it.type === "line") {
+      const [[x1, y1], [x2, y2]] = lineEnds(it);
+      g.strokeStyle = it.color; g.lineWidth = it.width; g.lineCap = it.dashed ? "butt" : "round";
+      if (it.dashed) g.setLineDash([it.width * 3 + 0.8, it.width * 2 + 0.8]);
+      g.beginPath(); g.moveTo(cx + x1, cy + y1); g.lineTo(cx + x2, cy + y2); g.stroke();
+      it._bb = { x: Math.min(x1, x2) - it.width / 2, y: Math.min(y1, y2) - it.width / 2, w: Math.abs(x2 - x1) + it.width, h: Math.abs(y2 - y1) + it.width };
     } else {
       const h = it.w * it.img.height / it.img.width;
       g.imageSmoothingQuality = "high";
@@ -882,6 +1040,16 @@ function bdDraw(g, cx, cy) {
     }
     g.restore();
   }
+}
+// Is the point (mm, relative to the card centre) on the item? Lines: close to the segment.
+function bdHit(it, x, y) {
+  if (it.type === "line") {
+    const [[x1, y1], [x2, y2]] = lineEnds(it), vx = x2 - x1, vy = y2 - y1, L = vx * vx + vy * vy || 1;
+    const t = Math.max(0, Math.min(1, ((x - x1) * vx + (y - y1) * vy) / L));
+    return Math.hypot(x - (x1 + t * vx), y - (y1 + t * vy)) <= Math.max(1.5, it.width / 2 + 0.8);
+  }
+  const b = it._bb;
+  return !!b && x >= b.x - 1 && x <= b.x + b.w + 1 && y >= b.y - 1 && y <= b.y + b.h + 1;
 }
 // Transparent canvas of the code bitmap area (MASK_W x MASK_H mm) at W x H px
 function bdCanvas(W, H) {
@@ -1049,7 +1217,7 @@ $("download").addEventListener("click", async () => {
 // One file per card: trim size plus bleed, the Ncode bitmap centred on it at 600 dpi.
 // The stored bitmaps are 85 x 54 mm + 3 mm; for other formats they are cropped or padded with white
 // (only inside the bleed, the trim area stays fully covered for every format offered).
-const oStrength = () => $("ostrength").value;
+const oStrength = () => S.strength;               // one dot strength for the A4 sheet and the single backs
 function onlineFormat() {
   const [size, b] = $("ofmt").value.split("-"), [tw, th] = size.split("x").map(Number), bleed = +b;
   const w = tw + 2 * bleed, h = th + 2 * bleed;
@@ -1186,7 +1354,11 @@ $("ozip").addEventListener("click", () => onlineExport(true));
 
 // ---------- Back design: editor ----------
 const backCanvas = $("backCanvas");
-let bdRaf = 0;
+let bdRaf = 0, bdGuide = null;
+const TYPE_ICON = { text: "T", line: "╱", image: "▣" };
+const typeName = (t) => ({ text: T.bdText, line: T.bdLine, image: T.bdImage })[t];
+const num1 = (v) => { const s = String(+(+v).toFixed(1)); return LANG === "de" ? s.replace(".", ",") : s; };
+
 async function drawBackPreview() {
   const list = await backPreviews(S.strength);
   const g = backCanvas.getContext("2d"), k = backCanvas.width / MASK_W;
@@ -1194,17 +1366,27 @@ async function drawBackPreview() {
   g.imageSmoothingEnabled = true; g.drawImage(list[0], 0, 0, backCanvas.width, backCanvas.height);
   await bdFontsReady();
   g.drawImage(bdCanvas(backCanvas.width, backCanvas.height), 0, 0);
-  const tx = (MASK_W - CARD.w) / 2, ty = (MASK_H - CARD.h) / 2;
+  const tx = (MASK_W - CARD.w) / 2, ty = (MASK_H - CARD.h) / 2, X = (v) => (MASK_W / 2 + v) * k, Y = (v) => (MASK_H / 2 + v) * k;
   g.save(); g.fillStyle = "rgba(20,30,25,.35)";
   g.beginPath(); g.rect(0, 0, backCanvas.width, backCanvas.height); g.rect(tx * k, ty * k, CARD.w * k, CARD.h * k); g.fill("evenodd"); g.restore();
   g.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue("--mark").trim() || "#e0457b"; g.lineWidth = 2;
   g.strokeRect(tx * k, ty * k, CARD.w * k, CARD.h * k);
   g.strokeStyle = "#8fd3ff"; g.setLineDash([8, 6]); g.lineWidth = 1.5;
   g.strokeRect((tx + 3) * k, (ty + 3) * k, (CARD.w - 6) * k, (CARD.h - 6) * k);
+  // Snap guides while dragging
+  if (bdGuide) {
+    g.strokeStyle = "#ff2d95"; g.setLineDash([6, 4]); g.lineWidth = 1.5;
+    if (bdGuide.v) { g.beginPath(); g.moveTo(X(0), 0); g.lineTo(X(0), backCanvas.height); g.stroke(); }
+    if (bdGuide.h) { g.beginPath(); g.moveTo(0, Y(0)); g.lineTo(backCanvas.width, Y(0)); g.stroke(); }
+  }
+  // Selection
   const it = BD.items[BD.sel];
   if (it?._bb) {
-    g.strokeStyle = "#ff9f0a"; g.setLineDash([5, 4]);
-    g.strokeRect((MASK_W / 2 + it._bb.x) * k - 3, (MASK_H / 2 + it._bb.y) * k - 3, it._bb.w * k + 6, it._bb.h * k + 6);
+    g.strokeStyle = "#ff9f0a"; g.setLineDash([5, 4]); g.lineWidth = 1.5;
+    if (it.type === "line") {
+      g.setLineDash([]);
+      for (const [ex, ey] of lineEnds(it)) { g.beginPath(); g.arc(X(ex), Y(ey), 8, 0, 2 * Math.PI); g.fillStyle = "#fff"; g.fill(); g.lineWidth = 2.5; g.stroke(); }
+    } else g.strokeRect(X(it._bb.x) - 3, Y(it._bb.y) - 3, it._bb.w * k + 6, it._bb.h * k + 6);
   }
   g.setLineDash([]);
 }
@@ -1212,81 +1394,213 @@ function bdRefresh() {
   cancelAnimationFrame(bdRaf);
   bdRaf = requestAnimationFrame(() => { drawBackPreview(); if (G) drawSheetBack(); });
 }
-function bdRenderList() {
-  $("bdList").replaceChildren(...BD.items.map((it, i) => {
-    const b = document.createElement("button");
-    b.type = "button";
-    b.textContent = it.type === "image" ? T.bdLogo : (String(it.text || "").split("\n")[0].slice(0, 24) || "…");
-    b.setAttribute("aria-pressed", String(i === BD.sel));
-    b.addEventListener("click", () => { BD.sel = i; bdRenderList(); bdShowEditor(); bdRefresh(); });
-    return b;
-  }));
+function bdName(it) {
+  if (it.type === "text") return String(it.text || "").split("\n")[0].trim() || T.bdText;
+  if (it.type === "line") return T.bdLineName(+(+it.len).toFixed(1), Math.round(it.angle));
+  return T.bdImage;
 }
+// Layer list: the topmost element first, like in drawing programs
+function bdRenderList() {
+  $("bdList").replaceChildren(...BD.items.map((it, i) => [it, i]).reverse().map(([it, i]) => {
+    const li = document.createElement("li");
+    const sel = document.createElement("button");
+    sel.type = "button"; sel.className = "sel"; sel.setAttribute("aria-pressed", String(i === BD.sel));
+    const ic = document.createElement("i"); ic.textContent = TYPE_ICON[it.type];
+    const sp = document.createElement("span"); sp.textContent = bdName(it);
+    sel.append(ic, sp); sel.addEventListener("click", () => bdSelect(i));
+    const del = document.createElement("button");
+    del.type = "button"; del.className = "del"; del.textContent = "✕";
+    del.setAttribute("aria-label", (LANG === "de" ? "Löschen: " : "Delete: ") + bdName(it));
+    del.addEventListener("click", () => bdRemove(i));
+    li.append(sel, del);
+    return li;
+  }));
+  $("bdEmpty").hidden = BD.items.length > 0;
+}
+const bdSel = () => BD.items[BD.sel];
+function bdSyncPos() { const it = bdSel(); if (it) { $("bdX").value = +it.x.toFixed(1); $("bdY").value = +it.y.toFixed(1); } }
 function bdShowEditor() {
-  const it = BD.items[BD.sel];
+  const it = bdSel();
   $("bdEdit").hidden = !it;
   if (!it) return;
-  const txt = it.type === "text";
-  $("bdTextPart").style.display = txt ? "grid" : "none"; $("bdImgPart").style.display = txt ? "none" : "grid";
-  if (txt) {
-    $("bdText").value = it.text; $("bdFont").value = it.font; $("bdBold").checked = !!it.bold;
+  $("bdTextPart").hidden = it.type !== "text";
+  $("bdLinePart").hidden = it.type !== "line";
+  $("bdImgPart").hidden = it.type !== "image";
+  $("bdColorRow").hidden = it.type === "image";
+  $("bdEditTitle").textContent = TYPE_ICON[it.type] + "  " + typeName(it.type);
+  if (it.type === "text") {
+    if (document.activeElement !== $("bdText")) $("bdText").value = it.text;
+    $("bdFont").value = it.font; $("bdBold").checked = !!it.bold;
     $("bdSize").value = it.size; $("bdSizeVal").textContent = T.bdSizeVal(it.size);
-    $("bdAlign").value = it.align; $("bdColor").value = it.color;
+    for (const b of $("bdAlign").children) b.setAttribute("aria-pressed", String(b.dataset.align === it.align));
+  } else if (it.type === "line") {
+    $("bdLen").value = it.len; $("bdLenVal").textContent = num1(it.len) + " mm";
+    $("bdAngle").value = Math.round(it.angle); $("bdAngleVal").textContent = Math.round(it.angle) + "°";
+    for (const b of $("bdAngles").children) b.setAttribute("aria-pressed", String(Math.round(it.angle) === +b.dataset.angle));
+    $("bdThick").value = it.width; $("bdThickVal").textContent = num1(it.width) + " mm";
+    $("bdDashed").checked = !!it.dashed;
   } else {
-    $("bdWidth").value = it.w; $("bdWidthVal").textContent = it.w + " mm";
+    $("bdWidth").value = it.w; $("bdWidthVal").textContent = num1(it.w) + " mm";
   }
+  if (it.type !== "image") $("bdColor").value = it.color;
   $("bdOpacity").value = Math.round((it.opacity ?? 1) * 100); $("bdOpacityVal").textContent = $("bdOpacity").value + " %";
+  bdSyncPos();
+  $("bdUp").disabled = BD.sel >= BD.items.length - 1;
+  $("bdDown").disabled = BD.sel <= 0;
 }
 function bdChanged() { bdSave(); bdRenderList(); bdRefresh(); }
-const bdSel = () => BD.items[BD.sel];
-$("bdAddText").addEventListener("click", () => {
-  BD.items.push({ type: "text", text: T.bdSample, font: "grotesk", size: 10, bold: true, color: "#1a1a1a", align: "center", x: 0, y: 0, opacity: 1 });
-  BD.sel = BD.items.length - 1; bdShowEditor(); bdChanged();
-});
+function bdSelect(i) { BD.sel = i; bdRenderList(); bdShowEditor(); bdRefresh(); }
+function bdRemove(i) {
+  BD.items.splice(i, 1);
+  BD.sel = i === BD.sel ? -1 : i < BD.sel ? BD.sel - 1 : BD.sel;
+  bdShowEditor(); bdChanged();
+}
+function bdAdd(it) { BD.items.push(it); BD.sel = BD.items.length - 1; bdShowEditor(); bdChanged(); setView("back"); }
+
+// Toolbar
+$("bdAddText").addEventListener("click", () => bdAdd({ type: "text", text: T.bdSample, font: "grotesk", size: 10, bold: true, color: "#1a1a1a", align: "center", x: 0, y: 0, opacity: 1 }));
+$("bdAddLine").addEventListener("click", () => bdAdd({ type: "line", x: 0, y: 12, len: 60, angle: 0, width: 0.35, color: "#1a1a1a", dashed: false, opacity: 1 }));
 $("bdAddImg").addEventListener("change", async (e) => {
   const file = e.target.files[0]; e.target.value = "";
   if (!file || !file.type.startsWith("image/")) return;
   try {
     const img = await createImageBitmap(file, { imageOrientation: "from-image" });
-    BD.items.push({ type: "image", img, w: 30, x: 0, y: 0, opacity: 1 });
-    BD.sel = BD.items.length - 1; bdShowEditor(); bdChanged();
+    bdAdd({ type: "image", img, w: 30, x: 0, y: 0, opacity: 1 });
   } catch { setStatus(T.cantOpen, true); }
 });
-$("bdText").addEventListener("input", (e) => { bdSel().text = e.target.value; bdChanged(); });
-$("bdFont").addEventListener("change", (e) => { bdSel().font = e.target.value; bdChanged(); });
-$("bdBold").addEventListener("change", (e) => { bdSel().bold = e.target.checked; bdChanged(); });
-$("bdSize").addEventListener("input", (e) => { bdSel().size = +e.target.value; $("bdSizeVal").textContent = T.bdSizeVal(+e.target.value); bdChanged(); });
-$("bdAlign").addEventListener("change", (e) => { bdSel().align = e.target.value; bdChanged(); });
-$("bdColor").addEventListener("input", (e) => { bdSel().color = e.target.value; bdChanged(); });
-$("bdWidth").addEventListener("input", (e) => { bdSel().w = +e.target.value; $("bdWidthVal").textContent = e.target.value + " mm"; bdChanged(); });
-$("bdOpacity").addEventListener("input", (e) => { bdSel().opacity = e.target.value / 100; $("bdOpacityVal").textContent = e.target.value + " %"; bdChanged(); });
-$("bdCenterH").addEventListener("click", () => {
-  const it = bdSel(); if (!it) return;
-  it.x = it.type === "text" && it.align !== "center" && it._bb ? it.x - (it._bb.x + it._bb.w / 2) : 0;
-  bdChanged();
+
+// Inspector
+const bdOn = (id, ev, fn) => $(id).addEventListener(ev, (e) => { const it = bdSel(); if (it) { fn(it, e.target); bdChanged(); } });
+bdOn("bdText", "input", (it, el) => { it.text = el.value; });
+bdOn("bdFont", "change", (it, el) => { it.font = el.value; });
+bdOn("bdBold", "change", (it, el) => { it.bold = el.checked; });
+bdOn("bdSize", "input", (it, el) => { it.size = +el.value; $("bdSizeVal").textContent = T.bdSizeVal(it.size); });
+$("bdAlign").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-align]"), it = bdSel(); if (!b || !it) return;
+  it.align = b.dataset.align; bdShowEditor(); bdChanged();
 });
-$("bdDelete").addEventListener("click", () => { BD.items.splice(BD.sel, 1); BD.sel = Math.min(BD.sel, BD.items.length - 1); bdShowEditor(); bdChanged(); });
-// Drag on the back preview: grab the item under the pointer (topmost first), move it in mm
+bdOn("bdLen", "input", (it, el) => { it.len = +el.value; $("bdLenVal").textContent = num1(it.len) + " mm"; });
+bdOn("bdAngle", "input", (it, el) => { it.angle = +el.value; $("bdAngleVal").textContent = it.angle + "°"; for (const b of $("bdAngles").children) b.setAttribute("aria-pressed", String(it.angle === +b.dataset.angle)); });
+$("bdAngles").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-angle]"), it = bdSel(); if (!b || !it) return;
+  it.angle = +b.dataset.angle; bdShowEditor(); bdChanged();
+});
+bdOn("bdThick", "input", (it, el) => { it.width = +el.value; $("bdThickVal").textContent = num1(it.width) + " mm"; });
+bdOn("bdDashed", "change", (it, el) => { it.dashed = el.checked; });
+bdOn("bdWidth", "input", (it, el) => { it.w = +el.value; $("bdWidthVal").textContent = num1(it.w) + " mm"; });
+bdOn("bdColor", "input", (it, el) => { it.color = el.value; });
+bdOn("bdOpacity", "input", (it, el) => { it.opacity = el.value / 100; $("bdOpacityVal").textContent = el.value + " %"; });
+bdOn("bdX", "change", (it, el) => { if (el.value !== "") it.x = +el.value; });
+bdOn("bdY", "change", (it, el) => { if (el.value !== "") it.y = +el.value; });
+// Centre the visible box (for left/right aligned text the anchor is not the centre)
+$("bdCenterH").addEventListener("click", () => { const it = bdSel(); if (!it) return; it.x -= it._bb ? it._bb.x + it._bb.w / 2 : it.x; bdSyncPos(); bdChanged(); });
+$("bdCenterV").addEventListener("click", () => { const it = bdSel(); if (!it) return; it.y -= it._bb ? it._bb.y + it._bb.h / 2 : it.y; bdSyncPos(); bdChanged(); });
+$("bdFill").addEventListener("click", () => {
+  const it = bdSel(); if (!it || it.type !== "image") return;
+  it.w = MASK_W + 0.2; it.x = 0; it.y = 0;
+  BD.items.splice(BD.sel, 1); BD.items.unshift(it); BD.sel = 0;     // to the very back
+  bdShowEditor(); bdChanged();
+});
+$("bdUp").addEventListener("click", () => { const i = BD.sel; if (i < 0 || i >= BD.items.length - 1) return; [BD.items[i], BD.items[i + 1]] = [BD.items[i + 1], BD.items[i]]; BD.sel = i + 1; bdShowEditor(); bdChanged(); });
+$("bdDown").addEventListener("click", () => { const i = BD.sel; if (i <= 0) return; [BD.items[i], BD.items[i - 1]] = [BD.items[i - 1], BD.items[i]]; BD.sel = i - 1; bdShowEditor(); bdChanged(); });
+$("bdDelete").addEventListener("click", () => { if (BD.sel >= 0) bdRemove(BD.sel); });
+
+// Drag on the back preview: move items (centre snaps to the card centre), drag line ends to turn/lengthen
 let bdDrag = null;
+const SNAP = 0.8;   // mm
 const bdPoint = (e) => { const r = backCanvas.getBoundingClientRect(); return [(e.clientX - r.left) / r.width * MASK_W - MASK_W / 2, (e.clientY - r.top) / r.height * MASK_H - MASK_H / 2]; };
 backCanvas.addEventListener("pointerdown", (e) => {
-  const [x, y] = bdPoint(e);
+  const [x, y] = bdPoint(e), cur = bdSel();
+  backCanvas.focus({ preventScroll: true });
+  if (cur?.type === "line") {
+    const ends = lineEnds(cur), k = ends.findIndex(([ex, ey]) => Math.hypot(ex - x, ey - y) < 2.5);
+    if (k >= 0) { bdDrag = { mode: "end", fixed: ends[1 - k] }; backCanvas.setPointerCapture(e.pointerId); backCanvas.classList.add("dragging"); return; }
+  }
   let hit = -1;
-  for (let i = BD.items.length - 1; i >= 0; i--) { const b = BD.items[i]._bb; if (b && x >= b.x - 1 && x <= b.x + b.w + 1 && y >= b.y - 1 && y <= b.y + b.h + 1) { hit = i; break; } }
-  if (hit < 0) return;
-  BD.sel = hit; bdRenderList(); bdShowEditor();
-  bdDrag = { x, y }; backCanvas.setPointerCapture(e.pointerId); backCanvas.classList.add("dragging"); bdRefresh();
+  for (let i = BD.items.length - 1; i >= 0; i--) if (bdHit(BD.items[i], x, y)) { hit = i; break; }
+  if (hit < 0) { if (BD.sel !== -1) bdSelect(-1); return; }
+  if (hit !== BD.sel) { BD.sel = hit; bdRenderList(); bdShowEditor(); }
+  const it = BD.items[hit];
+  bdDrag = { mode: "move", dx: it.x - x, dy: it.y - y };
+  backCanvas.setPointerCapture(e.pointerId); backCanvas.classList.add("dragging"); bdRefresh();
 });
 backCanvas.addEventListener("pointermove", (e) => {
   if (!bdDrag) return;
-  const [x, y] = bdPoint(e), it = bdSel();
-  it.x += x - bdDrag.x; it.y += y - bdDrag.y; bdDrag = { x, y }; bdRefresh();
+  const [x, y] = bdPoint(e), it = bdSel(); if (!it) return;
+  bdGuide = {};
+  if (bdDrag.mode === "move") {
+    let nx = x + bdDrag.dx, ny = y + bdDrag.dy;
+    const b = it._bb, ox = b ? b.x + b.w / 2 - it.x : 0, oy = b ? b.y + b.h / 2 - it.y : 0;   // anchor -> visible centre
+    if (Math.abs(nx + ox) < SNAP) { nx = -ox; bdGuide.v = true; }
+    if (Math.abs(ny + oy) < SNAP) { ny = -oy; bdGuide.h = true; }
+    it.x = nx; it.y = ny;
+    bdSyncPos();
+  } else {
+    // the other end stays put; angles snap to multiples of 45°
+    const [fx, fy] = bdDrag.fixed;
+    let vx = x - fx, vy = y - fy, ang = Math.atan2(-vy, vx) * 180 / Math.PI;
+    const snap = Math.round(ang / 45) * 45;
+    if (Math.abs(ang - snap) < 4) {
+      ang = snap;
+      const ux = Math.cos(ang * Math.PI / 180), uy = -Math.sin(ang * Math.PI / 180), d = Math.max(1, vx * ux + vy * uy);
+      vx = ux * d; vy = uy * d;
+    }
+    it.len = Math.max(1, Math.hypot(vx, vy));
+    it.x = fx + vx / 2; it.y = fy + vy / 2;
+    let a = ang; while (a > 90) a -= 180; while (a <= -90) a += 180;
+    it.angle = Math.round(a * 10) / 10;
+    bdShowEditor();
+  }
+  bdRefresh();
 });
-const bdEndDrag = () => { if (bdDrag) bdSave(); bdDrag = null; backCanvas.classList.remove("dragging"); };
+const bdEndDrag = () => {
+  if (!bdDrag) return;
+  bdDrag = null; bdGuide = null; backCanvas.classList.remove("dragging");
+  bdChanged();
+};
 backCanvas.addEventListener("pointerup", bdEndDrag);
 backCanvas.addEventListener("pointercancel", bdEndDrag);
-document.querySelectorAll('input[name="strength"]').forEach((el) => el.addEventListener("change", bdRefresh));
-bdLoad(); bdRenderList(); bdShowEditor(); bdRefresh();
+// Keyboard: arrows nudge (Shift = 2 mm), Delete removes, Escape deselects
+backCanvas.addEventListener("keydown", (e) => {
+  const it = bdSel(); if (!it) return;
+  const st = e.shiftKey ? 2 : 0.5;
+  const mv = { ArrowLeft: [-st, 0], ArrowRight: [st, 0], ArrowUp: [0, -st], ArrowDown: [0, st] }[e.key];
+  if (mv) { e.preventDefault(); it.x += mv[0]; it.y += mv[1]; bdSyncPos(); bdChanged(); }
+  else if (e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); bdRemove(BD.sel); }
+  else if (e.key === "Escape") bdSelect(-1);
+});
+
+// ---------- Steps and preview views ----------
+const printMode = () => document.querySelector('input[name="mode"]:checked').value;
+function setView(v) {
+  $("viewFront").hidden = v !== "front"; $("viewBack").hidden = v !== "back"; $("viewSheet").hidden = v !== "sheet";
+  for (const b of document.querySelectorAll(".viewtabs [data-view]")) b.setAttribute("aria-selected", String(b.dataset.view === v));
+  if (v === "back") bdRefresh(); else refresh(v === "sheet");
+}
+function setStep(n) {
+  for (const p of document.querySelectorAll("[data-panel]")) p.hidden = +p.dataset.panel !== n;
+  for (const b of document.querySelectorAll(".step")) {
+    if (+b.dataset.step === n) b.setAttribute("aria-current", "step"); else b.removeAttribute("aria-current");
+  }
+  setView(n === 1 ? "front" : n === 2 ? "back" : printMode() === "home" ? "sheet" : "back");
+  // Show the start of the new step right below the sticky step bar
+  const nav = document.querySelector(".steps"), app = document.querySelector(".app");
+  const y = app.getBoundingClientRect().top + window.scrollY - nav.offsetHeight - 12;
+  if (window.scrollY > y) window.scrollTo({ top: y, behavior: "smooth" });
+}
+for (const b of document.querySelectorAll(".step")) b.addEventListener("click", () => setStep(+b.dataset.step));
+for (const b of document.querySelectorAll("[data-goto]")) b.addEventListener("click", () => setStep(+b.dataset.goto));
+for (const b of document.querySelectorAll(".viewtabs [data-view]")) b.addEventListener("click", () => setView(b.dataset.view));
+const updateOnlineNote = () => { $("oStrengthNote").hidden = S.strength === "normal"; };
+document.querySelectorAll('input[name="mode"]').forEach((el) => el.addEventListener("change", () => {
+  const home = printMode() === "home";
+  $("modeHome").hidden = !home; $("modeOnline").hidden = home;
+  updateOnlineNote(); setView(home ? "sheet" : "back");
+}));
+document.querySelectorAll('input[name="strength"]').forEach((el) => el.addEventListener("change", () => { updateOnlineNote(); bdRefresh(); }));
+$("oUseNormal").addEventListener("click", () => { const r = $("s-normal"); r.checked = true; r.dispatchEvent(new Event("change", { bubbles: true })); });
+
+bdLoad(); bdRenderList(); bdShowEditor(); updateOnlineNote();
 
 // Start
 S.img = sampleImage();

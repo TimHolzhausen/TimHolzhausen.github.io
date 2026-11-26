@@ -7,6 +7,11 @@ Ncode dot pattern on the back, ready for a Neo smartpen.
 
 ## What it does
 
+The page leads through three steps: **1 Front**, **2 Back**, **3 Print**. Each step shows only its own
+settings; the preview on the right follows the step (front, back or A4 sheet) and can be switched anytime.
+One dot strength (chosen in step 2) is used for the A4 sheet and for the single backs.
+
+
 1. Upload a front image (JPG, PNG or WebP). Choose whether it was designed
    with bleed (91 × 60 mm) or at trim size (85 × 54 mm; the edges are then
    mirrored into the bleed). Zoom, rotate and drag to position it.
@@ -30,8 +35,12 @@ Ncode dot pattern on the back, ready for a Neo smartpen.
    Order a small test run first: the pen only reads pure carbon black, and
    any downsampling or RGB/rich-black conversion by the shop breaks the code.
 
-6. Optional back design: add text lines and a logo on top of the code, drag
-   them into place on the back preview. The design is written into the PDFs
+6. Optional back design: add text, lines and images on top of the code. A layer
+   list shows all elements; the settings panel only shows the selected one.
+   Drag elements in the back preview (the centre snaps to the card centre),
+   drag the ends of a line to turn or lengthen it (snaps to 45° steps),
+   arrow keys nudge, Delete removes. Images can fill the whole card as a
+   background. The design is written into the PDFs
    (A4 sheet and single backs) as a CMYK image with **K = 0** (C = 1 − R,
    M = 1 − G, Y = 1 − B, plus a soft mask) underneath the 100 % K dots. The
    pen only sees carbon black, so it reads the code through the design.
