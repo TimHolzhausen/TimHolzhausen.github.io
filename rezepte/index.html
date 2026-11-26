@@ -137,6 +137,8 @@ const APP_URL = location.origin + location.pathname;
 // Interner Name (Slug) der Edge Function, die die Einkaufsliste für Bring ausliefert.
 // Im Dashboard heißt sie „bring-liste“, Supabase hat ihr aber den Slug „clever-handler“ gegeben (Adresszeile).
 const BRING_FUNCTION = "clever-handler";
+// Slug der Edge Function "rezept-ki" (Claude: Foto-Erkennung, Rezeptvorschläge) – nach dem Anlegen aus der Adresszeile übernehmen
+const KI_FUNCTION = "rezept-ki";
 
 // =====================================================================================
 // Grunddaten
@@ -359,6 +361,7 @@ function route() {
   if (view === "plan") return renderPlan();
   if (view === "einkauf") return renderShopping();
   if (view === "familie") return renderFamily();
+  if (view === "ideen") return renderIdeas();
   return renderList();
 }
 function renderSoon(title, tab, text) {
@@ -373,13 +376,14 @@ let FILTER = "alle", QUERY = "";
 function renderList() {
   setChrome("Rezepte", "rezepte", { fab: true });
   $("#view").innerHTML = `<div class="stack">
-    <input type="search" id="q" placeholder="Rezept oder Zutat suchen …" value="${esc(QUERY)}" aria-label="Suchen">
+    <div class="row"><input type="search" class="grow" id="q" placeholder="Rezept oder Zutat suchen …" value="${esc(QUERY)}" aria-label="Suchen"><button class="btn" id="ideasBtn">✨ Ideen</button></div>
     <div class="filters" role="group" aria-label="Filter">
       ${[["alle", "Alle"], ["plan", "Für Essensplan"], ["veg", "Vegetarisch"], ["schnell", "Schnell (≤ 30 min)"]].map(([k, t]) => `<button data-f="${k}" aria-pressed="${FILTER === k}">${t}</button>`).join("")}
     </div>
     <div class="rlist" id="rlist"></div>
   </div>`;
   $("#q").addEventListener("input", (e) => { QUERY = e.target.value; fillList(); });
+  $("#ideasBtn").onclick = () => { location.hash = "#/ideen"; };
   document.querySelectorAll("[data-f]").forEach((b) => b.onclick = () => { FILTER = b.dataset.f; document.querySelectorAll("[data-f]").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); fillList(); });
   fillList();
 }
@@ -467,6 +471,16 @@ function renderEditor(id) {
   let newImage = null, removeImage = false;
   setChrome(orig ? "Rezept bearbeiten" : "Neues Rezept", "rezepte", { back: true });
   $("#view").innerHTML = `<form class="stack" id="ed">
+    <section class="card stack" id="kiCard">
+      <div class="row"><h2 class="grow">✨ Mit Claude ausfüllen</h2></div>
+      <p class="muted small" style="margin:0">Fotografiere oder scanne das Rezept (bis zu 4 Seiten) oder füge Text ein, z. B. die Beschreibung eines Instagram-Beitrags. Claude füllt die Felder unten aus – du prüfst und speicherst.</p>
+      <label class="btn" style="text-align:center">📷 Fotos wählen<input type="file" id="kiImgs" accept="image/*" multiple hidden></label>
+      <div class="chips" id="kiList"></div>
+      <textarea id="kiText" placeholder="… oder Rezepttext hier einfügen" style="min-height:70px"></textarea>
+      <label class="check small" id="kiUseRow" hidden><input type="checkbox" id="kiUse"> Erstes Foto als Rezeptbild verwenden (wenn es das fertige Gericht zeigt)</label>
+      <button type="button" class="btn primary" id="kiGo">Rezept erkennen</button>
+      <div class="err" id="kiMsg" role="status"></div>
+    </section>
     <section class="card stack">
       <label class="field">Titel<input id="t" maxlength="160" required value="${esc(r.title)}" placeholder="z. B. Spaghetti Bolognese"></label>
       <div class="row">
@@ -529,6 +543,36 @@ function renderEditor(id) {
   };
   $("#imgRm").onclick = () => { newImage = null; removeImage = true; $("#imgPrev").style.backgroundImage = ""; $("#imgPrev").textContent = "📷"; $("#imgRm").hidden = true; };
   $("#cancel").onclick = () => history.back();
+  // ---- Claude: Rezept aus Fotos/Text erkennen ----
+  let kiFiles = [];
+  $("#kiImgs").onchange = (e) => {
+    kiFiles = [...kiFiles, ...e.target.files].slice(0, 4); e.target.value = "";
+    $("#kiList").innerHTML = kiFiles.map((f, i) => `<span class="chip">📄 Foto ${i + 1}<button type="button" data-kirm="${i}" aria-label="Foto ${i + 1} entfernen">×</button></span>`).join("");
+    $("#kiList").querySelectorAll("[data-kirm]").forEach((b) => b.onclick = () => { kiFiles.splice(+b.dataset.kirm, 1); $("#kiImgs").dispatchEvent(new Event("change")); });
+    $("#kiUseRow").hidden = !kiFiles.length;
+  };
+  $("#kiGo").onclick = async () => {
+    const text = $("#kiText").value.trim(), msg = $("#kiMsg");
+    if (!kiFiles.length && !text) { msg.className = "err"; msg.textContent = "Bitte ein Foto wählen oder Text einfügen."; return; }
+    $("#kiGo").disabled = true; msg.className = "muted small"; msg.textContent = "Claude liest das Rezept … das dauert meist 15–45 Sekunden.";
+    try {
+      const imgs = await Promise.all(kiFiles.map((f) => imageBase64(f)));
+      const data = await ki({ action: "erkennen", images: imgs.map((x) => x.b64), text });
+      if (!data.recipe) throw new Error(data.problem || "Kein Rezept erkannt.");
+      const rr = recipeRow(data.recipe);
+      $("#t").value = rr.title; $("#sv").value = rr.servings; $("#pt").value = rr.prep_minutes ?? "";
+      $("#veg").checked = rr.vegetarian;
+      ingBox.innerHTML = ""; rr.ingredients.forEach((i) => ingRow(i)); if (!rr.ingredients.length) ingRow();
+      $("#st").value = rr.steps.join("\n\n");
+      if (rr.tags.length && !$("#tg").value.trim()) $("#tg").value = rr.tags.join(", ");
+      if (!$("#src").value.trim()) $("#src").value = text && /instagram/i.test(text) ? "Instagram" : (kiFiles.length ? "Foto/Scan" : "Text");
+      if (rr.notes) $("#nt").value = [$("#nt").value.trim(), rr.notes].filter(Boolean).join("\n");
+      if ($("#kiUse").checked && imgs[0]) { newImage = imgs[0].blob; removeImage = false; $("#imgPrev").style.backgroundImage = `url("${URL.createObjectURL(newImage)}")`; $("#imgPrev").textContent = ""; $("#imgRm").hidden = false; }
+      msg.className = "ok"; msg.textContent = `✓ Erkannt: ${rr.ingredients.length} Zutaten, ${rr.steps.length} Schritte. Bitte kurz prüfen und speichern.`;
+      $("#t").scrollIntoView({ behavior: "smooth", block: "center" });
+    } catch (err) { msg.className = "err"; msg.textContent = err.message; }
+    $("#kiGo").disabled = false;
+  };
 
   $("#ed").onsubmit = async (e) => {
     e.preventDefault();
@@ -568,6 +612,96 @@ function renderEditor(id) {
       location.replace("#/rezept/" + saved.id);
     } catch (err) { $("#edMsg").textContent = err.message || String(err); $("#save").disabled = false; }
   };
+}
+
+// =====================================================================================
+// Claude (über die Edge Function – der API-Key liegt nur auf dem Server)
+// =====================================================================================
+async function ki(body) {
+  const { data, error } = await sb.functions.invoke(KI_FUNCTION, { body });
+  if (error) {
+    let msg = error.message;
+    try { const j = await error.context.json(); if (j?.error) msg = j.error; } catch { /* keine JSON-Antwort */ }
+    if (/not found|404/i.test(msg)) msg = "Die KI-Funktion ist noch nicht eingerichtet (Supabase → Edge Functions).";
+    throw new Error(msg);
+  }
+  if (data?.error) throw new Error(data.error);
+  return data;
+}
+// Foto verkleinern und als Base64-JPEG für Claude
+async function imageBase64(file, max = 1600) {
+  const blob = await resizeImage(file, max);
+  const buf = new Uint8Array(await blob.arrayBuffer());
+  let s = ""; for (let i = 0; i < buf.length; i += 0x8000) s += String.fromCharCode(...buf.subarray(i, i + 0x8000));
+  return { b64: btoa(s), blob };
+}
+// Rezept-Objekt von Claude → Datenbankzeile
+function recipeRow(r, extra = {}) {
+  return {
+    family_id: FAMILY.id, title: String(r.title || "Rezept").slice(0, 160),
+    servings: Math.max(1, Math.min(50, Math.round(r.servings) || settings().persons || 4)),
+    prep_minutes: r.prep_minutes == null ? null : Math.max(0, Math.min(1440, Math.round(r.prep_minutes))),
+    vegetarian: !!r.vegetarian,
+    ingredients: (r.ingredients || []).map((i) => ({ qty: i.qty ?? null, unit: UNITS.includes(i.unit) ? i.unit : "", name: String(i.name || "").trim(), cat: CATS.includes(i.cat) ? i.cat : guessCat(i.name || "") })).filter((i) => i.name),
+    steps: (r.steps || []).map((s) => String(s).trim()).filter(Boolean),
+    tags: (r.tags || []).map((t) => String(t).trim()).filter(Boolean).slice(0, 6),
+    notes: r.notes || null, ...extra,
+  };
+}
+
+// =====================================================================================
+// Neue Rezeptideen von Claude
+// =====================================================================================
+let IDEAS = [];          // letzte Vorschläge (bleiben beim Hin- und Herwechseln erhalten)
+let IDEA_WISH = "";
+function renderIdeas() {
+  setChrome("Neue Ideen", "rezepte", { back: true });
+  const s = settings();
+  $("#view").innerHTML = `<div class="stack">
+    <section class="card stack">
+      <p class="muted small" style="margin:0">Claude schlägt neue Gerichte vor – passend zu euren Lieblingslebensmitteln${(s.favorites || []).length ? ` (${esc(s.favorites.slice(0, 4).join(", "))}${s.favorites.length > 4 ? " …" : ""})` : ""}, ohne eure Abneigungen und ohne Gerichte, die ihr schon habt.${s.vegetarians ? ` Mindestens ein Teil ist vegetarisch.` : ""}</p>
+      ${(s.favorites || []).length ? "" : `<p class="small" style="margin:0">Tipp: Unter „Familie“ Lieblingslebensmittel eintragen, dann passen die Vorschläge besser.</p>`}
+      <label class="field">Wunsch für diesmal (optional)<input id="wish" maxlength="300" value="${esc(IDEA_WISH)}" placeholder="z. B. schnell unter der Woche, mit Kürbis, für Gäste"></label>
+      <div class="row">
+        <label class="field">Anzahl<select id="cnt"><option>3</option><option>4</option><option>5</option></select></label>
+        <button class="btn primary grow" id="ask" style="align-self:end">✨ Vorschläge holen</button>
+      </div>
+      <div class="err" id="ideaMsg" role="status"></div>
+    </section>
+    <div class="stack" id="ideas"></div>
+  </div>`;
+  drawIdeas();
+  $("#ask").onclick = async () => {
+    IDEA_WISH = $("#wish").value.trim();
+    $("#ask").disabled = true; $("#ideaMsg").className = "muted small"; $("#ideaMsg").textContent = "Claude überlegt … das dauert meist 20–60 Sekunden.";
+    try {
+      const data = await ki({ action: "vorschlagen", wish: IDEA_WISH, count: +$("#cnt").value });
+      IDEAS = (data.suggestions || []).map((r) => ({ r, saved: null }));
+      $("#ideaMsg").textContent = IDEAS.length ? "" : "Diesmal kamen keine Vorschläge zurück.";
+      drawIdeas();
+    } catch (err) { $("#ideaMsg").className = "err"; $("#ideaMsg").textContent = err.message; }
+    if ($("#ask")) $("#ask").disabled = false;
+  };
+}
+function drawIdeas() {
+  const box = $("#ideas"); if (!box) return;
+  box.innerHTML = IDEAS.map(({ r, saved }, i) => `<section class="card stack" style="gap:8px">
+    <h3>${r.vegetarian ? "🥗 " : ""}${esc(r.title)}</h3>
+    <p class="muted" style="margin:0">${esc(r.why || "")}</p>
+    <div class="row">${r.prep_minutes ? `<span class="chip">⏱ ${Math.round(r.prep_minutes)} min</span>` : ""}${r.vegetarian ? `<span class="chip green">vegetarisch</span>` : ""}${(r.tags || []).map((t) => `<span class="chip">${esc(t)}</span>`).join("")}</div>
+    <details><summary class="muted small" style="cursor:pointer">Zutaten und Zubereitung</summary>
+      <ul class="ings" style="margin-top:8px">${(r.ingredients || []).map((x) => `<li><span class="q">${esc([fmtQty(x.qty), x.unit].filter(Boolean).join(" "))}</span><span>${esc(x.name)}</span></li>`).join("")}</ul>
+      <ol class="steps" style="margin-top:10px">${(r.steps || []).map((x) => `<li>${esc(x)}</li>`).join("")}</ol></details>
+    <div class="row">${saved ? `<span class="ok">✓ Übernommen</span><button class="btn small" data-open="${saved}">Ansehen</button>` : `<button class="btn primary small" data-save="${i}">Übernehmen</button>`}</div>
+  </section>`).join("");
+  box.querySelectorAll("[data-save]").forEach((b) => b.onclick = async () => {
+    const it = IDEAS[+b.dataset.save]; b.disabled = true;
+    const { data, error } = await sb.from("recipes").insert(recipeRow(it.r, { for_plan: true, source: "Vorschlag von Claude" })).select().single();
+    if (error) { b.disabled = false; return toast(error.message); }
+    RECIPES = [...RECIPES, data].sort((a, b2) => a.title.localeCompare(b2.title, "de"));
+    it.saved = data.id; toast("Übernommen – auch für den Essensplan markiert."); drawIdeas();
+  });
+  box.querySelectorAll("[data-open]").forEach((b) => b.onclick = () => { location.hash = "#/rezept/" + b.dataset.open; });
 }
 
 // =====================================================================================
