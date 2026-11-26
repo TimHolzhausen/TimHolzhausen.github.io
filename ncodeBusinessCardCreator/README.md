@@ -30,6 +30,15 @@ Ncode dot pattern on the back, ready for a Neo smartpen.
    Order a small test run first: the pen only reads pure carbon black, and
    any downsampling or RGB/rich-black conversion by the shop breaks the code.
 
+6. Optional back design: add text lines and a logo on top of the code, drag
+   them into place on the back preview. The design is written into the PDFs
+   (A4 sheet and single backs) as a CMYK image with **K = 0** (C = 1 − R,
+   M = 1 − G, Y = 1 − B, plus a soft mask) underneath the 100 % K dots. The
+   pen only sees carbon black, so it reads the code through the design.
+   PNG backs stay without design (1-bit). Not tested at print shops yet: it
+   only works if the shop prints the colours as delivered and does not add K.
+   Text items are remembered in the browser, images are not.
+
 Everything runs locally in the browser. Images are never uploaded anywhere.
 
 ## Printing

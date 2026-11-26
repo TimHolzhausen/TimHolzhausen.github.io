@@ -172,6 +172,21 @@ details.hints li b { color: var(--ink); font-weight: 600; }
 .sheet { background: var(--paper); border-radius: 12px; padding: 14px; }
 .sheet canvas { width: 100%; height: auto; aspect-ratio: 210 / 297; background: #fff; display: block; box-shadow: var(--shadow); }
 .note { font-size: .86rem; color: var(--muted); margin: 0; }
+#backCanvas {
+  width: 100%; max-width: 620px; height: auto; aspect-ratio: 91 / 60; touch-action: none; cursor: grab;
+  box-shadow: var(--shadow); background: #fff;
+}
+#backCanvas.dragging { cursor: grabbing; }
+.bd-list { display: flex; gap: 8px; flex-wrap: wrap; }
+.bd-list button { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bd-list button[aria-pressed="true"] { border-color: var(--pen); background: color-mix(in srgb, var(--pen) 8%, transparent); }
+.bd-edit[hidden] { display: none; }
+.bd-edit { display: grid; gap: 10px; padding: 12px; border: 1.5px dashed var(--rule); border-radius: 10px; }
+.bd-edit textarea { font: 1rem var(--font-ui); color: var(--ink); background: var(--sheet); border: 1.5px solid var(--rule); border-radius: 10px; padding: 8px 10px; resize: vertical; width: 100%; box-sizing: border-box; }
+.bd-edit input[type="color"] { width: 44px; height: 34px; padding: 2px; border: 1.5px solid var(--rule); border-radius: 8px; background: var(--sheet); }
+.filebtn { font: 600 .9rem var(--font-ui); border: 1.5px solid var(--rule); border-radius: 10px; padding: 7px 13px; cursor: pointer; }
+.filebtn:hover { border-color: var(--muted); }
+.filebtn input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
 
 footer { margin-top: 80px; padding-top: 24px; border-top: 1px solid var(--rule); color: var(--muted); font-size: .86rem; display: grid; gap: 6px; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
@@ -274,6 +289,64 @@ footer { margin-top: 80px; padding-top: 24px; border-top: 1px solid var(--rule);
         </details>
       </section>
 
+      <section class="group" aria-labelledby="h-bd">
+        <h2 id="h-bd" data-i18n="bd.h">Back design <span>optional</span></h2>
+        <p class="note" data-i18n="bd.intro">Add your name, a line of text or a logo on top of the code. The design is printed in cyan, magenta and yellow only, without black. The pen only sees black, so it reads the code right through the design.</p>
+        <div class="row">
+          <button type="button" id="bdAddText" data-i18n="bd.addText">+ Text</button>
+          <label class="filebtn"><input type="file" id="bdAddImg" accept="image/*"><span data-i18n="bd.addImg">+ Logo / image</span></label>
+        </div>
+        <div class="bd-list" id="bdList"></div>
+        <div class="bd-edit" id="bdEdit" hidden>
+          <div id="bdTextPart" style="display:grid;gap:10px">
+            <textarea id="bdText" rows="2" aria-label="Text" data-i18n-aria="bd.text"></textarea>
+            <div class="row">
+              <label for="bdFont" data-i18n="bd.font">Font</label>
+              <select id="bdFont">
+                <option value="grotesk">Grotesk</option>
+                <option value="sans">Arial</option>
+                <option value="serif">Georgia</option>
+                <option value="mono">Courier</option>
+                <option value="impact">Impact</option>
+              </select>
+              <label><input type="checkbox" id="bdBold"> <span data-i18n="bd.bold">Bold</span></label>
+            </div>
+            <div class="row">
+              <label for="bdSize" data-i18n="bd.size">Size</label>
+              <input type="range" id="bdSize" min="5" max="30" step="0.5">
+              <span class="mono" id="bdSizeVal" style="width:3.6em;text-align:right"></span>
+            </div>
+            <div class="row">
+              <label for="bdAlign" data-i18n="bd.align">Alignment</label>
+              <select id="bdAlign">
+                <option value="left" data-i18n="bd.left">left</option>
+                <option value="center" data-i18n="bd.center">centred</option>
+                <option value="right" data-i18n="bd.right">right</option>
+              </select>
+              <label for="bdColor" data-i18n="bd.color">Colour</label>
+              <input type="color" id="bdColor">
+            </div>
+          </div>
+          <div id="bdImgPart" style="display:grid;gap:10px">
+            <div class="row">
+              <label for="bdWidth" data-i18n="bd.width">Width</label>
+              <input type="range" id="bdWidth" min="5" max="91" step="0.5">
+              <span class="mono" id="bdWidthVal" style="width:4.2em;text-align:right"></span>
+            </div>
+          </div>
+          <div class="row">
+            <label for="bdOpacity" data-i18n="bd.opacity">Strength</label>
+            <input type="range" id="bdOpacity" min="10" max="100" step="5">
+            <span class="mono" id="bdOpacityVal" style="width:3.2em;text-align:right"></span>
+          </div>
+          <div class="row">
+            <button type="button" id="bdCenterH" data-i18n="bd.centerH">Centre horizontally</button>
+            <button type="button" id="bdDelete" data-i18n="bd.delete">Remove</button>
+          </div>
+        </div>
+        <p class="disclaimer" data-i18n="bd.disclaimer"><b>Not tested at print shops yet.</b> It only works if the shop prints the colours as they are in the PDF. If it converts them and adds black, the pen cannot read the code under the design. White cannot be printed. The design goes into the PDFs (A4 sheet and single backs); PNG backs stay without it. Order a test card first.</p>
+      </section>
+
       <section class="group" aria-labelledby="h-online">
         <h2 id="h-online" data-i18n="online.h">Back for online printers <span>1 card per file</span></h2>
         <p class="note" data-i18n="online.intro">Ordering from an online print shop such as Vistaprint? Download the backs as separate files and upload them there as the back design.</p>
@@ -330,6 +403,10 @@ footer { margin-top: 80px; padding-top: 24px; border-top: 1px solid var(--rule);
           <span class="l2" data-i18n="legend.trim"><i></i>Trim line 85 × 54 mm</span>
           <span class="l3" data-i18n="legend.safe"><i></i>Safe margin 3 mm</span>
         </div>
+      </div>
+      <div class="cardview">
+        <h3 style="width:100%;max-width:620px" data-i18n="bd.preview">Back <span>drag text or logo to move it</span></h3>
+        <canvas id="backCanvas" width="910" height="600" aria-label="Back preview" data-i18n-aria="bd.previewAria"></canvas>
       </div>
       <div class="sheets">
         <div class="sheet"><h3 data-i18n="sheet.front">Page 1 · Front <span>210 × 297 mm</span></h3><canvas id="sheetFront" width="525" height="743"></canvas></div>
@@ -427,6 +504,26 @@ const DE_STATIC = {
   "sheet.front": "Seite 1 · Vorderseite <span>210 × 297 mm</span>",
   "sheet.back": "Seite 2 · Rückseite <span id=\"backLabel\">Ncode hell</span>",
   "foot.local": "Dein Bild verlässt nie deinen Browser: Das PDF entsteht direkt hier auf deinem Gerät.",
+  "bd.h": "Rückseite gestalten <span>optional</span>",
+  "bd.intro": "Setz deinen Namen, eine Textzeile oder ein Logo über den Code. Das Design wird nur in Cyan, Magenta und Gelb gedruckt, ohne Schwarz. Der Stift sieht nur Schwarz und liest den Code deshalb auch unter dem Design.",
+  "bd.addText": "+ Text",
+  "bd.addImg": "+ Logo / Bild",
+  "bd.text": "Text",
+  "bd.font": "Schrift",
+  "bd.bold": "Fett",
+  "bd.size": "Größe",
+  "bd.align": "Ausrichtung",
+  "bd.left": "links",
+  "bd.center": "mittig",
+  "bd.right": "rechts",
+  "bd.color": "Farbe",
+  "bd.width": "Breite",
+  "bd.opacity": "Deckkraft",
+  "bd.centerH": "Waagerecht mittig",
+  "bd.delete": "Entfernen",
+  "bd.disclaimer": "<b>Noch nicht bei Druckereien getestet.</b> Es klappt nur, wenn die Druckerei die Farben so druckt, wie sie im PDF stehen. Rechnet sie sie um und mischt Schwarz dazu, kann der Stift den Code unter dem Design nicht lesen. Weiß lässt sich nicht drucken. Das Design kommt in die PDFs (A4-Bogen und einzelne Rückseiten), PNG-Rückseiten bleiben ohne. Erst eine Testkarte bestellen.",
+  "bd.preview": "Rückseite <span>Text oder Logo zum Verschieben ziehen</span>",
+  "bd.previewAria": "Vorschau Rückseite",
   "foot.about": "Ein Community-Projekt von Tim Holzhausen. Steht in keiner Verbindung zu den Erfindern des Tricks oder zu NeoLab.",
 };
 
@@ -458,6 +555,10 @@ const T = {
     backName: (i, strength, fmt, ext) => `ncode-back-${String(i).padStart(2, "0")}-${strength.replace(/ /g, "-")}-${fmt}.${ext}`,
     zipName: (strength, fmt) => `ncode-backs-${strength.replace(/ /g, "-")}-${fmt}.zip`,
     oDone: (name, w, h) => `Done: ${name} · ${w} × ${h} mm incl. bleed. Upload it as the back design, without scaling.`,
+    bdSample: "Your name",
+    bdLogo: "Logo",
+    bdNoPng: "The back design only goes into PDF files. Choose PDF, or remove the design for PNG backs.",
+    bdSizeVal: (pt) => `${pt} pt`,
   },
   de: {
     names: { normal: "normal", light: "hell", extralight: "sehr hell" },
@@ -485,6 +586,10 @@ const T = {
     backName: (i, strength, fmt, ext) => `ncode-rueckseite-${String(i).padStart(2, "0")}-${strength.replace(/ /g, "-")}-${fmt}.${ext}`,
     zipName: (strength, fmt) => `ncode-rueckseiten-${strength.replace(/ /g, "-")}-${fmt}.zip`,
     oDone: (name, w, h) => `Fertig: ${name} · ${String(w).replace(".", ",")} × ${String(h).replace(".", ",")} mm inkl. Beschnitt. Als Rückseite hochladen, ohne Skalieren.`,
+    bdSample: "Dein Name",
+    bdLogo: "Logo",
+    bdNoPng: "Das Rückseiten-Design kommt nur in PDF-Dateien. Wähle PDF oder entferne das Design für PNG-Rückseiten.",
+    bdSizeVal: (pt) => `${String(pt).replace(".", ",")} pt`,
   },
 }[LANG];
 
@@ -712,9 +817,11 @@ async function drawSheetBack() {
   const cv = $("sheetBack"), g = cv.getContext("2d"), k = cv.width / PAGE.w;
   g.fillStyle = "#fff"; g.fillRect(0, 0, cv.width, cv.height);
   const pxmm = NCODE.dpi / 25.4, iw = NW / pxmm, ih = NH / pxmm;
+  const ov = bdActive() ? bdCanvas(Math.round(MASK_W * 8), Math.round(MASK_H * 8)) : null;
   for (const cell of G.cells) {
     const bc = G.at(G.cols - 1 - cell.c, cell.r), i = cell.r * G.cols + cell.c;
     placeImage(g, k, list[i], imageMap(bc.t, G.rot ? -1 : 0, NCODE.bleedMm, iw, ih), bc.clip);
+    if (ov) placeImage(g, k, ov, imageMap(bc.t, G.rot ? -1 : 0, NCODE.bleedMm, iw, ih), bc.clip);
     g.fillStyle = "rgba(0,0,0,.45)"; g.font = `600 ${4 * k}px "Schibsted Grotesk", sans-serif`;
     g.fillText(String(i + 1), (bc.t.x + 3) * k, (bc.t.y + 7) * k);
   }
@@ -732,6 +839,77 @@ function refresh(all = true) {
     if (all) drawSheetBack();
   });
 }
+
+// ---------- Back design ----------
+// Text and images on top of the code. In the PDF they become a CMYK image with K = 0 (C = 1 - R, M = 1 - G,
+// Y = 1 - B) plus a soft mask: the pen only sees carbon black (K), so it reads the code through the design.
+// Positions in mm, relative to the card centre (y downwards); the same for every card and every format.
+const BD_FONTS = {
+  grotesk: '"Schibsted Grotesk", "Segoe UI", sans-serif', sans: 'Arial, Helvetica, sans-serif',
+  serif: 'Georgia, "Times New Roman", serif', mono: '"Courier New", Courier, monospace', impact: 'Impact, "Arial Black", sans-serif',
+};
+const BD = { items: [], sel: -1 };
+const MASK_W = NW / NCODE.dpi * 25.4, MASK_H = NH / NCODE.dpi * 25.4;   // the code bitmap: 91 x 60 mm, card centred
+const bdActive = () => BD.items.some((it) => it.type === "image" || String(it.text || "").trim());
+function bdSave() {
+  try { localStorage.setItem("ncodecard_back", JSON.stringify(BD.items.filter((it) => it.type === "text").map(({ _bb, ...r }) => r))); } catch { /* private mode */ }
+}
+function bdLoad() {
+  try { const s = JSON.parse(localStorage.getItem("ncodecard_back") || "null"); if (Array.isArray(s)) BD.items = s.filter((it) => it && it.type === "text"); } catch { /* ignore */ }
+}
+const bdFontCss = (it) => `${it.bold ? 700 : 400} ${(it.size * 25.4 / 72).toFixed(3)}px ${BD_FONTS[it.font] || BD_FONTS.sans}`;
+async function bdFontsReady() {
+  try { await Promise.all(BD.items.filter((it) => it.type === "text").map((it) => document.fonts.load(`${it.bold ? 700 : 400} 20px ${BD_FONTS[it.font] || BD_FONTS.sans}`))); } catch { /* system font */ }
+}
+// Draws the design into g, whose units are mm, with the card centre at (cx, cy). Stores each item's box (_bb).
+function bdDraw(g, cx, cy) {
+  for (const it of BD.items) {
+    g.save();
+    g.globalAlpha = it.opacity ?? 1;
+    if (it.type === "text") {
+      const lines = String(it.text || "").split("\n"), fs = it.size * 25.4 / 72, lh = fs * 1.2;
+      g.font = bdFontCss(it); g.fillStyle = it.color; g.textAlign = it.align; g.textBaseline = "middle";
+      const top = it.y - (lines.length - 1) * lh / 2;
+      let w = 0;
+      lines.forEach((l, i) => { g.fillText(l, cx + it.x, cy + top + i * lh); w = Math.max(w, g.measureText(l).width); });
+      const x0 = it.align === "left" ? it.x : it.align === "right" ? it.x - w : it.x - w / 2;
+      it._bb = { x: x0, y: it.y - lines.length * lh / 2, w: Math.max(w, 2), h: lines.length * lh };
+    } else {
+      const h = it.w * it.img.height / it.img.width;
+      g.imageSmoothingQuality = "high";
+      g.drawImage(it.img, cx + it.x - it.w / 2, cy + it.y - h / 2, it.w, h);
+      it._bb = { x: it.x - it.w / 2, y: it.y - h / 2, w: it.w, h };
+    }
+    g.restore();
+  }
+}
+// Transparent canvas of the code bitmap area (MASK_W x MASK_H mm) at W x H px
+function bdCanvas(W, H) {
+  const c = document.createElement("canvas"); c.width = W; c.height = H;
+  const g = c.getContext("2d"); g.scale(W / MASK_W, H / MASK_H);
+  bdDraw(g, MASK_W / 2, MASK_H / 2);
+  return c;
+}
+// The design as a PDF image: CMYK (K = 0) + soft mask, cropped to its bounding box, in code-bitmap pixels
+async function bdPdfImage() {
+  if (!bdActive()) return null;
+  await bdFontsReady();
+  const d = bdCanvas(NW, NH).getContext("2d").getImageData(0, 0, NW, NH).data;
+  let x0 = NW, y0 = NH, x1 = -1, y1 = -1;
+  for (let y = 0; y < NH; y++) for (let x = 0; x < NW; x++) if (d[(y * NW + x) * 4 + 3]) {
+    if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y;
+  }
+  if (x1 < 0) return null;
+  const w = x1 - x0 + 1, h = y1 - y0 + 1, cmyk = new Uint8Array(w * h * 4), alpha = new Uint8Array(w * h);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const s = ((y + y0) * NW + x + x0) * 4, o = y * w + x, a = d[s + 3];
+    alpha[o] = a;
+    if (a) { cmyk[o * 4] = 255 - d[s]; cmyk[o * 4 + 1] = 255 - d[s + 1]; cmyk[o * 4 + 2] = 255 - d[s + 2]; }   // K stays 0
+  }
+  return { x0, y0, w, h, data: await deflate(cmyk), alpha: await deflate(alpha) };
+}
+const bdImgDict = (ov, smaskNum) => `/Type /XObject /Subtype /Image /Width ${ov.w} /Height ${ov.h} /ColorSpace /DeviceCMYK /BitsPerComponent 8 /SMask ${smaskNum} 0 R /Interpolate false /Filter /FlateDecode`;
+const bdMaskDict = (ov) => `/Type /XObject /Subtype /Image /Width ${ov.w} /Height ${ov.h} /ColorSpace /DeviceGray /BitsPerComponent 8 /Filter /FlateDecode`;
 
 // ---------- PDF ----------
 const NAMES = T.names;
@@ -768,10 +946,12 @@ async function buildPdf() {
 
   // Back: card k sits behind card k of the front (columns mirrored, rotation reversed)
   const iw = NW / NCODE.dpi * 25.4, ih = NH / NCODE.dpi * 25.4;
+  const ov = await bdPdfImage();
   let back = "0 g\n";
   for (const cell of g.cells) {
-    const bc = g.at(g.cols - 1 - cell.c, cell.r);
-    back += `q ${clipOp(bc.clip)} ${cm(imageMap(bc.t, g.rot ? -1 : 0, NCODE.bleedMm, iw, ih))} /N${cell.r * g.cols + cell.c} Do Q\n`;
+    const bc = g.at(g.cols - 1 - cell.c, cell.r), full = imageMap(bc.t, g.rot ? -1 : 0, NCODE.bleedMm, iw, ih);
+    if (ov) back += `q ${clipOp(bc.clip)} ${cm((u, v) => full((ov.x0 + u * ov.w) / NW, (ov.y0 + v * ov.h) / NH))} /O Do Q\n`;   // design first, dots on top
+    back += `q ${clipOp(bc.clip)} ${cm(full)} /N${cell.r * g.cols + cell.c} Do Q\n`;
   }
 
   // Assemble the objects
@@ -788,13 +968,15 @@ async function buildPdf() {
   obj(1, "<< /Type /Catalog /Pages 2 0 R >>");
   obj(2, "<< /Type /Pages /Kids [3 0 R 4 0 R] /Count 2 >>");
   obj(3, `<< /Type /Page /Parent 2 0 R /MediaBox ${media} /Resources << /XObject << /Front 8 0 R >> /Font << /Hv 7 0 R >> >> /Contents 5 0 R >>`);
-  obj(4, `<< /Type /Page /Parent 2 0 R /MediaBox ${media} /Resources << /XObject << ${nx} >> >> /Contents 6 0 R >>`);
+  const ovNum = 9 + masks.length;
+  obj(4, `<< /Type /Page /Parent 2 0 R /MediaBox ${media} /Resources << /XObject << ${nx}${ov ? ` /O ${ovNum} 0 R` : ""} >> >> /Contents 6 0 R >>`);
   sobj(5, "", latin1(front));
   sobj(6, "", latin1(back));
   obj(7, "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>");
   sobj(8, `/Type /XObject /Subtype /Image /Width ${canvas.width} /Height ${canvas.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode`, jpg);
   masks.forEach((m, i) => sobj(9 + i, `/Type /XObject /Subtype /Image /Width ${NW} /Height ${NH} /ImageMask true /BitsPerComponent 1 /Decode [1 0] /Interpolate false /Filter /FlateDecode`, m));
-  const count = 9 + masks.length;
+  if (ov) { sobj(ovNum, bdImgDict(ov, ovNum + 1), ov.data); sobj(ovNum + 1, bdMaskDict(ov), ov.alpha); }
+  const count = 9 + masks.length + (ov ? 2 : 0);
   const xref = len;
   let x = `xref\n0 ${count}\n0000000000 65535 f \n`;
   for (let i = 1; i < count; i++) x += String(offs[i]).padStart(10, "0") + " 00000 n \n";
@@ -885,10 +1067,11 @@ const concat = (list) => { const out = new Uint8Array(list.reduce((s, a) => s + 
 const u32be = (v) => [v >>> 24, (v >>> 16) & 255, (v >>> 8) & 255, v & 255];
 
 // PDF: page = bleed box, TrimBox marks the card. The dots are an image mask filled with 100 % K.
-function backPdf(i, F) {
+function backPdf(i, F, ov = null) {
   const k = 72 / NCODE.dpi, Wpt = F.w * PT, Hpt = F.h * PT;
   const x = -F.offX * k, y = Hpt + F.offY * k - NH * k;
-  const content = latin1(`q 0 0 0 1 k ${n(NW * k)} 0 0 ${n(NH * k)} ${n(x)} ${n(y)} cm /N Do Q\n`);
+  const design = ov ? `q ${n(ov.w * k)} 0 0 ${n(ov.h * k)} ${n(x + ov.x0 * k)} ${n(y + (NH - ov.y0 - ov.h) * k)} cm /O Do Q\n` : "";
+  const content = latin1(design + `q 0 0 0 1 k ${n(NW * k)} 0 0 ${n(NH * k)} ${n(x)} ${n(y)} cm /N Do Q\n`);
   const parts = [], offs = [];
   let len = 0;
   const push = (u) => { if (typeof u === "string") u = latin1(u); parts.push(u); len += u.length; };
@@ -899,13 +1082,14 @@ function backPdf(i, F) {
   push("%PDF-1.4\n%\xE2\xE3\xCF\xD3\n");
   obj(1, "<< /Type /Catalog /Pages 2 0 R >>");
   obj(2, "<< /Type /Pages /Kids [3 0 R] /Count 1 >>");
-  obj(3, `<< /Type /Page /Parent 2 0 R /MediaBox ${box(0, 0, Wpt, Hpt)} /BleedBox ${box(0, 0, Wpt, Hpt)} /TrimBox ${box(b, b, Wpt - b, Hpt - b)} /Resources << /XObject << /N 5 0 R >> >> /Contents 4 0 R >>`);
+  obj(3, `<< /Type /Page /Parent 2 0 R /MediaBox ${box(0, 0, Wpt, Hpt)} /BleedBox ${box(0, 0, Wpt, Hpt)} /TrimBox ${box(b, b, Wpt - b, Hpt - b)} /Resources << /XObject << /N 5 0 R${ov ? " /O 6 0 R" : ""} >> >> /Contents 4 0 R >>`);
   sobj(4, "", content);
   sobj(5, `/Type /XObject /Subtype /Image /Width ${NW} /Height ${NH} /ImageMask true /BitsPerComponent 1 /Decode [1 0] /Interpolate false /Filter /FlateDecode`, zlib[oStrength()][i]);
-  const xref = len;
-  let xr = "xref\n0 6\n0000000000 65535 f \n";
-  for (let j = 1; j < 6; j++) xr += String(offs[j]).padStart(10, "0") + " 00000 n \n";
-  push(xr + `trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`);
+  if (ov) { sobj(6, bdImgDict(ov, 7), ov.data); sobj(7, bdMaskDict(ov), ov.alpha); }
+  const xref = len, size = ov ? 8 : 6;
+  let xr = `xref\n0 ${size}\n0000000000 65535 f \n`;
+  for (let j = 1; j < size; j++) xr += String(offs[j]).padStart(10, "0") + " 00000 n \n";
+  push(xr + `trailer\n<< /Size ${size} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`);
   return concat(parts);
 }
 
@@ -964,24 +1148,28 @@ function saveBlob(blob, name) {
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 60000);
 }
-async function backFile(i, F, type) {
+async function backFile(i, F, type, ov = null) {
   const name = T.backName(i + 1, NAMES[oStrength()], F.tag, type);
-  const data = type === "pdf" ? backPdf(i, F) : await backPng(i, F);
+  const data = type === "pdf" ? backPdf(i, F, ov) : await backPng(i, F);
   return { name, data };
 }
 async function onlineExport(all) {
   const btns = [$("odownload"), $("ozip")], st = $("ostatus");
+  if (document.querySelector('input[name="otype"]:checked').value === "png" && bdActive()) {
+    st.textContent = T.bdNoPng; st.classList.add("err"); return;
+  }
   btns.forEach((b) => (b.disabled = true)); st.classList.remove("err"); st.textContent = T.oCreating;
   try {
     const F = onlineFormat(), type = document.querySelector('input[name="otype"]:checked').value;
+    const ov = type === "pdf" ? await bdPdfImage() : null;
     let name;
     if (all) {
       const files = [];
-      for (let i = 0; i < zlib[oStrength()].length; i++) files.push(await backFile(i, F, type));
+      for (let i = 0; i < zlib[oStrength()].length; i++) files.push(await backFile(i, F, type, ov));
       name = T.zipName(NAMES[oStrength()], F.tag);
       saveBlob(zip(files), name);
     } else {
-      const f = await backFile(+$("ocard").value, F, type);
+      const f = await backFile(+$("ocard").value, F, type, ov);
       name = f.name;
       saveBlob(new Blob([f.data], { type: type === "pdf" ? "application/pdf" : "image/png" }), name);
     }
@@ -995,6 +1183,110 @@ $("ofmt").addEventListener("change", fmtNote);
 fmtNote();
 $("odownload").addEventListener("click", () => onlineExport(false));
 $("ozip").addEventListener("click", () => onlineExport(true));
+
+// ---------- Back design: editor ----------
+const backCanvas = $("backCanvas");
+let bdRaf = 0;
+async function drawBackPreview() {
+  const list = await backPreviews(S.strength);
+  const g = backCanvas.getContext("2d"), k = backCanvas.width / MASK_W;
+  g.fillStyle = "#fff"; g.fillRect(0, 0, backCanvas.width, backCanvas.height);
+  g.imageSmoothingEnabled = true; g.drawImage(list[0], 0, 0, backCanvas.width, backCanvas.height);
+  await bdFontsReady();
+  g.drawImage(bdCanvas(backCanvas.width, backCanvas.height), 0, 0);
+  const tx = (MASK_W - CARD.w) / 2, ty = (MASK_H - CARD.h) / 2;
+  g.save(); g.fillStyle = "rgba(20,30,25,.35)";
+  g.beginPath(); g.rect(0, 0, backCanvas.width, backCanvas.height); g.rect(tx * k, ty * k, CARD.w * k, CARD.h * k); g.fill("evenodd"); g.restore();
+  g.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue("--mark").trim() || "#e0457b"; g.lineWidth = 2;
+  g.strokeRect(tx * k, ty * k, CARD.w * k, CARD.h * k);
+  g.strokeStyle = "#8fd3ff"; g.setLineDash([8, 6]); g.lineWidth = 1.5;
+  g.strokeRect((tx + 3) * k, (ty + 3) * k, (CARD.w - 6) * k, (CARD.h - 6) * k);
+  const it = BD.items[BD.sel];
+  if (it?._bb) {
+    g.strokeStyle = "#ff9f0a"; g.setLineDash([5, 4]);
+    g.strokeRect((MASK_W / 2 + it._bb.x) * k - 3, (MASK_H / 2 + it._bb.y) * k - 3, it._bb.w * k + 6, it._bb.h * k + 6);
+  }
+  g.setLineDash([]);
+}
+function bdRefresh() {
+  cancelAnimationFrame(bdRaf);
+  bdRaf = requestAnimationFrame(() => { drawBackPreview(); if (G) drawSheetBack(); });
+}
+function bdRenderList() {
+  $("bdList").replaceChildren(...BD.items.map((it, i) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.textContent = it.type === "image" ? T.bdLogo : (String(it.text || "").split("\n")[0].slice(0, 24) || "…");
+    b.setAttribute("aria-pressed", String(i === BD.sel));
+    b.addEventListener("click", () => { BD.sel = i; bdRenderList(); bdShowEditor(); bdRefresh(); });
+    return b;
+  }));
+}
+function bdShowEditor() {
+  const it = BD.items[BD.sel];
+  $("bdEdit").hidden = !it;
+  if (!it) return;
+  const txt = it.type === "text";
+  $("bdTextPart").style.display = txt ? "grid" : "none"; $("bdImgPart").style.display = txt ? "none" : "grid";
+  if (txt) {
+    $("bdText").value = it.text; $("bdFont").value = it.font; $("bdBold").checked = !!it.bold;
+    $("bdSize").value = it.size; $("bdSizeVal").textContent = T.bdSizeVal(it.size);
+    $("bdAlign").value = it.align; $("bdColor").value = it.color;
+  } else {
+    $("bdWidth").value = it.w; $("bdWidthVal").textContent = it.w + " mm";
+  }
+  $("bdOpacity").value = Math.round((it.opacity ?? 1) * 100); $("bdOpacityVal").textContent = $("bdOpacity").value + " %";
+}
+function bdChanged() { bdSave(); bdRenderList(); bdRefresh(); }
+const bdSel = () => BD.items[BD.sel];
+$("bdAddText").addEventListener("click", () => {
+  BD.items.push({ type: "text", text: T.bdSample, font: "grotesk", size: 10, bold: true, color: "#1a1a1a", align: "center", x: 0, y: 0, opacity: 1 });
+  BD.sel = BD.items.length - 1; bdShowEditor(); bdChanged();
+});
+$("bdAddImg").addEventListener("change", async (e) => {
+  const file = e.target.files[0]; e.target.value = "";
+  if (!file || !file.type.startsWith("image/")) return;
+  try {
+    const img = await createImageBitmap(file, { imageOrientation: "from-image" });
+    BD.items.push({ type: "image", img, w: 30, x: 0, y: 0, opacity: 1 });
+    BD.sel = BD.items.length - 1; bdShowEditor(); bdChanged();
+  } catch { setStatus(T.cantOpen, true); }
+});
+$("bdText").addEventListener("input", (e) => { bdSel().text = e.target.value; bdChanged(); });
+$("bdFont").addEventListener("change", (e) => { bdSel().font = e.target.value; bdChanged(); });
+$("bdBold").addEventListener("change", (e) => { bdSel().bold = e.target.checked; bdChanged(); });
+$("bdSize").addEventListener("input", (e) => { bdSel().size = +e.target.value; $("bdSizeVal").textContent = T.bdSizeVal(+e.target.value); bdChanged(); });
+$("bdAlign").addEventListener("change", (e) => { bdSel().align = e.target.value; bdChanged(); });
+$("bdColor").addEventListener("input", (e) => { bdSel().color = e.target.value; bdChanged(); });
+$("bdWidth").addEventListener("input", (e) => { bdSel().w = +e.target.value; $("bdWidthVal").textContent = e.target.value + " mm"; bdChanged(); });
+$("bdOpacity").addEventListener("input", (e) => { bdSel().opacity = e.target.value / 100; $("bdOpacityVal").textContent = e.target.value + " %"; bdChanged(); });
+$("bdCenterH").addEventListener("click", () => {
+  const it = bdSel(); if (!it) return;
+  it.x = it.type === "text" && it.align !== "center" && it._bb ? it.x - (it._bb.x + it._bb.w / 2) : 0;
+  bdChanged();
+});
+$("bdDelete").addEventListener("click", () => { BD.items.splice(BD.sel, 1); BD.sel = Math.min(BD.sel, BD.items.length - 1); bdShowEditor(); bdChanged(); });
+// Drag on the back preview: grab the item under the pointer (topmost first), move it in mm
+let bdDrag = null;
+const bdPoint = (e) => { const r = backCanvas.getBoundingClientRect(); return [(e.clientX - r.left) / r.width * MASK_W - MASK_W / 2, (e.clientY - r.top) / r.height * MASK_H - MASK_H / 2]; };
+backCanvas.addEventListener("pointerdown", (e) => {
+  const [x, y] = bdPoint(e);
+  let hit = -1;
+  for (let i = BD.items.length - 1; i >= 0; i--) { const b = BD.items[i]._bb; if (b && x >= b.x - 1 && x <= b.x + b.w + 1 && y >= b.y - 1 && y <= b.y + b.h + 1) { hit = i; break; } }
+  if (hit < 0) return;
+  BD.sel = hit; bdRenderList(); bdShowEditor();
+  bdDrag = { x, y }; backCanvas.setPointerCapture(e.pointerId); backCanvas.classList.add("dragging"); bdRefresh();
+});
+backCanvas.addEventListener("pointermove", (e) => {
+  if (!bdDrag) return;
+  const [x, y] = bdPoint(e), it = bdSel();
+  it.x += x - bdDrag.x; it.y += y - bdDrag.y; bdDrag = { x, y }; bdRefresh();
+});
+const bdEndDrag = () => { if (bdDrag) bdSave(); bdDrag = null; backCanvas.classList.remove("dragging"); };
+backCanvas.addEventListener("pointerup", bdEndDrag);
+backCanvas.addEventListener("pointercancel", bdEndDrag);
+document.querySelectorAll('input[name="strength"]').forEach((el) => el.addEventListener("change", bdRefresh));
+bdLoad(); bdRenderList(); bdShowEditor(); bdRefresh();
 
 // Start
 S.img = sampleImage();
