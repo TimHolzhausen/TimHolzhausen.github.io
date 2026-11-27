@@ -187,6 +187,15 @@ details.hints li b { color: var(--ink); font-weight: 600; }
 .navrow { display: flex; gap: 10px; align-items: stretch; }
 .navrow .primary { width: auto; flex: 1; }
 .tools { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.bggrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; }
+.bgtile { position: relative; aspect-ratio: 91 / 60; border-radius: 8px; border: 2px solid var(--rule); background: #fff center / cover no-repeat;
+  cursor: pointer; padding: 0; overflow: hidden; display: grid; place-items: end start; font: 600 .72rem var(--font-ui); color: var(--ink); }
+.bgtile:hover { border-color: var(--muted); }
+.bgtile[aria-pressed="true"] { border-color: var(--pen); box-shadow: 0 0 0 2px color-mix(in srgb, var(--pen) 35%, transparent); }
+.bgtile span { margin: 4px; background: color-mix(in srgb, #fff 85%, transparent); color: #16181d; padding: 1px 6px; border-radius: 6px; }
+.bgtile.none, .bgtile.upload { place-items: center; background: var(--sheet); color: var(--muted); }
+.bgtile.upload { border-style: dashed; }
+.bgtile input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
 .tool { display: grid; justify-items: center; gap: 4px; padding: 12px 6px; border: 1.5px solid var(--rule); border-radius: 12px; cursor: pointer; font: 600 .9rem var(--font-ui); color: var(--ink); background: transparent; position: relative; }
 .tool:hover { border-color: var(--pen); color: var(--pen); }
 .tool svg { width: 22px; height: 22px; }
@@ -305,6 +314,12 @@ footer { margin-top: 80px; padding-top: 24px; border-top: 1px solid var(--rule);
               <span data-i18n="s.extralight"><b>Extra light<span class="tag">experimental</span></b><small>Barely visible. Test it on your printer first.</small></span>
               <span class="toner">33 %</span></span></label>
           </div>
+        </div>
+        <div class="field">
+          <span class="lbl" id="l-bg" data-i18n="bg.q">Background <small>optional</small></span>
+          <div class="bggrid" id="bgGrid" role="group" aria-labelledby="l-bg"></div>
+          <div class="kv" id="bgStrengthRow" hidden><label for="bgOpacity" data-i18n="bg.strength">Opacity</label><input type="range" id="bgOpacity" min="30" max="100" step="5"><span class="val" id="bgOpacityVal"></span></div>
+          <p class="tip" data-i18n="bg.tip">A textured background hides the grey haze of the code. Like the rest of the design it is printed without black, so the pen reads the code through it.</p>
         </div>
         <div class="field">
           <span class="lbl" data-i18n="bd.q">Design on top of the code <small>optional</small></span>
@@ -616,6 +631,9 @@ const DE_STATIC = {
   "back.h2": "Rückseite",
   "strength.q": "Punktstärke des Codes",
   "bd.q": "Gestaltung über dem Code <small>optional</small>",
+  "bg.q": "Hintergrund <small>optional</small>",
+  "bg.strength": "Deckkraft",
+  "bg.tip": "Ein strukturierter Hintergrund versteckt den grauen Schleier des Codes. Er wird wie die übrige Gestaltung ohne Schwarz gedruckt, der Stift liest den Code also durch ihn hindurch.",
   "bd.addText": "Text",
   "bd.addLine": "Linie",
   "bd.addImg": "Bild",
@@ -993,16 +1011,35 @@ const BD_FONTS = {
 const BD = { items: [], sel: -1 };
 const MASK_W = NW / NCODE.dpi * 25.4, MASK_H = NH / NCODE.dpi * 25.4;   // the code bitmap: 91 x 60 mm, card centred
 const BD_KEY = "ncodecard_back";
-const bdActive = () => BD.items.some((it) => it.type !== "text" || String(it.text || "").trim());
-// Text and lines are remembered in the browser; images are not (too large for localStorage).
+// Background: one of the presets (hintergruende/*.jpg, made at exactly the code-bitmap size) or an uploaded image.
+// Always behind everything else and covering the whole bitmap, bleed included.
+const BG_PRESETS = [
+  { id: "zauber-hintergrund-sepia", de: "Zauber-Sepia", en: "Magic sepia" },
+  { id: "karten-emblem-sepia", de: "Karten-Emblem", en: "Card emblem" },
+  { id: "zylinder-zauberstab", de: "Zylinder", en: "Top hat" },
+  { id: "kartenruecken-ornament", de: "Kartenrücken", en: "Card back" },
+  { id: "sternenhimmel", de: "Sternenhimmel", en: "Starry sky" },
+  { id: "marmor-vorsatzpapier", de: "Marmor", en: "Marbled" },
+];
+BD.bg = null;                                       // { id, img, opacity, url? }
+const bdActive = () => !!BD.bg?.img || BD.items.some((it) => it.type !== "text" || String(it.text || "").trim());
+// Text, lines and a chosen preset are remembered in the browser; images are not (too large for localStorage).
 function bdSave() {
-  try { localStorage.setItem(BD_KEY, JSON.stringify(BD.items.filter((it) => it.type !== "image").map(({ _bb, ...r }) => r))); } catch { /* private mode */ }
+  const bg = BD.bg && BD.bg.id !== "custom" ? { id: BD.bg.id, opacity: BD.bg.opacity ?? 1 } : null;
+  try { localStorage.setItem(BD_KEY, JSON.stringify({ items: BD.items.filter((it) => it.type !== "image").map(({ _bb, ...r }) => r), bg })); } catch { /* private mode */ }
 }
 function bdLoad() {
   try {
     const s = JSON.parse(localStorage.getItem(BD_KEY) || "null");
-    if (Array.isArray(s)) BD.items = s.filter((it) => it && (it.type === "text" || it.type === "line"));
+    const items = Array.isArray(s) ? s : s?.items;                     // older versions stored only the item list
+    if (Array.isArray(items)) BD.items = items.filter((it) => it && (it.type === "text" || it.type === "line"));
+    if (s?.bg && BG_PRESETS.some((p) => p.id === s.bg.id)) BD.bg = { id: s.bg.id, img: null, opacity: s.bg.opacity ?? 1 };
   } catch { /* ignore */ }
+}
+async function loadPresetImage(id) {
+  const r = await fetch(`hintergruende/${id}.jpg`);
+  if (!r.ok) throw new Error("Hintergrund nicht gefunden");
+  return createImageBitmap(await r.blob());
 }
 const bdFontCss = (it) => `${it.bold ? 700 : 400} ${(it.size * 25.4 / 72).toFixed(3)}px ${BD_FONTS[it.font] || BD_FONTS.sans}`;
 async function bdFontsReady() {
@@ -1015,6 +1052,11 @@ function lineEnds(it) {
 }
 // Draws the design into g, whose units are mm, with the card centre at (cx, cy). Stores each item's box (_bb).
 function bdDraw(g, cx, cy) {
+  if (BD.bg?.img) {                                   // background: cover the whole code bitmap
+    const im = BD.bg.img, s = Math.max(MASK_W / im.width, MASK_H / im.height), w = im.width * s, h = im.height * s;
+    g.save(); g.globalAlpha = BD.bg.opacity ?? 1; g.imageSmoothingQuality = "high";
+    g.drawImage(im, cx - w / 2, cy - h / 2, w, h); g.restore();
+  }
   for (const it of BD.items) {
     g.save();
     g.globalAlpha = it.opacity ?? 1;
@@ -1600,7 +1642,45 @@ document.querySelectorAll('input[name="mode"]').forEach((el) => el.addEventListe
 document.querySelectorAll('input[name="strength"]').forEach((el) => el.addEventListener("change", () => { updateOnlineNote(); bdRefresh(); }));
 $("oUseNormal").addEventListener("click", () => { const r = $("s-normal"); r.checked = true; r.dispatchEvent(new Event("change", { bubbles: true })); });
 
-bdLoad(); bdRenderList(); bdShowEditor(); updateOnlineNote();
+// ---------- Background picker ----------
+const escBg = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+function bgRender() {
+  const cur = BD.bg?.id || "";
+  const tile = (id, label, style = "", cls = "") => `<button type="button" class="bgtile ${cls}" data-bg="${id}" aria-pressed="${cur === id}" aria-label="${escBg(label)}" title="${escBg(label)}" style="${style}"><span>${escBg(label)}</span></button>`;
+  $("bgGrid").innerHTML = tile("", LANG === "de" ? "ohne" : "none", "", "none")
+    + BG_PRESETS.map((p) => tile(p.id, p[LANG] || p.en, `background-image:url('hintergruende/${p.id}-klein.jpg')`)).join("")
+    + `<label class="bgtile upload" aria-pressed="${cur === "custom"}" title="${LANG === "de" ? "Eigenes Bild als Hintergrund" : "Your own image as background"}"
+        style="${cur === "custom" && BD.bg.url ? `background:#fff url('${BD.bg.url}') center / cover no-repeat` : ""}"><input type="file" id="bgUpload" accept="image/*"><span>${LANG === "de" ? "+ Eigenes Bild" : "+ Own image"}</span></label>`;
+  $("bgStrengthRow").hidden = !BD.bg;
+  if (BD.bg) { $("bgOpacity").value = Math.round((BD.bg.opacity ?? 1) * 100); $("bgOpacityVal").textContent = $("bgOpacity").value + " %"; }
+  $("bgGrid").querySelectorAll("[data-bg]").forEach((b) => b.onclick = async () => {
+    const id = b.dataset.bg;
+    if (!id) { BD.bg = null; bgRender(); bdSave(); bdRefresh(); return; }
+    b.disabled = true;
+    try { BD.bg = { id, img: await loadPresetImage(id), opacity: BD.bg?.opacity ?? 1 }; }
+    catch (e) { toastBg(e.message); }
+    bgRender(); bdSave(); bdRefresh(); setView("back");
+  });
+  $("bgUpload").onchange = async (e) => {
+    const f = e.target.files[0]; e.target.value = "";
+    if (!f || !f.type.startsWith("image/")) return;
+    try {
+      const img = await createImageBitmap(f, { imageOrientation: "from-image" });
+      if (BD.bg?.url) URL.revokeObjectURL(BD.bg.url);
+      BD.bg = { id: "custom", img, opacity: BD.bg?.opacity ?? 1, url: URL.createObjectURL(f) };
+      bgRender(); bdSave(); bdRefresh(); setView("back");
+    } catch { toastBg(T.cantOpen); }
+  };
+}
+const toastBg = (t) => { const s = $("status"); if (s) { s.textContent = t; s.classList.add("err"); } };
+$("bgOpacity").addEventListener("input", (e) => {
+  if (!BD.bg) return;
+  BD.bg.opacity = e.target.value / 100; $("bgOpacityVal").textContent = e.target.value + " %"; bdSave(); bdRefresh();
+});
+
+bdLoad(); bdRenderList(); bdShowEditor(); updateOnlineNote(); bgRender();
+// remembered preset: load the picture once the page is ready
+if (BD.bg && !BD.bg.img) loadPresetImage(BD.bg.id).then((img) => { if (BD.bg && !BD.bg.img) { BD.bg.img = img; bdRefresh(); } }).catch(() => { BD.bg = null; bgRender(); });
 
 // Start
 S.img = sampleImage();

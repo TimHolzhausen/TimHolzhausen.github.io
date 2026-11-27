@@ -40,7 +40,15 @@ One dot strength (chosen in step 2) is used for the A4 sheet and for the single 
    Drag elements in the back preview (the centre snaps to the card centre),
    drag the ends of a line to turn or lengthen it (snaps to 45° steps),
    arrow keys nudge, Delete removes. Images can fill the whole card as a
-   background. The design is written into the PDFs
+   background.
+7. Background for the back: six magic-themed presets in `hintergruende/`
+   (sepia guilloche, card emblem, top hat, card-back lattice, starry sky,
+   marbled endpaper; each exactly the code-bitmap size, 2150 × 1417 px at
+   600 dpi, plus a small `-klein.jpg` thumbnail) or an uploaded image. It sits
+   behind everything, covers the bleed, has its own opacity, and like the
+   rest of the design is printed with K = 0. Light, fine-textured tones hide
+   the grey haze of the dots. A chosen preset is remembered; an uploaded
+   image is not. The design is written into the PDFs
    (A4 sheet and single backs) as a CMYK image with **K = 0** (C = 1 − R,
    M = 1 − G, Y = 1 − B, plus a soft mask) underneath the 100 % K dots. The
    pen only sees carbon black, so it reads the code through the design.
