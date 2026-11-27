@@ -202,6 +202,13 @@ details.hints li b { color: var(--ink); font-weight: 600; }
 .sheet h3 { margin-bottom: 8px; }
 .note { font-size: .86rem; color: var(--muted); margin: 0; }
 
+.donate { margin-top: 64px; padding: 18px 20px; border: 1px solid var(--rule); border-radius: 14px; background: var(--sheet); display: flex; flex-wrap: wrap; gap: 14px 24px; align-items: center; justify-content: space-between; }
+.donate p { margin: 0; flex: 1 1 280px; color: var(--muted); }
+.donate p b { color: var(--ink); }
+.donate-btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 999px; background: #ffc439; color: #111; font-weight: 700; text-decoration: none; white-space: nowrap; }
+.donate-btn:hover { filter: brightness(.95); }
+.donate-btn:focus-visible { outline: 3px solid var(--pen); outline-offset: 2px; }
+.donate + footer { margin-top: 28px; }
 footer { margin-top: 80px; padding-top: 24px; border-top: 1px solid var(--rule); color: var(--muted); font-size: .86rem; display: grid; gap: 6px; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
@@ -408,6 +415,10 @@ footer { margin-top: 80px; padding-top: 24px; border-top: 1px solid var(--rule);
   </div>
 </div>
 
+<aside class="donate" aria-label="Support" data-i18n-aria="donate.label">
+  <p data-i18n="donate.text"><b>Do you find this page useful?</b> It is free and has no ads. If you like, buy me a coffee: it helps me keep it up to date.</p>
+  <a class="donate-btn" href="https://paypal.me/TimHolzhausen" target="_blank" rel="noopener" data-i18n="donate.btn">☕ Donate via PayPal</a>
+</aside>
 <footer>
   <span data-i18n="foot.local">Your images never leave your browser: the PDF is built right here on your device.</span>
   <span data-i18n="foot.about">Community project by Tim Holzhausen. Not affiliated with the makers of the trick or with NeoLab.</span>
@@ -420,6 +431,9 @@ footer { margin-top: 80px; padding-top: 24px; border-top: 1px solid var(--rule);
 const LANG = /^de\b/i.test((navigator.languages && navigator.languages[0]) || navigator.language || "") ? "de" : "en";
 
 const DE_STATIC = {
+  "donate.label": "Unterstützen",
+  "donate.text": "<b>Du findest diese Seite hilfreich?</b> Sie ist kostenlos und ohne Werbung. Wenn du magst, spendier mir einen Kaffee: Das hilft mir, sie aktuell zu halten.",
+  "donate.btn": "☕ Per PayPal spenden",
   "title": "Notizblock-Generator",
   "description": "Gestalte dein eigenes Ncode-Notizpapier: Format wählen, Design oder eigenen Scan nehmen und ein druckfertiges PDF mit Ncode auf beiden Seiten und Schnittmarken herunterladen.",
   "nav": "Seitenbereiche",

@@ -219,6 +219,13 @@ th { font-weight: 600; }
 .teaser .btn { border-color: var(--paper); color: var(--paper); }
 @media (max-width: 700px) { .teaser { grid-template-columns: minmax(0, 1fr); } }
 
+.donate { margin-top: 64px; padding: 18px 20px; border: 1px solid var(--rule); border-radius: 14px; background: var(--sheet); display: flex; flex-wrap: wrap; gap: 14px 24px; align-items: center; justify-content: space-between; }
+.donate p { margin: 0; flex: 1 1 280px; color: var(--muted); }
+.donate p b { color: var(--ink); }
+.donate-btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 999px; background: #ffc439; color: #111; font-weight: 700; text-decoration: none; white-space: nowrap; }
+.donate-btn:hover { filter: brightness(.95); }
+.donate-btn:focus-visible { outline: 3px solid var(--pen); outline-offset: 2px; }
+.donate + footer { margin-top: 28px; }
 footer { margin-top: 80px; padding-top: 24px; border-top: 1px solid var(--rule); color: var(--muted); font-size: .86rem; display: grid; gap: 6px; }
 
 /* Lightbox */
@@ -482,6 +489,10 @@ dialog button { font: 600 .9rem var(--font-ui); background: var(--sheet); color:
   </div>
 </section>
 
+<aside class="donate" aria-label="Support" data-i18n-aria-label="donate.label">
+  <p data-i18n="donate.text"><b>Do you find this page useful?</b> It is free and has no ads. If you like, buy me a coffee: it helps me keep it up to date.</p>
+  <a class="donate-btn" href="https://paypal.me/TimHolzhausen" target="_blank" rel="noopener" data-i18n="donate.btn">☕ Donate via PayPal</a>
+</aside>
 <footer data-i18n="footer">
   <span>The dot pattern and the letter paper design are NeoLab Convergence's work. The sheet layout follows the templates that came with the trick.</span>
   <span>Community project by Tim Holzhausen. Not affiliated with the makers of the trick or with NeoLab.</span>
@@ -507,6 +518,9 @@ const DE = LANG === "de";
 
 // German text for the static markup, keyed by data-i18n / data-i18n-alt / data-i18n-aria-label. The English stays in the HTML.
 const STATIC_DE = {
+  "donate.label": "Unterstützen",
+  "donate.text": "<b>Du findest diese Seite hilfreich?</b> Sie ist kostenlos und ohne Werbung. Wenn du magst, spendier mir einen Kaffee: Das hilft mir, sie aktuell zu halten.",
+  "donate.btn": "☕ Per PayPal spenden",
   "meta.description": "Druckbares Ncode-Papier und Visitenkarten für die Ultra-Sharpie-App: Blanko-, Linien-, Karo- und Briefpapier, kleine Karten und Visitenkarten in drei Punktstärken.",
   "nav.label": "Bereiche",
   "nav.finder": "Bogen finden",
