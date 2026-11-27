@@ -72,6 +72,11 @@ One dot strength (chosen in step 2) is used for the A4 sheet and for the single 
    top + bottom (the band repeated at the bottom, turned by 180°, no text) or
    frame (plus side bars reaching 2.6 mm into the card). Card suits are drawn
    as paths, so phones cannot turn them into emoji.
+9. Line styles for own lines: solid, dashed, dotted, double, rule with
+   diamond, star in the middle, card suits in the middle, scroll ends, wave,
+   and "match the header band" (motif and accent colour follow the chosen
+   band). "Header colour" copies the band's accent colour to any line or
+   text. Older saved lines with the dashed flag stay dashed.
 
 Everything runs locally in the browser. Images are never uploaded anywhere.
 

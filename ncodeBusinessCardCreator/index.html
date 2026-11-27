@@ -395,13 +395,26 @@ footer { margin-top: 80px; padding-top: 24px; border-top: 1px solid var(--rule);
               </span><span></span>
             </div>
             <div class="kv"><label for="bdThick" data-i18n="bd.thick">Thickness</label><input type="range" id="bdThick" min="0.1" max="3" step="0.05"><span class="val" id="bdThickVal"></span></div>
-            <div class="kv"><span></span><label><input type="checkbox" id="bdDashed"> <span data-i18n="bd.dashed">Dashed</span></label><span></span></div>
+            <div class="kv"><label for="bdLineStyle" data-i18n="bd.lstyle">Style</label>
+              <select id="bdLineStyle">
+                <option value="solid" data-i18n="ls.solid">Solid</option>
+                <option value="dashed" data-i18n="ls.dashed">Dashed</option>
+                <option value="dotted" data-i18n="ls.dotted">Dotted</option>
+                <option value="double" data-i18n="ls.double">Double</option>
+                <option value="diamond" data-i18n="ls.diamond">Rule with diamond</option>
+                <option value="stars" data-i18n="ls.stars">Star in the middle</option>
+                <option value="suits" data-i18n="ls.suits">Card suits in the middle</option>
+                <option value="flourish" data-i18n="ls.flourish">Scroll ends</option>
+                <option value="wave" data-i18n="ls.wave">Wave</option>
+                <option value="match" data-i18n="ls.match">Match the header band</option>
+              </select><span></span>
+            </div>
           </div>
           <div id="bdImgPart" class="field">
             <div class="kv"><label for="bdWidth" data-i18n="bd.width">Width</label><input type="range" id="bdWidth" min="5" max="91" step="0.5"><span class="val" id="bdWidthVal"></span></div>
             <div class="row"><button type="button" id="bdFill" data-i18n="bd.fill">Fill the whole card (background)</button></div>
           </div>
-          <div class="kv" id="bdColorRow"><label for="bdColor" data-i18n="bd.color">Colour</label><input type="color" id="bdColor"><span></span></div>
+          <div class="kv" id="bdColorRow"><label for="bdColor" data-i18n="bd.color">Colour</label><input type="color" id="bdColor"><button type="button" id="bdColorHd" data-i18n="bd.colorHd" hidden style="padding:4px 8px;font-size:.8rem">Header colour</button></div>
           <div class="kv"><label for="bdOpacity" data-i18n="bd.opacity">Opacity</label><input type="range" id="bdOpacity" min="10" max="100" step="5"><span class="val" id="bdOpacityVal"></span></div>
           <div class="kv"><span data-i18n="bd.pos">Position</span>
             <span class="xy">
@@ -685,6 +698,18 @@ const DE_STATIC = {
   "bd.angle": "Winkel",
   "bd.thick": "Dicke",
   "bd.dashed": "Gestrichelt",
+  "bd.lstyle": "Linienart",
+  "bd.colorHd": "Farbe der Kopfleiste",
+  "ls.solid": "Durchgehend",
+  "ls.dashed": "Gestrichelt",
+  "ls.dotted": "Gepunktet",
+  "ls.double": "Doppelt",
+  "ls.diamond": "Goldlinie mit Raute",
+  "ls.stars": "Stern mittig",
+  "ls.suits": "Kartensymbole mittig",
+  "ls.flourish": "Ranken-Enden",
+  "ls.wave": "Wellenlinie",
+  "ls.match": "Passend zur Kopfleiste",
   "bd.width": "Breite",
   "bd.fill": "Ganze Karte füllen (Hintergrund)",
   "bd.color": "Farbe",
@@ -1348,6 +1373,72 @@ async function bdFontsReady() {
   try { await Promise.all(BD.items.filter((it) => it.type === "text").map((it) => document.fonts.load(`${it.bold ? 700 : 400} 20px ${BD_FONTS[it.font] || BD_FONTS.sans}`))); } catch { /* system font */ }
 }
 // Line: centre (x, y), length len, angle in degrees (counter-clockwise, 0 = horizontal), width in mm
+// Line styles: "match" takes the motif and accent colour of the current header band
+const LINE_MATCH = { funken: "stars", sterne: "stars", artdeco: "double", samt: "diamond", pergament: "flourish",
+  "m-sepia": "wave", "m-emblem": "suits", "m-zylinder": "stars", "m-karten": "suits", "m-sterne": "stars", "m-marmor": "wave" };
+function lineLook(it) {
+  let style = it.style || (it.dashed ? "dashed" : "solid"), color = it.color;
+  if (style === "match") {
+    const st = BD.header && HD_STYLES.find((s) => s.id === hdStyleId(BD.header));
+    style = st ? LINE_MATCH[st.id] || "diamond" : "solid"; if (st) color = st.accent;
+  }
+  return { style, color };
+}
+// Draws a line item in its own frame (centre at 0,0, along x). Returns the half height of the drawing in mm.
+function drawLineShape(g, it, style, color) {
+  const L = it.len, w = it.width, h2 = L / 2;
+  g.strokeStyle = color; g.fillStyle = color; g.lineWidth = w; g.lineCap = "round";
+  const seg = (a, b, y = 0) => { g.beginPath(); g.moveTo(a, y); g.lineTo(b, y); g.stroke(); };
+  const fade = () => { const gr = g.createLinearGradient(-h2, 0, h2, 0); gr.addColorStop(0, "rgba(0,0,0,0)"); gr.addColorStop(0.12, color); gr.addColorStop(0.88, color); gr.addColorStop(1, "rgba(0,0,0,0)"); g.strokeStyle = gr; };
+  const diamond = (x, d) => { g.beginPath(); g.moveTo(x, -d); g.lineTo(x + d, 0); g.lineTo(x, d); g.lineTo(x - d, 0); g.closePath(); g.fill(); };
+  if (style === "dashed") { g.lineCap = "butt"; g.setLineDash([w * 3 + 0.8, w * 2 + 0.8]); seg(-h2, h2); return w / 2; }
+  if (style === "dotted") {
+    const step = w * 2.6 + 0.6, n = Math.max(1, Math.floor(L / step)), r = Math.max(0.12, w * 0.75);
+    for (let i = 0; i <= n; i++) { g.beginPath(); g.arc(-n * step / 2 + i * step, 0, r, 0, Math.PI * 2); g.fill(); }
+    return r;
+  }
+  if (style === "double") { const o = w * 0.9 + 0.25; g.lineWidth = w * 0.7; seg(-h2, h2, -o); seg(-h2, h2, o); return o + w * 0.35; }
+  if (style === "diamond") { const d = Math.max(0.75, w * 2.2); g.lineCap = "butt"; fade(); seg(-h2, h2); diamond(0, d); return d; }
+  if (style === "stars") {
+    const r = Math.max(1.15, w * 2.6), gap = r + 1.5;
+    g.lineCap = "butt"; fade(); seg(-h2, -gap); seg(gap, h2);
+    hdStar4(g, 0, 0, r);
+    for (const s of [-1, 1]) { g.beginPath(); g.arc(s * (r + 0.7), 0, Math.max(0.15, w * 0.6), 0, Math.PI * 2); g.fill(); }
+    return r;
+  }
+  if (style === "suits") {
+    const s = Math.max(1.45, w * 3.2), sp = s * 1.15, gap = sp * 2 + 0.8;
+    g.lineCap = "butt"; fade(); seg(-h2, -gap); seg(gap, h2);
+    [0, 1, 2, 3].forEach((k) => hdSuit(g, k, (k - 1.5) * sp, 0, s));
+    return s / 2;
+  }
+  if (style === "flourish") {
+    const c = Math.max(0.8, w * 2.5);
+    seg(-h2 + c, h2 - c);
+    for (const sx of [-1, 1]) {                      // spiral curl at each end, turning upwards and inwards
+      g.beginPath();
+      for (let t = 0; t <= 1.75; t += 0.02) {
+        const r = c * (1 - 0.55 * t / 1.75), a = Math.PI / 2 - t * 2 * Math.PI;
+        const x = sx * (h2 - c + r * Math.cos(a)), y = -c + r * Math.sin(a);
+        t === 0 ? g.moveTo(x, y) : g.lineTo(x, y);
+      }
+      g.stroke();
+    }
+    diamond(0, Math.max(0.6, w * 1.8));
+    return c * 2;
+  }
+  if (style === "wave") {
+    const amp = Math.max(0.35, w * 1.2), per = Math.max(2, w * 8);
+    g.lineWidth = w * 0.7;
+    for (const ph of [0, Math.PI]) {                 // two interleaved waves, like a guilloche
+      g.beginPath();
+      for (let x = -h2; x <= h2 + 0.001; x += per / 24) { const y = amp * Math.sin(2 * Math.PI * x / per + ph); x === -h2 ? g.moveTo(x, y) : g.lineTo(x, y); }
+      g.stroke();
+    }
+    return amp + w;
+  }
+  seg(-h2, h2); return w / 2;
+}
 function lineEnds(it) {
   const a = it.angle * Math.PI / 180, dx = Math.cos(a) * it.len / 2, dy = -Math.sin(a) * it.len / 2;
   return [[it.x - dx, it.y - dy], [it.x + dx, it.y + dy]];
@@ -1372,11 +1463,11 @@ function bdDraw(g, cx, cy) {
       const x0 = it.align === "left" ? it.x : it.align === "right" ? it.x - w : it.x - w / 2;
       it._bb = { x: x0, y: it.y - lines.length * lh / 2, w: Math.max(w, 2), h: lines.length * lh };
     } else if (it.type === "line") {
-      const [[x1, y1], [x2, y2]] = lineEnds(it);
-      g.strokeStyle = it.color; g.lineWidth = it.width; g.lineCap = it.dashed ? "butt" : "round";
-      if (it.dashed) g.setLineDash([it.width * 3 + 0.8, it.width * 2 + 0.8]);
-      g.beginPath(); g.moveTo(cx + x1, cy + y1); g.lineTo(cx + x2, cy + y2); g.stroke();
-      it._bb = { x: Math.min(x1, x2) - it.width / 2, y: Math.min(y1, y2) - it.width / 2, w: Math.abs(x2 - x1) + it.width, h: Math.abs(y2 - y1) + it.width };
+      const [[x1, y1], [x2, y2]] = lineEnds(it), look = lineLook(it);
+      g.translate(cx + it.x, cy + it.y); g.rotate(-it.angle * Math.PI / 180);
+      const hh = drawLineShape(g, it, look.style, look.color);
+      it._hh = hh;
+      it._bb = { x: Math.min(x1, x2) - hh, y: Math.min(y1, y2) - hh, w: Math.abs(x2 - x1) + 2 * hh, h: Math.abs(y2 - y1) + 2 * hh };
     } else {
       const h = it.w * it.img.height / it.img.width;
       g.imageSmoothingQuality = "high";
@@ -1391,7 +1482,7 @@ function bdHit(it, x, y) {
   if (it.type === "line") {
     const [[x1, y1], [x2, y2]] = lineEnds(it), vx = x2 - x1, vy = y2 - y1, L = vx * vx + vy * vy || 1;
     const t = Math.max(0, Math.min(1, ((x - x1) * vx + (y - y1) * vy) / L));
-    return Math.hypot(x - (x1 + t * vx), y - (y1 + t * vy)) <= Math.max(1.5, it.width / 2 + 0.8);
+    return Math.hypot(x - (x1 + t * vx), y - (y1 + t * vy)) <= Math.max(1.5, (it._hh ?? it.width / 2) + 0.8);
   }
   const b = it._bb;
   return !!b && x >= b.x - 1 && x <= b.x + b.w + 1 && y >= b.y - 1 && y <= b.y + b.h + 1;
@@ -1783,11 +1874,13 @@ function bdShowEditor() {
     $("bdAngle").value = Math.round(it.angle); $("bdAngleVal").textContent = Math.round(it.angle) + "°";
     for (const b of $("bdAngles").children) b.setAttribute("aria-pressed", String(Math.round(it.angle) === +b.dataset.angle));
     $("bdThick").value = it.width; $("bdThickVal").textContent = num1(it.width) + " mm";
-    $("bdDashed").checked = !!it.dashed;
+    $("bdLineStyle").value = it.style || (it.dashed ? "dashed" : "solid");
   } else {
     $("bdWidth").value = it.w; $("bdWidthVal").textContent = num1(it.w) + " mm";
   }
   if (it.type !== "image") $("bdColor").value = it.color;
+  $("bdColorHd").hidden = !BD.header || it.type === "image";
+  $("bdColor").disabled = it.type === "line" && it.style === "match" && !!BD.header;   // colour comes from the header band
   $("bdOpacity").value = Math.round((it.opacity ?? 1) * 100); $("bdOpacityVal").textContent = $("bdOpacity").value + " %";
   bdSyncPos();
   $("bdUp").disabled = BD.sel >= BD.items.length - 1;
@@ -1804,7 +1897,7 @@ function bdAdd(it) { BD.items.push(it); BD.sel = BD.items.length - 1; bdShowEdit
 
 // Toolbar
 $("bdAddText").addEventListener("click", () => bdAdd({ type: "text", text: T.bdSample, font: "grotesk", size: 10, bold: true, color: "#1a1a1a", align: "center", x: 0, y: 0, opacity: 1 }));
-$("bdAddLine").addEventListener("click", () => bdAdd({ type: "line", x: 0, y: 12, len: 60, angle: 0, width: 0.35, color: "#1a1a1a", dashed: false, opacity: 1 }));
+$("bdAddLine").addEventListener("click", () => bdAdd({ type: "line", x: 0, y: 12, len: 60, angle: 0, width: 0.35, color: "#1a1a1a", style: "solid", opacity: 1 }));
 $("bdAddImg").addEventListener("change", async (e) => {
   const file = e.target.files[0]; e.target.value = "";
   if (!file || !file.type.startsWith("image/")) return;
@@ -1831,7 +1924,11 @@ $("bdAngles").addEventListener("click", (e) => {
   it.angle = +b.dataset.angle; bdShowEditor(); bdChanged();
 });
 bdOn("bdThick", "input", (it, el) => { it.width = +el.value; $("bdThickVal").textContent = num1(it.width) + " mm"; });
-bdOn("bdDashed", "change", (it, el) => { it.dashed = el.checked; });
+bdOn("bdLineStyle", "change", (it, el) => { it.style = el.value; delete it.dashed; $("bdColor").disabled = it.style === "match" && !!BD.header; });
+$("bdColorHd").addEventListener("click", () => {
+  const it = bdSel(), st = BD.header && HD_STYLES.find((s) => s.id === hdStyleId(BD.header)); if (!it || !st) return;
+  it.color = st.accent; bdShowEditor(); bdChanged();
+});
 bdOn("bdWidth", "input", (it, el) => { it.w = +el.value; $("bdWidthVal").textContent = num1(it.w) + " mm"; });
 bdOn("bdColor", "input", (it, el) => { it.color = el.value; });
 bdOn("bdOpacity", "input", (it, el) => { it.opacity = el.value / 100; $("bdOpacityVal").textContent = el.value + " %"; });
@@ -1997,6 +2094,7 @@ function hdRender() {
     + HD_STYLES.filter((s) => !s.match).map((s) => `<button type="button" class="bgtile" data-hd="${s.id}" aria-pressed="${cur === s.id}" title="${escBg(s[LANG] || s.en)}" aria-label="${escBg(s[LANG] || s.en)}"
         style="background-image:url('${hdThumb(s.id)}')"><span>${escBg(s[LANG] || s.en)}</span></button>`).join("");
   $("hdEdit").hidden = !BD.header;
+  if (BD.sel != null && BD.items[BD.sel]) bdShowEditor();
   $("hdMatch").checked = !!BD.header?.match;
   const info = $("hdMatchInfo"), mid = BD.header?.match && BD.bg && HD_MATCH[BD.bg.id];
   info.hidden = !BD.header?.match;
