@@ -322,6 +322,16 @@ footer { margin-top: 80px; padding-top: 24px; border-top: 1px solid var(--rule);
           <p class="tip" data-i18n="bg.tip">A textured background hides the grey haze of the code. Like the rest of the design it is printed without black, so the pen reads the code through it.</p>
         </div>
         <div class="field">
+          <span class="lbl" id="l-hd" data-i18n="hd.q">Header band <small>optional</small></span>
+          <div class="bggrid" id="hdGrid" role="group" aria-labelledby="l-hd"></div>
+          <div class="field" id="hdEdit" hidden>
+            <input type="text" id="hdText" maxlength="90" aria-label="Header text" data-i18n-aria="hd.text">
+            <select id="hdPreset" aria-label="Text suggestions" data-i18n-aria="hd.presets"></select>
+            <label style="display:flex;gap:8px;align-items:center;font-size:.9rem"><input type="checkbox" id="hdCaps" style="width:auto"> <span data-i18n="hd.caps">CAPITAL LETTERS</span></label>
+          </div>
+          <p class="tip" data-i18n="hd.tip">A decorative band across the top with a tagline; the rest of the card stays free for writing. Dots “•” are set in gold.</p>
+        </div>
+        <div class="field">
           <span class="lbl" data-i18n="bd.q">Design on top of the code <small>optional</small></span>
           <div class="tools">
             <button type="button" class="tool" id="bdAddText"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14M12 5v15M9 20h6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span data-i18n="bd.addText">Text</span></button>
@@ -632,6 +642,11 @@ const DE_STATIC = {
   "strength.q": "Punktstärke des Codes",
   "bd.q": "Gestaltung über dem Code <small>optional</small>",
   "bg.q": "Hintergrund <small>optional</small>",
+  "hd.q": "Kopfleiste <small>optional</small>",
+  "hd.text": "Text der Kopfleiste",
+  "hd.presets": "Textvorschläge",
+  "hd.caps": "GROSSBUCHSTABEN",
+  "hd.tip": "Ein Zierband oben mit Schlagwort-Zeile, der Rest der Karte bleibt frei zum Beschreiben. Punkte „•“ werden golden gesetzt.",
   "bg.strength": "Deckkraft",
   "bg.tip": "Ein strukturierter Hintergrund versteckt den grauen Schleier des Codes. Er wird wie die übrige Gestaltung ohne Schwarz gedruckt, der Stift liest den Code also durch ihn hindurch.",
   "bd.addText": "Text",
@@ -1022,11 +1037,144 @@ const BG_PRESETS = [
   { id: "marmor-vorsatzpapier", de: "Marmor", en: "Marbled" },
 ];
 BD.bg = null;                                       // { id, img, opacity, url? }
-const bdActive = () => !!BD.bg?.img || BD.items.some((it) => it.type !== "text" || String(it.text || "").trim());
+// Header band: a decorative strip across the top of the card plus a tagline (drawn here, so it is sharp at 600 dpi)
+BD.header = null;                                   // { style, text, caps }
+const HD_STYLES = [
+  { id: "funken", de: "Funken", en: "Sparks", band: ["#1f140d", "#3d2412"], glow: "rgba(255,170,60,.55)", fx: "sparks", spark: "#ffcf73", strip: "#f4ede2", ink: "#3a2a1c", accent: "#c8902e" },
+  { id: "sterne", de: "Sternennacht", en: "Starry night", band: ["#101a33", "#22355e"], glow: "rgba(150,180,255,.35)", fx: "stars", spark: "#e4eaff", strip: "#eef1f7", ink: "#1f2a44", accent: "#8a9bc4" },
+  { id: "artdeco", de: "Art déco", en: "Art deco", band: ["#1b1712", "#2e271b"], glow: "rgba(230,190,110,.25)", fx: "fan", spark: "#d9b45e", strip: "#f3eee3", ink: "#2a2418", accent: "#b8933a" },
+  { id: "samt", de: "Theatervorhang", en: "Stage curtain", band: ["#4a0d14", "#7a1622"], glow: "rgba(255,120,120,.18)", fx: "curtain", spark: "#d9b45e", strip: "#f5ebe0", ink: "#4a1a1a", accent: "#c39a3b" },
+  { id: "pergament", de: "Pergament", en: "Parchment", band: ["#d9c49c", "#c4a470"], glow: null, fx: "flourish", spark: "#8a6a3a", strip: "#f3ead8", ink: "#5a4126", accent: "#8a6a3a" },
+];
+const HD_TEXTS = {
+  de: ["GEDANKEN • VORHERSAGEN • EINFLUSS • GEDANKENLESEN", "MAGIE • MENTALMAGIE • GEHEIMNIS", "GEDANKENLESEN • VORHERSAGEN • UNMÖGLICHES",
+    "CLOSE-UP-MAGIE • MENTALMAGIE • EVENTS", "DENKEN SIE AN EIN WORT – SCHREIBEN SIE ES HIER", "IHR GEHEIMER GEDANKE", "MEINE VORHERSAGE",
+    "SCHREIBEN SIE EIN WORT • VERRATEN SIE ES NIEMANDEM", "NICHTS IST UNMÖGLICH", "DAS UNMÖGLICHE – GANZ NAH"],
+  en: ["THOUGHTS • PREDICTIONS • INFLUENCE • MIND READING", "MAGIC • MENTALISM • MYSTERY", "MIND READING • PREDICTIONS • IMPOSSIBILITIES",
+    "CLOSE-UP MAGIC • MENTALISM • EVENTS", "THINK OF A WORD – WRITE IT BELOW", "YOUR SECRET THOUGHT", "MY PREDICTION",
+    "WRITE ANY WORD • KEEP IT SECRET", "NOTHING IS IMPOSSIBLE", "THE IMPOSSIBLE, UP CLOSE"],
+};
+const bdActive = () => !!BD.bg?.img || !!BD.header || BD.items.some((it) => it.type !== "text" || String(it.text || "").trim());
+// Seeded random numbers, so the preview and the PDF show exactly the same sparks and stars
+function hdRand(seed) { let s = seed >>> 0; return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); }
+// Text with letter spacing, centred at (x, y); "•" in the accent colour
+function hdSpacedText(g, text, x, y, size, spacing, ink, accent) {
+  g.font = `600 ${size}px Georgia, "Times New Roman", serif`; g.textBaseline = "middle"; g.textAlign = "left";
+  const chars = [...text], widths = chars.map((c) => g.measureText(c).width);
+  const total = widths.reduce((a, w) => a + w, 0) + spacing * (chars.length - 1);
+  let cx = x - total / 2;
+  chars.forEach((c, i) => { g.fillStyle = c === "•" ? accent : ink; g.fillText(c, cx, y); cx += widths[i] + spacing; });
+  return total;
+}
+// Draws the header band; units mm, card centre at (cx, cy). Covers the top bleed.
+function drawHeader(g, cx, cy, hd) {
+  const st = HD_STYLES.find((s) => s.id === hd.style) || HD_STYLES[0];
+  const top = cy - MASK_H / 2, left = cx - MASK_W / 2, trimTop = cy - CARD.h / 2;
+  const bandEnd = trimTop + 6.2, stripEnd = bandEnd + 7.2, mid = (bandEnd + stripEnd) / 2 - 0.3;
+  const rnd = hdRand(7 + st.id.length * 31);
+  g.save();
+  // dark band
+  const grad = g.createLinearGradient(0, top, 0, bandEnd);
+  grad.addColorStop(0, st.band[0]); grad.addColorStop(1, st.band[1]);
+  g.fillStyle = grad; g.fillRect(left, top, MASK_W, bandEnd - top);
+  g.save(); g.beginPath(); g.rect(left, top, MASK_W, bandEnd - top); g.clip();
+  if (st.glow) {
+    const rg = g.createRadialGradient(cx, bandEnd, 0, cx, bandEnd, 34);
+    rg.addColorStop(0, st.glow); rg.addColorStop(1, "rgba(0,0,0,0)");
+    g.fillStyle = rg; g.fillRect(left, top, MASK_W, bandEnd - top);
+  }
+  if (st.fx === "sparks") {
+    for (let i = 0; i < 70; i++) {               // rays from the centre of the band's lower edge
+      const a = Math.PI + rnd() * Math.PI, len = 6 + rnd() * 34, r0 = 2 + rnd() * 6;
+      g.strokeStyle = st.spark; g.globalAlpha = 0.25 + rnd() * 0.55; g.lineWidth = 0.08 + rnd() * 0.18;
+      g.beginPath(); g.moveTo(cx + Math.cos(a) * r0, bandEnd + Math.sin(a) * r0 * 0.35); g.lineTo(cx + Math.cos(a) * len, bandEnd + Math.sin(a) * len * 0.35); g.stroke();
+    }
+    for (let i = 0; i < 160; i++) {              // glowing particles
+      const x = left + rnd() * MASK_W, y = top + rnd() * (bandEnd - top), r = 0.08 + rnd() * 0.28;
+      g.globalAlpha = 0.3 + rnd() * 0.7 * (1 - Math.abs(x - cx) / (MASK_W / 2)); g.fillStyle = st.spark;
+      g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
+    }
+  } else if (st.fx === "stars") {
+    for (let i = 0; i < 120; i++) {
+      const x = left + rnd() * MASK_W, y = top + rnd() * (bandEnd - top), r = 0.06 + rnd() * 0.22;
+      g.globalAlpha = 0.35 + rnd() * 0.65; g.fillStyle = st.spark; g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
+    }
+    for (let i = 0; i < 9; i++) {                // little four-pointed stars
+      const x = left + 6 + rnd() * (MASK_W - 12), y = top + 1.5 + rnd() * (bandEnd - top - 3), r = 0.5 + rnd() * 0.7;
+      g.globalAlpha = 0.9; g.fillStyle = st.spark; g.beginPath();
+      for (let k = 0; k < 8; k++) { const rr = k % 2 ? r * 0.28 : r, a = k * Math.PI / 4; g.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr); }
+      g.closePath(); g.fill();
+    }
+    g.globalAlpha = 0.95; g.fillStyle = st.spark;   // crescent moon on the right
+    const mx = cx + 33, my = top + (bandEnd - top) * 0.55;
+    g.save(); g.beginPath(); g.rect(mx - 5, my - 5, 10, 10); g.arc(mx + 0.95, my - 0.55, 1.85, 0, Math.PI * 2); g.clip("evenodd");
+    g.beginPath(); g.arc(mx, my, 2.1, 0, Math.PI * 2); g.fill(); g.restore();          // crescent = disc minus offset disc
+  } else if (st.fx === "fan") {
+    g.strokeStyle = st.spark; g.lineWidth = 0.14;
+    for (let ring = 0; ring < 3; ring++) {         // art-deco fans in the middle and at both sides
+      for (const fx of [cx, cx - 30, cx + 30]) {
+        const R = (fx === cx ? 9 : 6) - ring * 2.2;
+        if (R <= 0) continue;
+        g.globalAlpha = 0.85 - ring * 0.2; g.beginPath(); g.arc(fx, bandEnd, R, Math.PI, 2 * Math.PI); g.stroke();
+      }
+    }
+    g.globalAlpha = 0.6;
+    for (let k = 0; k <= 12; k++) { const a = Math.PI + k * Math.PI / 12; g.beginPath(); g.moveTo(cx, bandEnd); g.lineTo(cx + Math.cos(a) * 12, bandEnd + Math.sin(a) * 12); g.stroke(); }
+    g.globalAlpha = 0.5; g.lineWidth = 0.1;
+    for (const y of [top + 1.4 + (bandEnd - top) * 0.15, top + 1.9 + (bandEnd - top) * 0.15]) { g.beginPath(); g.moveTo(left, y); g.lineTo(left + MASK_W, y); g.stroke(); }
+  } else if (st.fx === "curtain") {
+    for (let i = 0; i < 26; i++) {                 // vertical folds of the velvet
+      const x = left + i * MASK_W / 26, w = MASK_W / 26;
+      const sh = g.createLinearGradient(x, 0, x + w, 0);
+      sh.addColorStop(0, "rgba(0,0,0,.28)"); sh.addColorStop(0.5, "rgba(255,255,255,.07)"); sh.addColorStop(1, "rgba(0,0,0,.28)");
+      g.globalAlpha = 1; g.fillStyle = sh; g.fillRect(x, top, w, bandEnd - top);
+    }
+    g.fillStyle = st.spark; g.globalAlpha = 0.95;  // golden fringe
+    g.fillRect(left, bandEnd - 0.7, MASK_W, 0.35);
+    for (let x = left; x < left + MASK_W; x += 0.9) { g.beginPath(); g.arc(x, bandEnd - 0.2, 0.18, 0, Math.PI * 2); g.fill(); }
+  } else if (st.fx === "flourish") {
+    g.strokeStyle = st.spark; g.globalAlpha = 0.55; g.lineWidth = 0.16;
+    for (const dir of [-1, 1]) {                   // mirrored scrolls left and right of the centre
+      g.beginPath();
+      for (let t = 0; t <= 1.0001; t += 0.01) {
+        const x = cx + dir * (3 + t * 36), y = top + (bandEnd - top) * 0.55 + Math.sin(t * Math.PI * 3) * 1.2 * (1 - t * 0.5);
+        if (t === 0) g.moveTo(x, y); else g.lineTo(x, y);
+      }
+      g.stroke();
+      for (const t of [0.17, 0.5, 0.83]) {
+        const x = cx + dir * (3 + t * 36), y = top + (bandEnd - top) * 0.55 + Math.sin(t * Math.PI * 3) * 1.2 * (1 - t * 0.5);
+        g.beginPath(); g.arc(x + dir * 0.9, y - 0.9, 0.8, 0, Math.PI * 1.5); g.stroke();
+      }
+    }
+    g.globalAlpha = 0.7; g.fillStyle = st.spark;
+    g.beginPath(); g.moveTo(cx, top + (bandEnd - top) * 0.55 - 1.1); g.lineTo(cx + 1.1, top + (bandEnd - top) * 0.55); g.lineTo(cx, top + (bandEnd - top) * 0.55 + 1.1); g.lineTo(cx - 1.1, top + (bandEnd - top) * 0.55); g.closePath(); g.fill();
+  }
+  g.restore();
+  // light strip with the tagline
+  g.globalAlpha = 1; g.fillStyle = st.strip; g.fillRect(left, bandEnd, MASK_W, stripEnd - bandEnd);
+  g.fillStyle = st.accent; g.fillRect(left, bandEnd, MASK_W, 0.18);
+  const text = (hd.caps !== false ? String(hd.text || "").toUpperCase() : String(hd.text || "")).trim();
+  if (text) {
+    let size = 2.6, spacing;
+    for (; size > 1.3; size -= 0.05) {             // shrink until it fits inside the safe area
+      spacing = size * 0.12; g.font = `600 ${size}px Georgia, "Times New Roman", serif`;
+      const w = [...text].reduce((a, c) => a + g.measureText(c).width, 0) + spacing * ([...text].length - 1);
+      if (w <= CARD.w - 9) break;
+    }
+    hdSpacedText(g, text, cx, mid, size, spacing, st.ink, st.accent);
+  }
+  // golden rule with a diamond in the middle
+  const ry = stripEnd - 1.15, half = 30;
+  const lg = g.createLinearGradient(cx - half, 0, cx + half, 0);
+  lg.addColorStop(0, "rgba(0,0,0,0)"); lg.addColorStop(0.15, st.accent); lg.addColorStop(0.85, st.accent); lg.addColorStop(1, "rgba(0,0,0,0)");
+  g.strokeStyle = lg; g.lineWidth = 0.16; g.beginPath(); g.moveTo(cx - half, ry); g.lineTo(cx + half, ry); g.stroke();
+  g.fillStyle = st.accent; g.beginPath(); g.moveTo(cx, ry - 0.75); g.lineTo(cx + 0.75, ry); g.lineTo(cx, ry + 0.75); g.lineTo(cx - 0.75, ry); g.closePath(); g.fill();
+  g.restore();
+}
 // Text, lines and a chosen preset are remembered in the browser; images are not (too large for localStorage).
 function bdSave() {
   const bg = BD.bg && BD.bg.id !== "custom" ? { id: BD.bg.id, opacity: BD.bg.opacity ?? 1 } : null;
-  try { localStorage.setItem(BD_KEY, JSON.stringify({ items: BD.items.filter((it) => it.type !== "image").map(({ _bb, ...r }) => r), bg })); } catch { /* private mode */ }
+  try { localStorage.setItem(BD_KEY, JSON.stringify({ items: BD.items.filter((it) => it.type !== "image").map(({ _bb, ...r }) => r), bg, header: BD.header })); } catch { /* private mode */ }
 }
 function bdLoad() {
   try {
@@ -1034,6 +1182,7 @@ function bdLoad() {
     const items = Array.isArray(s) ? s : s?.items;                     // older versions stored only the item list
     if (Array.isArray(items)) BD.items = items.filter((it) => it && (it.type === "text" || it.type === "line"));
     if (s?.bg && BG_PRESETS.some((p) => p.id === s.bg.id)) BD.bg = { id: s.bg.id, img: null, opacity: s.bg.opacity ?? 1 };
+    if (s?.header && HD_STYLES.some((h) => h.id === s.header.style)) BD.header = { style: s.header.style, text: String(s.header.text || ""), caps: s.header.caps !== false };
   } catch { /* ignore */ }
 }
 async function loadPresetImage(id) {
@@ -1057,6 +1206,7 @@ function bdDraw(g, cx, cy) {
     g.save(); g.globalAlpha = BD.bg.opacity ?? 1; g.imageSmoothingQuality = "high";
     g.drawImage(im, cx - w / 2, cy - h / 2, w, h); g.restore();
   }
+  if (BD.header) drawHeader(g, cx, cy, BD.header);   // header band above the background, below text/lines/images
   for (const it of BD.items) {
     g.save();
     g.globalAlpha = it.opacity ?? 1;
@@ -1678,7 +1828,42 @@ $("bgOpacity").addEventListener("input", (e) => {
   BD.bg.opacity = e.target.value / 100; $("bgOpacityVal").textContent = e.target.value + " %"; bdSave(); bdRefresh();
 });
 
-bdLoad(); bdRenderList(); bdShowEditor(); updateOnlineNote(); bgRender();
+// ---------- Header band picker ----------
+const hdThumbs = {};
+function hdThumb(id) {                               // small preview of the whole back with this header
+  if (hdThumbs[id]) return hdThumbs[id];
+  const c = document.createElement("canvas"); c.width = 273; c.height = 180;
+  const g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height);
+  g.scale(c.width / MASK_W, c.height / MASK_H);
+  drawHeader(g, MASK_W / 2, MASK_H / 2, { style: id, text: HD_TEXTS[LANG === "de" ? "de" : "en"][0], caps: true });
+  return (hdThumbs[id] = c.toDataURL("image/png"));
+}
+function hdRender() {
+  const cur = BD.header?.style || "";
+  $("hdGrid").innerHTML = `<button type="button" class="bgtile none" data-hd="" aria-pressed="${cur === ""}"><span>${LANG === "de" ? "ohne" : "none"}</span></button>`
+    + HD_STYLES.map((s) => `<button type="button" class="bgtile" data-hd="${s.id}" aria-pressed="${cur === s.id}" title="${escBg(s[LANG] || s.en)}" aria-label="${escBg(s[LANG] || s.en)}"
+        style="background-image:url('${hdThumb(s.id)}')"><span>${escBg(s[LANG] || s.en)}</span></button>`).join("");
+  $("hdEdit").hidden = !BD.header;
+  if (BD.header) {
+    $("hdText").value = BD.header.text; $("hdCaps").checked = BD.header.caps !== false;
+    const list = HD_TEXTS[LANG === "de" ? "de" : "en"];
+    $("hdPreset").innerHTML = `<option value="">${LANG === "de" ? "Textvorschlag wählen …" : "Pick a suggestion …"}</option>` + list.map((t, i) => `<option value="${i}">${escBg(t)}</option>`).join("");
+  }
+  $("hdGrid").querySelectorAll("[data-hd]").forEach((b) => b.onclick = () => {
+    const id = b.dataset.hd;
+    BD.header = id ? { style: id, text: BD.header?.text ?? HD_TEXTS[LANG === "de" ? "de" : "en"][0], caps: BD.header?.caps ?? true } : null;
+    hdRender(); bdSave(); bdRefresh(); setView("back");
+  });
+}
+$("hdText").addEventListener("input", (e) => { if (!BD.header) return; BD.header.text = e.target.value; bdSave(); bdRefresh(); });
+$("hdCaps").addEventListener("change", (e) => { if (!BD.header) return; BD.header.caps = e.target.checked; bdSave(); bdRefresh(); });
+$("hdPreset").addEventListener("change", (e) => {
+  if (!BD.header || e.target.value === "") return;
+  BD.header.text = HD_TEXTS[LANG === "de" ? "de" : "en"][+e.target.value]; $("hdText").value = BD.header.text;
+  e.target.value = ""; bdSave(); bdRefresh();
+});
+
+bdLoad(); bdRenderList(); bdShowEditor(); updateOnlineNote(); bgRender(); hdRender();
 // remembered preset: load the picture once the page is ready
 if (BD.bg && !BD.bg.img) loadPresetImage(BD.bg.id).then((img) => { if (BD.bg && !BD.bg.img) { BD.bg.img = img; bdRefresh(); } }).catch(() => { BD.bg = null; bgRender(); });
 

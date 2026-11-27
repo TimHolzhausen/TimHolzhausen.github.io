@@ -55,6 +55,16 @@ One dot strength (chosen in step 2) is used for the A4 sheet and for the single 
    PNG backs stay without design (1-bit). Not tested at print shops yet: it
    only works if the shop prints the colours as delivered and does not add K.
    Text items are remembered in the browser, images are not.
+8. Header band for the back: five styles drawn in the browser (sparks,
+   starry night, art deco, stage curtain, parchment). A decorative band runs
+   from the top bleed to 6 mm into the card, then a light strip with an
+   editable tagline (Georgia caps, letter-spaced, “•” in the accent colour,
+   shrinks to fit the safe area) and a gold rule. The default text and ten
+   suggestions for magicians follow the browser language (German or
+   English). Uppercase can be switched off. The random sparks and stars use
+   a fixed seed, so the preview and the PDF match. The band is drawn above
+   the background and below text, lines and images, is printed with K = 0
+   like the rest of the design, and is remembered in the browser.
 
 Everything runs locally in the browser. Images are never uploaded anywhere.
 
