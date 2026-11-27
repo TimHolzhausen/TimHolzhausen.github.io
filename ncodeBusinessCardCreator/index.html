@@ -328,6 +328,7 @@ footer { margin-top: 80px; padding-top: 24px; border-top: 1px solid var(--rule);
             <input type="text" id="hdText" maxlength="90" aria-label="Header text" data-i18n-aria="hd.text">
             <select id="hdPreset" aria-label="Text suggestions" data-i18n-aria="hd.presets"></select>
             <label style="display:flex;gap:8px;align-items:center;font-size:.9rem"><input type="checkbox" id="hdCaps" style="width:auto"> <span data-i18n="hd.caps">CAPITAL LETTERS</span></label>
+            <label style="display:flex;gap:8px;align-items:center;font-size:.9rem"><input type="checkbox" id="hdClear" style="width:auto"> <span data-i18n="hd.clear">Transparent text strip</span></label>
           </div>
           <p class="tip" data-i18n="hd.tip">A decorative band across the top with a tagline; the rest of the card stays free for writing. Dots “•” are set in gold.</p>
         </div>
@@ -646,6 +647,7 @@ const DE_STATIC = {
   "hd.text": "Text der Kopfleiste",
   "hd.presets": "Textvorschläge",
   "hd.caps": "GROSSBUCHSTABEN",
+  "hd.clear": "Textstreifen transparent",
   "hd.tip": "Ein Zierband oben mit Schlagwort-Zeile, der Rest der Karte bleibt frei zum Beschreiben. Punkte „•“ werden golden gesetzt.",
   "bg.strength": "Deckkraft",
   "bg.tip": "Ein strukturierter Hintergrund versteckt den grauen Schleier des Codes. Er wird wie die übrige Gestaltung ohne Schwarz gedruckt, der Stift liest den Code also durch ihn hindurch.",
@@ -1151,7 +1153,8 @@ function drawHeader(g, cx, cy, hd) {
   }
   g.restore();
   // light strip with the tagline
-  g.globalAlpha = 1; g.fillStyle = st.strip; g.fillRect(left, bandEnd, MASK_W, stripEnd - bandEnd);
+  g.globalAlpha = 1;
+  if (!hd.clear) { g.fillStyle = st.strip; g.fillRect(left, bandEnd, MASK_W, stripEnd - bandEnd); }   // transparent: text sits on the background
   g.fillStyle = st.accent; g.fillRect(left, bandEnd, MASK_W, 0.18);
   const text = (hd.caps !== false ? String(hd.text || "").toUpperCase() : String(hd.text || "")).trim();
   if (text) {
@@ -1182,7 +1185,7 @@ function bdLoad() {
     const items = Array.isArray(s) ? s : s?.items;                     // older versions stored only the item list
     if (Array.isArray(items)) BD.items = items.filter((it) => it && (it.type === "text" || it.type === "line"));
     if (s?.bg && BG_PRESETS.some((p) => p.id === s.bg.id)) BD.bg = { id: s.bg.id, img: null, opacity: s.bg.opacity ?? 1 };
-    if (s?.header && HD_STYLES.some((h) => h.id === s.header.style)) BD.header = { style: s.header.style, text: String(s.header.text || ""), caps: s.header.caps !== false };
+    if (s?.header && HD_STYLES.some((h) => h.id === s.header.style)) BD.header = { style: s.header.style, text: String(s.header.text || ""), caps: s.header.caps !== false, clear: !!s.header.clear };
   } catch { /* ignore */ }
 }
 async function loadPresetImage(id) {
@@ -1845,18 +1848,19 @@ function hdRender() {
         style="background-image:url('${hdThumb(s.id)}')"><span>${escBg(s[LANG] || s.en)}</span></button>`).join("");
   $("hdEdit").hidden = !BD.header;
   if (BD.header) {
-    $("hdText").value = BD.header.text; $("hdCaps").checked = BD.header.caps !== false;
+    $("hdText").value = BD.header.text; $("hdCaps").checked = BD.header.caps !== false; $("hdClear").checked = !!BD.header.clear;
     const list = HD_TEXTS[LANG === "de" ? "de" : "en"];
     $("hdPreset").innerHTML = `<option value="">${LANG === "de" ? "Textvorschlag wählen …" : "Pick a suggestion …"}</option>` + list.map((t, i) => `<option value="${i}">${escBg(t)}</option>`).join("");
   }
   $("hdGrid").querySelectorAll("[data-hd]").forEach((b) => b.onclick = () => {
     const id = b.dataset.hd;
-    BD.header = id ? { style: id, text: BD.header?.text ?? HD_TEXTS[LANG === "de" ? "de" : "en"][0], caps: BD.header?.caps ?? true } : null;
+    BD.header = id ? { style: id, text: BD.header?.text ?? HD_TEXTS[LANG === "de" ? "de" : "en"][0], caps: BD.header?.caps ?? true, clear: BD.header?.clear ?? false } : null;
     hdRender(); bdSave(); bdRefresh(); setView("back");
   });
 }
 $("hdText").addEventListener("input", (e) => { if (!BD.header) return; BD.header.text = e.target.value; bdSave(); bdRefresh(); });
 $("hdCaps").addEventListener("change", (e) => { if (!BD.header) return; BD.header.caps = e.target.checked; bdSave(); bdRefresh(); });
+$("hdClear").addEventListener("change", (e) => { if (!BD.header) return; BD.header.clear = e.target.checked; bdSave(); bdRefresh(); });
 $("hdPreset").addEventListener("change", (e) => {
   if (!BD.header || e.target.value === "") return;
   BD.header.text = HD_TEXTS[LANG === "de" ? "de" : "en"][+e.target.value]; $("hdText").value = BD.header.text;
