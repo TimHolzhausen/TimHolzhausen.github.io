@@ -217,6 +217,7 @@ details.hints li b { color: var(--ink); font-weight: 600; }
 .segbtn { justify-self: start; display: inline-flex; border: 1.5px solid var(--rule); border-radius: 10px; overflow: hidden; }
 .segbtn button { border: 0; border-radius: 0; padding: 6px 11px; }
 .segbtn button + button { border-left: 1.5px solid var(--rule); }
+#hdShape button { white-space: nowrap; }
 .segbtn button[aria-pressed="true"] { background: color-mix(in srgb, var(--pen) 14%, transparent); color: var(--pen); }
 .inspector textarea { font: 1rem var(--font-ui); color: var(--ink); background: var(--sheet); border: 1.5px solid var(--rule); border-radius: 10px; padding: 8px 10px; resize: vertical; width: 100%; }
 .inspector input[type="color"] { width: 44px; height: 34px; padding: 2px; border: 1.5px solid var(--rule); border-radius: 8px; background: var(--sheet); }
@@ -324,7 +325,16 @@ footer { margin-top: 80px; padding-top: 24px; border-top: 1px solid var(--rule);
         <div class="field">
           <span class="lbl" id="l-hd" data-i18n="hd.q">Header band <small>optional</small></span>
           <div class="bggrid" id="hdGrid" role="group" aria-labelledby="l-hd"></div>
+          <label style="display:flex;gap:8px;align-items:center;font-size:.9rem"><input type="checkbox" id="hdMatch" style="width:auto"> <span data-i18n="hd.match">Match the background</span></label>
+          <div class="tip" id="hdMatchInfo" hidden style="display:flex;gap:10px;align-items:center"></div>
           <div class="field" id="hdEdit" hidden>
+            <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><span data-i18n="hd.shape">Shape</span>
+              <span class="segbtn" id="hdShape">
+                <button type="button" data-shape="top" data-i18n="hd.top">Top</button>
+                <button type="button" data-shape="both" data-i18n="hd.both">Top + bottom</button>
+                <button type="button" data-shape="frame" data-i18n="hd.frame">Frame</button>
+              </span>
+            </div>
             <input type="text" id="hdText" maxlength="90" aria-label="Header text" data-i18n-aria="hd.text">
             <select id="hdPreset" aria-label="Text suggestions" data-i18n-aria="hd.presets"></select>
             <label style="display:flex;gap:8px;align-items:center;font-size:.9rem"><input type="checkbox" id="hdCaps" style="width:auto"> <span data-i18n="hd.caps">CAPITAL LETTERS</span></label>
@@ -648,6 +658,11 @@ const DE_STATIC = {
   "hd.presets": "Textvorschläge",
   "hd.caps": "GROSSBUCHSTABEN",
   "hd.clear": "Textstreifen transparent",
+  "hd.match": "Passend zum Hintergrund",
+  "hd.shape": "Form",
+  "hd.top": "Oben",
+  "hd.both": "Oben + unten",
+  "hd.frame": "Rahmen",
   "hd.tip": "Ein Zierband oben mit Schlagwort-Zeile, der Rest der Karte bleibt frei zum Beschreiben. Punkte „•“ werden golden gesetzt.",
   "bg.strength": "Deckkraft",
   "bg.tip": "Ein strukturierter Hintergrund versteckt den grauen Schleier des Codes. Er wird wie die übrige Gestaltung ohne Schwarz gedruckt, der Stift liest den Code also durch ihn hindurch.",
@@ -1047,7 +1062,38 @@ const HD_STYLES = [
   { id: "artdeco", de: "Art déco", en: "Art deco", band: ["#1b1712", "#2e271b"], glow: "rgba(230,190,110,.25)", fx: "fan", spark: "#d9b45e", strip: "#f3eee3", ink: "#2a2418", accent: "#b8933a" },
   { id: "samt", de: "Theatervorhang", en: "Stage curtain", band: ["#4a0d14", "#7a1622"], glow: "rgba(255,120,120,.18)", fx: "curtain", spark: "#d9b45e", strip: "#f5ebe0", ink: "#4a1a1a", accent: "#c39a3b" },
   { id: "pergament", de: "Pergament", en: "Parchment", band: ["#d9c49c", "#c4a470"], glow: null, fx: "flourish", spark: "#8a6a3a", strip: "#f3ead8", ink: "#5a4126", accent: "#8a6a3a" },
+  // matching the preset backgrounds (only used through "Match the background")
+  { id: "m-sepia", match: true, de: "Zauber-Sepia", en: "Magic sepia", band: ["#45301e", "#6b4b2c"], glow: "rgba(240,200,140,.22)", fx: "guilloche", spark: "#ead2a6", strip: "#f2e2c4", ink: "#4a3320", accent: "#a8783e" },
+  { id: "m-emblem", match: true, de: "Karten-Emblem", en: "Card emblem", band: ["#3d2a19", "#5e4228"], glow: "rgba(240,200,140,.2)", fx: "emblem", spark: "#e6cb98", strip: "#f2e2c4", ink: "#4a3320", accent: "#a8783e" },
+  { id: "m-zylinder", match: true, de: "Zylinder", en: "Top hat", band: ["#36322e", "#554e48"], glow: "rgba(255,255,255,.12)", fx: "hats", spark: "#ece6de", strip: "#efebe5", ink: "#3a3531", accent: "#a39484" },
+  { id: "m-karten", match: true, de: "Kartenrücken", en: "Card back", band: ["#552f33", "#7a4a4f"], glow: "rgba(255,220,220,.14)", fx: "lattice", spark: "#f1dbd8", strip: "#f3e6e4", ink: "#5a3236", accent: "#b07a80" },
+  { id: "m-sterne", match: true, de: "Sternenhimmel", en: "Starry sky", band: ["#28334d", "#4a5876"], glow: "rgba(200,215,255,.2)", fx: "moons", spark: "#e6ecf5", strip: "#eef1f6", ink: "#2a3550", accent: "#8796b0" },
+  { id: "m-marmor", match: true, de: "Marmor", en: "Marbled", band: ["#66705c", "#7a6b55"], glow: null, fx: "marble", spark: "#d9c8a4", strip: "#efeadc", ink: "#4b4a3a", accent: "#8c7458" },
 ];
+const HD_MATCH = { "zauber-hintergrund-sepia": "m-sepia", "karten-emblem-sepia": "m-emblem", "zylinder-zauberstab": "m-zylinder",
+  "kartenruecken-ornament": "m-karten", "sternenhimmel": "m-sterne", "marmor-vorsatzpapier": "m-marmor" };
+// "Match the background": the style follows the chosen preset background; otherwise the picked style is used
+const hdStyleId = (hd) => (hd.match && BD.bg && HD_MATCH[BD.bg.id]) || hd.style;
+// Card suits as paths (no font glyphs: ♥ could turn into a red emoji on phones). s = height in mm
+function hdSuit(g, kind, x, y, s) {
+  const r = s * 0.27; g.beginPath();
+  if (kind === 0) {                                  // spade
+    g.arc(x - r * 0.95, y + s * 0.1, r, 0, Math.PI * 2); g.moveTo(x + r * 0.95 + r, y + s * 0.1); g.arc(x + r * 0.95, y + s * 0.1, r, 0, Math.PI * 2);
+    g.moveTo(x - r * 1.88, y + s * 0.04); g.lineTo(x, y - s / 2); g.lineTo(x + r * 1.88, y + s * 0.04); g.closePath();
+    g.moveTo(x, y + s * 0.05); g.lineTo(x + s * 0.17, y + s / 2); g.lineTo(x - s * 0.17, y + s / 2); g.closePath();
+  } else if (kind === 1) {                           // heart
+    g.arc(x - r * 0.95, y - s * 0.2, r, 0, Math.PI * 2); g.moveTo(x + r * 0.95 + r, y - s * 0.2); g.arc(x + r * 0.95, y - s * 0.2, r, 0, Math.PI * 2);
+    g.moveTo(x - r * 1.88, y - s * 0.12); g.lineTo(x + r * 1.88, y - s * 0.12); g.lineTo(x, y + s / 2); g.closePath();
+  } else if (kind === 2) {                           // diamond
+    g.moveTo(x, y - s / 2); g.lineTo(x + s * 0.36, y); g.lineTo(x, y + s / 2); g.lineTo(x - s * 0.36, y); g.closePath();
+  } else {                                           // club
+    const c = s * 0.21;
+    for (const [dx, dy] of [[0, -0.24], [-0.23, 0.04], [0.23, 0.04]]) { g.moveTo(x + dx * s + c, y + dy * s); g.arc(x + dx * s, y + dy * s, c, 0, Math.PI * 2); }
+    g.moveTo(x, y - s * 0.05); g.lineTo(x + s * 0.16, y + s / 2); g.lineTo(x - s * 0.16, y + s / 2); g.closePath();
+  }
+  g.fill();
+}
+function hdStar4(g, x, y, r) { g.beginPath(); for (let k = 0; k < 8; k++) { const rr = k % 2 ? r * 0.28 : r, a = k * Math.PI / 4; g.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr); } g.closePath(); g.fill(); }
 const HD_TEXTS = {
   de: ["GEDANKEN • VORHERSAGEN • EINFLUSS • GEDANKENLESEN", "MAGIE • MENTALMAGIE • GEHEIMNIS", "GEDANKENLESEN • VORHERSAGEN • UNMÖGLICHES",
     "CLOSE-UP-MAGIE • MENTALMAGIE • EVENTS", "DENKEN SIE AN EIN WORT – SCHREIBEN SIE ES HIER", "IHR GEHEIMER GEDANKE", "MEINE VORHERSAGE",
@@ -1070,11 +1116,12 @@ function hdSpacedText(g, text, x, y, size, spacing, ink, accent) {
 }
 // Draws the header band; units mm, card centre at (cx, cy). Covers the top bleed.
 function drawHeader(g, cx, cy, hd) {
-  const st = HD_STYLES.find((s) => s.id === hd.style) || HD_STYLES[0];
+  const st = HD_STYLES.find((s) => s.id === hdStyleId(hd)) || HD_STYLES[0];
   const top = cy - MASK_H / 2, left = cx - MASK_W / 2, trimTop = cy - CARD.h / 2;
   const bandEnd = trimTop + 6.2, stripEnd = bandEnd + 7.2, mid = (bandEnd + stripEnd) / 2 - 0.3;
   const rnd = hdRand(7 + st.id.length * 31);
   g.save();
+  const drawBand = (flipped) => {
   // dark band
   const grad = g.createLinearGradient(0, top, 0, bandEnd);
   grad.addColorStop(0, st.band[0]); grad.addColorStop(1, st.band[1]);
@@ -1150,19 +1197,122 @@ function drawHeader(g, cx, cy, hd) {
     }
     g.globalAlpha = 0.7; g.fillStyle = st.spark;
     g.beginPath(); g.moveTo(cx, top + (bandEnd - top) * 0.55 - 1.1); g.lineTo(cx + 1.1, top + (bandEnd - top) * 0.55); g.lineTo(cx, top + (bandEnd - top) * 0.55 + 1.1); g.lineTo(cx - 1.1, top + (bandEnd - top) * 0.55); g.closePath(); g.fill();
+  } else {
+    const vm = (trimTop + bandEnd) / 2;               // middle of the visible part of the band
+    g.strokeStyle = st.spark; g.fillStyle = st.spark;
+    if (st.fx === "guilloche") {
+      g.lineWidth = 0.05;
+      for (let k = 0; k < 10; k++) {                 // banknote waves left and right of the rosette
+        g.globalAlpha = 0.45; g.beginPath();
+        for (let x = left; x <= left + MASK_W; x += 0.25) {
+          const d = Math.abs(x - cx); if (d < 3.4) { g.moveTo(x, vm); continue; }
+          g.lineTo(x, vm + Math.sin(x * 0.55 + k * 0.63) * 1.9 * Math.min(1, (d - 3.4) / 4));
+        }
+        g.stroke();
+      }
+      g.globalAlpha = 0.7;
+      for (let j = 0; j < 36; j++) { g.beginPath(); g.ellipse(cx, vm, 2.9, 1.05, j * Math.PI / 36, 0, Math.PI * 2); g.stroke(); }
+      g.beginPath(); g.arc(cx, vm, 0.75, 0, Math.PI * 2); g.stroke();
+      for (let i = 0; i < 14; i++) {                 // scattered suits and stars, like the background
+        const x = left + rnd() * MASK_W, y = top + 0.8 + rnd() * (bandEnd - top - 1.6);
+        if (Math.abs(x - cx) < 5) continue;
+        g.globalAlpha = 0.35 + rnd() * 0.25;
+        if (i % 3 === 2) hdStar4(g, x, y, 0.45); else hdSuit(g, i % 4, x, y, 0.85);
+      }
+    } else if (st.fx === "emblem") {
+      g.globalAlpha = 0.9; g.lineWidth = 0.11;
+      g.beginPath(); g.moveTo(cx - 2.7, vm - 2.7); g.lineTo(cx + 2.7, vm + 2.7); g.moveTo(cx + 2.7, vm - 2.7); g.lineTo(cx - 2.7, vm + 2.7); g.stroke();
+      hdSuit(g, 1, cx, vm - 1.85, 1.35); hdSuit(g, 0, cx - 1.85, vm, 1.35); hdSuit(g, 3, cx + 1.85, vm, 1.35); hdSuit(g, 2, cx, vm + 1.85, 1.35);
+      g.lineWidth = 0.07; g.globalAlpha = 0.5;
+      for (const y of [vm - 2.3, vm + 2.3]) for (const dir of [-1, 1]) { g.beginPath(); g.moveTo(cx + dir * 4.2, y); g.lineTo(cx + dir * (MASK_W / 2), y); g.stroke(); }
+      let k = 0;
+      for (let d = 7; d < MASK_W / 2; d += 4.5, k++) for (const dir of [-1, 1]) { g.globalAlpha = 0.55; hdSuit(g, (k + (dir > 0 ? 2 : 0)) % 4, cx + dir * d, vm, 1.0); }
+    } else if (st.fx === "hats") {
+      const hat = (x, y, s, rot) => {
+        g.save(); g.translate(x, y); g.rotate(rot); g.lineWidth = s * 0.07;
+        g.beginPath(); g.moveTo(-0.3 * s, -0.5 * s); g.lineTo(0.3 * s, -0.5 * s); g.lineTo(0.26 * s, 0.24 * s); g.lineTo(-0.26 * s, 0.24 * s); g.closePath(); g.stroke();
+        g.fillRect(-0.27 * s, 0.08 * s, 0.54 * s, 0.14 * s);
+        g.beginPath(); g.ellipse(0, 0.27 * s, 0.55 * s, 0.1 * s, 0, 0, Math.PI * 2); g.stroke();
+        g.lineWidth = s * 0.11; g.beginPath(); g.moveTo(0.42 * s, 0.22 * s); g.lineTo(0.85 * s, -0.42 * s); g.stroke();
+        hdStar4(g, 0.98 * s, -0.62 * s, 0.17 * s); g.restore();
+      };
+      let row = 0;
+      for (let y = top + 1.6; y < bandEnd + 1; y += 3.6, row++)
+        for (let x = left + (row % 2 ? 2.2 : 5.6); x < left + MASK_W; x += 7) { g.globalAlpha = 0.5; hat(x, y, 2.3, (rnd() - 0.5) * 0.5 + (flipped ? Math.PI : 0)); }
+      for (let i = 0; i < 60; i++) { g.globalAlpha = 0.3 + rnd() * 0.5; hdStar4(g, left + rnd() * MASK_W, top + rnd() * (bandEnd - top), 0.15 + rnd() * 0.25); }
+    } else if (st.fx === "lattice") {
+      const sp = 3.1; g.lineWidth = 0.06; g.globalAlpha = 0.4;
+      for (let k = -20; k < 40; k++) for (const off of [-0.22, 0.22]) {
+        const x0 = left + k * sp + off;
+        g.beginPath(); g.moveTo(x0, top); g.lineTo(x0 + (bandEnd - top), bandEnd); g.moveTo(x0, bandEnd); g.lineTo(x0 + (bandEnd - top), top); g.stroke();
+      }
+      g.globalAlpha = 0.6;
+      for (let k = -40; k < 40; k++) for (let m = -10; m < 70; m++) {
+        const x = left + (k + m + 1) * sp / 2, y = top + (m - k) * sp / 2;
+        if (x < left - 1 || x > left + MASK_W + 1 || y < top - 1 || y > bandEnd + 1) continue;
+        hdSuit(g, ((k + m) % 4 + 4) % 4, x, y, 0.95);
+      }
+    } else if (st.fx === "moons") {
+      for (let i = 0; i < 140; i++) { g.globalAlpha = 0.3 + rnd() * 0.6; g.beginPath(); g.arc(left + rnd() * MASK_W, top + rnd() * (bandEnd - top), 0.05 + rnd() * 0.16, 0, Math.PI * 2); g.fill(); }
+      g.lineWidth = 0.05; g.globalAlpha = 0.45;
+      for (let c = 0; c < 4; c++) {                  // small constellations
+        const bx = left + 4 + rnd() * (MASK_W - 8), pts = [];
+        for (let j = 0; j < 4; j++) pts.push([bx + (rnd() - 0.5) * 9, top + 0.8 + rnd() * (bandEnd - top - 1.6)]);
+        pts.sort((a, b) => a[0] - b[0]); g.beginPath(); pts.forEach(([x, y], j) => j ? g.lineTo(x, y) : g.moveTo(x, y)); g.stroke();
+        pts.forEach(([x, y]) => hdStar4(g, x, y, 0.35));
+      }
+      const n = 9, r = 1.25;
+      for (let i = 0; i < n; i++) {                  // moon phases, as in the background
+        const x = left + MASK_W * (i + 0.5) / n, ph = (i - (n - 1) / 2) / ((n - 1) / 2);
+        g.globalAlpha = 0.85; g.lineWidth = 0.08; g.beginPath(); g.arc(x, vm, r, 0, Math.PI * 2); g.stroke();
+        if (Math.abs(ph) < 0.98) {
+          g.save(); g.beginPath(); g.arc(x, vm, r, 0, Math.PI * 2); g.clip();
+          g.beginPath(); g.rect(x - 3, vm - 3, 6, 6); g.arc(x + ph * 2 * r, vm, r, 0, Math.PI * 2); g.globalAlpha = 0.55; g.fill("evenodd"); g.restore();
+        }
+      }
+    } else if (st.fx === "marble") {
+      const cols = ["#a9b59c", "#d9c8a4", "#4b5143", "#c4b28c", "#8d9a82"];
+      for (let i = 0; i < 46; i++) {                 // flowing veins: stacked, warped sine curves
+        const y0 = top - 2 + i * (bandEnd - top + 4) / 46;
+        g.strokeStyle = cols[i % cols.length]; g.globalAlpha = 0.35 + rnd() * 0.3; g.lineWidth = 0.12 + rnd() * 0.35;
+        g.beginPath();
+        for (let x = left; x <= left + MASK_W; x += 0.4) {
+          const w = Math.sin(x * 0.045 + i * 0.12) * 3.2 + Math.sin(x * 0.11 + i * 0.05) * 1.2;
+          const y = y0 + 2.3 * Math.sin(x * 0.075 + i * 0.22 + w) + 0.7 * Math.sin(x * 0.23 + i * 0.6 + w * 0.5);
+          x === left ? g.moveTo(x, y) : g.lineTo(x, y);
+        }
+        g.stroke();
+      }
+    }
   }
   g.restore();
+  };
+  drawBand(false);
+  const shape = hd.shape || "top";
+  if (shape !== "top") {                             // footer: the same band turned by 180°, without text
+    g.save(); g.translate(cx, cy); g.rotate(Math.PI); g.translate(-cx, -cy);
+    drawBand(true); g.globalAlpha = 1; g.fillStyle = st.accent; g.fillRect(left, bandEnd - 0.18, MASK_W, 0.18);
+    g.restore();
+  }
   // light strip with the tagline
   g.globalAlpha = 1;
   if (!hd.clear) { g.fillStyle = st.strip; g.fillRect(left, bandEnd, MASK_W, stripEnd - bandEnd); }   // transparent: text sits on the background
   g.fillStyle = st.accent; g.fillRect(left, bandEnd, MASK_W, 0.18);
+  if (shape === "frame") {                           // side bars between header and footer, from the bleed 2.6 mm into the card
+    const sw = (cx - CARD.w / 2) - left + 2.6, y0 = bandEnd, y1 = 2 * cy - bandEnd;
+    for (const x of [left, left + MASK_W - sw]) {
+      const gr = g.createLinearGradient(0, y0, 0, y1); gr.addColorStop(0, st.band[1]); gr.addColorStop(0.5, st.band[0]); gr.addColorStop(1, st.band[1]);
+      g.fillStyle = gr; g.fillRect(x, y0, sw, y1 - y0);
+      g.fillStyle = st.accent; g.fillRect(x === left ? x + sw - 0.18 : x, y0, 0.18, y1 - y0);
+    }
+  }
   const text = (hd.caps !== false ? String(hd.text || "").toUpperCase() : String(hd.text || "")).trim();
   if (text) {
     let size = 2.6, spacing;
     for (; size > 1.3; size -= 0.05) {             // shrink until it fits inside the safe area
       spacing = size * 0.12; g.font = `600 ${size}px Georgia, "Times New Roman", serif`;
       const w = [...text].reduce((a, c) => a + g.measureText(c).width, 0) + spacing * ([...text].length - 1);
-      if (w <= CARD.w - 9) break;
+      if (w <= CARD.w - (shape === "frame" ? 14 : 9)) break;
     }
     hdSpacedText(g, text, cx, mid, size, spacing, st.ink, st.accent);
   }
@@ -1185,7 +1335,7 @@ function bdLoad() {
     const items = Array.isArray(s) ? s : s?.items;                     // older versions stored only the item list
     if (Array.isArray(items)) BD.items = items.filter((it) => it && (it.type === "text" || it.type === "line"));
     if (s?.bg && BG_PRESETS.some((p) => p.id === s.bg.id)) BD.bg = { id: s.bg.id, img: null, opacity: s.bg.opacity ?? 1 };
-    if (s?.header && HD_STYLES.some((h) => h.id === s.header.style)) BD.header = { style: s.header.style, text: String(s.header.text || ""), caps: s.header.caps !== false, clear: !!s.header.clear };
+    if (s?.header && HD_STYLES.some((h) => h.id === s.header.style)) BD.header = { style: s.header.style, text: String(s.header.text || ""), caps: s.header.caps !== false, clear: !!s.header.clear, match: !!s.header.match, shape: ["top", "both", "frame"].includes(s.header.shape) ? s.header.shape : "top" };
   } catch { /* ignore */ }
 }
 async function loadPresetImage(id) {
@@ -1808,11 +1958,11 @@ function bgRender() {
   if (BD.bg) { $("bgOpacity").value = Math.round((BD.bg.opacity ?? 1) * 100); $("bgOpacityVal").textContent = $("bgOpacity").value + " %"; }
   $("bgGrid").querySelectorAll("[data-bg]").forEach((b) => b.onclick = async () => {
     const id = b.dataset.bg;
-    if (!id) { BD.bg = null; bgRender(); bdSave(); bdRefresh(); return; }
+    if (!id) { BD.bg = null; bgRender(); hdRender(); bdSave(); bdRefresh(); return; }
     b.disabled = true;
     try { BD.bg = { id, img: await loadPresetImage(id), opacity: BD.bg?.opacity ?? 1 }; }
     catch (e) { toastBg(e.message); }
-    bgRender(); bdSave(); bdRefresh(); setView("back");
+    bgRender(); hdRender(); bdSave(); bdRefresh(); setView("back");
   });
   $("bgUpload").onchange = async (e) => {
     const f = e.target.files[0]; e.target.value = "";
@@ -1821,7 +1971,7 @@ function bgRender() {
       const img = await createImageBitmap(f, { imageOrientation: "from-image" });
       if (BD.bg?.url) URL.revokeObjectURL(BD.bg.url);
       BD.bg = { id: "custom", img, opacity: BD.bg?.opacity ?? 1, url: URL.createObjectURL(f) };
-      bgRender(); bdSave(); bdRefresh(); setView("back");
+      bgRender(); hdRender(); bdSave(); bdRefresh(); setView("back");
     } catch { toastBg(T.cantOpen); }
   };
 }
@@ -1842,24 +1992,43 @@ function hdThumb(id) {                               // small preview of the who
   return (hdThumbs[id] = c.toDataURL("image/png"));
 }
 function hdRender() {
-  const cur = BD.header?.style || "";
+  const cur = !BD.header ? "" : BD.header.match ? "-" : BD.header.style;
   $("hdGrid").innerHTML = `<button type="button" class="bgtile none" data-hd="" aria-pressed="${cur === ""}"><span>${LANG === "de" ? "ohne" : "none"}</span></button>`
-    + HD_STYLES.map((s) => `<button type="button" class="bgtile" data-hd="${s.id}" aria-pressed="${cur === s.id}" title="${escBg(s[LANG] || s.en)}" aria-label="${escBg(s[LANG] || s.en)}"
+    + HD_STYLES.filter((s) => !s.match).map((s) => `<button type="button" class="bgtile" data-hd="${s.id}" aria-pressed="${cur === s.id}" title="${escBg(s[LANG] || s.en)}" aria-label="${escBg(s[LANG] || s.en)}"
         style="background-image:url('${hdThumb(s.id)}')"><span>${escBg(s[LANG] || s.en)}</span></button>`).join("");
   $("hdEdit").hidden = !BD.header;
+  $("hdMatch").checked = !!BD.header?.match;
+  const info = $("hdMatchInfo"), mid = BD.header?.match && BD.bg && HD_MATCH[BD.bg.id];
+  info.hidden = !BD.header?.match;
+  if (BD.header?.match) {
+    const ms = HD_STYLES.find((s) => s.id === mid);
+    info.innerHTML = ms
+      ? `<img src="${hdThumb(ms.id)}" alt="" style="width:92px;border-radius:6px;border:1px solid var(--rule)"><span>${LANG === "de" ? "Kopfleiste" : "Header band"}: <b>${escBg(ms[LANG] || ms.en)}</b></span>`
+      : `<span>${LANG === "de" ? "Wähle oben einen der Vorlagen-Hintergründe, dann passt sich die Kopfleiste an." : "Pick one of the preset backgrounds above and the header band follows it."}</span>`;
+  }
   if (BD.header) {
     $("hdText").value = BD.header.text; $("hdCaps").checked = BD.header.caps !== false; $("hdClear").checked = !!BD.header.clear;
+    for (const b of $("hdShape").children) b.setAttribute("aria-pressed", String(b.dataset.shape === (BD.header.shape || "top")));
     const list = HD_TEXTS[LANG === "de" ? "de" : "en"];
     $("hdPreset").innerHTML = `<option value="">${LANG === "de" ? "Textvorschlag wählen …" : "Pick a suggestion …"}</option>` + list.map((t, i) => `<option value="${i}">${escBg(t)}</option>`).join("");
   }
   $("hdGrid").querySelectorAll("[data-hd]").forEach((b) => b.onclick = () => {
     const id = b.dataset.hd;
-    BD.header = id ? { style: id, text: BD.header?.text ?? HD_TEXTS[LANG === "de" ? "de" : "en"][0], caps: BD.header?.caps ?? true, clear: BD.header?.clear ?? false } : null;
+    BD.header = id ? { style: id, text: BD.header?.text ?? HD_TEXTS[LANG === "de" ? "de" : "en"][0], caps: BD.header?.caps ?? true, clear: BD.header?.clear ?? false, match: false, shape: BD.header?.shape ?? "top" } : null;
     hdRender(); bdSave(); bdRefresh(); setView("back");
   });
 }
 $("hdText").addEventListener("input", (e) => { if (!BD.header) return; BD.header.text = e.target.value; bdSave(); bdRefresh(); });
 $("hdCaps").addEventListener("change", (e) => { if (!BD.header) return; BD.header.caps = e.target.checked; bdSave(); bdRefresh(); });
+$("hdShape").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-shape]"); if (!b || !BD.header) return;
+  BD.header.shape = b.dataset.shape; hdRender(); bdSave(); bdRefresh();
+});
+$("hdMatch").addEventListener("change", (e) => {
+  if (e.target.checked) BD.header = { style: "funken", text: HD_TEXTS[LANG === "de" ? "de" : "en"][0], caps: true, clear: false, ...BD.header, match: true };
+  else if (BD.header) BD.header.match = false;
+  hdRender(); bdSave(); bdRefresh(); setView("back");
+});
 $("hdClear").addEventListener("change", (e) => { if (!BD.header) return; BD.header.clear = e.target.checked; bdSave(); bdRefresh(); });
 $("hdPreset").addEventListener("change", (e) => {
   if (!BD.header || e.target.value === "") return;
