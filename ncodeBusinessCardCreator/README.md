@@ -77,6 +77,20 @@ One dot strength (chosen in step 2) is used for the A4 sheet and for the single 
    and "match the header band" (motif and accent colour follow the chosen
    band). "Header colour" copies the band's accent colour to any line or
    text. Older saved lines with the dashed flag stay dashed.
+10. Front designer: step 1 offers "Upload an image" (as before) or "Design it
+   here". The second uses the same editor as the back (background, header
+   band, text, lines, images, QR code); it is moved into step 1 while the
+   front is designed, so there is one set of controls. The front has extra
+   plain colour backgrounds and is printed in normal colours (no K = 0 rule).
+   Three start templates (stage, classic, elegant) fill in name, contact and
+   QR code as placeholders. Front and back designs are stored separately.
+   A designed front goes into the PDF losslessly (Flate) so text and QR code
+   stay sharp; an uploaded photo stays JPEG. In online mode the front can be
+   downloaded as a PDF in the chosen format, too.
+11. QR codes: own encoder (byte mode, UTF-8, error correction M, versions
+   1-20, automatic mask choice), drawn with a light quiet zone of 3 modules.
+   The inspector shows version and module size and warns below 0.33 mm per
+   module. Verified with OpenCV against 60 random strings and in the PDFs.
 
 Everything runs locally in the browser. Images are never uploaded anywhere.
 

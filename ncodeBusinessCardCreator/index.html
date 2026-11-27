@@ -186,7 +186,9 @@ details.hints li b { color: var(--ink); font-weight: 600; }
 .tip { font-size: .86rem; color: var(--muted); margin: 0; }
 .navrow { display: flex; gap: 10px; align-items: stretch; }
 .navrow .primary { width: auto; flex: 1; }
-.tools { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.tools { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.stack { display: grid; gap: 20px; min-width: 0; }
+body[data-side="front"] .bkonly { display: none !important; }
 .bggrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; }
 .bgtile { position: relative; aspect-ratio: 91 / 60; border-radius: 8px; border: 2px solid var(--rule); background: #fff center / cover no-repeat;
   cursor: pointer; padding: 0; overflow: hidden; display: grid; place-items: end start; font: 600 .72rem var(--font-ui); color: var(--ink); }
@@ -270,7 +272,12 @@ footer { margin-top: 80px; padding-top: 24px; border-top: 1px solid var(--rule);
     <div class="controls">
       <!-- 1 · Front -->
       <section class="panel" data-panel="1" aria-labelledby="h-front">
-        <h2 id="h-front" data-i18n="front.h2">Front image</h2>
+        <h2 id="h-front" data-i18n="front.h2">Front</h2>
+        <div class="seg" role="radiogroup" aria-label="Front" data-i18n-aria="fm.q">
+          <label><input type="radio" name="fmode" value="image" checked><span data-i18n="fm.image">Upload an image<small>a finished design</small></span></label>
+          <label><input type="radio" name="fmode" value="design"><span data-i18n="fm.design">Design it here<small>templates, text, QR code</small></span></label>
+        </div>
+        <div class="stack" id="frontImage">
         <label class="drop" id="drop" for="file">
           <strong data-i18n="drop.title">Choose an image or drop it here</strong>
           <small data-i18n="drop.hint">JPG, PNG or WebP. Ideal: 91 × 60 mm at 300–600 dpi</small>
@@ -292,6 +299,15 @@ footer { margin-top: 80px; padding-top: 24px; border-top: 1px solid var(--rule);
             <button type="button" id="center" data-i18n="center">Center</button>
           </div>
           <p class="tip" data-i18n="front.tip">Drag the image in the preview to move it.</p>
+        </div>
+        </div>
+        <div class="stack" id="frontDesign" hidden>
+          <div class="field">
+            <span class="lbl" id="l-tpl" data-i18n="tpl.q">Start template</span>
+            <div class="bggrid" id="tplGrid" role="group" aria-labelledby="l-tpl"></div>
+            <p class="tip" data-i18n="tpl.tip">A template fills in name, contact details and a QR code as placeholders. Then change everything as you like.</p>
+          </div>
+          <div id="frontSlot"></div>
         </div>
         <div class="navrow"><button type="button" class="primary" data-goto="2" data-i18n="next2">Next: back →</button></div>
       </section>
@@ -316,11 +332,12 @@ footer { margin-top: 80px; padding-top: 24px; border-top: 1px solid var(--rule);
               <span class="toner">33 %</span></span></label>
           </div>
         </div>
+        <div id="backSlot"><div class="stack" id="designTools">
         <div class="field">
           <span class="lbl" id="l-bg" data-i18n="bg.q">Background <small>optional</small></span>
           <div class="bggrid" id="bgGrid" role="group" aria-labelledby="l-bg"></div>
           <div class="kv" id="bgStrengthRow" hidden><label for="bgOpacity" data-i18n="bg.strength">Opacity</label><input type="range" id="bgOpacity" min="30" max="100" step="5"><span class="val" id="bgOpacityVal"></span></div>
-          <p class="tip" data-i18n="bg.tip">A textured background hides the grey haze of the code. Like the rest of the design it is printed without black, so the pen reads the code through it.</p>
+          <p class="tip bkonly" data-i18n="bg.tip">A textured background hides the grey haze of the code. Like the rest of the design it is printed without black, so the pen reads the code through it.</p>
         </div>
         <div class="field">
           <span class="lbl" id="l-hd" data-i18n="hd.q">Header band <small>optional</small></span>
@@ -343,11 +360,12 @@ footer { margin-top: 80px; padding-top: 24px; border-top: 1px solid var(--rule);
           <p class="tip" data-i18n="hd.tip">A decorative band across the top with a tagline; the rest of the card stays free for writing. Dots “•” are set in gold.</p>
         </div>
         <div class="field">
-          <span class="lbl" data-i18n="bd.q">Design on top of the code <small>optional</small></span>
+          <span class="lbl" id="bdQ" data-i18n="bd.q">Design on top of the code <small>optional</small></span>
           <div class="tools">
             <button type="button" class="tool" id="bdAddText"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14M12 5v15M9 20h6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span data-i18n="bd.addText">Text</span></button>
             <button type="button" class="tool" id="bdAddLine"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19 20 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="4" cy="19" r="2" fill="currentColor"/><circle cx="20" cy="5" r="2" fill="currentColor"/></svg><span data-i18n="bd.addLine">Line</span></button>
             <label class="tool"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="m5 17 5-5 4 4 2-2 3 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="16" cy="9" r="1.6" fill="currentColor"/></svg><input type="file" id="bdAddImg" accept="image/*"><span data-i18n="bd.addImg">Image</span></label>
+            <button type="button" class="tool" id="bdAddQr"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M14 14h2v2h-2zM18 18h2v2h-2zM18 14h2v2h-2zM14 18h2v2h-2z" fill="currentColor"/></svg><span data-i18n="bd.addQr">QR code</span></button>
           </div>
           <ul class="layers" id="bdList"></ul>
           <p class="tip" id="bdEmpty" data-i18n="bd.empty">Nothing added yet. Text, lines and images are printed without black, so the pen still reads the code underneath.</p>
@@ -414,6 +432,12 @@ footer { margin-top: 80px; padding-top: 24px; border-top: 1px solid var(--rule);
             <div class="kv"><label for="bdWidth" data-i18n="bd.width">Width</label><input type="range" id="bdWidth" min="5" max="91" step="0.5"><span class="val" id="bdWidthVal"></span></div>
             <div class="row"><button type="button" id="bdFill" data-i18n="bd.fill">Fill the whole card (background)</button></div>
           </div>
+          <div id="bdQrPart" class="field">
+            <input type="text" id="bdQrText" maxlength="400" placeholder="https://…" aria-label="QR code content" data-i18n-aria="qr.text">
+            <div class="kv"><label for="bdQrSize" data-i18n="qr.size">Size</label><input type="range" id="bdQrSize" min="8" max="40" step="0.5"><span class="val" id="bdQrSizeVal"></span></div>
+            <div class="kv"><label for="bdQrBg" data-i18n="qr.bg">Background</label><input type="color" id="bdQrBg"><span></span></div>
+            <p class="tip" id="bdQrInfo"></p>
+          </div>
           <div class="kv" id="bdColorRow"><label for="bdColor" data-i18n="bd.color">Colour</label><input type="color" id="bdColor"><button type="button" id="bdColorHd" data-i18n="bd.colorHd" hidden style="padding:4px 8px;font-size:.8rem">Header colour</button></div>
           <div class="kv"><label for="bdOpacity" data-i18n="bd.opacity">Opacity</label><input type="range" id="bdOpacity" min="10" max="100" step="5"><span class="val" id="bdOpacityVal"></span></div>
           <div class="kv"><span data-i18n="bd.pos">Position</span>
@@ -429,6 +453,7 @@ footer { margin-top: 80px; padding-top: 24px; border-top: 1px solid var(--rule);
           </div>
           <p class="tip" data-i18n="bd.dragTip">Drag in the preview to move. Drag the ends of a line to turn or lengthen it. Arrow keys nudge, Delete removes.</p>
         </div>
+        </div></div>
 
         <details class="hints">
           <summary data-i18n="bd.how">Why does the pen read through the design?</summary>
@@ -512,6 +537,7 @@ footer { margin-top: 80px; padding-top: 24px; border-top: 1px solid var(--rule);
             <button type="button" class="primary" id="odownload" data-i18n="online.one" style="width:auto;flex:1">Download back</button>
             <button type="button" id="ozip" data-i18n="online.zip">All 10 backs as ZIP</button>
           </div>
+          <div class="row"><button type="button" id="ofront" data-i18n="online.front" style="width:auto;flex:1">Download the front as well (PDF)</button></div>
           <div class="status" id="ostatus" role="status"></div>
           <details class="hints">
             <summary data-i18n="online.hints">Before you order</summary>
@@ -657,7 +683,17 @@ const DE_STATIC = {
   "step1": "Vorderseite",
   "step2": "Rückseite",
   "step3": "Drucken",
-  "front.h2": "Bild für die Vorderseite",
+  "front.h2": "Vorderseite",
+  "fm.q": "Vorderseite",
+  "fm.image": "Bild hochladen<small>fertige Gestaltung</small>",
+  "fm.design": "Selbst gestalten<small>Vorlagen, Text, QR-Code</small>",
+  "tpl.q": "Startvorlage",
+  "tpl.tip": "Eine Vorlage setzt Name, Kontakt und QR-Code als Platzhalter ein. Danach änderst du alles nach Belieben.",
+  "bd.addQr": "QR-Code",
+  "qr.text": "Inhalt des QR-Codes",
+  "qr.size": "Größe",
+  "qr.bg": "Hintergrund",
+  "online.front": "Auch die Vorderseite herunterladen (PDF)",
   "fit.q": "Wie ist dein Bild angelegt?",
   "pos.q": "Ausschnitt",
   "front.tip": "Zieh das Bild in der Vorschau, um es zu verschieben.",
@@ -967,6 +1003,12 @@ function renderFront(pxPerMm) {
   const c = document.createElement("canvas"); c.width = W; c.height = H;
   const g = c.getContext("2d");
   g.fillStyle = "#fff"; g.fillRect(0, 0, W, H);
+  if (S.frontMode === "design") {                     // designed in the editor: no image, no mirroring
+    const bw = CARD.w + 2 * BOX, bh = CARD.h + 2 * BOX;
+    g.scale(W / bw, H / bh);
+    bdDraw(g, bw / 2, bh / 2, FRONT, { w: bw, h: bh });
+    return c;
+  }
   if (S.fit === "bleed") {
     g.scale(W / (CARD.w + 2 * BOX), H / (CARD.h + 2 * BOX));
     drawImageInto(g, { x: 0, y: 0, w: CARD.w + 2 * BOX, h: CARD.h + 2 * BOX });
@@ -1005,6 +1047,7 @@ function drawCardPreview() {
   g.strokeStyle = "#8fd3ff"; g.setLineDash([8, 6]); g.lineWidth = 1.5;
   g.strokeRect(2 * BOX * k, 2 * BOX * k, (CARD.w - 2 * BOX) * k, (CARD.h - 2 * BOX) * k);
   g.setLineDash([]);
+  if (BD === FRONT && S.frontMode === "design") edOverlay(g, k, CARD.w + 2 * BOX, CARD.h + 2 * BOX);
 }
 function drawMarks(g, k) {
   g.strokeStyle = "#000"; g.lineWidth = Math.max(1, 0.25 * k);
@@ -1065,7 +1108,46 @@ const BD_FONTS = {
   grotesk: '"Schibsted Grotesk", "Segoe UI", sans-serif', sans: 'Arial, Helvetica, sans-serif',
   serif: 'Georgia, "Times New Roman", serif', mono: '"Courier New", Courier, monospace', impact: 'Impact, "Arial Black", sans-serif',
 };
-const BD = { items: [], sel: -1 };
+// Two designs share one editor: BACK (over the code, printed with K = 0) and FRONT (no code, normal colours).
+// BD is the design the editor currently works on.
+const BACK = { items: [], sel: -1, bg: null, header: null }, FRONT = { items: [], sel: -1, bg: null, header: null };
+let BD = BACK;
+const FD_KEY = "ncodecard_front", FMODE_KEY = "ncodecard_frontmode";
+const FT = {
+  en: {
+    frontQ: "Elements <small>text, lines, images, QR code</small>",
+    frontEmpty: "Nothing added yet. Use the buttons above or pick a start template.",
+    cardDims: "Bleed box 91 × 60 mm · drag elements to move them",
+    qr: "QR code", qrDefault: "https://your-website.com",
+    qrTooLong: "Too long for a QR code. Use a shorter link.",
+    qrInfo: (v, n, mm) => `QR version ${v} · ${n} × ${n} modules · ${mm} mm per module`,
+    qrSmall: " · rather small, make it larger so phones can read it",
+    tplConfirm: "Replace the current front design with this template?",
+    tplNames: ["Stage", "Classic", "Elegant"],
+    frontName: (tag) => `business-card-front-${tag}.pdf`,
+    frontDone: (name, w, h) => `Done: ${name} · ${w} × ${h} mm incl. bleed. Upload it as the front design, without scaling.`,
+  },
+  de: {
+    frontQ: "Elemente <small>Text, Linien, Bilder, QR-Code</small>",
+    frontEmpty: "Noch nichts hinzugefügt. Nutze die Knöpfe oben oder wähle eine Startvorlage.",
+    cardDims: "Datenformat 91 × 60 mm · Elemente zum Verschieben ziehen",
+    qr: "QR-Code", qrDefault: "https://deine-website.de",
+    qrTooLong: "Zu lang für einen QR-Code. Nimm einen kürzeren Link.",
+    qrInfo: (v, n, mm) => `QR-Version ${v} · ${n} × ${n} Module · ${String(mm).replace(".", ",")} mm pro Modul`,
+    qrSmall: " · eher klein, mach ihn größer, damit Handys ihn sicher lesen",
+    tplConfirm: "Die aktuelle Vorderseite durch diese Vorlage ersetzen?",
+    tplNames: ["Bühne", "Klassisch", "Elegant"],
+    frontName: (tag) => `visitenkarte-vorderseite-${tag}.pdf`,
+    frontDone: (name, w, h) => `Fertig: ${name} · ${String(w).replace(".", ",")} × ${String(h).replace(".", ",")} mm inkl. Beschnitt. Als Vorderseite hochladen, ohne Skalieren.`,
+  },
+}[LANG];
+// Plain colour backgrounds, offered on the front only
+const BG_COLORS = [
+  { id: "c-nacht", de: "Nachtblau", en: "Midnight", color: "#14213d" },
+  { id: "c-schwarz", de: "Schwarz", en: "Black", color: "#161616" },
+  { id: "c-bordeaux", de: "Bordeaux", en: "Burgundy", color: "#5a1420" },
+  { id: "c-creme", de: "Creme", en: "Cream", color: "#f4ede2" },
+];
 const MASK_W = NW / NCODE.dpi * 25.4, MASK_H = NH / NCODE.dpi * 25.4;   // the code bitmap: 91 x 60 mm, card centred
 const BD_KEY = "ncodecard_back";
 // Background: one of the presets (hintergruende/*.jpg, made at exactly the code-bitmap size) or an uploaded image.
@@ -1098,7 +1180,7 @@ const HD_STYLES = [
 const HD_MATCH = { "zauber-hintergrund-sepia": "m-sepia", "karten-emblem-sepia": "m-emblem", "zylinder-zauberstab": "m-zylinder",
   "kartenruecken-ornament": "m-karten", "sternenhimmel": "m-sterne", "marmor-vorsatzpapier": "m-marmor" };
 // "Match the background": the style follows the chosen preset background; otherwise the picked style is used
-const hdStyleId = (hd) => (hd.match && BD.bg && HD_MATCH[BD.bg.id]) || hd.style;
+const hdStyleId = (hd, D = BD) => (hd.match && D.bg && HD_MATCH[D.bg.id]) || hd.style;
 // Card suits as paths (no font glyphs: ♥ could turn into a red emoji on phones). s = height in mm
 function hdSuit(g, kind, x, y, s) {
   const r = s * 0.27; g.beginPath();
@@ -1127,7 +1209,7 @@ const HD_TEXTS = {
     "CLOSE-UP MAGIC • MENTALISM • EVENTS", "THINK OF A WORD – WRITE IT BELOW", "YOUR SECRET THOUGHT", "MY PREDICTION",
     "WRITE ANY WORD • KEEP IT SECRET", "NOTHING IS IMPOSSIBLE", "THE IMPOSSIBLE, UP CLOSE"],
 };
-const bdActive = () => !!BD.bg?.img || !!BD.header || BD.items.some((it) => it.type !== "text" || String(it.text || "").trim());
+const bdActive = (D = BACK) => !!D.bg?.img || !!D.bg?.color || !!D.header || D.items.some((it) => it.type !== "text" || String(it.text || "").trim());
 // Seeded random numbers, so the preview and the PDF show exactly the same sparks and stars
 function hdRand(seed) { let s = seed >>> 0; return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); }
 // Text with letter spacing, centred at (x, y); "•" in the accent colour
@@ -1140,8 +1222,8 @@ function hdSpacedText(g, text, x, y, size, spacing, ink, accent) {
   return total;
 }
 // Draws the header band; units mm, card centre at (cx, cy). Covers the top bleed.
-function drawHeader(g, cx, cy, hd) {
-  const st = HD_STYLES.find((s) => s.id === hdStyleId(hd)) || HD_STYLES[0];
+function drawHeader(g, cx, cy, hd, D = BD) {
+  const st = HD_STYLES.find((s) => s.id === hdStyleId(hd, D)) || HD_STYLES[0];
   const top = cy - MASK_H / 2, left = cx - MASK_W / 2, trimTop = cy - CARD.h / 2;
   const bandEnd = trimTop + 6.2, stripEnd = bandEnd + 7.2, mid = (bandEnd + stripEnd) / 2 - 0.3;
   const rnd = hdRand(7 + st.id.length * 31);
@@ -1350,17 +1432,20 @@ function drawHeader(g, cx, cy, hd) {
   g.restore();
 }
 // Text, lines and a chosen preset are remembered in the browser; images are not (too large for localStorage).
-function bdSave() {
-  const bg = BD.bg && BD.bg.id !== "custom" ? { id: BD.bg.id, opacity: BD.bg.opacity ?? 1 } : null;
-  try { localStorage.setItem(BD_KEY, JSON.stringify({ items: BD.items.filter((it) => it.type !== "image").map(({ _bb, ...r }) => r), bg, header: BD.header })); } catch { /* private mode */ }
+function bdSave(D = BD) {
+  const bg = D.bg && D.bg.id !== "custom" ? { id: D.bg.id, opacity: D.bg.opacity ?? 1 } : null;
+  const items = D.items.filter((it) => it.type !== "image").map(({ _bb, _hh, ...r }) => r);
+  try { localStorage.setItem(D === FRONT ? FD_KEY : BD_KEY, JSON.stringify({ items, bg, header: D.header })); } catch { /* private mode */ }
 }
-function bdLoad() {
+function bdLoad(D = BACK, key = BD_KEY) {
   try {
-    const s = JSON.parse(localStorage.getItem(BD_KEY) || "null");
+    const s = JSON.parse(localStorage.getItem(key) || "null");
     const items = Array.isArray(s) ? s : s?.items;                     // older versions stored only the item list
-    if (Array.isArray(items)) BD.items = items.filter((it) => it && (it.type === "text" || it.type === "line"));
-    if (s?.bg && BG_PRESETS.some((p) => p.id === s.bg.id)) BD.bg = { id: s.bg.id, img: null, opacity: s.bg.opacity ?? 1 };
-    if (s?.header && HD_STYLES.some((h) => h.id === s.header.style)) BD.header = { style: s.header.style, text: String(s.header.text || ""), caps: s.header.caps !== false, clear: !!s.header.clear, match: !!s.header.match, shape: ["top", "both", "frame"].includes(s.header.shape) ? s.header.shape : "top" };
+    if (Array.isArray(items)) D.items = items.filter((it) => it && (it.type === "text" || it.type === "line" || it.type === "qr"));
+    const col = s?.bg && BG_COLORS.find((c) => c.id === s.bg.id);
+    if (col && D === FRONT) D.bg = { id: col.id, color: col.color, opacity: s.bg.opacity ?? 1 };
+    else if (s?.bg && BG_PRESETS.some((p) => p.id === s.bg.id)) D.bg = { id: s.bg.id, img: null, opacity: s.bg.opacity ?? 1 };
+    if (s?.header && HD_STYLES.some((h) => h.id === s.header.style)) D.header = { style: s.header.style, text: String(s.header.text || ""), caps: s.header.caps !== false, clear: !!s.header.clear, match: !!s.header.match, shape: ["top", "both", "frame"].includes(s.header.shape) ? s.header.shape : "top" };
   } catch { /* ignore */ }
 }
 async function loadPresetImage(id) {
@@ -1369,17 +1454,17 @@ async function loadPresetImage(id) {
   return createImageBitmap(await r.blob());
 }
 const bdFontCss = (it) => `${it.bold ? 700 : 400} ${(it.size * 25.4 / 72).toFixed(3)}px ${BD_FONTS[it.font] || BD_FONTS.sans}`;
-async function bdFontsReady() {
-  try { await Promise.all(BD.items.filter((it) => it.type === "text").map((it) => document.fonts.load(`${it.bold ? 700 : 400} 20px ${BD_FONTS[it.font] || BD_FONTS.sans}`))); } catch { /* system font */ }
+async function bdFontsReady(D = BD) {
+  try { await Promise.all(D.items.filter((it) => it.type === "text").map((it) => document.fonts.load(`${it.bold ? 700 : 400} 20px ${BD_FONTS[it.font] || BD_FONTS.sans}`))); } catch { /* system font */ }
 }
 // Line: centre (x, y), length len, angle in degrees (counter-clockwise, 0 = horizontal), width in mm
 // Line styles: "match" takes the motif and accent colour of the current header band
 const LINE_MATCH = { funken: "stars", sterne: "stars", artdeco: "double", samt: "diamond", pergament: "flourish",
   "m-sepia": "wave", "m-emblem": "suits", "m-zylinder": "stars", "m-karten": "suits", "m-sterne": "stars", "m-marmor": "wave" };
-function lineLook(it) {
+function lineLook(it, D = BD) {
   let style = it.style || (it.dashed ? "dashed" : "solid"), color = it.color;
   if (style === "match") {
-    const st = BD.header && HD_STYLES.find((s) => s.id === hdStyleId(BD.header));
+    const st = D.header && HD_STYLES.find((s) => s.id === hdStyleId(D.header, D));
     style = st ? LINE_MATCH[st.id] || "diamond" : "solid"; if (st) color = st.accent;
   }
   return { style, color };
@@ -1443,15 +1528,119 @@ function lineEnds(it) {
   const a = it.angle * Math.PI / 180, dx = Math.cos(a) * it.len / 2, dy = -Math.sin(a) * it.len / 2;
   return [[it.x - dx, it.y - dy], [it.x + dx, it.y + dy]];
 }
-// Draws the design into g, whose units are mm, with the card centre at (cx, cy). Stores each item's box (_bb).
-function bdDraw(g, cx, cy) {
-  if (BD.bg?.img) {                                   // background: cover the whole code bitmap
-    const im = BD.bg.img, s = Math.max(MASK_W / im.width, MASK_H / im.height), w = im.width * s, h = im.height * s;
-    g.save(); g.globalAlpha = BD.bg.opacity ?? 1; g.imageSmoothingQuality = "high";
+// ---------- QR code encoder ----------
+// Byte mode (UTF-8), error correction level M, versions 1–20, automatic mask choice.
+// Returns { size, dark: Uint8Array(size * size), version } (row-major) or null if the text is too long.
+function qrEncode(text) {
+  const ECC = [0, 10, 16, 26, 18, 24, 16, 18, 22, 22, 26, 30, 22, 22, 24, 24, 28, 28, 26, 26, 26];   // EC codewords per block (M)
+  const BLK = [0, 1, 1, 1, 2, 2, 4, 4, 4, 5, 5, 5, 8, 9, 9, 10, 10, 11, 13, 14, 16];               // number of blocks (M)
+  const rawModules = (v) => { let r = (16 * v + 128) * v + 64; if (v >= 2) { const na = Math.floor(v / 7) + 2; r -= (25 * na - 10) * na - 55; if (v >= 7) r -= 36; } return r; };
+  const dataCw = (v) => Math.floor(rawModules(v) / 8) - ECC[v] * BLK[v];
+  const bytes = new TextEncoder().encode(text);
+  let ver = 0;
+  for (let v = 1; v <= 20; v++) { const cc = v < 10 ? 8 : 16; if (4 + cc + bytes.length * 8 <= dataCw(v) * 8) { ver = v; break; } }
+  if (!ver) return null;
+  const bits = [], put = (val, len) => { for (let i = len - 1; i >= 0; i--) bits.push((val >>> i) & 1); };
+  put(4, 4); put(bytes.length, ver < 10 ? 8 : 16); for (const b of bytes) put(b, 8);
+  const cap = dataCw(ver) * 8;
+  put(0, Math.min(4, cap - bits.length)); while (bits.length % 8) bits.push(0);
+  for (let p = 0xEC; bits.length < cap; p ^= 0xEC ^ 0x11) put(p, 8);
+  const data = []; for (let i = 0; i < bits.length; i += 8) { let b = 0; for (let j = 0; j < 8; j++) b = (b << 1) | bits[i + j]; data.push(b); }
+  // Reed–Solomon over GF(256), polynomial 0x11D
+  const mul = (x, y) => { let z = 0; for (let i = 7; i >= 0; i--) { z = (z << 1) ^ ((z >>> 7) * 0x11D); z ^= ((y >>> i) & 1) * x; } return z & 255; };
+  const deg = ECC[ver], div = new Array(deg).fill(0); div[deg - 1] = 1;
+  for (let i = 0, root = 1; i < deg; i++) { for (let j = 0; j < deg; j++) { div[j] = mul(div[j], root); if (j + 1 < deg) div[j] ^= div[j + 1]; } root = mul(root, 2); }
+  const rem = (d) => { const r = new Array(deg).fill(0); for (const b of d) { const f = b ^ r.shift(); r.push(0); for (let i = 0; i < deg; i++) r[i] ^= mul(div[i], f); } return r; };
+  const nb = BLK[ver], raw = Math.floor(rawModules(ver) / 8), nShort = nb - raw % nb, shortLen = Math.floor(raw / nb);
+  const blocks = [];
+  for (let i = 0, k = 0; i < nb; i++) {
+    const d = data.slice(k, k + shortLen - deg + (i < nShort ? 0 : 1)); k += d.length;
+    const e = rem(d); if (i < nShort) d.push(0); blocks.push(d.concat(e));
+  }
+  const cw = [];
+  for (let i = 0; i < blocks[0].length; i++) for (let j = 0; j < nb; j++) if (i !== shortLen - deg || j >= nShort) cw.push(blocks[j][i]);
+  const size = ver * 4 + 17, mod = new Uint8Array(size * size), fn = new Uint8Array(size * size);
+  const set = (x, y, d) => { mod[y * size + x] = d ? 1 : 0; fn[y * size + x] = 1; };
+  for (let i = 0; i < size; i++) { set(6, i, i % 2 === 0); set(i, 6, i % 2 === 0); }
+  const finder = (cx, cy) => { for (let dy = -4; dy <= 4; dy++) for (let dx = -4; dx <= 4; dx++) {
+    const x = cx + dx, y = cy + dy, d = Math.max(Math.abs(dx), Math.abs(dy));
+    if (x >= 0 && x < size && y >= 0 && y < size) set(x, y, d !== 2 && d !== 4);
+  } };
+  finder(3, 3); finder(size - 4, 3); finder(3, size - 4);
+  if (ver > 1) {
+    const na = Math.floor(ver / 7) + 2, step = Math.ceil((ver * 4 + 4) / (na * 2 - 2)) * 2, pos = [6];
+    for (let p = size - 7; pos.length < na; p -= step) pos.splice(1, 0, p);
+    for (let i = 0; i < na; i++) for (let j = 0; j < na; j++) {
+      if ((i === 0 && j === 0) || (i === 0 && j === na - 1) || (i === na - 1 && j === 0)) continue;
+      for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) set(pos[i] + dx, pos[j] + dy, Math.max(Math.abs(dx), Math.abs(dy)) !== 1);
+    }
+  }
+  const format = (mask) => {                                   // level M = 00
+    let r = mask; for (let i = 0; i < 10; i++) r = (r << 1) ^ ((r >>> 9) * 0x537);
+    const b = ((mask << 10) | r) ^ 0x5412, bit = (i) => (b >>> i) & 1;
+    for (let i = 0; i <= 5; i++) set(8, i, bit(i));
+    set(8, 7, bit(6)); set(8, 8, bit(7)); set(7, 8, bit(8));
+    for (let i = 9; i < 15; i++) set(14 - i, 8, bit(i));
+    for (let i = 0; i < 8; i++) set(size - 1 - i, 8, bit(i));
+    for (let i = 8; i < 15; i++) set(8, size - 15 + i, bit(i));
+    set(8, size - 8, 1);
+  };
+  format(0);
+  if (ver >= 7) {
+    let r = ver; for (let i = 0; i < 12; i++) r = (r << 1) ^ ((r >>> 11) * 0x1F25);
+    const b = (ver << 12) | r;
+    for (let i = 0; i < 18; i++) { const d = (b >>> i) & 1, a = size - 11 + i % 3, c = Math.floor(i / 3); set(a, c, d); set(c, a, d); }
+  }
+  let bi = 0;
+  for (let right = size - 1; right >= 1; right -= 2) {
+    if (right === 6) right = 5;
+    for (let vert = 0; vert < size; vert++) for (let j = 0; j < 2; j++) {
+      const x = right - j, up = ((right + 1) & 2) === 0, y = up ? size - 1 - vert : vert;
+      if (!fn[y * size + x] && bi < cw.length * 8) { mod[y * size + x] = (cw[bi >>> 3] >>> (7 - (bi & 7))) & 1; bi++; }
+    }
+  }
+  const maskFn = [(x, y) => (x + y) % 2 === 0, (x, y) => y % 2 === 0, (x) => x % 3 === 0, (x, y) => (x + y) % 3 === 0,
+    (x, y) => (Math.floor(x / 3) + Math.floor(y / 2)) % 2 === 0, (x, y) => (x * y) % 2 + (x * y) % 3 === 0,
+    (x, y) => ((x * y) % 2 + (x * y) % 3) % 2 === 0, (x, y) => ((x + y) % 2 + (x * y) % 3) % 2 === 0];
+  const applyMask = (m) => { for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) if (!fn[y * size + x] && maskFn[m](x, y)) mod[y * size + x] ^= 1; };
+  const penalty = () => {
+    let p = 0, dark = 0;
+    const at = (x, y) => mod[y * size + x];
+    for (let pass = 0; pass < 2; pass++) for (let a = 0; a < size; a++) {
+      const line = []; for (let b = 0; b < size; b++) line.push(pass ? at(a, b) : at(b, a));
+      for (let b = 1, run = 1; b < size; b++) { if (line[b] === line[b - 1]) { run++; if (run === 5) p += 3; else if (run > 5) p++; } else run = 1; }
+      const s = line.join("");
+      for (const pat of ["10111010000", "00001011101"]) for (let i = s.indexOf(pat); i >= 0; i = s.indexOf(pat, i + 1)) p += 40;
+    }
+    for (let y = 0; y < size - 1; y++) for (let x = 0; x < size - 1; x++) { const c = at(x, y); if (c === at(x + 1, y) && c === at(x, y + 1) && c === at(x + 1, y + 1)) p += 3; }
+    for (let i = 0; i < mod.length; i++) dark += mod[i];
+    return p + Math.floor(Math.abs(dark * 20 - mod.length * 10) / mod.length) * 10;
+  };
+  let best = 0, bestP = Infinity;
+  for (let m = 0; m < 8; m++) { applyMask(m); format(m); const pv = penalty(); if (pv < bestP) { bestP = pv; best = m; } applyMask(m); }
+  applyMask(best); format(best);
+  return { size, dark: mod, version: ver };
+}
+const qrCache = new Map();
+function qrCached(text) {
+  const t = String(text || " ");
+  if (!qrCache.has(t)) { if (qrCache.size > 50) qrCache.clear(); qrCache.set(t, qrEncode(t)); }
+  return qrCache.get(t);
+}
+const QR_QUIET = 3;                                   // light margin around the code, in modules
+// Draws a design D into g, whose units are mm, with the card centre at (cx, cy). Stores each item's box (_bb).
+// cover: area the background has to fill (default: the code bitmap, 91 × 60 mm)
+function bdDraw(g, cx, cy, D = BD, cover = null) {
+  const cw = Math.max(MASK_W, cover?.w || 0), ch = Math.max(MASK_H, cover?.h || 0);
+  if (D.bg?.color) {
+    g.save(); g.globalAlpha = D.bg.opacity ?? 1; g.fillStyle = D.bg.color; g.fillRect(cx - cw / 2, cy - ch / 2, cw, ch); g.restore();
+  } else if (D.bg?.img) {                             // background: cover the whole area
+    const im = D.bg.img, s = Math.max(cw / im.width, ch / im.height), w = im.width * s, h = im.height * s;
+    g.save(); g.globalAlpha = D.bg.opacity ?? 1; g.imageSmoothingQuality = "high";
     g.drawImage(im, cx - w / 2, cy - h / 2, w, h); g.restore();
   }
-  if (BD.header) drawHeader(g, cx, cy, BD.header);   // header band above the background, below text/lines/images
-  for (const it of BD.items) {
+  if (D.header) drawHeader(g, cx, cy, D.header, D);   // header band above the background, below text/lines/images
+  for (const it of D.items) {
     g.save();
     g.globalAlpha = it.opacity ?? 1;
     if (it.type === "text") {
@@ -1463,11 +1652,24 @@ function bdDraw(g, cx, cy) {
       const x0 = it.align === "left" ? it.x : it.align === "right" ? it.x - w : it.x - w / 2;
       it._bb = { x: x0, y: it.y - lines.length * lh / 2, w: Math.max(w, 2), h: lines.length * lh };
     } else if (it.type === "line") {
-      const [[x1, y1], [x2, y2]] = lineEnds(it), look = lineLook(it);
+      const [[x1, y1], [x2, y2]] = lineEnds(it), look = lineLook(it, D);
       g.translate(cx + it.x, cy + it.y); g.rotate(-it.angle * Math.PI / 180);
       const hh = drawLineShape(g, it, look.style, look.color);
       it._hh = hh;
       it._bb = { x: Math.min(x1, x2) - hh, y: Math.min(y1, y2) - hh, w: Math.abs(x2 - x1) + 2 * hh, h: Math.abs(y2 - y1) + 2 * hh };
+    } else if (it.type === "qr") {
+      const m = qrCached(it.text), w = it.w, x0 = cx + it.x - w / 2, y0 = cy + it.y - w / 2;
+      g.fillStyle = it.bgc || "#ffffff"; g.fillRect(x0, y0, w, w);
+      if (m) {
+        const u = w / (m.size + 2 * QR_QUIET);
+        g.fillStyle = it.color; g.beginPath();
+        for (let r = 0; r < m.size; r++) for (let c = 0; c < m.size; c++)
+          if (m.dark[r * m.size + c]) g.rect(x0 + (QR_QUIET + c) * u, y0 + (QR_QUIET + r) * u, u * 1.02, u * 1.02);   // slight overlap: no hairlines
+        g.fill();
+      } else {
+        g.strokeStyle = "#d33"; g.lineWidth = 0.3; g.beginPath(); g.moveTo(x0, y0); g.lineTo(x0 + w, y0 + w); g.moveTo(x0 + w, y0); g.lineTo(x0, y0 + w); g.stroke();
+      }
+      it._bb = { x: it.x - w / 2, y: it.y - w / 2, w, h: w };
     } else {
       const h = it.w * it.img.height / it.img.width;
       g.imageSmoothingQuality = "high";
@@ -1488,16 +1690,16 @@ function bdHit(it, x, y) {
   return !!b && x >= b.x - 1 && x <= b.x + b.w + 1 && y >= b.y - 1 && y <= b.y + b.h + 1;
 }
 // Transparent canvas of the code bitmap area (MASK_W x MASK_H mm) at W x H px
-function bdCanvas(W, H) {
+function bdCanvas(W, H, D = BACK) {
   const c = document.createElement("canvas"); c.width = W; c.height = H;
   const g = c.getContext("2d"); g.scale(W / MASK_W, H / MASK_H);
-  bdDraw(g, MASK_W / 2, MASK_H / 2);
+  bdDraw(g, MASK_W / 2, MASK_H / 2, D);
   return c;
 }
 // The design as a PDF image: CMYK (K = 0) + soft mask, cropped to its bounding box, in code-bitmap pixels
 async function bdPdfImage() {
   if (!bdActive()) return null;
-  await bdFontsReady();
+  await bdFontsReady(BACK);
   const d = bdCanvas(NW, NH).getContext("2d").getImageData(0, 0, NW, NH).data;
   let x0 = NW, y0 = NH, x1 = -1, y1 = -1;
   for (let y = 0; y < NH; y++) for (let x = 0; x < NW; x++) if (d[(y * NW + x) * 4 + 3]) {
@@ -1524,8 +1726,9 @@ const pdfStr = (s) => "(" + s.replace(/[\\()]/g, "\\$&") + ")";
 const R = (x, y, w, h) => [x * PT, (PAGE.h - y - h) * PT, w * PT, h * PT];
 
 async function buildPdf() {
+  if (S.frontMode === "design") await bdFontsReady(FRONT);
   const canvas = renderFront(FRONT_DPI / 25.4);
-  const jpg = new Uint8Array(await (await new Promise((res) => canvas.toBlob(res, "image/jpeg", 0.93))).arrayBuffer());
+  const fimg = await frontImage(canvas);
   const g = geometry(S.layout, S.bleed), b = g.b;
   const masks = zlib[S.strength].slice(0, g.n);
   const P = ([x, y]) => [x * PT, (PAGE.h - y) * PT];
@@ -1577,7 +1780,7 @@ async function buildPdf() {
   sobj(5, "", latin1(front));
   sobj(6, "", latin1(back));
   obj(7, "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>");
-  sobj(8, `/Type /XObject /Subtype /Image /Width ${canvas.width} /Height ${canvas.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode`, jpg);
+  sobj(8, `/Type /XObject /Subtype /Image /Width ${canvas.width} /Height ${canvas.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter ${fimg.filter}`, fimg.data);
   masks.forEach((m, i) => sobj(9 + i, `/Type /XObject /Subtype /Image /Width ${NW} /Height ${NH} /ImageMask true /BitsPerComponent 1 /Decode [1 0] /Interpolate false /Filter /FlateDecode`, m));
   if (ov) { sobj(ovNum, bdImgDict(ov, ovNum + 1), ov.data); sobj(ovNum + 1, bdMaskDict(ov), ov.alpha); }
   const count = 9 + masks.length + (ov ? 2 : 0);
@@ -1586,6 +1789,14 @@ async function buildPdf() {
   for (let i = 1; i < count; i++) x += String(offs[i]).padStart(10, "0") + " 00000 n \n";
   push(x + `trailer\n<< /Size ${count} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`);
   return new Blob(parts, { type: "application/pdf" });
+}
+
+// Front image for the PDF: a designed front goes in losslessly (sharp text and QR code), a photo as JPEG
+async function frontImage(canvas, lossless = S.frontMode === "design") {
+  if (!lossless) return { filter: "/DCTDecode", data: new Uint8Array(await (await new Promise((res) => canvas.toBlob(res, "image/jpeg", 0.93))).arrayBuffer()) };
+  const d = canvas.getContext("2d").getImageData(0, 0, canvas.width, canvas.height).data, rgb = new Uint8Array(canvas.width * canvas.height * 3);
+  for (let i = 0, j = 0; i < d.length; i += 4, j += 3) { rgb[j] = d[i]; rgb[j + 1] = d[i + 1]; rgb[j + 2] = d[i + 2]; }
+  return { filter: "/FlateDecode", data: await deflate(rgb) };
 }
 
 // ---------- UI ----------
@@ -1625,7 +1836,7 @@ document.querySelectorAll('input[name="strength"]').forEach((el) => el.addEventL
 
 // drag the image in the card preview
 let drag = null;
-cardCanvas.addEventListener("pointerdown", (e) => { drag = { x: e.clientX, y: e.clientY }; cardCanvas.setPointerCapture(e.pointerId); cardCanvas.classList.add("dragging"); });
+cardCanvas.addEventListener("pointerdown", (e) => { if (S.frontMode === "design") return; drag = { x: e.clientX, y: e.clientY }; cardCanvas.setPointerCapture(e.pointerId); cardCanvas.classList.add("dragging"); });
 cardCanvas.addEventListener("pointermove", (e) => {
   if (!drag) return;
   const mmPerCss = (CARD.w + 2 * BOX) / cardCanvas.getBoundingClientRect().width;
@@ -1791,8 +2002,9 @@ $("ozip").addEventListener("click", () => onlineExport(true));
 // ---------- Back design: editor ----------
 const backCanvas = $("backCanvas");
 let bdRaf = 0, bdGuide = null;
-const TYPE_ICON = { text: "T", line: "╱", image: "▣" };
-const typeName = (t) => ({ text: T.bdText, line: T.bdLine, image: T.bdImage })[t];
+const TYPE_ICON = { text: "T", line: "╱", image: "▣", qr: "▦" };
+const typeName = (t) => ({ text: T.bdText, line: T.bdLine, image: T.bdImage, qr: FT.qr })[t];
+const BDQ_HTML = $("bdQ").innerHTML, BDEMPTY_HTML = $("bdEmpty").innerHTML, CARDDIMS_TXT = $("cardDims").textContent;
 const num1 = (v) => { const s = String(+(+v).toFixed(1)); return LANG === "de" ? s.replace(".", ",") : s; };
 
 async function drawBackPreview() {
@@ -1800,7 +2012,7 @@ async function drawBackPreview() {
   const g = backCanvas.getContext("2d"), k = backCanvas.width / MASK_W;
   g.fillStyle = "#fff"; g.fillRect(0, 0, backCanvas.width, backCanvas.height);
   g.imageSmoothingEnabled = true; g.drawImage(list[0], 0, 0, backCanvas.width, backCanvas.height);
-  await bdFontsReady();
+  await bdFontsReady(BACK);
   g.drawImage(bdCanvas(backCanvas.width, backCanvas.height), 0, 0);
   const tx = (MASK_W - CARD.w) / 2, ty = (MASK_H - CARD.h) / 2, X = (v) => (MASK_W / 2 + v) * k, Y = (v) => (MASK_H / 2 + v) * k;
   g.save(); g.fillStyle = "rgba(20,30,25,.35)";
@@ -1809,13 +2021,16 @@ async function drawBackPreview() {
   g.strokeRect(tx * k, ty * k, CARD.w * k, CARD.h * k);
   g.strokeStyle = "#8fd3ff"; g.setLineDash([8, 6]); g.lineWidth = 1.5;
   g.strokeRect((tx + 3) * k, (ty + 3) * k, (CARD.w - 6) * k, (CARD.h - 6) * k);
-  // Snap guides while dragging
+  if (BD === BACK) edOverlay(g, k, MASK_W, MASK_H);
+}
+// Snap guides and the selection of the design being edited; W x H is the area of the canvas in mm
+function edOverlay(g, k, W, H) {
+  const X = (v) => (W / 2 + v) * k, Y = (v) => (H / 2 + v) * k;
   if (bdGuide) {
     g.strokeStyle = "#ff2d95"; g.setLineDash([6, 4]); g.lineWidth = 1.5;
-    if (bdGuide.v) { g.beginPath(); g.moveTo(X(0), 0); g.lineTo(X(0), backCanvas.height); g.stroke(); }
-    if (bdGuide.h) { g.beginPath(); g.moveTo(0, Y(0)); g.lineTo(backCanvas.width, Y(0)); g.stroke(); }
+    if (bdGuide.v) { g.beginPath(); g.moveTo(X(0), 0); g.lineTo(X(0), H * k); g.stroke(); }
+    if (bdGuide.h) { g.beginPath(); g.moveTo(0, Y(0)); g.lineTo(W * k, Y(0)); g.stroke(); }
   }
-  // Selection
   const it = BD.items[BD.sel];
   if (it?._bb) {
     g.strokeStyle = "#ff9f0a"; g.setLineDash([5, 4]); g.lineWidth = 1.5;
@@ -1827,12 +2042,14 @@ async function drawBackPreview() {
   g.setLineDash([]);
 }
 function bdRefresh() {
+  if (BD === FRONT) { refresh(false); return; }      // the front preview and the front sheet
   cancelAnimationFrame(bdRaf);
   bdRaf = requestAnimationFrame(() => { drawBackPreview(); if (G) drawSheetBack(); });
 }
 function bdName(it) {
   if (it.type === "text") return String(it.text || "").split("\n")[0].trim() || T.bdText;
   if (it.type === "line") return T.bdLineName(+(+it.len).toFixed(1), Math.round(it.angle));
+  if (it.type === "qr") return FT.qr + " · " + (String(it.text || "").replace(/^https?:\/\//, "") || "…");
   return T.bdImage;
 }
 // Layer list: the topmost element first, like in drawing programs
@@ -1852,6 +2069,7 @@ function bdRenderList() {
     return li;
   }));
   $("bdEmpty").hidden = BD.items.length > 0;
+  $("bdEmpty").innerHTML = BD === FRONT ? FT.frontEmpty : BDEMPTY_HTML;
 }
 const bdSel = () => BD.items[BD.sel];
 function bdSyncPos() { const it = bdSel(); if (it) { $("bdX").value = +it.x.toFixed(1); $("bdY").value = +it.y.toFixed(1); } }
@@ -1862,6 +2080,7 @@ function bdShowEditor() {
   $("bdTextPart").hidden = it.type !== "text";
   $("bdLinePart").hidden = it.type !== "line";
   $("bdImgPart").hidden = it.type !== "image";
+  $("bdQrPart").hidden = it.type !== "qr";
   $("bdColorRow").hidden = it.type === "image";
   $("bdEditTitle").textContent = TYPE_ICON[it.type] + "  " + typeName(it.type);
   if (it.type === "text") {
@@ -1875,6 +2094,11 @@ function bdShowEditor() {
     for (const b of $("bdAngles").children) b.setAttribute("aria-pressed", String(Math.round(it.angle) === +b.dataset.angle));
     $("bdThick").value = it.width; $("bdThickVal").textContent = num1(it.width) + " mm";
     $("bdLineStyle").value = it.style || (it.dashed ? "dashed" : "solid");
+  } else if (it.type === "qr") {
+    if (document.activeElement !== $("bdQrText")) $("bdQrText").value = it.text;
+    $("bdQrSize").value = it.w; $("bdQrSizeVal").textContent = num1(it.w) + " mm";
+    $("bdQrBg").value = it.bgc || "#ffffff";
+    qrInfo(it);
   } else {
     $("bdWidth").value = it.w; $("bdWidthVal").textContent = num1(it.w) + " mm";
   }
@@ -1893,10 +2117,11 @@ function bdRemove(i) {
   BD.sel = i === BD.sel ? -1 : i < BD.sel ? BD.sel - 1 : BD.sel;
   bdShowEditor(); bdChanged();
 }
-function bdAdd(it) { BD.items.push(it); BD.sel = BD.items.length - 1; bdShowEditor(); bdChanged(); setView("back"); }
+function bdAdd(it) { BD.items.push(it); BD.sel = BD.items.length - 1; bdShowEditor(); bdChanged(); setView(edView()); }
 
 // Toolbar
 $("bdAddText").addEventListener("click", () => bdAdd({ type: "text", text: T.bdSample, font: "grotesk", size: 10, bold: true, color: "#1a1a1a", align: "center", x: 0, y: 0, opacity: 1 }));
+$("bdAddQr").addEventListener("click", () => bdAdd({ type: "qr", text: FT.qrDefault, w: 16, x: 25, y: 10, color: "#1a1a1a", bgc: "#ffffff", opacity: 1 }));
 $("bdAddLine").addEventListener("click", () => bdAdd({ type: "line", x: 0, y: 12, len: 60, angle: 0, width: 0.35, color: "#1a1a1a", style: "solid", opacity: 1 }));
 $("bdAddImg").addEventListener("change", async (e) => {
   const file = e.target.files[0]; e.target.value = "";
@@ -1930,6 +2155,13 @@ $("bdColorHd").addEventListener("click", () => {
   it.color = st.accent; bdShowEditor(); bdChanged();
 });
 bdOn("bdWidth", "input", (it, el) => { it.w = +el.value; $("bdWidthVal").textContent = num1(it.w) + " mm"; });
+function qrInfo(it) {
+  const m = qrCached(it.text), mm = m ? it.w / (m.size + 2 * QR_QUIET) : 0;
+  $("bdQrInfo").textContent = m ? FT.qrInfo(m.version, m.size, mm.toFixed(2)) + (mm < 0.33 ? FT.qrSmall : "") : FT.qrTooLong;
+}
+bdOn("bdQrText", "input", (it, el) => { it.text = el.value; qrInfo(it); });
+bdOn("bdQrSize", "input", (it, el) => { it.w = +el.value; $("bdQrSizeVal").textContent = num1(it.w) + " mm"; qrInfo(it); });
+bdOn("bdQrBg", "input", (it, el) => { it.bgc = el.value; });
 bdOn("bdColor", "input", (it, el) => { it.color = el.value; });
 bdOn("bdOpacity", "input", (it, el) => { it.opacity = el.value / 100; $("bdOpacityVal").textContent = el.value + " %"; });
 bdOn("bdX", "change", (it, el) => { if (el.value !== "") it.x = +el.value; });
@@ -1947,70 +2179,78 @@ $("bdUp").addEventListener("click", () => { const i = BD.sel; if (i < 0 || i >= 
 $("bdDown").addEventListener("click", () => { const i = BD.sel; if (i <= 0) return; [BD.items[i], BD.items[i - 1]] = [BD.items[i - 1], BD.items[i]]; BD.sel = i - 1; bdShowEditor(); bdChanged(); });
 $("bdDelete").addEventListener("click", () => { if (BD.sel >= 0) bdRemove(BD.sel); });
 
-// Drag on the back preview: move items (centre snaps to the card centre), drag line ends to turn/lengthen
+// Drag in the preview (back: the code preview, front: the card preview): move items (centre snaps to the card
+// centre), drag line ends to turn/lengthen. Each canvas only edits its own side.
 let bdDrag = null;
 const SNAP = 0.8;   // mm
-const bdPoint = (e) => { const r = backCanvas.getBoundingClientRect(); return [(e.clientX - r.left) / r.width * MASK_W - MASK_W / 2, (e.clientY - r.top) / r.height * MASK_H - MASK_H / 2]; };
-backCanvas.addEventListener("pointerdown", (e) => {
-  const [x, y] = bdPoint(e), cur = bdSel();
-  backCanvas.focus({ preventScroll: true });
-  if (cur?.type === "line") {
-    const ends = lineEnds(cur), k = ends.findIndex(([ex, ey]) => Math.hypot(ex - x, ey - y) < 2.5);
-    if (k >= 0) { bdDrag = { mode: "end", fixed: ends[1 - k] }; backCanvas.setPointerCapture(e.pointerId); backCanvas.classList.add("dragging"); return; }
-  }
-  let hit = -1;
-  for (let i = BD.items.length - 1; i >= 0; i--) if (bdHit(BD.items[i], x, y)) { hit = i; break; }
-  if (hit < 0) { if (BD.sel !== -1) bdSelect(-1); return; }
-  if (hit !== BD.sel) { BD.sel = hit; bdRenderList(); bdShowEditor(); }
-  const it = BD.items[hit];
-  bdDrag = { mode: "move", dx: it.x - x, dy: it.y - y };
-  backCanvas.setPointerCapture(e.pointerId); backCanvas.classList.add("dragging"); bdRefresh();
-});
-backCanvas.addEventListener("pointermove", (e) => {
-  if (!bdDrag) return;
-  const [x, y] = bdPoint(e), it = bdSel(); if (!it) return;
-  bdGuide = {};
-  if (bdDrag.mode === "move") {
-    let nx = x + bdDrag.dx, ny = y + bdDrag.dy;
-    const b = it._bb, ox = b ? b.x + b.w / 2 - it.x : 0, oy = b ? b.y + b.h / 2 - it.y : 0;   // anchor -> visible centre
-    if (Math.abs(nx + ox) < SNAP) { nx = -ox; bdGuide.v = true; }
-    if (Math.abs(ny + oy) < SNAP) { ny = -oy; bdGuide.h = true; }
-    it.x = nx; it.y = ny;
-    bdSyncPos();
-  } else {
-    // the other end stays put; angles snap to multiples of 45°
-    const [fx, fy] = bdDrag.fixed;
-    let vx = x - fx, vy = y - fy, ang = Math.atan2(-vy, vx) * 180 / Math.PI;
-    const snap = Math.round(ang / 45) * 45;
-    if (Math.abs(ang - snap) < 4) {
-      ang = snap;
-      const ux = Math.cos(ang * Math.PI / 180), uy = -Math.sin(ang * Math.PI / 180), d = Math.max(1, vx * ux + vy * uy);
-      vx = ux * d; vy = uy * d;
+const edActive = (cv) => cv === cardCanvas ? BD === FRONT && S.frontMode === "design" : BD === BACK;
+const edSpan = (cv) => cv === cardCanvas ? [CARD.w + 2 * BOX, CARD.h + 2 * BOX] : [MASK_W, MASK_H];
+const bdPoint = (e, cv) => { const r = cv.getBoundingClientRect(), [W, H] = edSpan(cv); return [(e.clientX - r.left) / r.width * W - W / 2, (e.clientY - r.top) / r.height * H - H / 2]; };
+cardCanvas.tabIndex = 0;
+for (const cv of [backCanvas, cardCanvas]) {
+  cv.addEventListener("pointerdown", (e) => {
+    if (!edActive(cv)) return;
+    const [x, y] = bdPoint(e, cv), cur = bdSel();
+    cv.focus({ preventScroll: true });
+    if (cur?.type === "line") {
+      const ends = lineEnds(cur), k = ends.findIndex(([ex, ey]) => Math.hypot(ex - x, ey - y) < 2.5);
+      if (k >= 0) { bdDrag = { mode: "end", fixed: ends[1 - k] }; cv.setPointerCapture(e.pointerId); cv.classList.add("dragging"); return; }
     }
-    it.len = Math.max(1, Math.hypot(vx, vy));
-    it.x = fx + vx / 2; it.y = fy + vy / 2;
-    let a = ang; while (a > 90) a -= 180; while (a <= -90) a += 180;
-    it.angle = Math.round(a * 10) / 10;
-    bdShowEditor();
-  }
-  bdRefresh();
-});
-const bdEndDrag = () => {
-  if (!bdDrag) return;
-  bdDrag = null; bdGuide = null; backCanvas.classList.remove("dragging");
-  bdChanged();
-};
-backCanvas.addEventListener("pointerup", bdEndDrag);
-backCanvas.addEventListener("pointercancel", bdEndDrag);
-// Keyboard: arrows nudge (Shift = 2 mm), Delete removes, Escape deselects
-backCanvas.addEventListener("keydown", (e) => {
-  const it = bdSel(); if (!it) return;
-  const st = e.shiftKey ? 2 : 0.5;
-  const mv = { ArrowLeft: [-st, 0], ArrowRight: [st, 0], ArrowUp: [0, -st], ArrowDown: [0, st] }[e.key];
-  if (mv) { e.preventDefault(); it.x += mv[0]; it.y += mv[1]; bdSyncPos(); bdChanged(); }
-  else if (e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); bdRemove(BD.sel); }
-  else if (e.key === "Escape") bdSelect(-1);
-});
+    let hit = -1;
+    for (let i = BD.items.length - 1; i >= 0; i--) if (bdHit(BD.items[i], x, y)) { hit = i; break; }
+    if (hit < 0) { if (BD.sel !== -1) bdSelect(-1); return; }
+    if (hit !== BD.sel) { BD.sel = hit; bdRenderList(); bdShowEditor(); }
+    const it = BD.items[hit];
+    bdDrag = { mode: "move", dx: it.x - x, dy: it.y - y };
+    cv.setPointerCapture(e.pointerId); cv.classList.add("dragging"); bdRefresh();
+  });
+  cv.addEventListener("pointermove", (e) => {
+    if (!bdDrag || !edActive(cv)) return;
+    const [x, y] = bdPoint(e, cv), it = bdSel(); if (!it) return;
+    bdGuide = {};
+    if (bdDrag.mode === "move") {
+      let nx = x + bdDrag.dx, ny = y + bdDrag.dy;
+      const b = it._bb, ox = b ? b.x + b.w / 2 - it.x : 0, oy = b ? b.y + b.h / 2 - it.y : 0;   // anchor -> visible centre
+      if (Math.abs(nx + ox) < SNAP) { nx = -ox; bdGuide.v = true; }
+      if (Math.abs(ny + oy) < SNAP) { ny = -oy; bdGuide.h = true; }
+      it.x = nx; it.y = ny;
+      bdSyncPos();
+    } else {
+      // the other end stays put; angles snap to multiples of 45°
+      const [fx, fy] = bdDrag.fixed;
+      let vx = x - fx, vy = y - fy, ang = Math.atan2(-vy, vx) * 180 / Math.PI;
+      const snap = Math.round(ang / 45) * 45;
+      if (Math.abs(ang - snap) < 4) {
+        ang = snap;
+        const ux = Math.cos(ang * Math.PI / 180), uy = -Math.sin(ang * Math.PI / 180), d = Math.max(1, vx * ux + vy * uy);
+        vx = ux * d; vy = uy * d;
+      }
+      it.len = Math.max(1, Math.hypot(vx, vy));
+      it.x = fx + vx / 2; it.y = fy + vy / 2;
+      let a = ang; while (a > 90) a -= 180; while (a <= -90) a += 180;
+      it.angle = Math.round(a * 10) / 10;
+      bdShowEditor();
+    }
+    bdRefresh();
+  });
+  const end = () => {
+    if (!bdDrag) return;
+    bdDrag = null; bdGuide = null; cv.classList.remove("dragging");
+    bdChanged();
+  };
+  cv.addEventListener("pointerup", end);
+  cv.addEventListener("pointercancel", end);
+  // Keyboard: arrows nudge (Shift = 2 mm), Delete removes, Escape deselects
+  cv.addEventListener("keydown", (e) => {
+    if (!edActive(cv)) return;
+    const it = bdSel(); if (!it) return;
+    const st = e.shiftKey ? 2 : 0.5;
+    const mv = { ArrowLeft: [-st, 0], ArrowRight: [st, 0], ArrowUp: [0, -st], ArrowDown: [0, st] }[e.key];
+    if (mv) { e.preventDefault(); it.x += mv[0]; it.y += mv[1]; bdSyncPos(); bdChanged(); }
+    else if (e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); bdRemove(BD.sel); }
+    else if (e.key === "Escape") bdSelect(-1);
+  });
+}
 
 // ---------- Steps and preview views ----------
 const printMode = () => document.querySelector('input[name="mode"]:checked').value;
@@ -2024,6 +2264,7 @@ function setStep(n) {
   for (const b of document.querySelectorAll(".step")) {
     if (+b.dataset.step === n) b.setAttribute("aria-current", "step"); else b.removeAttribute("aria-current");
   }
+  useSide(n === 1 && S.frontMode === "design" ? "front" : "back");
   setView(n === 1 ? "front" : n === 2 ? "back" : printMode() === "home" ? "sheet" : "back");
   // Show the start of the new step right below the sticky step bar
   const nav = document.querySelector(".steps"), app = document.querySelector(".app");
@@ -2048,6 +2289,7 @@ function bgRender() {
   const cur = BD.bg?.id || "";
   const tile = (id, label, style = "", cls = "") => `<button type="button" class="bgtile ${cls}" data-bg="${id}" aria-pressed="${cur === id}" aria-label="${escBg(label)}" title="${escBg(label)}" style="${style}"><span>${escBg(label)}</span></button>`;
   $("bgGrid").innerHTML = tile("", LANG === "de" ? "ohne" : "none", "", "none")
+    + (BD === FRONT ? BG_COLORS.map((c) => tile(c.id, c[LANG] || c.en, `background:${c.color}`)).join("") : "")
     + BG_PRESETS.map((p) => tile(p.id, p[LANG] || p.en, `background-image:url('hintergruende/${p.id}-klein.jpg')`)).join("")
     + `<label class="bgtile upload" aria-pressed="${cur === "custom"}" title="${LANG === "de" ? "Eigenes Bild als Hintergrund" : "Your own image as background"}"
         style="${cur === "custom" && BD.bg.url ? `background:#fff url('${BD.bg.url}') center / cover no-repeat` : ""}"><input type="file" id="bgUpload" accept="image/*"><span>${LANG === "de" ? "+ Eigenes Bild" : "+ Own image"}</span></label>`;
@@ -2056,10 +2298,12 @@ function bgRender() {
   $("bgGrid").querySelectorAll("[data-bg]").forEach((b) => b.onclick = async () => {
     const id = b.dataset.bg;
     if (!id) { BD.bg = null; bgRender(); hdRender(); bdSave(); bdRefresh(); return; }
+    const col = BG_COLORS.find((c) => c.id === id);
+    if (col) { BD.bg = { id, color: col.color, opacity: BD.bg?.opacity ?? 1 }; bgRender(); hdRender(); bdSave(); bdRefresh(); setView(edView()); return; }
     b.disabled = true;
     try { BD.bg = { id, img: await loadPresetImage(id), opacity: BD.bg?.opacity ?? 1 }; }
     catch (e) { toastBg(e.message); }
-    bgRender(); hdRender(); bdSave(); bdRefresh(); setView("back");
+    bgRender(); hdRender(); bdSave(); bdRefresh(); setView(edView());
   });
   $("bgUpload").onchange = async (e) => {
     const f = e.target.files[0]; e.target.value = "";
@@ -2068,7 +2312,7 @@ function bgRender() {
       const img = await createImageBitmap(f, { imageOrientation: "from-image" });
       if (BD.bg?.url) URL.revokeObjectURL(BD.bg.url);
       BD.bg = { id: "custom", img, opacity: BD.bg?.opacity ?? 1, url: URL.createObjectURL(f) };
-      bgRender(); hdRender(); bdSave(); bdRefresh(); setView("back");
+      bgRender(); hdRender(); bdSave(); bdRefresh(); setView(edView());
     } catch { toastBg(T.cantOpen); }
   };
 }
@@ -2076,6 +2320,132 @@ const toastBg = (t) => { const s = $("status"); if (s) { s.textContent = t; s.cl
 $("bgOpacity").addEventListener("input", (e) => {
   if (!BD.bg) return;
   BD.bg.opacity = e.target.value / 100; $("bgOpacityVal").textContent = e.target.value + " %"; bdSave(); bdRefresh();
+});
+
+// ---------- Front or back in the editor ----------
+// The editor (background, header band, elements, inspector) is moved into step 1 while the front is designed.
+const edView = () => (BD === FRONT ? "front" : "back");
+function useSide(side) {
+  const front = side === "front";
+  bdDrag = null; bdGuide = null;
+  BD = front ? FRONT : BACK;
+  document.body.dataset.side = side;
+  $(front ? "frontSlot" : "backSlot").appendChild($("designTools"));
+  $("bdQ").innerHTML = front ? FT.frontQ : BDQ_HTML;
+  bgRender(); hdRender(); bdRenderList(); bdShowEditor();
+}
+
+// ---------- Start templates for the front ----------
+const TPL_TEXT = {
+  de: { name: "Dein Name", title1: "ZAUBERKÜNSTLER · MENTALIST", title2: "Zauberkünstler für Events & Feiern", title3: "Mentalist · Close-up-Magie",
+    contact: "+49 170 1234567\nkontakt@deine-website.de\ndeine-website.de", line: "deine-website.de · +49 170 1234567", url: "https://deine-website.de" },
+  en: { name: "Your Name", title1: "MAGICIAN · MENTALIST", title2: "Magic for events & parties", title3: "Mentalist · Close-up magic",
+    contact: "+1 555 0123 456\nhello@your-website.com\nyour-website.com", line: "your-website.com · +1 555 0123 456", url: "https://your-website.com" },
+}[LANG];
+const TEMPLATES = [
+  { bg: "c-nacht", header: null, items: [
+    { type: "text", text: TPL_TEXT.name, font: "serif", size: 20, bold: true, color: "#f4d58d", align: "center", x: 0, y: -9, opacity: 1 },
+    { type: "text", text: TPL_TEXT.title1, font: "grotesk", size: 7, bold: true, color: "#e9e4d8", align: "center", x: 0, y: -0.5, opacity: 1 },
+    { type: "line", x: 0, y: 5, len: 44, angle: 0, width: 0.3, color: "#f4d58d", style: "diamond", opacity: 1 },
+    { type: "text", text: TPL_TEXT.contact, font: "sans", size: 6.5, bold: false, color: "#e9e4d8", align: "left", x: -36, y: 16, opacity: 1 },
+    { type: "qr", text: TPL_TEXT.url, w: 14, x: 29.5, y: 14.5, color: "#14213d", bgc: "#ffffff", opacity: 1 },
+  ] },
+  { bg: "zauber-hintergrund-sepia", header: { style: "funken", text: HD_TEXTS[LANG === "de" ? "de" : "en"][1], caps: true, clear: false, match: false, shape: "top" }, items: [
+    { type: "text", text: TPL_TEXT.name, font: "serif", size: 18, bold: true, color: "#3a2a1c", align: "center", x: 0, y: -5, opacity: 1 },
+    { type: "text", text: TPL_TEXT.title2, font: "grotesk", size: 6.5, bold: false, color: "#6b4b2c", align: "center", x: 0, y: 1.5, opacity: 1 },
+    { type: "line", x: 0, y: 6.5, len: 40, angle: 0, width: 0.3, color: "#a8783e", style: "flourish", opacity: 1 },
+    { type: "text", text: TPL_TEXT.contact, font: "sans", size: 6.5, bold: false, color: "#3a2a1c", align: "left", x: -36, y: 17, opacity: 1 },
+    { type: "qr", text: TPL_TEXT.url, w: 13, x: 30, y: 16, color: "#3a2a1c", bgc: "#f6ecd8", opacity: 1 },
+  ] },
+  { bg: "c-creme", header: { style: "artdeco", text: HD_TEXTS[LANG === "de" ? "de" : "en"][9], caps: true, clear: false, match: false, shape: "frame" }, items: [
+    { type: "text", text: TPL_TEXT.name, font: "serif", size: 17, bold: true, color: "#2a2418", align: "center", x: 0, y: -5, opacity: 1 },
+    { type: "text", text: TPL_TEXT.title3, font: "grotesk", size: 6, bold: false, color: "#8a6d2e", align: "center", x: 0, y: 1.5, opacity: 1 },
+    { type: "text", text: TPL_TEXT.line, font: "sans", size: 6, bold: false, color: "#2a2418", align: "left", x: -35, y: 14.7, opacity: 1 },
+    { type: "qr", text: TPL_TEXT.url, w: 10, x: 31, y: 14.6, color: "#2a2418", bgc: "#ffffff", opacity: 1 },
+  ] },
+];
+async function tplBg(id) {
+  if (!id) return null;
+  const col = BG_COLORS.find((c) => c.id === id);
+  return col ? { id, color: col.color, opacity: 1 } : { id, img: await loadPresetImage(id), opacity: 1 };
+}
+async function applyTemplate(i, ask = true) {
+  if (ask && FRONT.items.length && !confirm(FT.tplConfirm)) return;
+  const t = TEMPLATES[i];
+  FRONT.items = t.items.map((it) => ({ ...it })); FRONT.sel = -1;
+  FRONT.header = t.header ? { ...t.header } : null;
+  try { FRONT.bg = await tplBg(t.bg); } catch { FRONT.bg = null; }
+  bdSave(FRONT);
+  if (BD === FRONT) { bgRender(); hdRender(); bdRenderList(); bdShowEditor(); }
+  refresh(false);
+}
+async function tplRender() {
+  $("tplGrid").innerHTML = TEMPLATES.map((t, i) => `<button type="button" class="bgtile" data-tpl="${i}" title="${escBg(FT.tplNames[i])}"><span>${escBg(FT.tplNames[i])}</span></button>`).join("");
+  $("tplGrid").querySelectorAll("[data-tpl]").forEach((b) => b.onclick = () => applyTemplate(+b.dataset.tpl));
+  try { await document.fonts.ready; } catch { /* ignore */ }
+  for (const [i, t] of TEMPLATES.entries()) {
+    const D = { items: t.items.map((it) => ({ ...it })), header: t.header, bg: null, sel: -1 };
+    try { D.bg = await tplBg(t.bg); } catch { /* without background */ }
+    const c = document.createElement("canvas"); c.width = 273; c.height = 180;
+    const g = c.getContext("2d"), bw = CARD.w + 2 * BOX, bh = CARD.h + 2 * BOX;
+    g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height); g.scale(c.width / bw, c.height / bh);
+    bdDraw(g, bw / 2, bh / 2, D, { w: bw, h: bh });
+    const b = $("tplGrid").querySelector(`[data-tpl="${i}"]`); if (b) b.style.backgroundImage = `url('${c.toDataURL("image/png")}')`;
+  }
+}
+function setFrontMode(mode, save = true) {
+  S.frontMode = mode;
+  const design = mode === "design";
+  $("frontImage").hidden = design; $("frontDesign").hidden = !design;
+  document.querySelector(`input[name="fmode"][value="${mode}"]`).checked = true;
+  $("cardDims").textContent = design ? FT.cardDims : CARDDIMS_TXT;
+  if (design && !FRONT.items.length && !FRONT.bg && !FRONT.header) applyTemplate(0, false);
+  if (save) try { localStorage.setItem(FMODE_KEY, mode); } catch { /* private mode */ }
+  if (!document.querySelector('[data-panel="1"]').hidden) useSide(design ? "front" : "back");
+  refresh(false);
+}
+document.querySelectorAll('input[name="fmode"]').forEach((el) => el.addEventListener("change", () => setFrontMode(el.value)));
+
+// ---------- Front file for online print shops ----------
+async function frontPdf(F) {
+  if (S.frontMode === "design") await bdFontsReady(FRONT);
+  const c = document.createElement("canvas"); c.width = F.W; c.height = F.H;
+  const g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, F.W, F.H);
+  g.scale(F.W / F.w, F.H / F.h);
+  if (S.frontMode === "design") bdDraw(g, F.w / 2, F.h / 2, FRONT, { w: F.w, h: F.h });
+  else {                                              // the uploaded image (91 x 60 mm box), centred and scaled to cover the file
+    const src = renderFront(FRONT_DPI / 25.4), bw = CARD.w + 2 * BOX, bh = CARD.h + 2 * BOX, s = Math.max(F.w / bw, F.h / bh);
+    g.drawImage(src, (F.w - bw * s) / 2, (F.h - bh * s) / 2, bw * s, bh * s);
+  }
+  const img = await frontImage(c);
+  const Wpt = F.w * PT, Hpt = F.h * PT, b = F.bleed * PT;
+  const parts = [], offs = [];
+  let len = 0;
+  const push = (u) => { if (typeof u === "string") u = latin1(u); parts.push(u); len += u.length; };
+  const obj = (num, body) => { offs[num] = len; push(`${num} 0 obj\n${body}\nendobj\n`); };
+  const sobj = (num, dict, data) => { offs[num] = len; push(`${num} 0 obj\n<< ${dict} /Length ${data.length} >>\nstream\n`); push(data); push("\nendstream\nendobj\n"); };
+  const box = (x0, y0, x1, y1) => `[${[x0, y0, x1, y1].map(n).join(" ")}]`;
+  push("%PDF-1.4\n%\xE2\xE3\xCF\xD3\n");
+  obj(1, "<< /Type /Catalog /Pages 2 0 R >>");
+  obj(2, "<< /Type /Pages /Kids [3 0 R] /Count 1 >>");
+  obj(3, `<< /Type /Page /Parent 2 0 R /MediaBox ${box(0, 0, Wpt, Hpt)} /BleedBox ${box(0, 0, Wpt, Hpt)} /TrimBox ${box(b, b, Wpt - b, Hpt - b)} /Resources << /XObject << /F 5 0 R >> >> /Contents 4 0 R >>`);
+  sobj(4, "", latin1(`q ${n(Wpt)} 0 0 ${n(Hpt)} 0 0 cm /F Do Q\n`));
+  sobj(5, `/Type /XObject /Subtype /Image /Width ${F.W} /Height ${F.H} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter ${img.filter}`, img.data);
+  const xref = len;
+  let xr = "xref\n0 6\n0000000000 65535 f \n";
+  for (let j = 1; j < 6; j++) xr += String(offs[j]).padStart(10, "0") + " 00000 n \n";
+  push(xr + `trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`);
+  return new Blob(parts, { type: "application/pdf" });
+}
+$("ofront").addEventListener("click", async () => {
+  const btn = $("ofront"), st = $("ostatus");
+  btn.disabled = true; st.classList.remove("err"); st.textContent = T.oCreating;
+  try {
+    const F = onlineFormat(), name = FT.frontName(F.tag);
+    saveBlob(await frontPdf(F), name);
+    st.textContent = FT.frontDone(name, F.w, F.h);
+  } catch (e) { console.error(e); st.textContent = T.failed(e.message); st.classList.add("err"); }
+  btn.disabled = false;
 });
 
 // ---------- Header band picker ----------
@@ -2113,7 +2483,7 @@ function hdRender() {
   $("hdGrid").querySelectorAll("[data-hd]").forEach((b) => b.onclick = () => {
     const id = b.dataset.hd;
     BD.header = id ? { style: id, text: BD.header?.text ?? HD_TEXTS[LANG === "de" ? "de" : "en"][0], caps: BD.header?.caps ?? true, clear: BD.header?.clear ?? false, match: false, shape: BD.header?.shape ?? "top" } : null;
-    hdRender(); bdSave(); bdRefresh(); setView("back");
+    hdRender(); bdSave(); bdRefresh(); setView(edView());
   });
 }
 $("hdText").addEventListener("input", (e) => { if (!BD.header) return; BD.header.text = e.target.value; bdSave(); bdRefresh(); });
@@ -2125,7 +2495,7 @@ $("hdShape").addEventListener("click", (e) => {
 $("hdMatch").addEventListener("change", (e) => {
   if (e.target.checked) BD.header = { style: "funken", text: HD_TEXTS[LANG === "de" ? "de" : "en"][0], caps: true, clear: false, ...BD.header, match: true };
   else if (BD.header) BD.header.match = false;
-  hdRender(); bdSave(); bdRefresh(); setView("back");
+  hdRender(); bdSave(); bdRefresh(); setView(edView());
 });
 $("hdClear").addEventListener("change", (e) => { if (!BD.header) return; BD.header.clear = e.target.checked; bdSave(); bdRefresh(); });
 $("hdPreset").addEventListener("change", (e) => {
@@ -2134,9 +2504,12 @@ $("hdPreset").addEventListener("change", (e) => {
   e.target.value = ""; bdSave(); bdRefresh();
 });
 
-bdLoad(); bdRenderList(); bdShowEditor(); updateOnlineNote(); bgRender(); hdRender();
+bdLoad(BACK, BD_KEY); bdLoad(FRONT, FD_KEY); bdRenderList(); bdShowEditor(); updateOnlineNote(); bgRender(); hdRender();
 // remembered preset: load the picture once the page is ready
-if (BD.bg && !BD.bg.img) loadPresetImage(BD.bg.id).then((img) => { if (BD.bg && !BD.bg.img) { BD.bg.img = img; bdRefresh(); } }).catch(() => { BD.bg = null; bgRender(); });
+if (BACK.bg && !BACK.bg.img) loadPresetImage(BACK.bg.id).then((img) => { if (BACK.bg && !BACK.bg.img) { BACK.bg.img = img; bdRefresh(); } }).catch(() => { BACK.bg = null; bgRender(); });
+if (FRONT.bg && !FRONT.bg.img && !FRONT.bg.color) loadPresetImage(FRONT.bg.id).then((img) => { if (FRONT.bg && !FRONT.bg.img) { FRONT.bg.img = img; refresh(false); } }).catch(() => { FRONT.bg = null; });
+tplRender();
+try { if (localStorage.getItem(FMODE_KEY) === "design") setFrontMode("design", false); } catch { /* private mode */ }
 
 // Start
 S.img = sampleImage();
